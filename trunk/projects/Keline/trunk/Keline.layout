@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_OpenGL\QR_OpenGLHelper.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1900" topLine="34" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_OS\QR_Windows\QR_DirectX\QR_DirectInput.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="731" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Renderer\QR_Renderer.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2040" topLine="16" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Renderer\QR_Renderer.h" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2537" topLine="166" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Polygon\QR_Polygon.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7241" topLine="153" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Renderer\QR_Renderer_OpenGL.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_OS\QR_Windows\QR_Window\QR_Window.cpp" open="1" top="1" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1618" topLine="24" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Collisions\QR_Collisions.h" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5895" topLine="124" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Renderer\QR_Renderer_OpenGL.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1816" topLine="30" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_OS\QR_Windows\QR_Window\QR_Window.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Collisions\QR_Collisions.cpp" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="22774" topLine="542" />
+		</Cursor>
+	</File>
+	<File name="Main.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Classes\QR_Application.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8479" topLine="180" />
+		</Cursor>
+	</File>
+	<File name="Shaders\fragment.glsl" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Shader\QR_Shader.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="743" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Classes\QR_Application.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3229" topLine="47" />
+		</Cursor>
+	</File>
+	<File name="Shaders\screenFragment.glsl" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="746" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Base\QR_Types\QR_Types.cpp" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Shaders\screenVertex.glsl" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="975" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Base\QR_Types\QR_Types.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1706" topLine="2" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Shader\QR_Shader_OpenGL.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2646" topLine="66" />
+		</Cursor>
+	</File>
+	<File name="Shaders\vertex.glsl" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Base\QR_Version\QR_Version.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3070" topLine="54" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Shapes\QR_Shapes.cpp" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Shapes\QR_Shapes.h" open="0" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="773" topLine="9" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Circle\QR_Circle.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2045" topLine="21" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Rectangle\QR_Rectangle.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1087" topLine="13" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Sprite\QR_Sprite.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1048" topLine="21" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Sprite\QR_Sprite.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="744" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Box\QR_Box.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4378" topLine="88" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_Sphere\QR_Sphere.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="582" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Geometry\QR_Matrix\QR_Matrix16.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8813" topLine="166" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Collisions\QR_AABBTree\QR_AABBTree.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="12413" topLine="367" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_Effect.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="726" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Camera\QR_Camera_OpenGL.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3579" topLine="76" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_Effect.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="901" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_MSAA_OpenGL_Effect.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5696" topLine="239" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Vertex\QR_Vertex.cpp" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="738" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_MSAA_OpenGL_Effect.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="973" topLine="9" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Geometry\QR_Vector\QR_Vector2D.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="11190" topLine="344" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Vertex\QR_Vertex.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1771" topLine="27" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_PostProcessingEffect.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1023" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Geometry\QR_Vector\QR_Vector3D.cpp" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Buffers\QR_VertexBuffer.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Effects\QR_PostProcessingEffect.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="819" topLine="1" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Geometry\QR_Vector\QR_Vector3D.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13506" topLine="429" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Base\QR_Exception\QR_Exception.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="157" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_3D\QR_Buffers\QR_VertexBuffer.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1367" topLine="20" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_Graphics\QR_Color\QR_Color.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1121" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\..\..\Engine\trunk\QR_OS\QR_Windows\QR_DirectX\QR_DirectInput.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5275" topLine="64" />
+		</Cursor>
+	</File>
+</CodeBlocks_layout_file>

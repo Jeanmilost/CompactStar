@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Keline" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Keline" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+				<Linker>
+					<Add library="C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\dinput8.lib" />
+					<Add library="C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\dxguid.lib" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/Keline" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-D__WIN32__" />
+			<Add directory="C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Buffers" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Camera" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_AABBTree" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Box" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Circle" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_CollideObject" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Collisions" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Polygon" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Rectangle" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Sphere" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Effects" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Models/QR_MD2" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Models/QR_Model" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_OpenGL" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Renderer" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Shader" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Shapes" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Sprite" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Texture" />
+			<Add directory="../../../../../Engine/trunk/QR_3D/QR_Vertex" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_Exception" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_FPS" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_MemoryTools" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_Sealed" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_StringTools/convertUTF" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_StringTools" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_Types" />
+			<Add directory="../../../../../Engine/trunk/QR_Base/QR_Version" />
+			<Add directory="../../../../../Engine/trunk/QR_Geometry/QR_Line" />
+			<Add directory="../../../../../Engine/trunk/QR_Geometry/QR_Matrix" />
+			<Add directory="../../../../../Engine/trunk/QR_Geometry/QR_Plane" />
+			<Add directory="../../../../../Engine/trunk/QR_Geometry/QR_Vector" />
+			<Add directory="../../../../../Engine/trunk/QR_Graphics/QR_Color" />
+			<Add directory="../../../../../Engine/trunk/QR_Maths/QR_Algorithms" />
+			<Add directory="../../../../../Engine/trunk/QR_Maths/QR_MathTools" />
+			<Add directory="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_DirectX" />
+			<Add directory="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_Window" />
+			<Add directory="Classes" />
+		</Compiler>
+		<Linker>
+			<Add library="opengl32" />
+			<Add library="glu32" />
+			<Add library="gdi32" />
+			<Add directory="C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86" />
+		</Linker>
+		<Unit filename="../../../../../Engine/trunk/Images/Icons/QREngine.ico" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Buffers/QR_VertexBuffer.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Buffers/QR_VertexBuffer.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Camera/QR_Camera.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Camera/QR_Camera.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Camera/QR_Camera_OpenGL.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Camera/QR_Camera_OpenGL.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_AABBTree/QR_AABBTree.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_AABBTree/QR_AABBTree.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Box/QR_Box.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Box/QR_Box.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Circle/QR_Circle.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Circle/QR_Circle.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_CollideObject/QR_CollideObject_2D.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_CollideObject/QR_CollideObject_2D.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_CollideObject/QR_CollideObject_3D.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_CollideObject/QR_CollideObject_3D.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Collisions/QR_Collisions.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Collisions/QR_Collisions.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Polygon/QR_Polygon.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Polygon/QR_Polygon.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Polygon/QR_PolygonList.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Polygon/QR_PolygonList.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Rectangle/QR_Rectangle.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Rectangle/QR_Rectangle.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Sphere/QR_Sphere.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Collisions/QR_Sphere/QR_Sphere.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_Effect.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_Effect.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_MSAA_OpenGL_Effect.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_MSAA_OpenGL_Effect.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_PostProcessingEffect.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Effects/QR_PostProcessingEffect.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_MD2/QR_MD2.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_MD2/QR_MD2.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_MD2/QR_MD2Parser.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_MD2/QR_MD2Parser.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_Model/QR_Model.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Models/QR_Model/QR_Model.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_OpenGL/QR_OpenGLHelper.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_OpenGL/QR_OpenGLHelper.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Renderer/QR_Renderer.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Renderer/QR_Renderer.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Renderer/QR_Renderer_OpenGL.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Renderer/QR_Renderer_OpenGL.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shader/QR_Shader.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shader/QR_Shader.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shader/QR_Shader_OpenGL.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shader/QR_Shader_OpenGL.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shapes/QR_Shapes.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Shapes/QR_Shapes.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Sprite/QR_Sprite.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Sprite/QR_Sprite.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Texture/QR_Texture.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Texture/QR_Texture.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Texture/QR_Texture_OpenGL.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Texture/QR_Texture_OpenGL.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Vertex/QR_Vertex.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_3D/QR_Vertex/QR_Vertex.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Exception/QR_Exception.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Exception/QR_Exception.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_FPS/QR_FPS.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_FPS/QR_FPS.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_MemoryTools/QR_MemoryTools.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_MemoryTools/QR_MemoryTools.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Sealed/QR_Sealed.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Sealed/QR_Sealed.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_StringTools/QR_StringTools.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_StringTools/QR_StringTools.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_StringTools/convertUTF/convertUTF.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_StringTools/convertUTF/convertUTF.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Types/QR_Types.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Types/QR_Types.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Version/QR_Version.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Base/QR_Version/QR_Version.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Line/QR_Line.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Line/QR_Line.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Matrix/QR_Matrix16.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Matrix/QR_Matrix16.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Plane/QR_Plane.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Plane/QR_Plane.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Vector/QR_Vector2D.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Vector/QR_Vector2D.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Vector/QR_Vector3D.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Geometry/QR_Vector/QR_Vector3D.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Graphics/QR_Color/QR_Color.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Graphics/QR_Color/QR_Color.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Maths/QR_Algorithms/QR_Algorithms.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Maths/QR_Algorithms/QR_Algorithms.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_Maths/QR_MathTools/QR_MathTools.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_Maths/QR_MathTools/QR_MathTools.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_DirectX/QR_DirectInput.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_DirectX/QR_DirectInput.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_DirectX/QR_DirectX.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_DirectX/QR_DirectX.h" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_Window/QR_Window.cpp" />
+		<Unit filename="../../../../../Engine/trunk/QR_OS/QR_Windows/QR_Window/QR_Window.h" />
+		<Unit filename="Classes/QR_Application.cpp" />
+		<Unit filename="Classes/QR_Application.h" />
+		<Unit filename="Classes/Resources.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="Classes/Resources.rh" />
+		<Unit filename="Main.cpp" />
+		<Unit filename="Shaders/fragment.glsl" />
+		<Unit filename="Shaders/screenFragment.glsl" />
+		<Unit filename="Shaders/screenVertex.glsl" />
+		<Unit filename="Shaders/vertex.glsl" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

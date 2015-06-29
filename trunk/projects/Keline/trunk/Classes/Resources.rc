@@ -1,0 +1,3 @@
+#include "Resources.rh"
+
+IDI_MAIN_ICON ICON "..\\..\\..\\..\\..\\Engine\\trunk\\Images\\Icons\\QREngine.ico"

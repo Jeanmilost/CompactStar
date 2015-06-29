@@ -1,0 +1,766 @@
+# depslib dependency file v1.0
+1430000734 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_buffers\qr_vertexbuffer.cpp
+	"QR_VertexBuffer.h"
+	<memory>
+	<cstring>
+	"QR_Exception.h"
+
+1428601586 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_buffers\qr_vertexbuffer.h
+	<vector>
+	<map>
+	"QR_Types.h"
+	"QR_Vertex.h"
+
+1428601008 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_polygon\qr_polygon.h
+	"QR_Types.h"
+	"QR_CollideObject_3D.h"
+	"QR_Matrix16.h"
+	"QR_Plane.h"
+
+1418763812 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collideobject\qr_collideobject_3d.h
+	"QR_Types.h"
+	"QR_Vector3D.h"
+
+1401476221 e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_types\qr_types.h
+
+1433095450 e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_vector\qr_vector3d.h
+	<math.h>
+	"QR_Types.h"
+	"QR_Exception.h"
+
+1426451254 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_sealed\qr_sealed.h
+
+1428609232 e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_matrix\qr_matrix16.h
+	<memory>
+	<cmath>
+	<cstring>
+	"QR_Vector3D.h"
+	"QR_Types.h"
+	<stdint.h>
+
+1429202144 e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_plane\qr_plane.h
+	"QR_Vector3D.h"
+	"QR_Types.h"
+
+1428609484 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_polygon\qr_polygonlist.h
+	<list>
+	"QR_Polygon.h"
+
+1428585910 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_box\qr_box.h
+	"QR_CollideObject_3D.h"
+	"QR_Vector3D.h"
+	"QR_Plane.h"
+
+1428586296 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_aabbtree\qr_aabbtree.h
+	"QR_Types.h"
+	"QR_Vector3D.h"
+	"QR_Plane.h"
+	"QR_Polygon.h"
+	"QR_PolygonList.h"
+	"QR_Sphere.h"
+	"QR_Box.h"
+
+1428585890 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_sphere\qr_sphere.h
+	"QR_CollideObject_3D.h"
+
+1428586312 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collisions\qr_collisions.h
+	"QR_Types.h"
+	"QR_Vertex.h"
+	"QR_VertexBuffer.h"
+	"QR_Box.h"
+	"QR_Circle.h"
+	"QR_Polygon.h"
+	"QR_PolygonList.h"
+	"QR_Rectangle.h"
+	"QR_Sphere.h"
+
+1428585916 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_circle\qr_circle.h
+	"QR_CollideObject_2D.h"
+	"QR_Vector2D.h"
+
+1418763812 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collideobject\qr_collideobject_2d.h
+	"QR_Types.h"
+	"QR_Vector2D.h"
+
+1428609300 e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_vector\qr_vector2d.h
+	<math.h>
+	"QR_Types.h"
+	"QR_Exception.h"
+
+1428586082 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_rectangle\qr_rectangle.h
+	"QR_CollideObject_2D.h"
+	"QR_Vector2D.h"
+
+1428602204 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_camera\qr_camera.cpp
+	"QR_Camera.h"
+
+1428602352 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_camera\qr_camera.h
+	<math.h>
+	"QR_Types.h"
+	"QR_Vector3D.h"
+	"QR_Matrix16.h"
+
+1428610434 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_camera\qr_camera_opengl.cpp
+	"QR_Camera_OpenGL.h"
+	<math.h>
+	<gl\gl.h>
+	<ES1/gl.h>
+	<ES2/gl.h>
+
+1428602448 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_camera\qr_camera_opengl.h
+	"QR_Types.h"
+	"QR_Camera.h"
+	"QR_OpenGLHelper.h"
+
+1398997972 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_cmdprocessor\qr_cmdprocessor.cpp
+	"QR_CmdProcessor.h"
+
+1398997991 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_cmdprocessor\qr_cmdprocessor.h
+
+1428614426 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_aabbtree\qr_aabbtree.cpp
+	"QR_AABBTree.h"
+	<stddef.h>
+	<cmath>
+	<memory>
+	"QR_Exception.h"
+	"QR_Collisions.h"
+
+1428613812 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_box\qr_box.cpp
+	"QR_Box.h"
+	<cmath>
+	"QR_Exception.h"
+	"QR_Sphere.h"
+	"QR_Collisions.h"
+
+1428613878 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_circle\qr_circle.cpp
+	"QR_Circle.h"
+	<memory>
+	<cmath>
+	"QR_Exception.h"
+
+1418763812 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collideobject\qr_collideobject_2d.cpp
+	"QR_CollideObject_2D.h"
+
+1418763812 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collideobject\qr_collideobject_3d.cpp
+	"QR_CollideObject_3D.h"
+
+1429207997 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_collisions\qr_collisions.cpp
+	"QR_Collisions.h"
+	<cmath>
+	"QR_Exception.h"
+
+1429207135 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_polygon\qr_polygon.cpp
+	"QR_Polygon.h"
+	<math.h>
+	<vector>
+	<cmath>
+	"QR_Exception.h"
+	"QR_Line.h"
+
+1429204552 e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_line\qr_line.h
+	<math.h>
+	"QR_Vector3D.h"
+
+1428609552 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_polygon\qr_polygonlist.cpp
+	"QR_PolygonList.h"
+
+1428586096 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_rectangle\qr_rectangle.cpp
+	"QR_Rectangle.h"
+	<memory>
+	"QR_Exception.h"
+
+1428614068 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_collisions\qr_sphere\qr_sphere.cpp
+	"QR_Sphere.h"
+	<cmath>
+	"QR_Exception.h"
+	"QR_Box.h"
+	"QR_Collisions.h"
+
+1428609350 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_md2\qr_md2.cpp
+	"QR_MD2.h"
+	<cstdio>
+	<cmath>
+	"QR_Exception.h"
+
+1428609354 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_md2\qr_md2.h
+	<vector>
+	"QR_Types.h"
+	"QR_Color.h"
+	"QR_Vector3D.h"
+	"QR_Vertex.h"
+	"QR_MD2Parser.h"
+	"QR_Model.h"
+
+1428581457 e:\jeanmilost\qrengine\engine\trunk\qr_graphics\qr_color\qr_color.h
+	"QR_Types.h"
+	<stdint.h>
+
+1426447666 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_md2\qr_md2parser.h
+	<cstdio>
+	<string>
+	"QR_Sealed.h"
+	"QR_Types.h"
+
+1428609212 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_md2\qr_md2parser.cpp
+	"QR_MD2Parser.h"
+	<memory>
+	<cstring>
+	"QR_Exception.h"
+
+1419949658 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer.cpp
+	"QR_Renderer.h"
+
+1430752525 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer.h
+	<string>
+	<vector>
+	"QR_Types.h"
+	"QR_Color.h"
+	"QR_VertexBuffer.h"
+	"QR_PostProcessingEffect.h"
+	"QR_MD2.h"
+
+1418763814 e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_algorithms\qr_algorithms.h
+	<cmath>
+	"QR_Types.h"
+
+1430752895 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl.cpp
+	"QR_Renderer_OpenGL.h"
+	<sstream>
+	<cmath>
+	"QR_Exception.h"
+	<gl/glew.h>
+	<gl/gl.h>
+	<ES1/gl.h>
+	<ES2/gl.h>
+	<ES2/glext.h>
+	<gl/glu.h>
+	<gl/glfw.h>
+
+1430752858 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl.h
+	"QR_Types.h"
+	"QR_Renderer.h"
+	"QR_Shader_OpenGL.h"
+	<Windows.h>
+
+1398954689 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl_libraries.cpp
+	"QR_Renderer_OpenGL_Libraries.h"
+	<sstream>
+	<GL/glew.h>
+	<GL/glfw.h>
+	<gl/gl.h>
+
+1398954737 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl_libraries.h
+	<QR_Renderer_OpenGL.h>
+
+1399835518 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl_windows.cpp
+	"QR_Renderer_OpenGL_Windows.h"
+	<sstream>
+	<gl/gl.h>
+
+1401235130 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_renderer\qr_renderer_opengl_windows.h
+	<QR_Renderer_OpenGL.h>
+	<gl/glu.h>
+	<windows.h>
+
+1428609754 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shader\qr_shader.cpp
+	"QR_Shader.h"
+
+1428609750 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shader\qr_shader.h
+
+1428600348 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shader\qr_shader_opengl.cpp
+	"QR_Shader_OpenGL.h"
+	<fstream>
+	<sstream>
+	"QR_Exception.h"
+
+1428600374 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shader\qr_shader_opengl.h
+	<string>
+	"QR_Types.h"
+	"QR_Shader.h"
+	<GL/glew.h>
+	<ES1/gl.h>
+	<ES2/gl.h>
+
+1401639247 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_dateandtimetools\qr_dateandtimetools.cpp
+	"QR_DateAndTimeTools.h"
+	<cstdlib>
+	<sstream>
+	<ctime>
+
+1394048152 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_dateandtimetools\qr_dateandtimetools.h
+	<string>
+
+1428600454 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_exception\qr_exception.cpp
+	"QR_Exception.h"
+	<sstream>
+
+1428600464 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_exception\qr_exception.h
+	<exception>
+	<string>
+	"QR_Types.h"
+
+1401643316 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_filetools\qr_filetools.cpp
+	"QR_FileTools.h"
+	<stdexcept>
+	<cstdio>
+	<cstring>
+	<windows.h>
+	<Shlobj.h>
+
+1401642383 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_filetools\qr_filetools.h
+	<string>
+	"QR_Version.h"
+
+1428599370 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_version\qr_version.h
+	<string>
+	"QR_Types.h"
+
+1428594842 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_fps\qr_fps.cpp
+	"QR_FPS.h"
+	<sstream>
+
+1428594828 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_fps\qr_fps.h
+	<string>
+	<ctime>
+	"QR_Types.h"
+
+1394048151 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_globalresources\qr_globalresources.cpp
+	"QR_GlobalResources.h"
+
+1394048151 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_globalresources\qr_globalresources.h
+	<string>
+
+1418763813 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_memorytools\qr_memorytools.cpp
+	"QR_MemoryTools.h"
+
+1418763813 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_memorytools\qr_memorytools.h
+	"QR_Exception.h"
+
+1394827295 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_random\qr_random.cpp
+	"QR_Random.h"
+
+1395713425 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_random\qr_random.h
+	<cstdlib>
+	<ctime>
+	<iostream>
+
+1426451251 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_sealed\qr_sealed.cpp
+	"QR_Sealed.h"
+
+1418763813 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_stringtools\convertutf\convertutf.c
+	"ConvertUTF.h"
+	<stdio.h>
+
+1418763813 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_stringtools\convertutf\convertutf.h
+
+1433021454 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_stringtools\qr_stringtools.cpp
+	"QR_StringTools.h"
+	"QR_Exception.h"
+	"ConvertUTF.h"
+
+1433099513 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_stringtools\qr_stringtools.h
+	<string>
+	"QR_Types.h"
+
+1401643112 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_systemtools\qr_systemtools.cpp
+	"QR_SystemTools.h"
+	<stdexcept>
+	<cstring>
+	"QR_Macros.h"
+	"Lmcons.h"
+
+1401642876 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_systemtools\qr_systemtools.h
+	<string>
+	<Windows.h>
+
+1394048362 e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_macros\qr_macros.h
+	"QR_Exception.h"
+	"QR_Logger_HTML.h"
+
+1394048362 e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_logger\qr_logger_html.h
+	"QR_StringTools.h"
+	"QR_Logger.h"
+
+1394048362 e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_logger\qr_logger.h
+	<memory>
+	<sstream>
+
+1428599330 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_version\qr_version.cpp
+	"QR_Version.h"
+	<sstream>
+
+1426450641 source:e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_line\qr_line.cpp
+	"QR_Line.h"
+
+1426447766 source:e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_matrix\qr_matrix16.cpp
+	"QR_Matrix16.h"
+
+1426450672 source:e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_plane\qr_plane.cpp
+	"QR_Plane.h"
+
+1418763814 source:e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_vector\qr_vector2d.cpp
+	"QR_Vector2D.h"
+
+1426447792 source:e:\jeanmilost\qrengine\engine\trunk\qr_geometry\qr_vector\qr_vector3d.cpp
+	"QR_Vector3D.h"
+
+1428581439 source:e:\jeanmilost\qrengine\engine\trunk\qr_graphics\qr_color\qr_color.cpp
+	"QR_Color.h"
+
+1428599806 source:e:\jeanmilost\qrengine\engine\trunk\qr_graphics\qr_gfxcommon\qr_gfxcommon.cpp
+	"QR_GfxCommon.h"
+	<memory>
+	<cstring>
+
+1428599842 e:\jeanmilost\qrengine\engine\trunk\qr_graphics\qr_gfxcommon\qr_gfxcommon.h
+	"QR_Types.h"
+
+1401643156 source:e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_logger\qr_logger.cpp
+	"QR_Logger.h"
+	<cstdio>
+	"QR_StringTools.h"
+	"QR_DateAndTimeTools.h"
+
+1394048362 source:e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_logger\qr_logger_html.cpp
+	"QR_Logger_HTML.h"
+	"QR_Exception.h"
+
+1394048362 source:e:\jeanmilost\qrengine\engine\trunk\qr_logger\qr_macros\qr_macros.cpp
+	"QR_Macros.h"
+	"QR_GlobalResources.h"
+	<windows.h>
+
+1428610134 source:e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_algorithms\qr_algorithms.cpp
+	"QR_Algorithms.h"
+
+1428610144 source:e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_mathtools\qr_mathtools.cpp
+	"QR_MathTools.h"
+
+1428614078 e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_mathtools\qr_mathtools.h
+	<cmath>
+	"QR_Types.h"
+
+1399828986 source:e:\jeanmilost\qrengine\engine\trunk\qr_maths\qr_types\qr_types.cpp
+	"QR_Types.h"
+
+1430753047 source:e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_window\qr_window.cpp
+	"QR_Window.h"
+	<memory>
+	"QR_Exception.h"
+	<cstring>
+
+1428601406 e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_window\qr_window.h
+	<string>
+	"QR_Types.h"
+	"QR_FPS.h"
+	"QR_Renderer.h"
+	<windows.h>
+
+1401579387 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\helloworld\__trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	"QR_Camera_OpenGL.h"
+
+1399080142 e:\jeanmilost\qrengine\demos\codeblocks\opengl\helloworld\__trunk\classes\qr_application.h
+	"QR_Renderer_OpenGL_Windows.h"
+	"QR_Window.h"
+
+1398099859 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\helloworld\__trunk\main.cpp
+	"QR_Application.h"
+
+1402183993 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\__trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+
+1402184124 e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\__trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_Camera_OpenGL.h"
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL_Windows.h"
+	"QR_Window.h"
+
+1401646429 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\__trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1385764122 e:\jeanmilost\qrengine\libs\libjpeg\jpeglib.h
+	"jconfig.h"
+	"jmorecfg.h"
+	"jpegint.h"
+	"jerror.h"
+
+1237661960 e:\jeanmilost\qrengine\libs\libjpeg\jconfig.h
+
+1379406020 e:\jeanmilost\qrengine\libs\libjpeg\jmorecfg.h
+
+1363105612 e:\jeanmilost\qrengine\libs\libjpeg\jpegint.h
+
+1335706538 e:\jeanmilost\qrengine\libs\libjpeg\jerror.h
+
+1404929712 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+	"QR_Vertex.h"
+
+1404934555 e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_Camera_OpenGL.h"
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL.h"
+	"QR_Window.h"
+
+1402185733 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\animatedmesh\trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1433099417 e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_types\qr_types.h
+	<cstddef>
+	<stdint.h>
+	<vector>
+
+1426447718 source:e:\jeanmilost\qrengine\engine\trunk\qr_base\qr_types\qr_types.cpp
+	"QR_Types.h"
+
+1433094158 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_vertex\qr_vertex.h
+	"QR_Types.h"
+
+1426447683 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_vertex\qr_vertex.cpp
+	"QR_Vertex.h"
+
+1428616137 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shapes\qr_shapes.cpp
+	"QR_Shapes.h"
+	"QR_Algorithms.h"
+
+1428591152 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_shapes\qr_shapes.h
+	"QR_Types.h"
+	"QR_Color.h"
+	"QR_Vertex.h"
+	"QR_VertexBuffer.h"
+
+1404935666 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\__trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+	"QR_Vertex.h"
+
+1404935677 e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\__trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_Camera_OpenGL.h"
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL.h"
+	"QR_Window.h"
+
+1404935992 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\__trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1418829684 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+	"QR_Algorithms.h"
+	"QR_Vertex.h"
+	"Resources.rh"
+
+1418777671 e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL.h"
+	"QR_Window.h"
+	"QR_Camera_OpenGL.h"
+	"QR_Shader_OpenGL.h"
+
+1418765393 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1406812478 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\resources.rc
+	"Resources.rh"
+
+1406812520 e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\resources.rh
+
+1418765393 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\classes\resources.rc
+	"Resources.rh"
+
+1418765393 e:\jeanmilost\qrengine\demos\codeblocks\opengl\black&white\trunk\classes\resources.rh
+
+1426447676 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_model\qr_model.h
+	"QR_Types.h"
+	"QR_Vector3D.h"
+	"QR_Matrix16.h"
+
+1426447671 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_model\qr_model.cpp
+	"QR_Model.h"
+
+1428609626 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_opengl\qr_openglhelper.cpp
+	"QR_OpenGLHelper.h"
+
+1428609636 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_opengl\qr_openglhelper.h
+	"QR_Matrix16.h"
+	"QR_Algorithms.h"
+	<glm/glm.hpp>
+	<glm/gtc/type_ptr.hpp>
+
+1419950389 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\__trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+	"QR_Algorithms.h"
+	"QR_Vertex.h"
+	<gl/wglew.h>
+	"Resources.rh"
+
+1419950393 e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\__trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL.h"
+	"QR_Window.h"
+	"QR_Camera_OpenGL.h"
+	"QR_Shader_OpenGL.h"
+	"QR_MSAA_OpenGL_Effect.h"
+	"QR_DirectInput.h"
+
+1418765393 e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\__trunk\classes\resources.rh
+
+1418765393 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\__trunk\classes\resources.rc
+	"Resources.rh"
+
+1419731243 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\__trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1428610166 e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_directx\qr_directinput.h
+	"QR_DirectX.h"
+	<dinput.h>
+
+1428610194 e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_directx\qr_directx.h
+	<Windows.h>
+
+1274308618 c:\program files (x86)\microsoft directx sdk (june 2010)\include\dinput.h
+	<objbase.h>
+
+1428610170 source:e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_directx\qr_directinput.cpp
+	"QR_DirectInput.h"
+
+1428610182 source:e:\jeanmilost\qrengine\engine\trunk\qr_os\qr_windows\qr_directx\qr_directx.cpp
+	"QR_DirectX.h"
+
+1428609516 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_effect.cpp
+	"QR_Effect.h"
+
+1428609526 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_effect.h
+
+1428609594 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_msaa_opengl_effect.cpp
+	"QR_MSAA_OpenGL_Effect.h"
+	"QR_Exception.h"
+
+1428586452 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_msaa_opengl_effect.h
+	"QR_Types.h"
+	"QR_PostProcessingEffect.h"
+	"QR_Shader_OpenGL.h"
+	<GL\glew.h>
+	<gl/gl.h>
+
+1428609586 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_postprocessingeffect.h
+	"QR_Effect.h"
+
+1428609572 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_effects\qr_postprocessingeffect.cpp
+	"QR_PostProcessingEffect.h"
+
+1428609810 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_sprite\qr_sprite.cpp
+	"QR_Sprite.h"
+	"QR_MemoryTools.h"
+	"QR_Collisions.h"
+
+1430752937 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_sprite\qr_sprite.h
+	"QR_Types.h"
+	"QR_Vector2D.h"
+	"QR_Color.h"
+	"QR_VertexBuffer.h"
+	"QR_Model.h"
+	"QR_Renderer.h"
+	"QR_PolygonList.h"
+	"QR_Sphere.h"
+	"QR_Texture.h"
+
+1428609832 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_texture\qr_texture.h
+	<string>
+
+1428609818 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_texture\qr_texture.cpp
+	"QR_Texture.h"
+
+1431301756 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_texture\qr_texture_opengl.cpp
+	"QR_Texture_OpenGL.h"
+	<fstream>
+	"QR_Exception.h"
+
+1428591952 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_texture\qr_texture_opengl.h
+	"QR_Types.h"
+	"QR_Texture.h"
+	<gl/glew.h>
+	<gl/gl.h>
+
+1428621772 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\trunk\classes\qr_application.cpp
+	"QR_Application.h"
+	<fstream>
+	"QR_Exception.h"
+	"QR_Algorithms.h"
+	"QR_Vertex.h"
+	<gl/wglew.h>
+	"Resources.rh"
+
+1428621618 e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\trunk\classes\qr_application.h
+	<GL\glew.h>
+	"QR_MD2.h"
+	"QR_Renderer_OpenGL.h"
+	"QR_Window.h"
+	"QR_Camera_OpenGL.h"
+	"QR_Shader_OpenGL.h"
+	"QR_MSAA_OpenGL_Effect.h"
+	"QR_DirectInput.h"
+
+1428621618 e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\trunk\classes\resources.rh
+
+1428621618 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\trunk\classes\resources.rc
+	"Resources.rh"
+
+1428621618 source:e:\jeanmilost\qrengine\demos\codeblocks\opengl\keline\trunk\main.cpp
+	"QR_Exception.h"
+	"QR_Application.h"
+
+1428609350 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_md2\qr_md2.cpp
+	"QR_MD2.h"
+	<cstdio>
+	<cmath>
+	"QR_Exception.h"
+
+1428609354 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_md2\qr_md2.h
+	<vector>
+	"QR_Types.h"
+	"QR_Color.h"
+	"QR_Vector3D.h"
+	"QR_Vertex.h"
+	"QR_MD2Parser.h"
+	"QR_Model.h"
+
+1426447666 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_md2\qr_md2parser.h
+	<cstdio>
+	<string>
+	"QR_Sealed.h"
+	"QR_Types.h"
+
+1426447676 e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_model\qr_model.h
+	"QR_Types.h"
+	"QR_Vector3D.h"
+	"QR_Matrix16.h"
+
+1428609212 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_md2\qr_md2parser.cpp
+	"QR_MD2Parser.h"
+	<memory>
+	<cstring>
+	"QR_Exception.h"
+
+1426447671 source:e:\jeanmilost\qrengine\engine\trunk\qr_3d\qr_models\qr_model\qr_model.cpp
+	"QR_Model.h"
+

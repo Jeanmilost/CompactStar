@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{F875C2EC-FE46-451A-8B33-DD201863D50C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="..\Dll\3DModelsReaderEngine.cbproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TestDLL.cbproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="3DModelsReaderEngine">
+        <MSBuild Projects="..\Dll\3DModelsReaderEngine.cbproj"/>
+    </Target>
+    <Target Name="3DModelsReaderEngine:Clean">
+        <MSBuild Projects="..\Dll\3DModelsReaderEngine.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="3DModelsReaderEngine:Make">
+        <MSBuild Projects="..\Dll\3DModelsReaderEngine.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="TestDLL">
+        <MSBuild Projects="TestDLL.cbproj"/>
+    </Target>
+    <Target Name="TestDLL:Clean">
+        <MSBuild Projects="TestDLL.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestDLL:Make">
+        <MSBuild Projects="TestDLL.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="3DModelsReaderEngine;TestDLL"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="3DModelsReaderEngine:Clean;TestDLL:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="3DModelsReaderEngine:Make;TestDLL:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
