@@ -15,6 +15,9 @@
 
 #include "CSR_Geometry.h"
 
+// compactStar engine
+#include "CSR_Common.h"
+
 // std
 #include <math.h>
 
@@ -74,6 +77,24 @@ void csrVec3Dot(const CSR_Vector3* pV1, const CSR_Vector3* pV2, float* pR)
     *pR = ((pV1->m_X * pV2->m_X) + (pV1->m_Y * pV2->m_Y) + (pV1->m_Z * pV2->m_Z));
 }
 //---------------------------------------------------------------------------
+int csrVec3BetweenRange(const CSR_Vector3* pV,
+                        const CSR_Vector3* pRS,
+                        const CSR_Vector3* pRE,
+                              float        tolerance)
+{
+    // check if each vector component is between start and end limits
+    if (!csrMathBetween(pV->m_X, pRS->m_X, pRE->m_X, tolerance))
+        return 0;
+
+    if (!csrMathBetween(pV->m_Y, pRS->m_Y, pRE->m_Y, tolerance))
+        return 0;
+
+    if (!csrMathBetween(pV->m_Z, pRS->m_Z, pRE->m_Z, tolerance))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 // Matrix functions
 //---------------------------------------------------------------------------
 void csrMatIdentity(CSR_Matrix* pR)
@@ -84,13 +105,7 @@ void csrMatIdentity(CSR_Matrix* pR)
     pR->m_Table[0][3] = 0.0f; pR->m_Table[1][3] = 0.0f; pR->m_Table[2][3] = 0.0f; pR->m_Table[3][3] = 1.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatOrtho(float       left,
-                 float       right,
-                 float       bottom,
-                 float       top,
-                 float       zNear,
-                 float       zFar,
-                 CSR_Matrix* pR)
+void csrMatOrtho(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix* pR)
 {
     // OpenGL specifications                                 can be rewritten as
     // |  2/(r-l)  0         0        -(r+l)/(r-l)  |        |  2/(r-l)  0        0        (r+l)/(l-r)  |
@@ -115,13 +130,7 @@ void csrMatOrtho(float       left,
     pR->m_Table[0][3] = 0.0f;       pR->m_Table[1][3] = 0.0f;       pR->m_Table[2][3] = 0.0f;       pR->m_Table[3][3] = 1.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatFrustum(float       left,
-                   float       right,
-                   float       bottom,
-                   float       top,
-                   float       zNear,
-                   float       zFar,
-                   CSR_Matrix* pR)
+void csrMatFrustum(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix* pR)
 {
     // OpenGL specifications                                          can be rewritten as
     // |  2n/(r-l)     0             0             0         |        |  2n/(r-l)     0             0            0         |
@@ -147,11 +156,7 @@ void csrMatFrustum(float       left,
     pR->m_Table[0][3] = 0.0f;      pR->m_Table[1][3] = 0.0f;      pR->m_Table[2][3] = -1.0f;      pR->m_Table[3][3] = 0.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatPerspective(float       fovyDeg,
-                       float       aspect,
-                       float       zNear,
-                       float       zFar,
-                       CSR_Matrix* pR)
+void csrMatPerspective(float fovyDeg, float aspect, float zNear, float zFar, CSR_Matrix* pR)
 {
     const float maxY    =  zNear *  tanf(fovyDeg * M_PI / 360.0f);
     const float maxX    =  maxY   * aspect;
@@ -415,10 +420,7 @@ void csrQuatNormalize(const CSR_Quaternion* pQ, CSR_Quaternion* pR)
 //---------------------------------------------------------------------------
 void csrQuatDot(const CSR_Quaternion* pQ1, const CSR_Quaternion* pQ2, float* pR)
 {
-    *pR = ((pQ1->m_X * pQ2->m_X) +
-           (pQ1->m_Y * pQ2->m_Y) +
-           (pQ1->m_Z * pQ2->m_Z) +
-           (pQ1->m_W * pQ2->m_W));
+    *pR = ((pQ1->m_X * pQ2->m_X) + (pQ1->m_Y * pQ2->m_Y) + (pQ1->m_Z * pQ2->m_Z) + (pQ1->m_W * pQ2->m_W));
 }
 //---------------------------------------------------------------------------
 void csrQuatScale(const CSR_Quaternion* pQ, float s, CSR_Quaternion* pR)
@@ -484,121 +486,176 @@ void csrQuatRotate(const CSR_Quaternion* pQ, const CSR_Vector3* pV, CSR_Vector3*
     qm.m_X = pQ->m_X * qv.m_X * qi.m_X;
     qm.m_Y = pQ->m_Y * qv.m_Y * qi.m_Y;
     qm.m_Z = pQ->m_Z * qv.m_Z * qi.m_Z;
-    qm.m_W = pQ->m_Y * qv.m_W * qi.m_W;
+    qm.m_W = pQ->m_W * qv.m_W * qi.m_W;
 
     pR->m_X = qm.m_X;
-    pR->m_X = qm.m_Y;
+    pR->m_Y = qm.m_Y;
     pR->m_Z = qm.m_Z;
 }
 //---------------------------------------------------------------------------
-void csrQuatSlerp(const CSR_Quaternion* pQ1, const CSR_Quaternion* pQ2, float p, CSR_Quaternion* pR)
+int csrQuatSlerp(const CSR_Quaternion* pQ1, const CSR_Quaternion* pQ2, float p, CSR_Quaternion* pR)
 {
+    CSR_Quaternion interpolateWith;
+    float          scale0;
+    float          scale1;
+    float          theta;
+    float          sinTheta;
+    float          result;
+
     // are quaternions identical?
-    if ((*this) == other)
-        return (*this);
+    if (pQ1->m_X == pQ2->m_X && pQ1->m_Y == pQ2->m_Y && pQ1->m_Z == pQ2->m_Z && pQ1->m_W == pQ2->m_W)
+    {
+        *pR = *pQ1;
+        return 1;
+    }
 
     // calculate dot product between q1 and q2
-    T result = Dot(other);
-
-    DWF_Quaternion interpolateWith;
+    csrQuatDot(pQ1, pQ2, &result);
 
     // check if angle is higher than 90° (this happen if dot product is less than 0)
-    if (result < T(0.0))
+    if (result < 0.0f)
     {
         // negate the second quaternion and the dot product result
-        interpolateWith = -other;
-        result          = -result;
+        interpolateWith.m_X = -pQ2->m_X;
+        interpolateWith.m_Y = -pQ2->m_Y;
+        interpolateWith.m_Z = -pQ2->m_Z;
+        interpolateWith.m_W = -pQ2->m_W;
+        result              = -result;
     }
     else
-        interpolateWith = other;
+        interpolateWith = *pQ2;
 
-    // calculate the interpolation first and second scale
-    T scale0 = T(1.0) - p;
-    T scale1 = p;
+    // calculate the first and second scaling factor to apply to the interpolation
+    scale0 = 1.0f - p;
+    scale1 = p;
 
-    // is angle large enough to apply the calculation
-    if ((T(1.0) - result) > T(0.1))
+    // is angle large enough to apply the calculation?
+    if ((1.0f - result) > 0.1f)
     {
         // calculate the angle between the 2 quaternions and get the sinus of that angle
-        T theta    = std::acos(result);
-        T sinTheta = std::sinf(theta);
+        theta    = acos(result);
+        sinTheta = sinf(theta);
 
         // is resulting sinus equal to 0? (just to verify, should not happen)
         if (!sinTheta)
-            M_THROW_EXCEPTION("Invalid value");
+        {
+            pR->m_X = 0.0f;
+            pR->m_Y = 0.0f;
+            pR->m_Z = 0.0f;
+            pR->m_W = 0.0f;
+
+            return 0;
+        }
 
         // calculate the scaling for q1 and q2, according to the angle and it's sine value
-        scale0 = std::sinf((T(1.0) - p) * theta)  / sinTheta;
-        scale1 = std::sinf((p           * theta)) / sinTheta;
+        scale0 = sinf((1.0f - p) * theta) / sinTheta;
+        scale1 = sinf (p         * theta) / sinTheta;
     }
 
     // calculate the resulting quaternion by using a special form of linear interpolation
-    return DWF_Quaternion<T>((scale0 * m_X) + (scale1 * interpolateWith.m_X);
-                             (scale0 * m_Y) + (scale1 * interpolateWith.m_Y);
-                             (scale0 * m_Z) + (scale1 * interpolateWith.m_Z);
-                             (scale0 * m_W) + (scale1 * interpolateWith.m_W));
+    pR->m_X = (scale0 * pQ1->m_X) + (scale1 * interpolateWith.m_X);
+    pR->m_Y = (scale0 * pQ1->m_Y) + (scale1 * interpolateWith.m_Y);
+    pR->m_Z = (scale0 * pQ1->m_Z) + (scale1 * interpolateWith.m_Z);
+    pR->m_W = (scale0 * pQ1->m_W) + (scale1 * interpolateWith.m_W);
+
+    return 1;
 }
 //---------------------------------------------------------------------------
-void csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR)
+int csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR)
 {
-    // calculate the matrix diagonal by adding up it's diagonal indices (also known as "trace")
-    const T diagonal = matrix.m_Table[0][0] +
-                       matrix.m_Table[1][1] +
-                       matrix.m_Table[2][2] +
-                       matrix.m_Table[3][3];
+    float diagonal;
+    float scale;
 
-    T scale = T(0.0);
+    // calculate the matrix diagonal by adding up it's diagonal indices (also known as "trace")
+    diagonal = pM->m_Table[0][0] + pM->m_Table[1][1] + pM->m_Table[2][2] + pM->m_Table[3][3];
 
     // is diagonal greater than zero?
-    if (diagonal > T(0.00000001))
+    if (diagonal > 0.00000001f)
     {
         // calculate the diagonal scale
-        scale = sqrt(diagonal) * T(2.0);
+        scale = sqrt(diagonal) * 2.0f;
 
         // calculate the quaternion values using the respective equation
-        m_X = (matrix.m_Table[1][2] - matrix.m_Table[2][1]) / scale;
-        m_Y = (matrix.m_Table[2][0] - matrix.m_Table[0][2]) / scale;
-        m_Z = (matrix.m_Table[0][1] - matrix.m_Table[1][0]) / scale;
-        m_W = T(0.25) * scale;
+        pR->m_X = (pM->m_Table[1][2] - pM->m_Table[2][1]) / scale;
+        pR->m_Y = (pM->m_Table[2][0] - pM->m_Table[0][2]) / scale;
+        pR->m_Z = (pM->m_Table[0][1] - pM->m_Table[1][0]) / scale;
+        pR->m_W =  0.25f * scale;
 
-        return;
+        return 1;
     }
 
     // search for highest value in the matrix diagonal
-    if (matrix.m_Table[0][0] > matrix.m_Table[1][1] && matrix.m_Table[0][0] > matrix.m_Table[2][2])
+    if (pM->m_Table[0][0] > pM->m_Table[1][1] && pM->m_Table[0][0] > pM->m_Table[2][2])
     {
         // calculate scale using the first diagonal element and double that value
-        scale = sqrt(T(1.0) + matrix.m_Table[0][0] - matrix.m_Table[1][1] - matrix.m_Table[2][2]) * T(2.0);
+        scale = sqrt(1.0f + pM->m_Table[0][0] - pM->m_Table[1][1] - pM->m_Table[2][2]) * 2.0f;
+
+        // should not happen, but better to verify
+        if (!scale)
+        {
+            pR->m_X = 0.0f;
+            pR->m_Y = 0.0f;
+            pR->m_Z = 0.0f;
+            pR->m_W = 0.0f;
+
+            return 0;
+        }
 
         // calculate the quaternion values using the respective equation
-        m_X = T(0.25) * scale;
-        m_Y = (matrix.m_Table[0][1] + matrix.m_Table[1][0]) / scale;
-        m_Z = (matrix.m_Table[2][0] + matrix.m_Table[0][2]) / scale;
-        m_W = (matrix.m_Table[1][2] - matrix.m_Table[2][1]) / scale;
+        pR->m_X =  0.25f * scale;
+        pR->m_Y = (pM->m_Table[0][1] + pM->m_Table[1][0]) / scale;
+        pR->m_Z = (pM->m_Table[2][0] + pM->m_Table[0][2]) / scale;
+        pR->m_W = (pM->m_Table[1][2] - pM->m_Table[2][1]) / scale;
+
+        return 1;
     }
-    else
-    if (matrix.m_Table[1][1] > matrix.m_Table[2][2])
+
+    if (pM->m_Table[1][1] > pM->m_Table[2][2])
     {
         // calculate scale using the second diagonal element and double that value
-        scale = sqrt(T(1.0) + matrix.m_Table[1][1] - matrix.m_Table[0][0] - matrix.m_Table[2][2]) * T(2.0);
+        scale = sqrt(1.0f + pM->m_Table[1][1] - pM->m_Table[0][0] - pM->m_Table[2][2]) * 2.0f;
+
+        // should not happen, but better to verify
+        if (!scale)
+        {
+            pR->m_X = 0.0f;
+            pR->m_Y = 0.0f;
+            pR->m_Z = 0.0f;
+            pR->m_W = 0.0f;
+
+            return 0;
+        }
 
         // calculate the quaternion values using the respective equation
-        m_X = (matrix.m_Table[0][1] + matrix.m_Table[1][0]) / scale;
-        m_Y = T(0.25) * scale;
-        m_Z = (matrix.m_Table[1][2] + matrix.m_Table[2][1]) / scale;
-        m_W = (matrix.m_Table[2][0] - matrix.m_Table[0][2]) / scale;
+        pR->m_X = (pM->m_Table[0][1] + pM->m_Table[1][0]) / scale;
+        pR->m_Y =  0.25f * scale;
+        pR->m_Z = (pM->m_Table[1][2] + pM->m_Table[2][1]) / scale;
+        pR->m_W = (pM->m_Table[2][0] - pM->m_Table[0][2]) / scale;
+
+        return 1;
     }
-    else
+
+    // calculate scale using the third diagonal element and double that value
+    scale = sqrt(1.0f + pM->m_Table[2][2] - pM->m_Table[0][0] - pM->m_Table[1][1]) * 2.0f;
+
+    // should not happen, but better to verify
+    if (!scale)
     {
-        // calculate scale using the third diagonal element and double that value
-        scale = sqrt(T(1.0) + matrix.m_Table[2][2] - matrix.m_Table[0][0] - matrix.m_Table[1][1]) * T(2.0);
+        pR->m_X = 0.0f;
+        pR->m_Y = 0.0f;
+        pR->m_Z = 0.0f;
+        pR->m_W = 0.0f;
 
-        // calculate the quaternion values using the respective equation
-        m_X = (matrix.m_Table[2][0] + matrix.m_Table[0][2]) / scale;
-        m_Y = (matrix.m_Table[1][2] + matrix.m_Table[2][1]) / scale;
-        m_Z = T(0.25) * scale;
-        m_W = (matrix.m_Table[0][1] - matrix.m_Table[1][0]) / scale;
+        return 0;
     }
+
+    // calculate the quaternion values using the respective equation
+    pR->m_X = (pM->m_Table[2][0] + pM->m_Table[0][2]) / scale;
+    pR->m_Y = (pM->m_Table[1][2] + pM->m_Table[2][1]) / scale;
+    pR->m_Z =  0.25f * scale;
+    pR->m_W = (pM->m_Table[0][1] - pM->m_Table[1][0]) / scale;
+
+    return 1;
 }
 //---------------------------------------------------------------------------
 void csrQuatToMatrix(const CSR_Quaternion* pQ, CSR_Matrix* pR)
@@ -659,6 +716,239 @@ void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR)
     // calculate the distance between the plane and the point
     csrVec3Dot(&n, pP, &dist);
     *pR = dist + pPl->m_D;
+}
+//---------------------------------------------------------------------------
+// Segment functions
+//----------------------------------------------------------------------------
+void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
+                             const CSR_Segment3* pS2,
+                                   float         tolerance,
+                                   float*        pR)
+{
+    CSR_Vector3 delta21;
+    CSR_Vector3 delta43;
+    CSR_Vector3 delta13;
+    CSR_Vector3 dP;
+    float       a;
+    float       b;
+    float       c;
+    float       d;
+    float       e;
+    float       D;
+    float       sc;
+    float       sN;
+    float       sD;
+    float       tc;
+    float       tN;
+    float       tD;
+    float       dotdP;
+
+    // the parametric formulas for the 2 segments are:
+    // p = s1 + s(s2 - s1), where s1 = pS1->m_Start and s2 = pS1->m_End
+    // p = s3 + t(s4 - s3), where s3 = pS2->m_Start and s4 = pS2->m_End
+    // so, calculate the basic values to use for the calculation
+    csrVec3Sub(&pS1->m_End,   &pS1->m_Start, &delta21);
+    csrVec3Sub(&pS2->m_End,   &pS2->m_Start, &delta43);
+    csrVec3Sub(&pS1->m_Start, &pS2->m_Start, &delta13);
+
+    // calculate the distance (represented by D) between the 2 line segments
+    csrVec3Dot(&delta21, &delta21, &a);
+    csrVec3Dot(&delta21, &delta43, &b);
+    csrVec3Dot(&delta43, &delta43, &c);
+    csrVec3Dot(&delta21, &delta13, &d);
+    csrVec3Dot(&delta43, &delta13, &e);
+    D = ((a * c) - (b * b));
+
+    // sc = sN / sD, default sD = D >= 0
+    sD = D;
+
+    // tc = tN / tD, default tD = D >= 0
+    tD = D;
+
+    // compute the line parameters of the two closest points
+    if (fabs(D) < tolerance)
+    {
+        // the lines are almost parallel, force using point P0 on segment S1
+        // to prevent possible division by 0 later
+        sN = 0.0f;
+        sD = 1.0f;
+        tN = e;
+        tD = c;
+    }
+    else
+    {
+        // get the closest points on the infinite lines
+        sN = ((b * e) - (c * d));
+        tN = ((a * e) - (b * d));
+
+        // sc < 0 => the s=0 edge is visible
+        if (sN < 0.0f)
+        {
+            sN = 0.0f;
+            tN = e;
+            tD = c;
+        }
+        else
+        // sc > 1 => the s=1 edge is visible
+        if (sN > sD)
+        {
+            sN = sD;
+            tN = e + b;
+            tD = c;
+        }
+    }
+
+    // tc < 0 => the t=0 edge is visible
+    if (tN < 0.0f)
+    {
+        tN = 0.0f;
+
+        // recompute sc for this edge
+        if (-d < 0.0f)
+            sN = 0.0f;
+        else
+        if (-d > a)
+            sN = sD;
+        else
+        {
+            sN = -d;
+            sD =  a;
+        }
+    }
+    else
+    // tc > 1 => the t=1 edge is visible
+    if (tN > tD)
+    {
+        tN = tD;
+
+        // recompute sc for this edge
+        if ((-d + b) < 0.0f)
+            sN = 0.0f;
+        else
+        if ((-d + b) > a)
+            sN = sD;
+        else
+        {
+            sN = (-d + b);
+            sD = a;
+        }
+    }
+
+    // finally do the division to get sc and tc
+    if (fabs(sN) < tolerance)
+        sc = 0.0f;
+    else
+        sc = sN / sD;
+
+    if (fabs(tN) < tolerance)
+        tc = 0.0f;
+    else
+        tc = tN / tD;
+
+    // get the difference of the two closest points
+    dP.m_X = delta13.m_X + (sc * delta21.m_X) - (tc * delta43.m_X);
+    dP.m_Y = delta13.m_Y + (sc * delta21.m_Y) - (tc * delta43.m_Y);
+    dP.m_Z = delta13.m_Z + (sc * delta21.m_Z) - (tc * delta43.m_Z);
+
+    // return the closest distance
+    csrVec3Dot(&dP, &dP, &dotdP);
+    *pR = sqrt(dotdP);
+}
+//----------------------------------------------------------------------------
+void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vector3* pR)
+{
+    float       segLength;
+    float       angle;
+    CSR_Vector3 PToStart;
+    CSR_Vector3 length;
+    CSR_Vector3 normalizedLength;
+    CSR_Vector3 p;
+
+    // calculate the distance between the test point and the segment
+    csrVec3Sub( pP,        &pS->m_Start, &PToStart);
+    csrVec3Sub(&pS->m_End, &pS->m_Start, &length);
+    csrVec3Length(&length, &segLength);
+
+    // calculate the direction of the segment
+    csrVec3Normalize(&length, &normalizedLength);
+
+    // calculate the projection of the point on the segment
+    csrVec3Dot(&normalizedLength, &PToStart, &angle);
+
+    // check if projection is before the segment
+    if (angle < 0.0)
+        *pR = pS->m_Start;
+    else
+    // check if projection is after the segment
+    if (angle > segLength)
+        *pR = pS->m_End;
+    else
+    {
+        // calculate the position of the projection on the segment
+        p.m_X = normalizedLength.m_X * angle;
+        p.m_Y = normalizedLength.m_Y * angle;
+        p.m_Z = normalizedLength.m_Z * angle;
+
+        // calculate and returns the point coordinate on the segment
+        csrVec3Add(&pS->m_Start, &p, pR);
+    }
+}
+//---------------------------------------------------------------------------
+// Polygon functions
+//----------------------------------------------------------------------------
+void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_Vector3* pR)
+{
+    float        dAB;
+    float        dBC;
+    float        dCA;
+    float        min;
+    CSR_Vector3  rab;
+    CSR_Vector3  rbc;
+    CSR_Vector3  rca;
+    CSR_Vector3  vAB;
+    CSR_Vector3  vBC;
+    CSR_Vector3  vCA;
+    CSR_Segment3 sab;
+    CSR_Segment3 sbc;
+    CSR_Segment3 sca;
+
+    // get line segments from each polygon edge
+    sab.m_Start = pPo->m_Vertex[0];
+    sab.m_End   = pPo->m_Vertex[1];
+    sbc.m_Start = pPo->m_Vertex[1];
+    sbc.m_End   = pPo->m_Vertex[2];
+    sca.m_Start = pPo->m_Vertex[2];
+    sca.m_End   = pPo->m_Vertex[0];
+
+    // calculate the projections points on each edge of the triangle
+    csrSeg3ClosestPoint(&sab, pP, &rab);
+    csrSeg3ClosestPoint(&sbc, pP, &rbc);
+    csrSeg3ClosestPoint(&sca, pP, &rca);
+
+    // calculate the distances between points below and test point
+    csrVec3Sub(pP, &rab, &vAB);
+    csrVec3Sub(pP, &rbc, &vBC);
+    csrVec3Sub(pP, &rca, &vCA);
+
+    // calculate the length of each segments
+    csrVec3Length(&vAB, &dAB);
+    csrVec3Length(&vBC, &dBC);
+    csrVec3Length(&vCA, &dCA);
+
+    // calculate the shortest distance
+    min = dAB;
+    *pR = rab;
+
+    // check if dBC is shortest
+    if (dBC < min)
+    {
+        min = dBC;
+        *pR = rbc;
+    }
+
+    // check if dCA is shortest
+    if (dCA < min)
+        *pR = rca;
 }
 //---------------------------------------------------------------------------
 // Inside checks
@@ -737,7 +1027,10 @@ int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo)
 }
 //---------------------------------------------------------------------------
 int csrInsideBox(const CSR_Vector3* pP, const CSR_Box* pB)
-{}
+{
+    return (pP->m_X >= pB->m_Min.m_X && pP->m_Y >= pB->m_Min.m_Y && pP->m_Z >= pB->m_Min.m_Z &&
+            pP->m_X <= pB->m_Max.m_X && pP->m_Y <= pB->m_Max.m_Y && pP->m_Z <= pB->m_Max.m_Z);
+}
 //---------------------------------------------------------------------------
 int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
 {

@@ -19,6 +19,62 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//---------------------------------------------------------------------------
+// Math functions
+//---------------------------------------------------------------------------
+void csrMathMin(float a, float b, float* pR)
+{
+    if (a < b)
+    {
+        *pR = a;
+        return;
+    }
+
+    *pR = b;
+}
+//---------------------------------------------------------------------------
+void csrMathMax(float a, float b, float* pR)
+{
+    if (a > b)
+    {
+        *pR = a;
+        return;
+    }
+
+    *pR = b;
+}
+//---------------------------------------------------------------------------
+int csrMathBetween(float value, float rangeStart, float rangeEnd, float tolerance)
+{
+    float minVal;
+    float maxVal;
+
+    csrMathMin(rangeStart, rangeEnd, &minVal);
+    csrMathMax(rangeStart, rangeEnd, &maxVal);
+
+    // check if each value is between start and end limits considering tolerance
+    if (value >= (minVal - tolerance) && value <= (maxVal + tolerance))
+        return 1;
+
+    return 0;
+}
+//----------------------------------------------------------------------------
+void csrMathRound(float value, float* pR)
+{
+    if (value < 0.0f)
+        *pR = ceil(value - 0.5f);
+    else
+        *pR = floor(value + 0.5f);
+}
+//----------------------------------------------------------------------------
+void csrMathRoundToExp(float value, unsigned exp, float* pR)
+{
+    const float power = value * pow(10.0f, exp);
+
+    csrMathRound(power, pR);
+
+    *pR *= pow(0.1f, exp);
+}
 //---------------------------------------------------------------------------
 // Buffer functions
 //---------------------------------------------------------------------------

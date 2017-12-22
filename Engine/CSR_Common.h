@@ -19,6 +19,12 @@
 // std
 #include <stddef.h>
 
+//-----------------------------------------------------------------------------
+// Global defines
+//-----------------------------------------------------------------------------
+
+#define M_COMPACTSTAR_VERSION 0.1
+
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
@@ -36,6 +42,51 @@ typedef struct
     extern "C"
     {
 #endif
+        //-------------------------------------------------------------------
+        // Math functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Gets the minimum value between 2 values
+        *@param a - first value to compare
+        *@param b - second value to compare with
+        *@param[out] pR - the minimum value between the 2
+        */
+        void csrMathMin(float a, float b, float* pR);
+
+        /**
+        * Gets the maximum value between 2 values
+        *@param a - first value to compare
+        *@param b - second value to compare with
+        *@param[out] pR - the maximum value between the 2
+        */
+        void csrMathMax(float a, float b, float* pR);
+
+        /**
+        * Checks if a value is between a range
+        *@param value - value to check
+        *@param rangeStart - range start value
+        *@param rangeEnd - range end value
+        *@param tolerance - tolerance for calculation
+        *@return 1 if value is between the range, otherwise 0
+        */
+        int csrMathBetween(float value, float rangeStart, float rangeEnd, float tolerance);
+
+        /**
+        * Rounds a value to the closest integer
+        *@param value - value to round
+        *@param[out] pR - rounded value
+        */
+        void csrMathRound(float value, float* pR);
+
+        /**
+        * Rounds a value to his next exponent
+        *@param value - value to round
+        *@param exp - exponent to which the value will be rounded
+        *@param[out] pR - rounded value
+        */
+        void csrMathRoundToExp(float value, unsigned exp, float* pR);
+
         //-------------------------------------------------------------------
         // Buffer functions
         //-------------------------------------------------------------------

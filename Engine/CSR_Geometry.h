@@ -172,6 +172,19 @@ typedef struct
         */
         void csrVec3Dot(const CSR_Vector3* pV1, const CSR_Vector3* pV2, float* pR);
 
+        /**
+        * Checks if a vector is between a range of values
+        *@param pV - vector to test
+        *@param pRS - range start
+        *@param pRE - range end
+        *@param tolerance - tolerance for calculation
+        *@return 1 if vector is between range, otherwise 0
+        */
+        int csrVec3BetweenRange(const CSR_Vector3* pV,
+                                const CSR_Vector3* pRS,
+                                const CSR_Vector3* pRE,
+                                      float        tolerance);
+
         //-------------------------------------------------------------------
         // Matrix functions
         //-------------------------------------------------------------------
@@ -226,11 +239,7 @@ typedef struct
         *@param zFar - z far clipping value
         *@param[out] pR - resulting perspective matrix
         */
-        void csrMatPerspective(float       fovyDeg,
-                               float       aspect,
-                               float       zNear,
-                               float       zFar,
-                               CSR_Matrix* pR);
+        void csrMatPerspective(float fovyDeg, float aspect, float zNear, float zFar, CSR_Matrix* pR);
 
         /**
         * Gets translation matrix
@@ -378,9 +387,7 @@ typedef struct
         *@param pQ2 - second quaternion to multiply with
         *@param[out] pR - multiplied quaternion
         */
-        void csrQuatMultiply(const CSR_Quaternion* pQ1,
-                             const CSR_Quaternion* pQ2,
-                                   CSR_Quaternion* pR);
+        void csrQuatMultiply(const CSR_Quaternion* pQ1, const CSR_Quaternion* pQ2, CSR_Quaternion* pR);
 
         /**
         * Inverse the quaternion
@@ -403,18 +410,20 @@ typedef struct
         *@param pQ2 - quaternion to interpolate with
         *@param p - interpolation position, in percent (between 0.0f and 1.0f)
         *@param[out] pR - the resulting spherical linear interpolated quaternion
+        *@return 1 on success, otherwise 0
         */
-        void csrQuatSlerp(const CSR_Quaternion* pQ1,
-                          const CSR_Quaternion* pQ2,
-                                float           p,
-                                CSR_Quaternion* pR);
+        int csrQuatSlerp(const CSR_Quaternion* pQ1,
+                         const CSR_Quaternion* pQ2,
+                               float           p,
+                               CSR_Quaternion* pR);
 
         /**
         * Get a quaternion from a matrix
         *@param pM - rotation matrix
         *@param[out] pR - quaternion
+        *@return 1 on success, otherwise 0
         */
-        void csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR);
+        int csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR);
 
         /**
         * Gets a rotation matrix from a quaternion
@@ -454,6 +463,44 @@ typedef struct
         *@param[out] - resulting distance
         */
         void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR);
+
+        //-------------------------------------------------------------------
+        // Segment functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Gets the shortest distance between 2 line segments
+        *@param pS1 - first line segment
+        *@param pS2 - second line segment from which distance should be calculated
+        *@param tolerance - tolerance for calculation
+        *@param[out] pR - resulting distance
+        */
+        void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
+                                     const CSR_Segment3* pS2,
+                                           float         tolerance,
+                                           float*        pR);
+
+        /**
+        * Calculates and gets the projection of a point on a line segment
+        *@param pS - line segment
+        *@param pP - point for which projection must be calculated
+        *@param pR - calculated point
+        */
+        void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vector3* pR);
+
+        //-------------------------------------------------------------------
+        // Polygon functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Calculates and gets the projection of a point on a polygon
+        *@param pPoint - point for which projection must be calculated
+        *@param pV1 - polygon first vertex
+        *@param pV2 - polygon second vertex
+        *@param pV3 - polygon third vertex
+        *@param pR - the calculated point
+        */
+        void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_Vector3* pR);
 
         //-------------------------------------------------------------------
         // Inside checks
