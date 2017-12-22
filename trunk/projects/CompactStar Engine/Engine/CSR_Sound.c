@@ -1,5 +1,5 @@
 /****************************************************************************
- * ==> CSR_Player ----------------------------------------------------------*
+ * ==> CSR_Sound -----------------------------------------------------------*
  ****************************************************************************
  * Description : This module provides the functions to play sound and music *
  * Developer   : Jean-Milost Reymond                                        *
@@ -19,9 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//----------------------------------------------------------------------------
-// Player functions
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+// Sound functions
+//---------------------------------------------------------------------------
 int csrInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALContext)
 {
     // select the "preferred device"
@@ -43,10 +43,8 @@ int csrInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALContext)
 
     return 1;
 }
-//----------------------------------------------------------------------------
-int miniLoadSoundBuffer(const char*           pFileName,
-                              unsigned int    fileSize,
-                              unsigned char** pBuffer)
+//---------------------------------------------------------------------------
+int miniLoadSoundBuffer(const char* pFileName, unsigned int fileSize, unsigned char** pBuffer)
 {
     FILE* pFile;
 
@@ -73,7 +71,7 @@ int miniLoadSoundBuffer(const char*           pFileName,
 
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int miniCreateSound(const ALCdevice*     pOpenALDevice,
                     const ALCcontext*    pOpenALContext,
                           unsigned char* pBuffer,
@@ -122,7 +120,7 @@ int miniCreateSound(const ALCdevice*     pOpenALDevice,
 
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int miniPlaySound(ALuint id)
 {
     if (id == M_OPENAL_ERROR_ID)
@@ -131,7 +129,7 @@ int miniPlaySound(ALuint id)
     alSourcePlay(id);
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int miniPauseSound(ALuint id)
 {
     if (id == M_OPENAL_ERROR_ID)
@@ -140,7 +138,7 @@ int miniPauseSound(ALuint id)
     alSourcePause(id);
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int miniStopSound(ALuint id)
 {
     if (id == M_OPENAL_ERROR_ID)
@@ -149,7 +147,7 @@ int miniStopSound(ALuint id)
     alSourceStop(id);
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int miniIsSoundPlaying(ALuint id)
 {
     ALenum state;
@@ -164,78 +162,78 @@ int miniIsSoundPlaying(ALuint id)
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int miniChangeSoundPitch(ALuint id, float* pValue)
+//---------------------------------------------------------------------------
+int miniChangeSoundPitch(ALuint id, float value)
 {
     if (id == M_OPENAL_ERROR_ID)
         return 0;
 
-    if (*pValue >= 0.0f && *pValue <= 1.0f)
+    if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_PITCH, *pValue);
+        alSourcef(id, AL_PITCH, value);
         return 1;
     }
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int miniChangeSoundVolume(ALuint id, float* pValue)
+//---------------------------------------------------------------------------
+int miniChangeSoundVolume(ALuint id, float value)
 {
     if (id == M_OPENAL_ERROR_ID)
         return 0;
 
-    if (*pValue >= 0.0f && *pValue <= 1.0f)
+    if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_GAIN, *pValue);
+        alSourcef(id, AL_GAIN, value);
         return 1;
     }
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int miniChangeSoundVolumeMin(ALuint id, float* pValue)
+//---------------------------------------------------------------------------
+int miniChangeSoundVolumeMin(ALuint id, float value)
 {
     if (id == M_OPENAL_ERROR_ID)
         return 0;
 
-    if (*pValue >= 0.0f && *pValue <= 1.0f)
+    if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_MIN_GAIN, *pValue);
+        alSourcef(id, AL_MIN_GAIN, value);
         return 1;
     }
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int miniChangeSoundVolumeMax(ALuint id, float* pValue)
+//---------------------------------------------------------------------------
+int miniChangeSoundVolumeMax(ALuint id, float value)
 {
     if (id == M_OPENAL_ERROR_ID)
         return 0;
 
-    if (*pValue >= 0.0f && *pValue <= 1.0f)
+    if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_MAX_GAIN, *pValue);
+        alSourcef(id, AL_MAX_GAIN, value);
         return 1;
     }
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int miniChangeSoundPosition(ALuint id, float* pX, float* pY, float* pZ)
+//---------------------------------------------------------------------------
+int miniChangeSoundPosition(ALuint id, const CSR_Vector3* pPos)
 {
     ALfloat position[3];
 
     if (id == M_OPENAL_ERROR_ID)
         return 0;
 
-    position[0] = *pX;
-    position[1] = *pY;
-    position[2] = *pZ;
+    position[0] = pPos->m_X;
+    position[1] = pPos->m_Y;
+    position[2] = pPos->m_Z;
 
     alSourcefv(id, AL_POSITION, position);
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void miniLoopSound(ALuint id, int value)
 {
     if (id != M_OPENAL_ERROR_ID)
@@ -244,7 +242,7 @@ void miniLoopSound(ALuint id, int value)
         else
             alSourcei(id, AL_LOOPING, AL_FALSE);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void miniReleaseSound(ALuint bufferID, ALuint id)
 {
     // delete source
@@ -255,7 +253,7 @@ void miniReleaseSound(ALuint bufferID, ALuint id)
     if (bufferID != M_OPENAL_ERROR_ID)
         alDeleteBuffers(1, &bufferID);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void miniReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
 {
     // release context
@@ -266,4 +264,4 @@ void miniReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
     if (pOpenALDevice)
         alcCloseDevice(pOpenALDevice);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------

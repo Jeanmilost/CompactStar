@@ -1,5 +1,5 @@
 /****************************************************************************
- * ==> CSR_Player ----------------------------------------------------------*
+ * ==> CSR_Sound -----------------------------------------------------------*
  ****************************************************************************
  * Description : This module provides the functions to play sound and music *
  * Developer   : Jean-Milost Reymond                                        *
@@ -16,8 +16,8 @@
 #ifndef CSR_SoundH
 #define CSR_SoundH
 
-// mini API
-#include "MiniCommon.h"
+// compactStar engine
+#include "CSR_Geometry.h"
 
 // OpenAL library
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
@@ -42,7 +42,7 @@
 #endif
 
         //-------------------------------------------------------------------
-        // Player functions
+        // Sound functions
         //-------------------------------------------------------------------
 
         /**
@@ -60,9 +60,7 @@
         *@param[out] pBuffer - buffer containing the wav data
         *@return 1 on success, otherwise 0
         */
-        int csrLoadSoundBuffer(const char*           pFileName,
-                                     unsigned int    fileSize,
-                                     unsigned char** pBuffer);
+        int csrLoadSoundBuffer(const char* pFileName, unsigned int fileSize, unsigned char** pBuffer);
 
         /**
         * Creates a sound form a wav buffer

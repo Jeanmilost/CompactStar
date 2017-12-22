@@ -46,10 +46,13 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\Engine\;N:\Jeanmilost\Devel\Projects\CompactStar Engine\Level designer\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\Third-party\OpenAL\libs\Win32\;..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
-        <IncludePath>..\Engine\;N:\Jeanmilost\Devel\Projects\CompactStar Engine\Level designer\;$(IncludePath)</IncludePath>
+        <IncludePath>..\Third-party\OpenAL\include\;..\Engine\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -102,6 +105,8 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <LinkPackageImports>rtl.bpi;vcl.bpi</LinkPackageImports>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
@@ -113,6 +118,12 @@
         <BCC_PCHName_Clang>CompactStar_LevelDesigner_PCH.h</BCC_PCHName_Clang>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\Engine\CSR_Collision.c">
+            <BuildOrder>15</BuildOrder>
+        </CppCompile>
+        <None Include="..\Engine\CSR_Collision.h">
+            <BuildOrder>16</BuildOrder>
+        </None>
         <CppCompile Include="..\Engine\CSR_Common.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
