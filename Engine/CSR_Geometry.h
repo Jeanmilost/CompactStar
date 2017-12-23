@@ -64,16 +64,6 @@ typedef struct
 } CSR_Plane;
 
 /**
-* Line
-*/
-typedef struct
-{
-    CSR_Vector3 m_Point;
-    CSR_Vector3 m_Dir;
-    CSR_Vector3 m_InvDir;
-} CSR_Line3;
-
-/**
 * Ray
 */
 typedef struct
@@ -533,6 +523,89 @@ typedef struct
         //-------------------------------------------------------------------
         // Intersection checks
         //-------------------------------------------------------------------
+
+        /**
+        * Checks if a ray intesects a plane
+        *@param pRa - ray
+        *@param pPl - plane
+        *@param[out] pR - in case of intersection, the point where the plane intersects the ray
+        *@return 1 if the ray intersects the plane, otherwise 0
+        */
+        int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR);
+
+        /**
+        * Checks if a line segment intesects a plane
+        *@param pS - line segment
+        *@param pPl - plane
+        *@param[out] pR - in case of intersection, the point where the plane intersects the segment
+        *@return 1 if the line segment intersects the plane, otherwise 0
+        */
+        int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR);
+
+        /**
+        * Checks if a ray intersects a polygon
+        *@param pRay - ray
+        *@param pP - polygon
+        *@return 1 if the ray intersects the polygon, otherwise 0
+        */
+        int csrIntersectRayPolygon(const CSR_Ray3* pRay, const CSR_Polygon* pP);
+
+        /**
+        * Checks if a line segment intersects a polygon
+        *@param pS - line segment
+        *@param pP - polygon
+        *@return 1 if the line segment intersects the polygon, otherwise 0
+        */
+        int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP);
+
+        /**
+        * Checks if a polygon intersects another polygon
+        *@param pP1 - first polygon to check
+        *@param pP2 - second polygon to check against
+        *@return 1 if the polygons intersect, otherwise 0
+        */
+        int csrIntersectPolygons(const CSR_Polygon* pP1, const CSR_Polygon* pP2);
+
+        /**
+        * Checks if a ray intersects a box
+        *@param pR - ray
+        *@param pB - box
+        *@return 1 if the ray intersects the box, otherwise 0
+        */
+        int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB);
+
+        /**
+        * Checks if a box intersects another box
+        *@param pB1 - first box to check
+        *@param pB2 - second box to check against
+        *@return 1 if the boxes intersect, otherwise 0
+        */
+        int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2);
+
+        /**
+        * Checks if a sphere intersects a polygon
+        *@param pS - sphere
+        *@param pP - polygon
+        *@param pR - in case of intersection, the plane that can be used for the sliding
+        *@return 1 if ray intersects polygon, otherwise 0
+        */
+        int csrIntersectSpherePolygon(const CSR_Sphere*  pS, const CSR_Polygon* pP, CSR_Plane* pR);
+
+        /**
+        * Checks if a sphere intersects a box
+        *@param pS - sphere
+        *@param pB - box
+        *@return 1 if the sphere intersects the box, otherwise 0
+        */
+        int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB);
+
+        /**
+        * Checks if a sphere intersects another sphere
+        *@param pS1 - first sphere to check
+        *@param pS2 - second sphere to check against
+        *@return 1 if the spheres intersect, otherwise 0
+        */
+        int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2);
 
 #ifdef __cplusplus
     }

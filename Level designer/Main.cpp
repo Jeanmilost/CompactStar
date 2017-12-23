@@ -29,12 +29,15 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
     ALCcontext* pOpenALContext;
     if (csrSoundInitializeOpenAL(&pOpenALDevice, &pOpenALContext))
     {
-        pBuffer = csrFileOpen("C:\\Private\\Devel\\MiniAPI\\Mobile C Compiler\\Resources\\fire_and_reload.wav");
-        ALuint bufferID;
-        ALuint id;
-        if (csrSoundCreate(pOpenALDevice, pOpenALContext, pBuffer, 48000, &bufferID, &id))
+        CSR_Sound* pSound = csrSoundOpen(pOpenALDevice,
+                                         pOpenALContext,
+                                         //"C:\\Private\\Devel\\MiniAPI\\Mobile C Compiler\\Resources\\fire_and_reload.wav",
+                                         "N:\\Jeanmilost\\Devel\\Projects\\MiniAPI\\trunk\\Mobile C Compiler\\Resources\\fire_and_reload.wav",
+                                         48000);
+
+        if (pSound)
         {
-            csrSoundPlay(id);
+            csrSoundPlay(pSound);
 
             for (std::size_t i = 0; i < 200; ++i)
             {
@@ -42,8 +45,7 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
                 ::Sleep(10);
             }
         }
-        csrBufferRelease(pBuffer);
-        csrSoundRelease(bufferID, id);
+        csrSoundRelease(pSound);
         csrSoundReleaseOpenAL(pOpenALDevice, pOpenALContext);
     }
 }

@@ -18,7 +18,7 @@
 // std
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <math.h>
 //---------------------------------------------------------------------------
 // Math functions
 //---------------------------------------------------------------------------
@@ -80,17 +80,15 @@ void csrMathRoundToExp(float value, unsigned exp, float* pR)
 //---------------------------------------------------------------------------
 CSR_Buffer* csrBufferCreate(void)
 {
-    CSR_Buffer* pBuffer = NULL;
-
     // create a new buffer
-    pBuffer = (CSR_Buffer*)malloc(sizeof(CSR_Buffer));
+    CSR_Buffer* pBuffer = (CSR_Buffer*)malloc(sizeof(CSR_Buffer));
 
     // succeeded?
     if (!pBuffer)
-        return NULL;
+        return 0;
 
     // initialize the buffer content
-    pBuffer->m_pData  = NULL;
+    pBuffer->m_pData  = 0;
     pBuffer->m_Length = 0;
 
     return pBuffer;
@@ -139,14 +137,14 @@ CSR_Buffer* csrFileOpen(const char* pFileName)
     size_t      bytesRead;
 
     if (!pFileName)
-        return NULL;
+        return 0;
 
     // create a new buffer
     pBuffer = csrBufferCreate();
 
     // succeeded?
     if (!pBuffer)
-        return NULL;
+        return 0;
 
     // open the file
     pFile = fopen(pFileName, "rb");
@@ -194,7 +192,7 @@ CSR_Buffer* csrFileOpen(const char* pFileName)
     {
         // clear the buffer
         free(pBuffer->m_pData);
-        pBuffer->m_pData  = NULL;
+        pBuffer->m_pData  = 0;
         pBuffer->m_Length = 0;
 
         return pBuffer;

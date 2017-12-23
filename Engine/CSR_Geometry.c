@@ -1044,4 +1044,105 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
     // check if distance is shorter than the radius of the sphere and return result
     return (distance <= pS->m_Radius);
 }
+//-------------------------------------------------------------------
+// Intersection checks
+//----------------------------------------------------------------------------
+int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
+{
+    CSR_Vector3 n;
+    float       dot;
+    float       nDot;
+    float       temp;
+
+    // get the normal of the plane
+    n.m_X = pPl->m_A;
+    n.m_Y = pPl->m_B;
+    n.m_Z = pPl->m_C;
+
+    // calculate the angle between the line and the normal to the plane
+    csrVec3Dot(&n, &pRa->m_Dir, &dot);
+
+    // if normal to the plane is perpendicular to the line, then the line is
+    // either parallel to the plane and there are no solutions or the line is
+    // on the plane in which case there are an infinite number of solutions
+    if (!dot)
+        return 0;
+
+    csrVec3Dot(&n, &pRa->m_Pos, &nDot);
+
+    temp = ((pPl->m_D + nDot) / dot);
+
+    // calculates the intersection point
+    pR->m_X = (pRa->m_Pos.m_X - (temp * pRa->m_Dir.m_X));
+    pR->m_Y = (pRa->m_Pos.m_Y - (temp * pRa->m_Dir.m_Y));
+    pR->m_Z = (pRa->m_Pos.m_Z - (temp * pRa->m_Dir.m_Z));
+
+    return 1;
+}
+//----------------------------------------------------------------------------
+int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR)
+{
+    CSR_Vector3 dir;
+    CSR_Ray3    ray;
+
+    // get the ray start position
+    ray.m_Pos = pS->m_Start;
+
+    // calculate the ray direction. NOTE the inverted direction can be omitted here because this
+    // value will not be used by the csrIntersectRayPlane() function
+    miniSub(&pS->m_End, &pS->m_Start, &dir);
+    miniNormalize(&dir, &ray.m_Dir);
+
+    if (csrIntersectRayPlane(&ray, pPl, pR))
+        // the segment will only intersect the plane if the intersection point is inside the segment limits
+        return csrVec3BetweenRange(pR, &pS->m_Start, &pS->m_End, M_CSR_Epsilon);
+
+    return 0;
+}
+//----------------------------------------------------------------------------
+int csrIntersectRayPolygon(const CSR_Ray3* pRay, const CSR_Polygon* pP)
+{}
+//----------------------------------------------------------------------------
+int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP)
+{}
+//----------------------------------------------------------------------------
+int csrIntersectPolygons(const CSR_Polygon* pP1, const CSR_Polygon* pP2)
+{}
+//----------------------------------------------------------------------------
+int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
+{}
+//----------------------------------------------------------------------------
+int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2)
+{
+    /*FIXME
+    return !(pFirstRect->m_Pos.m_X                               <= pSecondRect->m_Pos.m_X + pSecondRect->m_Size.m_Width  &&
+             pFirstRect->m_Pos.m_X + pFirstRect->m_Size.m_Width  >= pSecondRect->m_Pos.m_X                                &&
+             pFirstRect->m_Pos.m_Y                               <= pSecondRect->m_Pos.m_Y + pSecondRect->m_Size.m_Height &&
+             pFirstRect->m_Pos.m_Y + pFirstRect->m_Size.m_Height >= pSecondRect->m_Pos.m_Y);
+    */
+}
+//----------------------------------------------------------------------------
+int csrIntersectSpherePolygon(const CSR_Sphere*  pS, const CSR_Polygon* pP, CSR_Plane* pR)
+{}
+//----------------------------------------------------------------------------
+int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB)
+{}
+//----------------------------------------------------------------------------
+int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
+{
+    CSR_Vector3 dist;
+    float        length;
+
+    // calculate the distance between the both sphere centers
+    dist.m_X = fabs(pS1->m_Center.m_X - pS2->m_Center.m_X);
+    dist.m_Y = fabs(pS1->m_Center.m_Y - pS2->m_Center.m_Y);
+    dist.m_Z = fabs(pS1->m_Center.m_Z - pS2->m_Center.m_Z);
+
+    // calculate the length between the both sphere centers
+    miniLength(&dist, &length);
+
+    // the spheres are on collision if the length between the centers is lower than or equal to the
+    // sum of the both sphere radius
+    return (length <= (pS1->m_Radius + pS2->m_Radius));
+}
 //---------------------------------------------------------------------------
