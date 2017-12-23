@@ -22,8 +22,8 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-
 #define M_COMPACTSTAR_VERSION 0.1
+#define M_CSR_Epsilon         1.0E-3 // epsilon value used for tolerance
 
 //---------------------------------------------------------------------------
 // Structures
@@ -93,7 +93,7 @@ typedef struct
 
         /**
         * Creates a new buffer
-        *@return newly created buffer, NULL on error
+        *@return newly created buffer, 0 on error
         *@note The buffer must be released when it becomes useless. The ReleaseBuffer() function
         *      must be called for this purpose
         */
@@ -119,7 +119,9 @@ typedef struct
         /**
         * Opens a file
         *@param pFileName - file name
-        *@return a buffer containing the file content, NULL on error
+        *@return a buffer containing the file content, 0 on error
+        *@note The buffer must be released when it becomes useless. The ReleaseBuffer() function
+        *      must be called for this purpose
         */
         CSR_Buffer* csrFileOpen(const char* pFileName);
 

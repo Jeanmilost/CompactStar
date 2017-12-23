@@ -44,15 +44,12 @@ int csrSoundInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALCont
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSoundCreate(const ALCdevice*   pOpenALDevice,
-                   const ALCcontext*  pOpenALContext,
-                         CSR_Buffer*  pBuffer,
-                         unsigned int sampling,
-                         ALuint*      pBufferID,
-                         ALuint*      pID)
+CSR_Sound* csrSoundCreate(const ALCdevice*   pOpenALDevice,
+                          const ALCcontext*  pOpenALContext,
+                                CSR_Buffer*  pBuffer,
+                                unsigned int sampling)
 {
-    ALuint bufferID;
-    ALuint id;
+    CSR_Sound* pSound;
 
     // no sound file to load?
     if (!pBuffer->m_pData || !pBuffer->m_Length)
@@ -66,63 +63,134 @@ int csrSoundCreate(const ALCdevice*   pOpenALDevice,
     if (!pOpenALContext)
         return 0;
 
+    // create a new sound container
+    pSound = (CSR_Sound*)malloc(sizeof(CSR_Sound));
+
+    // succeeded?
+    if (!pSound)
+        return 0;
+
     // grab a buffer ID from openAL
-    alGenBuffers(1, &bufferID);
+    alGenBuffers(1, &pSound->m_BufferID);
+
+    // succeeded?
+    if (alGetError() != AL_NO_ERROR)
+    {
+        pSound->m_ID       = M_OPENAL_ERROR_ID;
+        pSound->m_BufferID = M_OPENAL_ERROR_ID;
+        return pSound;
+    }
 
     // jam the audio data into the new buffer
-    alBufferData(bufferID, AL_FORMAT_STEREO16, pBuffer->m_pData, pBuffer->m_Length, sampling);
+    alBufferData(pSound->m_BufferID,
+                 AL_FORMAT_STEREO16,
+                 pBuffer->m_pData,
+                 pBuffer->m_Length,
+                 sampling);
+
+    // succeeded?
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteBuffers(1, &pSound->m_BufferID);
+
+        pSound->m_ID       = M_OPENAL_ERROR_ID;
+        pSound->m_BufferID = M_OPENAL_ERROR_ID;
+        return pSound;
+    }
 
     // grab a source ID from openAL
-    alGenSources(1, &id);
+    alGenSources(1, &pSound->m_ID);
+
+    // succeeded?
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteBuffers(1, &pSound->m_BufferID);
+
+        pSound->m_ID       = M_OPENAL_ERROR_ID;
+        pSound->m_BufferID = M_OPENAL_ERROR_ID;
+        return pSound;
+    }
 
     // attach the buffer to the source
-    alSourcei(id, AL_BUFFER, bufferID);
+    alSourcei(pSound->m_ID, AL_BUFFER, pSound->m_BufferID);
+
+    // succeeded?
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteSources(1, &pSound->m_ID);
+        alDeleteBuffers(1, &pSound->m_BufferID);
+
+        pSound->m_ID       = M_OPENAL_ERROR_ID;
+        pSound->m_BufferID = M_OPENAL_ERROR_ID;
+        return pSound;
+    }
 
     // set some basic source preferences
-    alSourcef(id, AL_GAIN,  1.0f);
-    alSourcef(id, AL_PITCH, 1.0f);
+    alSourcef(pSound->m_ID, AL_GAIN,  1.0f);
+    alSourcef(pSound->m_ID, AL_PITCH, 1.0f);
 
-    *pBufferID = bufferID;
-    *pID       = id;
-
-    return 1;
+    return pSound;
 }
 //---------------------------------------------------------------------------
-int csrSoundPlay(ALuint id)
+CSR_Sound* csrSoundOpen(const ALCdevice*   pOpenALDevice,
+                        const ALCcontext*  pOpenALContext,
+                              const char*  pFileName,
+                              unsigned int sampling)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    CSR_Buffer* pBuffer;
+    CSR_Sound*  pSound;
+
+    // open the sound file
+    pBuffer = csrFileOpen(pFileName);
+
+    // succeeded?
+    if (!pBuffer || !pBuffer->m_Length)
         return 0;
 
-    alSourcePlay(id);
-    return 1;
+    // create the sound from file content
+    pSound = csrSoundCreate(pOpenALDevice, pOpenALContext, pBuffer, sampling);
+
+    // release the file buffer (no longer required)
+    csrBufferRelease(pBuffer);
+
+    return pSound;
 }
 //---------------------------------------------------------------------------
-int csrSoundPause(ALuint id)
+int csrSoundPlay(CSR_Sound* pSound)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
-    alSourcePause(id);
+    alSourcePlay(pSound->m_ID);
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSoundStop(ALuint id)
+int csrSoundPause(CSR_Sound* pSound)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
-    alSourceStop(id);
+    alSourcePause(pSound->m_ID);
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSoundIsPlaying(ALuint id)
+int csrSoundStop(CSR_Sound* pSound)
+{
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
+        return 0;
+
+    alSourceStop(pSound->m_ID);
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSoundIsPlaying(CSR_Sound* pSound)
 {
     ALenum state;
 
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
-    alGetSourcei(id, AL_SOURCE_STATE, &state);
+    alGetSourcei(pSound->m_ID, AL_SOURCE_STATE, &state);
 
     if (state == AL_PLAYING)
         return 1;
@@ -130,95 +198,104 @@ int csrSoundIsPlaying(ALuint id)
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrSoundChangePitch(ALuint id, float value)
+int csrSoundChangePitch(CSR_Sound* pSound, float value)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
     if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_PITCH, value);
+        alSourcef(pSound->m_ID, AL_PITCH, value);
         return 1;
     }
 
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrSoundChangeVolume(ALuint id, float value)
+int csrSoundChangeVolume(CSR_Sound* pSound, float value)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
     if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_GAIN, value);
+        alSourcef(pSound->m_ID, AL_GAIN, value);
         return 1;
     }
 
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrSoundChangeVolumeMin(ALuint id, float value)
+int csrSoundChangeVolumeMin(CSR_Sound* pSound, float value)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
     if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_MIN_GAIN, value);
+        alSourcef(pSound->m_ID, AL_MIN_GAIN, value);
         return 1;
     }
 
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrSoundChangeVolumeMax(ALuint id, float value)
+int csrSoundChangeVolumeMax(CSR_Sound* pSound, float value)
 {
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
     if (value >= 0.0f && value <= 1.0f)
     {
-        alSourcef(id, AL_MAX_GAIN, value);
+        alSourcef(pSound->m_ID, AL_MAX_GAIN, value);
         return 1;
     }
 
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrSoundChangePosition(ALuint id, const CSR_Vector3* pPos)
+int csrSoundChangePosition(CSR_Sound* pSound, const CSR_Vector3* pPos)
 {
     ALfloat position[3];
 
-    if (id == M_OPENAL_ERROR_ID)
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
         return 0;
 
     position[0] = pPos->m_X;
     position[1] = pPos->m_Y;
     position[2] = pPos->m_Z;
 
-    alSourcefv(id, AL_POSITION, position);
+    alSourcefv(pSound->m_ID, AL_POSITION, position);
     return 1;
 }
 //---------------------------------------------------------------------------
-void csrSoundLoop(ALuint id, int value)
+void csrSoundLoop(CSR_Sound* pSound, int value)
 {
-    if (id != M_OPENAL_ERROR_ID)
-        if (value)
-            alSourcei(id, AL_LOOPING, AL_TRUE);
-        else
-            alSourcei(id, AL_LOOPING, AL_FALSE);
+    if (!pSound || pSound->m_ID == M_OPENAL_ERROR_ID)
+        return;
+
+    if (value)
+        alSourcei(pSound->m_ID, AL_LOOPING, AL_TRUE);
+    else
+        alSourcei(pSound->m_ID, AL_LOOPING, AL_FALSE);
 }
 //---------------------------------------------------------------------------
-void csrSoundRelease(ALuint bufferID, ALuint id)
+void csrSoundRelease(CSR_Sound* pSound)
 {
+    // no sound to release?
+    if (!pSound)
+        return;
+
     // delete source
-    if (id != M_OPENAL_ERROR_ID)
-        alDeleteSources(1, &id);
+    if (pSound->m_ID != M_OPENAL_ERROR_ID)
+        alDeleteSources(1, &pSound->m_ID);
 
     // delete buffer
-    if (bufferID != M_OPENAL_ERROR_ID)
-        alDeleteBuffers(1, &bufferID);
+    if (pSound->m_BufferID != M_OPENAL_ERROR_ID)
+        alDeleteBuffers(1, &pSound->m_BufferID);
+
+    // delete the sound container
+    free(pSound);
 }
 //---------------------------------------------------------------------------
 void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
