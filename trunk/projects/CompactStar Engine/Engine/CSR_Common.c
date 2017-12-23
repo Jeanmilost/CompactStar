@@ -138,6 +138,9 @@ CSR_Buffer* csrFileOpen(const char* pFileName)
     CSR_Buffer* pBuffer;
     size_t      bytesRead;
 
+    if (!pFileName)
+        return NULL;
+
     // create a new buffer
     pBuffer = csrBufferCreate();
 

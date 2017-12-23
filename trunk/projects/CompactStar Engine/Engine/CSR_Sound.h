@@ -17,6 +17,7 @@
 #define CSR_SoundH
 
 // compactStar engine
+#include "CSR_Common.h"
 #include "CSR_Geometry.h"
 
 // OpenAL library
@@ -51,63 +52,52 @@
         *@param[out] pOpenALContext - newly created OpenAL context
         *@return 1 on success, otherwise 0
         */
-        int csrInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALContext);
-
-        /**
-        * Loads sound from a .wav file and put it into a buffer
-        *@param pFileName - wav file name
-        *@param fileSize - wav file size
-        *@param[out] pBuffer - buffer containing the wav data
-        *@return 1 on success, otherwise 0
-        */
-        int csrLoadSoundBuffer(const char* pFileName, unsigned int fileSize, unsigned char** pBuffer);
+        int csrSoundInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALContext);
 
         /**
         * Creates a sound form a wav buffer
         *@param pOpenALDevice - OpenAL device to use
         *@param pOpenALContext - OpenAL context to use
         *@param pBuffer - buffer containing wav sound
-        *@param bufferSize - wav buffer size
         *@param sampling - sampling to use (standard values are e.g. 48000, 44100, ...)
         *@param[out] pBufferID - newly created OpenAL sound buffer identifier (needed to delete the sound)
         *@param[out] pID - newly created OpenAL sound identifier
         *@return 1 on success, otherwise 0
         */
-        int csrCreateSound(const ALCdevice*     pOpenALDevice,
-                           const ALCcontext*    pOpenALContext,
-                                 unsigned char* pBuffer,
-                                 unsigned int   fileSize,
-                                 unsigned int   sampling,
-                                 ALuint*        pBufferID,
-                                 ALuint*        pID);
+        int csrSoundCreate(const ALCdevice*   pOpenALDevice,
+                           const ALCcontext*  pOpenALContext,
+                                 CSR_Buffer*  pBuffer,
+                                 unsigned int sampling,
+                                 ALuint*      pBufferID,
+                                 ALuint*      pID);
 
         /**
         * Plays sound
         *@param id - sound identifier to play
         *@return 1 on success, otherwise 0
         */
-        int csrPlaySound(ALuint id);
+        int csrSoundPlay(ALuint id);
 
         /**
         * Pauses sound
         *@param id - sound identifier to pause
         *@return 1 on success, otherwise 0
         */
-        int csrPauseSound(ALuint id);
+        int csrSoundPause(ALuint id);
 
         /**
         * Stops sound
         *@param id - sound identifier to stop
         *@return 1 on success, otherwise 0
         */
-        int csrStopSound(ALuint id);
+        int csrSoundStop(ALuint id);
 
         /**
         * Checks if sound is currently playing
         *@param id - sound identifier to check
         *@return 1 if sound is currently playing, otherwise 0
         */
-        int csrIsSoundPlaying(ALuint id);
+        int csrSoundIsPlaying(ALuint id);
 
         /**
         * Changes sound pitch
@@ -115,7 +105,7 @@
         *@param value - new pitch value (see OpenAL documentation for correct value range)
         *@return 1 on success, otherwise 0
         */
-        int csrChangeSoundPitch(ALuint id, float pValue);
+        int csrSoundChangePitch(ALuint id, float pValue);
 
         /**
         * Changes sound volume
@@ -123,7 +113,7 @@
         *@param value - new volume value (see OpenAL documentation for correct value range)
         *@return 1 on success, otherwise 0
         */
-        int csrChangeSoundVolume(ALuint id, float value);
+        int csrSoundChangeVolume(ALuint id, float value);
 
         /**
         * Changes sound minimum volume limit
@@ -131,7 +121,7 @@
         *@param value - new minimum volume limit value (see OpenAL documentation for correct value range)
         *@return 1 on success, otherwise 0
         */
-        int csrChangeSoundVolumeMin(ALuint id, float value);
+        int csrSoundChangeVolumeMin(ALuint id, float value);
 
         /**
         * Changes sound maximum volume limit
@@ -139,7 +129,7 @@
         *@param value - new maximum volume limit value (see OpenAL documentation for correct value range)
         *@return 1 on success, otherwise 0
         */
-        int csrChangeSoundVolumeMax(ALuint id, float value);
+        int csrSoundChangeVolumeMax(ALuint id, float value);
 
         /**
         * Set sound source position in 3D environment (e.g. sound can be played on the left)
@@ -147,7 +137,7 @@
         *@param pPos - sound source position
         *@return 1 on success, otherwise 0
         */
-        int csrChangeSoundPosition(ALuint id, const CSR_Vector3* pPos);
+        int csrSoundChangePosition(ALuint id, const CSR_Vector3* pPos);
 
         /**
         * Loops sound when end is reached
@@ -155,21 +145,21 @@
         *@param value - if 1, sound will be looped on end reached, otherwise sound will be stopped
         *@return 1 on success, otherwise 0
         */
-        void csrLoopSound(ALuint id, int value);
+        void csrSoundLoop(ALuint id, int value);
 
         /**
         * Releases sound
         *@param bufferID - sound buffer identifier to delete
         *@param id - sound identifier to delete
         */
-        void csrReleaseSound(ALuint bufferID, ALuint id);
+        void csrSoundRelease(ALuint bufferID, ALuint id);
 
         /**
         * Releases OpenAL
         *@param pOpenALDevice - OpenAL device to release
         *@param pOpenALContext - OpenAL context to release
         */
-        void csrReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext);
+        void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext);
 
 #ifdef __cplusplus
     }
