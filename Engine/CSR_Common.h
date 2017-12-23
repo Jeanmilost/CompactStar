@@ -19,9 +19,9 @@
 // std
 #include <stddef.h>
 
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Global defines
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #define M_COMPACTSTAR_VERSION 0.1
 
@@ -94,7 +94,8 @@ typedef struct
         /**
         * Creates a new buffer
         *@return newly created buffer, NULL on error
-        *@note The ReleaseBuffer() function must be called to release the buffer when it becomes useless
+        *@note The buffer must be released when it becomes useless. The ReleaseBuffer() function
+        *      must be called for this purpose
         */
         CSR_Buffer* csrBufferCreate(void);
 
