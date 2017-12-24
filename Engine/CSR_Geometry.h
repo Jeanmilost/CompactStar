@@ -589,7 +589,7 @@ typedef struct
         *@param pR - in case of intersection, the plane that can be used for the sliding
         *@return 1 if ray intersects polygon, otherwise 0
         */
-        int csrIntersectSpherePolygon(const CSR_Sphere*  pS, const CSR_Polygon* pP, CSR_Plane* pR);
+        int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_Plane* pR);
 
         /**
         * Checks if a sphere intersects a box

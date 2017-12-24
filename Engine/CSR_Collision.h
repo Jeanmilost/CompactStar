@@ -1,54 +1,46 @@
-/*****************************************************************************
- * ==> MiniCollisions -------------------------------------------------------*
- *****************************************************************************
- * Description : This module provides the functions required to detect the   *
- *               collisions inside a 2d or 3d world.                         *
- * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2017, this file is part of the Minimal API. You are  *
- *               free to copy or redistribute this file, modify it, or use   *
- *               it for your own projects, commercial or not. This file is   *
- *               provided "as is", without ANY WARRANTY OF ANY KIND          *
- *****************************************************************************/
+/****************************************************************************
+ * ==> CSR_Collision -------------------------------------------------------*
+ ****************************************************************************
+ * Description : This module provides the colision detection functions      *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
 
 #ifndef MiniCollisionH
 #define MiniCollisionH
 
+// std
+#include <stddef.h>
+
 // mini API
-#include "MiniCommon.h"
-#include "MiniGeometry.h"
+//REM #include "CSR_Common.h"
+#include "CSR_Geometry.h"
 
-//----------------------------------------------------------------------------
-// Global defines
-//----------------------------------------------------------------------------
-
-#define M_MINI_Epsilon 1.0E-3 // epsilon value used for tolerance
-
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Structures
-//----------------------------------------------------------------------------
-
-/**
-* Polygon
-*/
-typedef struct
-{
-    MINI_Vector3 m_v[3];
-} MINI_Polygon;
+//---------------------------------------------------------------------------
 
 // Aligned-axis bounding box tree node prototype
-typedef struct MINI_AABBNode MINI_AABBNode;
+typedef struct CSR_AABBNode CSR_AABBNode;
 
 /**
 * Aligned-axis bounding box tree node
 */
-struct MINI_AABBNode
+struct CSR_AABBNode
 {
-    MINI_AABBNode* m_pParent;
-    MINI_AABBNode* m_pLeft;
-    MINI_AABBNode* m_pRight;
-    MINI_Box*      m_pBox;
-    MINI_Polygon*  m_pPolygons;
-    unsigned       m_PolygonsCount;
+    CSR_AABBNode* m_pParent;
+    CSR_AABBNode* m_pLeft;
+    CSR_AABBNode* m_pRight;
+    CSR_Box*      m_pBox;
+    CSR_Polygon*  m_pPolygons;
+    size_t        m_PolygonsCount;
 };
 
 #ifdef __cplusplus
@@ -56,42 +48,20 @@ struct MINI_AABBNode
     {
 #endif
 
-        //----------------------------------------------------------------------------
-        // Box calculation
-        //----------------------------------------------------------------------------
+        //-------------------------------------------------------------------
+        // Aligned-Axis Bounding Box tree
+        //-------------------------------------------------------------------
 
         /**
-        * Adds a polygon inside an existing bounding box
-        *@param pPolygon - polygon to add
-        *@param pBox - bounding box in which polygon should be added
+        * Extends a bounding box to include a polygon
+        *@param pP - polygon to add
+        *@param pB - bounding box in which polygon should be included
         *@param empty - if true, box is empty an still no contains any polygon
         */
-        void miniAddPolygonToBoundingBox(const MINI_Polygon* pPolygon,
-                                               MINI_Box*     pBox,
-                                               int*          pEmpty);
-
-        //----------------------------------------------------------------------------
-        // Collision reaction
-        //----------------------------------------------------------------------------
+        void csrBoxExtendToPolygon(const CSR_Polygon* pP, CSR_Box* pB, int empty);
 
         /**
-        * Gets the next position while sliding on the plane
-        *@param pSlidingPlane - sliding plane
-        *@param pPosition - current position
-        *@param pRadius - radius around the current position
-        *@param pR - resulting position
-        */
-        void miniGetSlidingPoint(const MINI_Plane*   pSlidingPlane,
-                                 const MINI_Vector3* pPosition,
-                                 const float*        pRadius,
-                                       MINI_Vector3* pR);
-
-        //----------------------------------------------------------------------------
-        // Polygons extraction
-        //----------------------------------------------------------------------------
-
-        /**
-        * Adds polygon to array
+        * Extracts a polygon from a vertex buffer and adds it in an array
         *@param pVB - source vertex buffer
         *@param v1 - first polygon vertex index in vertex buffer
         *@param v2 - second polygon vertex index in vertex buffer
@@ -101,15 +71,15 @@ struct MINI_AABBNode
         *@note Generated polygons should be deleted by calling miniReleasePolygons()
         *      when useless
         */
-        void miniAddPolygon(const float*         pVB,
-                                  unsigned       v1,
-                                  unsigned       v2,
-                                  unsigned       v3,
-                                  MINI_Polygon** pPolygons,
-                                  unsigned*      pPolygonsCount);
+        void csrPolygonFromVB(const float*        pVB,
+                                    unsigned      v1,
+                                    unsigned      v2,
+                                    unsigned      v3,
+                                    CSR_Polygon** pPolygons,
+                                    unsigned*     pPolygonsCount);
 
         /**
-        * Gets polygons from vertex buffer
+        * Extracts polygons from vertex buffer
         *@param pVB - source vertex buffer
         *@param length - vertex buffer length
         *@param type - polygons type as arranged in vertex buffer, where:
@@ -124,22 +94,18 @@ struct MINI_AABBNode
         *@note Generated polygons should be deleted by calling miniReleasePolygons()
         *      when useless
         */
-        int miniGetPolygonsFromVB(const float*         pVB,
-                                        unsigned       length,
-                                        unsigned       type,
-                                        unsigned       stride,
-                                        MINI_Polygon** pPolygons,
-                                        unsigned*      pPolygonsCount);
+        int csrPolygonsFromVB(const float*        pVB,
+                                    unsigned      length,
+                                    unsigned      type,
+                                    unsigned      stride,
+                                    CSR_Polygon** pPolygons,
+                                    unsigned*     pPolygonsCount);
 
         /**
-        * Release polygons previously created by GetPolygonsFromVB() or AddPolygon()
+        * Releases polygons previously created by csrPolygonsFromVB() or csrPolygonFromVB()
         *@param pPolygons - polygon array to release
         */
-        void miniReleasePolygons(MINI_Polygon* pPolygons);
-
-        //----------------------------------------------------------------------------
-        // Aligned-Axis Bounding Box tree
-        //----------------------------------------------------------------------------
+        void csrPolygonsRelease(CSR_Polygon* pPolygons);
 
         /**
         * Cuts box on the longest axis
@@ -147,7 +113,7 @@ struct MINI_AABBNode
         *@param[out] pLeftBox - resulting left box
         *@param[out] pRightBox - resulting right box
         */
-        void miniCutBox(const MINI_Box* pBox, MINI_Box* pLeftBox, MINI_Box* pRightBox);
+        void csrBoxCut(const CSR_Box* pBox, CSR_Box* pLeftBox, CSR_Box* pRightBox);
 
         /**
         * Populates AABB tree
@@ -156,9 +122,9 @@ struct MINI_AABBNode
         *@param polygonsCount - polygon array count
         *@return 1 on success, otherwise 0
         */
-        int miniPopulateTree(      MINI_AABBNode* pNode,
-                             const MINI_Polygon*  pPolygons,
-                                   unsigned       polygonsCount);
+        int csrAABBTreePopulate(      CSR_AABBNode* pNode,
+                                const CSR_Polygon*  pPolygons,
+                                      size_t        polygonsCount);
 
         /**
         * Resolves AABB tree
@@ -168,31 +134,47 @@ struct MINI_AABBNode
         *@param[out] polygonsCount - polygon array count
         *@return 1 on success, otherwise 0
         */
-        int miniResolveTree(MINI_Ray*      pRay,
-                            MINI_AABBNode* pNode,
-                            MINI_Polygon** pPolygons,
-                            unsigned*      pPolygonsCount);
+        int csrAABBTreeResolve(CSR_Ray*      pRay,
+                               CSR_AABBNode* pNode,
+                               CSR_Polygon** pPolygons,
+                               unsigned*     pPolygonsCount);
 
         /**
         * Releases node content
         *@param pNode - node for which content should be released
         *@note Only the node content is released, the node itself is not released
         */
-        void miniReleaseNode(MINI_AABBNode* pNode);
+        void csrAABBTreeReleaseNode(CSR_AABBNode* pNode);
 
         /**
         * Releases tree content
         *@param pNode - root node from which content should be released
         */
-        void miniReleaseTree(MINI_AABBNode* pNode);
+        void csrAABBTreeRelease(CSR_AABBNode* pNode);
+
+        //-------------------------------------------------------------------
+        // Collision reaction
+        //-------------------------------------------------------------------
+
+        /**
+        * Gets the next position while sliding on the plane
+        *@param pSlidingPlane - sliding plane
+        *@param pPosition - current position
+        *@param pRadius - radius around the current position
+        *@param pR - resulting position
+        */
+        void csrCollisionSlidingPos(const CSR_Plane*   pSlidingPlane,
+                                    const CSR_Vector3* pPosition,
+                                          float        radius,
+                                          CSR_Vector3* pR);
 
 #ifdef __cplusplus
     }
 #endif
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Compiler
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)

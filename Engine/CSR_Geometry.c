@@ -719,7 +719,7 @@ void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR)
 }
 //---------------------------------------------------------------------------
 // Segment functions
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
                              const CSR_Segment3* pS2,
                                    float         tolerance,
@@ -854,7 +854,7 @@ void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
     csrVec3Dot(&dP, &dP, &dotdP);
     *pR = sqrt(dotdP);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vector3* pR)
 {
     float       segLength;
@@ -895,7 +895,7 @@ void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vect
 }
 //---------------------------------------------------------------------------
 // Polygon functions
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_Vector3* pR)
 {
     float        dAB;
@@ -1044,9 +1044,9 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
     // check if distance is shorter than the radius of the sphere and return result
     return (distance <= pS->m_Radius);
 }
-//-------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Intersection checks
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
 {
     CSR_Vector3 n;
@@ -1062,9 +1062,9 @@ int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3*
     // calculate the angle between the line and the normal to the plane
     csrVec3Dot(&n, &pRa->m_Dir, &dot);
 
-    // if normal to the plane is perpendicular to the line, then the line is
-    // either parallel to the plane and there are no solutions or the line is
-    // on the plane in which case there are an infinite number of solutions
+    // if normal to the plane is perpendicular to the line, then the line is either parallel to the
+    // plane and there are no solutions or the line is on the plane in which case there are an
+    // infinite number of solutions
     if (!dot)
         return 0;
 
@@ -1079,7 +1079,7 @@ int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3*
 
     return 1;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR)
 {
     CSR_Vector3 dir;
@@ -1090,30 +1090,457 @@ int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vecto
 
     // calculate the ray direction. NOTE the inverted direction can be omitted here because this
     // value will not be used by the csrIntersectRayPlane() function
-    miniSub(&pS->m_End, &pS->m_Start, &dir);
-    miniNormalize(&dir, &ray.m_Dir);
+    csrVec3Sub(&pS->m_End, &pS->m_Start, &dir);
+    csrVec3Normalize(&dir, &ray.m_Dir);
 
     if (csrIntersectRayPlane(&ray, pPl, pR))
-        // the segment will only intersect the plane if the intersection point is inside the segment limits
+        // the segment will only intersect the plane if the intersection point is inside the segment
+        // limits
         return csrVec3BetweenRange(pR, &pS->m_Start, &pS->m_End, M_CSR_Epsilon);
 
     return 0;
 }
-//----------------------------------------------------------------------------
-int csrIntersectRayPolygon(const CSR_Ray3* pRay, const CSR_Polygon* pP)
-{}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+int csrIntersectRayPolygon(const CSR_Ray3* pR, const CSR_Polygon* pP)
+{
+    CSR_Plane   polygonPlane;
+    CSR_Vector3 pointOnPlane;
+
+    // create a plane using the 3 vertices of the polygon
+    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
+
+    // calculate the intersection point
+    if (!csrIntersectRayPlane(pR, &polygonPlane, &pointOnPlane))
+        return 0;
+
+    // check if calculated point is inside the polygon
+    return csrInsidePolygon(&pointOnPlane, pP);
+}
+//---------------------------------------------------------------------------
 int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP)
-{}
-//----------------------------------------------------------------------------
+{
+    CSR_Plane   polygonPlane;
+    CSR_Vector3 pointOnPlane;
+
+    // create a plane using the 3 vertices of the polygon
+    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
+
+    // calculate the intersection point
+    if (!csrIntersectSegPlane(pS, &polygonPlane, &pointOnPlane))
+        return 0;
+
+    // check if calculated point is inside the polygon
+    return csrInsidePolygon(&pointOnPlane, pP);
+}
+//---------------------------------------------------------------------------
 int csrIntersectPolygons(const CSR_Polygon* pP1, const CSR_Polygon* pP2)
-{}
-//----------------------------------------------------------------------------
+{
+    CSR_Plane    plane1;
+    CSR_Plane    plane2;
+    CSR_Segment3 v1v2Seg;
+    CSR_Segment3 v2v3Seg;
+    CSR_Segment3 v3v1Seg;
+    CSR_Segment3 ov1ov2Seg;
+    CSR_Segment3 ov2ov3Seg;
+    CSR_Segment3 ov3ov1Seg;
+    CSR_Vector3  normal1;
+    CSR_Vector3  normal2;
+    CSR_Vector3  p1pt1;
+    CSR_Vector3  p1pt2;
+    CSR_Vector3  p1pt3;
+    CSR_Vector3  p2pt1;
+    CSR_Vector3  p2pt2;
+    CSR_Vector3  p2pt3;
+    CSR_Vector3  p;
+    int          p1ptsCount;
+    int          p2ptsCount;
+    float        planesDot;
+    float        dist1v1;
+    float        dist1v2;
+    float        dist1v3;
+    float        dist2v1;
+    float        dist2v2;
+    float        dist2v3;
+    float        result;
+
+    // todo -cCheck -oJean: I think something is wrong in this algorithm. It should be revised
+
+    // get planes from polygons
+    csrPlaneFromPoints(&pP1->m_Vertex[0], &pP1->m_Vertex[1], &pP1->m_Vertex[2], &plane1);
+    csrPlaneFromPoints(&pP2->m_Vertex[0], &pP2->m_Vertex[1], &pP2->m_Vertex[2], &plane2);
+
+    // coplanar?
+    if (((plane1.m_A ==  plane2.m_A)  &&
+         (plane1.m_B ==  plane2.m_B)  &&
+         (plane1.m_C ==  plane2.m_C)  &&
+         (plane1.m_D ==  plane2.m_D)) ||
+        ((plane1.m_A == -plane2.m_A)  &&
+         (plane1.m_B == -plane2.m_B)  &&
+         (plane1.m_C == -plane2.m_C)  &&
+         (plane1.m_D == -plane2.m_D)))
+    {
+        // is any vertex inside other polygon?
+        if (csrInsidePolygon(&pP1->m_Vertex[0], pP2) ||
+            csrInsidePolygon(&pP1->m_Vertex[1], pP2) ||
+            csrInsidePolygon(&pP1->m_Vertex[2], pP2) ||
+            csrInsidePolygon(&pP2->m_Vertex[0], pP1) ||
+            csrInsidePolygon(&pP2->m_Vertex[1], pP1) ||
+            csrInsidePolygon(&pP2->m_Vertex[2], pP1))
+            return 1;
+
+        // create polygon lines
+        v1v2Seg.m_Start   = pP1->m_Vertex[0];
+        v1v2Seg.m_End     = pP1->m_Vertex[1];
+        v2v3Seg.m_Start   = pP1->m_Vertex[1];
+        v2v3Seg.m_End     = pP1->m_Vertex[2];
+        v3v1Seg.m_Start   = pP1->m_Vertex[2];
+        v3v1Seg.m_End     = pP1->m_Vertex[0];
+        ov1ov2Seg.m_Start = pP2->m_Vertex[0];
+        ov1ov2Seg.m_End   = pP2->m_Vertex[1];
+        ov2ov3Seg.m_Start = pP2->m_Vertex[1];
+        ov2ov3Seg.m_End   = pP2->m_Vertex[2];
+        ov3ov1Seg.m_Start = pP2->m_Vertex[2];
+        ov3ov1Seg.m_End   = pP2->m_Vertex[0];
+
+        csrSeg3ShortestDistance(&v1v2Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v2v3Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v3v1Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v1v2Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v2v3Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v3v1Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v1v2Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v2v3Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        csrSeg3ShortestDistance(&v3v1Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
+
+        // is shortest distance between lines equal to 0?
+        if (result < M_CSR_Epsilon)
+            return 1;
+
+        return 0;
+    }
+
+    // get plane normals
+    normal1.m_X = plane1.m_A;
+    normal1.m_Y = plane1.m_B;
+    normal1.m_Z = plane1.m_C;
+
+    normal2.m_X = plane2.m_A;
+    normal2.m_Y = plane2.m_B;
+    normal2.m_Z = plane2.m_C;
+
+    // calculate angle between planes
+    csrVec3Dot(&normal1, &normal2, &planesDot);
+
+    // are plane parallels?
+    if (planesDot == 1.0f || planesDot == -1.0f)
+        // planes are parallels but not coplanars, no collision is possible
+        return 0;
+
+    // calculate distance from each first polygon vertex to second polygon plane
+    csrPlaneDistanceTo(&pP1->m_Vertex[0], &plane2, &dist1v1);
+    csrPlaneDistanceTo(&pP1->m_Vertex[1], &plane2, &dist1v2);
+    csrPlaneDistanceTo(&pP1->m_Vertex[2], &plane2, &dist1v3);
+
+    // prepare list containing first polygon intersection points
+    p1ptsCount = 0;
+
+    // is first polygon V1 to V2 line segment intersects second polygon plane?
+    if ((dist1v1 >= 0.0f && dist1v2 < 0.0f) || (dist1v1 < 0.0f && dist1v2 >= 0.0f))
+    {
+        v1v2Seg.m_Start   = pP1->m_Vertex[0];
+        v1v2Seg.m_End     = pP1->m_Vertex[1];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v1v2Seg, &plane2, &p))
+        {
+            p1pt1 = p;
+            ++p1ptsCount;
+        }
+    }
+
+    // is first polygon V2 to V3 line segment intersects second polygon plane?
+    if ((dist1v2 >= 0.0f && dist1v3 < 0.0f) || (dist1v2 < 0.0f && dist1v3 >= 0.0f))
+    {
+        v2v3Seg.m_Start   = pP1->m_Vertex[1];
+        v2v3Seg.m_End     = pP1->m_Vertex[2];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v2v3Seg, &plane2, &p))
+        {
+            p1pt2 = p;
+            ++p1ptsCount;
+        }
+    }
+
+    // is first polygon V3 to V1 line segment intersects second polygon plane?
+    if ((dist1v3 >= 0.0f && dist1v1 < 0.0f) || (dist1v3 < 0.0f && dist1v1 >= 0.0f))
+    {
+        v3v1Seg.m_Start   = pP1->m_Vertex[2];
+        v3v1Seg.m_End     = pP1->m_Vertex[0];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v3v1Seg, &plane2, &p))
+        {
+            p1pt3 = p;
+            ++p1ptsCount;
+        }
+    }
+
+    // 2 intersection point were found on the first polygon?
+    if (p1ptsCount != 2)
+        return 0;
+
+    // calculate distance from each second polygon vertex to first polygon plane
+    csrPlaneDistanceTo(&pP2->m_Vertex[0], &plane1, &dist2v1);
+    csrPlaneDistanceTo(&pP2->m_Vertex[1], &plane1, &dist2v2);
+    csrPlaneDistanceTo(&pP2->m_Vertex[2], &plane1, &dist2v3);
+
+    // prepare list containing second polygon intersection points
+    p2ptsCount = 0;
+
+    // is second polygon V1 to V2 line segment intersects first polygon plane?
+    if ((dist2v1 >= 0.0f && dist2v2 < 0.0f) || (dist2v1 < 0.0f && dist2v2 >= 0.0f))
+    {
+        v1v2Seg.m_Start   = pP2->m_Vertex[0];
+        v1v2Seg.m_End     = pP2->m_Vertex[1];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v1v2Seg, &plane1, &p))
+        {
+            p2pt1 = p;
+            ++p2ptsCount;
+        }
+    }
+
+    // is second polygon V2 to V3 line segment intersects first polygon plane?
+    if ((dist2v2 >= 0.0f && dist2v3 < 0.0f) || (dist2v2 < 0.0f && dist2v3 >= 0.0f))
+    {
+        v2v3Seg.m_Start   = pP2->m_Vertex[1];
+        v2v3Seg.m_End     = pP2->m_Vertex[2];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v2v3Seg, &plane1, &p))
+        {
+            p2pt2 = p;
+            ++p2ptsCount;
+        }
+    }
+
+    // is second polygon V3 to V1 line segment intersects first polygon plane?
+    if ((dist2v3 >= 0.0f && dist2v1 < 0.0f) || (dist2v3 < 0.0f && dist2v1 >= 0.0f))
+    {
+        v3v1Seg.m_Start   = pP2->m_Vertex[2];
+        v3v1Seg.m_End     = pP2->m_Vertex[0];
+
+        // calculate intersection point and add to list on success
+        if (csrIntersectSegPlane(&v3v1Seg, &plane1, &p))
+        {
+            p2pt3 = p;
+            ++p2ptsCount;
+        }
+    }
+
+    // 2 intersection point were found on the second polygon?
+    if (p2ptsCount != 2)
+        return 0;
+
+    // todo -cCheck -oJean: Not sure if this part is required and/or works well. To be tested
+
+    // first and second polygon intersection points are on the same line, so check if calculated
+    // first and second polygon segments intersect
+    if (csrVec3BetweenRange(&p1pt1, &p2pt1, &p2pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt2, &p2pt1, &p2pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt3, &p2pt1, &p2pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt1, &p2pt2, &p2pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt2, &p2pt2, &p2pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt3, &p2pt2, &p2pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt1, &p2pt3, &p2pt1, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt2, &p2pt3, &p2pt1, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p1pt3, &p2pt3, &p2pt1, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt1, &p1pt1, &p1pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt2, &p1pt1, &p1pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt3, &p1pt1, &p1pt2, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt1, &p1pt2, &p1pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt2, &p1pt2, &p1pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt3, &p1pt2, &p1pt3, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt1, &p1pt3, &p1pt1, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt2, &p1pt3, &p1pt1, M_CSR_Epsilon))
+        return 1;
+
+    if (csrVec3BetweenRange(&p2pt3, &p1pt3, &p1pt1, M_CSR_Epsilon))
+        return 1;
+
+    return 0;
+}
+//---------------------------------------------------------------------------
 int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
-{}
-//----------------------------------------------------------------------------
+{
+    float tx1;
+    float tx2;
+    float ty1;
+    float ty2;
+    float tz1;
+    float tz2;
+    float txn;
+    float txf;
+    float tyn;
+    float tyf;
+    float tzn;
+    float tzf;
+    float tnear;
+    float tfar;
+
+    // get infinite value
+    const float inf = 1.0f / 0.0f;
+
+    // calculate nearest point where ray intersects box on x coordinate
+    if (pR->m_InvDir.m_X != inf)
+        tx1 = ((pB->m_Min.m_X - pR->m_Pos.m_X) * pR->m_InvDir.m_X);
+    else
+    if ((pB->m_Min.m_X - pR->m_Pos.m_X) < 0.0f)
+        tx1 = -inf;
+    else
+        tx1 = inf;
+
+    // calculate farthest point where ray intersects box on x coordinate
+    if (pR->m_InvDir.m_X != inf)
+        tx2 = ((pB->m_Max.m_X - pR->m_Pos.m_X) * pR->m_InvDir.m_X);
+    else
+    if ((pB->m_Max.m_X - pR->m_Pos.m_X) < 0.0f)
+        tx2 = -inf;
+    else
+        tx2 = inf;
+
+    // calculate nearest point where ray intersects box on y coordinate
+    if (pR->m_InvDir.m_Y != inf)
+        ty1 = ((pB->m_Min.m_Y - pR->m_Pos.m_Y) * pR->m_InvDir.m_Y);
+    else
+    if ((pB->m_Min.m_Y - pR->m_Pos.m_Y) < 0.0f)
+        ty1 = -inf;
+    else
+        ty1 = inf;
+
+    // calculate farthest point where ray intersects box on y coordinate
+    if (pR->m_InvDir.m_Y != inf)
+        ty2 = ((pB->m_Max.m_Y - pR->m_Pos.m_Y) * pR->m_InvDir.m_Y);
+    else
+    if ((pB->m_Max.m_Y - pR->m_Pos.m_Y) < 0.0f)
+        ty2 = -inf;
+    else
+        ty2 = inf;
+
+    // calculate nearest point where ray intersects box on z coordinate
+    if (pR->m_InvDir.m_Z != inf)
+        tz1 = ((pB->m_Min.m_Z - pR->m_Pos.m_Z) * pR->m_InvDir.m_Z);
+    else
+    if ((pB->m_Min.m_Z - pR->m_Pos.m_Z) < 0.0f)
+        tz1 = -inf;
+    else
+        tz1 = inf;
+
+    // calculate farthest point where ray intersects box on z coordinate
+    if (pR->m_InvDir.m_Z != inf)
+        tz2 = ((pB->m_Max.m_Z - pR->m_Pos.m_Z) * pR->m_InvDir.m_Z);
+    else
+    if ((pB->m_Max.m_Z - pR->m_Pos.m_Z) < 0.0f)
+        tz2 = -inf;
+    else
+        tz2 = inf;
+
+    // calculate near/far intersection on each axis
+    csrMathMin(tx1, tx2, &txn);
+    csrMathMax(tx1, tx2, &txf);
+    csrMathMin(ty1, ty2, &tyn);
+    csrMathMax(ty1, ty2, &tyf);
+    csrMathMin(tz1, tz2, &tzn);
+    csrMathMax(tz1, tz2, &tzf);
+
+    // calculate final near/far intersection point
+    csrMathMax(tyn, tzn,   &tnear);
+    csrMathMax(txn, tnear, &tnear);
+    csrMathMin(tyf, tzf,  &tfar);
+    csrMathMin(txf, tfar, &tfar);
+
+    // check if ray intersects box
+    return (tfar >= tnear);
+}
+//---------------------------------------------------------------------------
 int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2)
 {
+    // FIXME implement that
+
     /*FIXME
     return !(pFirstRect->m_Pos.m_X                               <= pSecondRect->m_Pos.m_X + pSecondRect->m_Size.m_Width  &&
              pFirstRect->m_Pos.m_X + pFirstRect->m_Size.m_Width  >= pSecondRect->m_Pos.m_X                                &&
@@ -1121,13 +1548,104 @@ int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2)
              pFirstRect->m_Pos.m_Y + pFirstRect->m_Size.m_Height >= pSecondRect->m_Pos.m_Y);
     */
 }
-//----------------------------------------------------------------------------
-int csrIntersectSpherePolygon(const CSR_Sphere*  pS, const CSR_Polygon* pP, CSR_Plane* pR)
-{}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_Plane* pR)
+{
+    float        testPoint1;
+    float        testPoint2;
+    CSR_Vector3  sphereNormal;
+    CSR_Vector3  pointOnSphere;
+    CSR_Vector3  pointOnPlane;
+    CSR_Vector3  pointOnTriangle;
+    CSR_Plane    polygonPlane;
+    CSR_Segment3 seg;
+
+    // create a plane using the 3 vertices of the polygon
+    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
+
+    // calculate the distance between the center of the sphere and the plane
+    csrPlaneDistanceTo(&pS->m_Center, &polygonPlane, &testPoint1);
+
+    // calculate the normal of the distance sphere-plane using the positive or negative value of the
+    // calculated distance between plane and position
+    if (testPoint1 < 0.0f)
+    {
+        sphereNormal.m_X = polygonPlane.m_A;
+        sphereNormal.m_Y = polygonPlane.m_B;
+        sphereNormal.m_Z = polygonPlane.m_C;
+    }
+    else
+    {
+        sphereNormal.m_X = -polygonPlane.m_A;
+        sphereNormal.m_Y = -polygonPlane.m_B;
+        sphereNormal.m_Z = -polygonPlane.m_C;
+    }
+
+    // calculate the point who the segment from center of sphere in the direction of the plane will
+    // cross the border of the sphere
+    pointOnSphere.m_X = pS->m_Center.m_X + (pS->m_Radius * sphereNormal.m_X);
+    pointOnSphere.m_Y = pS->m_Center.m_Y + (pS->m_Radius * sphereNormal.m_Y),
+    pointOnSphere.m_Z = pS->m_Center.m_Z + (pS->m_Radius * sphereNormal.m_Z);
+
+    // calculate the distance between the border of the sphere and the plane
+    csrPlaneDistanceTo(&pointOnSphere, &polygonPlane, &testPoint2);
+
+    // if the test points are on each side of the plane, then the sphere cross the plane. We assume
+    // that the segment from the center of the sphere to the direction of the plane can never be
+    // coplanar
+    if ((testPoint1 <= 0.0f && testPoint2 >= 0.0f) || (testPoint2 <= 0.0f && testPoint1 >= 0.0f))
+    {
+        // calculate who the segment cross the plane
+        if (!testPoint1)
+            // if testPoint1 is equal to 0, the center of the sphere cross the plane
+            pointOnPlane = pS->m_Center;
+        else
+        if (!testPoint2)
+            // if testPoint2 is equal to 0, the border of the sphere cross the plane
+            pointOnPlane = pointOnSphere;
+        else
+        {
+            seg.m_Start = pS->m_Center;
+            seg.m_End   = pointOnSphere;
+
+            // calculate the intersection point
+            csrIntersectSegPlane(&seg, &polygonPlane, &pointOnPlane);
+        }
+
+        // check if calculated point is inside the polygon
+        if (csrInsidePolygon(&pointOnPlane, pP))
+        {
+            // if yes, the sphere collide the polygon. In this case, we copy the plane and we
+            // returns true
+            *pR = polygonPlane;
+            return 1;
+        }
+        else
+        {
+            // otherwise check if the sphere collide the border of the polygon. First we calculate
+            // the test point on the border of the polygon
+            csrPolygonClosestPoint(&pointOnPlane, pP, &pointOnTriangle);
+
+            // check if calculated point is inside the sphere
+            if (csrInsideSphere(&pointOnTriangle, pS))
+            {
+                // if yes, the sphere collide the polygon. In this case, we copy the plane and we
+                // returns true
+                *pR = polygonPlane;
+                return 1;
+            }
+        }
+    }
+
+    // no collision was found
+    return 0;
+}
+//---------------------------------------------------------------------------
 int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB)
-{}
-//----------------------------------------------------------------------------
+{
+    // FIXME implement that
+}
+//---------------------------------------------------------------------------
 int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
 {
     CSR_Vector3 dist;
@@ -1139,7 +1657,7 @@ int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
     dist.m_Z = fabs(pS1->m_Center.m_Z - pS2->m_Center.m_Z);
 
     // calculate the length between the both sphere centers
-    miniLength(&dist, &length);
+    csrVec3Length(&dist, &length);
 
     // the spheres are on collision if the length between the centers is lower than or equal to the
     // sum of the both sphere radius
