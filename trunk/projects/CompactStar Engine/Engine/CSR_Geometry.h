@@ -24,6 +24,15 @@
 //---------------------------------------------------------------------------
 
 /**
+* 2D vector
+*/
+typedef struct
+{
+    float m_X;
+    float m_Y;
+} CSR_Vector2;
+
+/**
 * 3D vector
 */
 typedef struct
@@ -39,7 +48,7 @@ typedef struct
 typedef struct
 {
     float m_Table[4][4];
-} CSR_Matrix;
+} CSR_Matrix4;
 
 /**
 * Quaternion
@@ -64,7 +73,26 @@ typedef struct
 } CSR_Plane;
 
 /**
-* Ray
+* 2D Ray
+*/
+typedef struct
+{
+    CSR_Vector2 m_Pos;
+    CSR_Vector2 m_Dir;
+    CSR_Vector2 m_InvDir;
+} CSR_Ray2;
+
+/**
+* 2D Line segment
+*/
+typedef struct
+{
+    CSR_Vector2 m_Start;
+    CSR_Vector2 m_End;
+} CSR_Segment2;
+
+/**
+* 3D Ray
 */
 typedef struct
 {
@@ -74,13 +102,31 @@ typedef struct
 } CSR_Ray3;
 
 /**
-* Line segment
+* 3D Line segment
 */
 typedef struct
 {
     CSR_Vector3 m_Start;
     CSR_Vector3 m_End;
 } CSR_Segment3;
+
+/**
+* Circle
+*/
+typedef struct
+{
+    CSR_Vector2 m_Center;
+    float       m_Radius;
+} CSR_Circle;
+
+/**
+* Aligned-axis rect
+*/
+typedef struct
+{
+    CSR_Vector2 m_Min;
+    CSR_Vector2 m_Max;
+} CSR_Rect;
 
 /**
 * Sphere
@@ -101,19 +147,90 @@ typedef struct
 } CSR_Box;
 
 /**
-* Polygon
+* 2D Polygon
+*/
+typedef struct
+{
+    CSR_Vector2 m_Vertex[3];
+} CSR_Polygon2;
+
+/**
+* 3D Polygon
 */
 typedef struct
 {
     CSR_Vector3 m_Vertex[3];
-} CSR_Polygon;
+} CSR_Polygon3;
 
 #ifdef __cplusplus
     extern "C"
     {
 #endif
         //-------------------------------------------------------------------
-        // Vector functions
+        // 2D vector functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Adds vector contents
+        *@param pV1 - vector that contains values to be added
+        *@param pV2 - vector to add to
+        *@param[out] pR - resulting vector
+        */
+        void csrVec2Add(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR);
+
+        /**
+        * Subtracts vector contents
+        *@param pV1 - vector that contains values to be subtracted
+        *@param pV2 - vector to subtract by
+        *@param[out] pR - resulting vector
+        */
+        void csrVec2Sub(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR);
+
+        /**
+        * Calculates vector length
+        *@param pV - vector to calculate length
+        *@param[out] pR - vector length
+        */
+        void csrVec2Length(const CSR_Vector2* pV, float* pR);
+
+        /**
+        * Normalizes the vector
+        *@param pV - vector to normalize
+        *@param[out] pR - normailzed vector
+        */
+        void csrVec2Normalize(const CSR_Vector2* pV, CSR_Vector2* pR);
+
+        /**
+        * Calculates cross product between 2 vectors
+        *@param pV1 - first vector
+        *@param pV2 - second vector
+        *@param[out] pR - resulting vector
+        */
+        void csrVec2Cross(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR);
+
+        /**
+        * Calculates dot product between 2 vectors
+        *@param pV1 - first vector
+        *@param pV2 - second vector
+        *@param[out] pR - resulting angle
+        */
+        void csrVec2Dot(const CSR_Vector2* pV1, const CSR_Vector2* pV2, float* pR);
+
+        /**
+        * Checks if a vector is between a range of values
+        *@param pV - vector to test
+        *@param pRS - range start
+        *@param pRE - range end
+        *@param tolerance - tolerance for calculation
+        *@return 1 if vector is between range, otherwise 0
+        */
+        int csrVec2BetweenRange(const CSR_Vector2* pV,
+                                const CSR_Vector2* pRS,
+                                const CSR_Vector2* pRE,
+                                      float        tolerance);
+
+        //-------------------------------------------------------------------
+        // 3D vector functions
         //-------------------------------------------------------------------
 
         /**
@@ -183,7 +300,7 @@ typedef struct
         * Gets matrix identity
         *@param[out] pR - resulting identity matrix
         */
-        void csrMatIdentity(CSR_Matrix* pR);
+        void csrMat4Identity(CSR_Matrix4* pR);
 
         /**
         * Gets orthogonal matrix
@@ -195,13 +312,13 @@ typedef struct
         *@param zFar - z far clipping value
         *@param[out] pR - resulting orthogonal matrix
         */
-        void csrMatOrtho(float       left,
-                         float       right,
-                         float       bottom,
-                         float       top,
-                         float       zNear,
-                         float       zFar,
-                         CSR_Matrix* pR);
+        void csrMat4Ortho(float        left,
+                          float        right,
+                          float        bottom,
+                          float        top,
+                          float        zNear,
+                          float        zFar,
+                          CSR_Matrix4* pR);
 
         /**
         * Gets frustrum matrix
@@ -213,13 +330,13 @@ typedef struct
         *@param zFar - z far clipping value
         *@param[out] pR - resulting frustrum matrix
         */
-        void csrMatFrustum(float       left,
-                           float       right,
-                           float       bottom,
-                           float       top,
-                           float       zNear,
-                           float       zFar,
-                           CSR_Matrix* pR);
+        void csrMat4Frustum(float        left,
+                            float        right,
+                            float        bottom,
+                            float        top,
+                            float        zNear,
+                            float        zFar,
+                            CSR_Matrix4* pR);
 
         /**
         * Gets perspective matrix
@@ -229,14 +346,18 @@ typedef struct
         *@param zFar - z far clipping value
         *@param[out] pR - resulting perspective matrix
         */
-        void csrMatPerspective(float fovyDeg, float aspect, float zNear, float zFar, CSR_Matrix* pR);
+        void csrMat4Perspective(float        fovyDeg,
+                                float        aspect,
+                                float        zNear,
+                                float        zFar,
+                                CSR_Matrix4* pR);
 
         /**
         * Gets translation matrix
         *@param pT - translation vector
         *@param[out] pR - resulting translation matrix
         */
-        void csrMatTranslate(const CSR_Vector3* pT, CSR_Matrix* pR);
+        void csrMat4Translate(const CSR_Vector3* pT, CSR_Matrix4* pR);
 
         /**
         * Gets rotation matrix
@@ -244,14 +365,14 @@ typedef struct
         *@param pAxis - rotation axis
         *@param[out] pR - resulting orthogonal matrix
         */
-        void csrMatRotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix* pR);
+        void csrMat4Rotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix4* pR);
 
         /**
         * Gets scale matrix
         *@param pFactor - scale factor
         *@param[out] pR - resulting scale matrix
         */
-        void csrMatScale(const CSR_Vector3* pFactor, CSR_Matrix* pR);
+        void csrMat4Scale(const CSR_Vector3* pFactor, CSR_Matrix4* pR);
 
         /**
         * Multiplies matrix by another matrix
@@ -259,7 +380,7 @@ typedef struct
         *@param pM2 - second matrix to multiply with
         *@param[out] pR - resulting orthogonal matrix
         */
-        void csrMatMultiply(const CSR_Matrix* pM1, const CSR_Matrix* pM2, CSR_Matrix* pR);
+        void csrMat4Multiply(const CSR_Matrix4* pM1, const CSR_Matrix4* pM2, CSR_Matrix4* pR);
 
         /**
         * Inverses a matrix
@@ -267,7 +388,7 @@ typedef struct
         *@param[out] pR - inversed matrix
         *@param[out] pDeterminant - matrix determinant
         */
-        void csrMatInverse(const CSR_Matrix* pM, CSR_Matrix* pR, float* pDeterminant);
+        void csrMat4Inverse(const CSR_Matrix4* pM, CSR_Matrix4* pR, float* pDeterminant);
 
         /**
         * Applies matrix to a vector
@@ -275,7 +396,7 @@ typedef struct
         *@param pV - vector on which matrix should be applied
         *@param[out] pR - resulting vector
         */
-        void csrMatApplyToVector(const CSR_Matrix* pM, const CSR_Vector3* pV, CSR_Vector3* pR);
+        void csrMat4ApplyToVector(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3* pR);
 
         /**
         * Applies matrix to a normal
@@ -283,19 +404,16 @@ typedef struct
         *@param pN - normal on which matrix should be applied
         *@param[out] pR - resulting normal
         */
-        void csrMatApplyToNormal(const CSR_Matrix* pM, const CSR_Vector3* pN, CSR_Vector3* pR);
+        void csrMat4ApplyToNormal(const CSR_Matrix4* pM, const CSR_Vector3* pN, CSR_Vector3* pR);
 
         /**
         * Unprojects a ray (i.e. transforms it in viewport coordinates)
-        *@param pProj - projection matrix
-        *@param pView - view matrix
-        *@param[in, out] pRayPos - ray position, unprojected ray position on function ends
-        *@param[in, out] pRayDir - ray direction, unprojected ray direction on function ends
+        *@param pP - projection matrix
+        *@param pV - view matrix
+        *@param[in, out] pR - ray to unproject, unprojected ray on function ends
+        *@note The inverted direction is also calculated in the resulting ray
         */
-        void csrMatUnproject(const CSR_Matrix*  pProj,
-                             const CSR_Matrix*  pView,
-                                   CSR_Vector3* pRayPos,
-                                   CSR_Vector3* pRayDir);
+        void csrMat4Unproject(const CSR_Matrix4* pP, const CSR_Matrix4* pV, CSR_Ray3* pR);
 
         //-------------------------------------------------------------------
         // Quaternion functions
@@ -413,14 +531,14 @@ typedef struct
         *@param[out] pR - quaternion
         *@return 1 on success, otherwise 0
         */
-        int csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR);
+        int csrQuatFromMatrix(const CSR_Matrix4* pM, CSR_Quaternion* pR);
 
         /**
         * Gets a rotation matrix from a quaternion
         *@param pQ - quaternion from which the matrix should be get
         *@param[out] pR - rotation matrix
         */
-        void csrQuatToMatrix(const CSR_Quaternion* pQ, CSR_Matrix* pR);
+        void csrQuatToMatrix(const CSR_Quaternion* pQ, CSR_Matrix4* pR);
 
         //-------------------------------------------------------------------
         // Plane functions
@@ -455,7 +573,7 @@ typedef struct
         void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR);
 
         //-------------------------------------------------------------------
-        // Segment functions
+        // 3D segment functions
         //-------------------------------------------------------------------
 
         /**
@@ -465,36 +583,63 @@ typedef struct
         *@param tolerance - tolerance for calculation
         *@param[out] pR - resulting distance
         */
-        void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
-                                     const CSR_Segment3* pS2,
-                                           float         tolerance,
-                                           float*        pR);
+        void csrSeg3DistanceBetween(const CSR_Segment3* pS1,
+                                    const CSR_Segment3* pS2,
+                                          float         tolerance,
+                                          float*        pR);
 
         /**
-        * Calculates and gets the projection of a point on a line segment
+        * Calculates and gets the closest point on a line segment from a point
         *@param pS - line segment
-        *@param pP - point for which projection must be calculated
-        *@param pR - calculated point
+        *@param pP - point
+        *@param pR - closest point on the line segment
+        *@note The closest point is calculated as follow:
+        *      pS->m_End
+        *          |
+        *          |
+        *          |
+        *       pR x------x pP
+        *          |
+        *          |
+        *          |
+        *      pS->m_Start
         */
         void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vector3* pR);
 
         //-------------------------------------------------------------------
-        // Polygon functions
+        // 3D polygon functions
         //-------------------------------------------------------------------
 
         /**
-        * Calculates and gets the projection of a point on a polygon
-        *@param pPoint - point for which projection must be calculated
-        *@param pV1 - polygon first vertex
-        *@param pV2 - polygon second vertex
-        *@param pV3 - polygon third vertex
-        *@param pR - the calculated point
+        * Calculates and gets the closest point on a polygon edge from a point
+        *@param pP - point
+        *@param pPo - polygon
+        *@param pR - closest point on the polygon edge
+        *@note The closest point is calculated as follow:
+        *                      pPo->m_Vertex[0]
+        *                            /\
+        *                           /  \
+        *                          /    \
+        *                         /      \
+        *                        /   pR   \
+        *      pPo->m_Vertex[1] /____x_____\ pPo->m_Vertex[2]
+        *                            |
+        *                            |
+        *                            x pP
         */
-        void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_Vector3* pR);
+        void csrPolygon3ClosestPoint(const CSR_Vector3* pP, const CSR_Polygon3* pPo, CSR_Vector3* pR);
 
         //-------------------------------------------------------------------
         // Inside checks
         //-------------------------------------------------------------------
+
+        /**
+        * Checks if a point is inside a 2D polygon
+        *@param pP - point to check
+        *@param pPo - polygon to check against
+        *@return 1 if point is inside the polygon, otherwise 0
+        */
+        int csrInsidePolygon2(const CSR_Vector2* pP, const CSR_Polygon2* pPo);
 
         /**
         * Checks if a point is inside a polygon
@@ -502,7 +647,23 @@ typedef struct
         *@param pPo - polygon to check against
         *@return 1 if point is inside the polygon, otherwise 0
         */
-        int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo);
+        int csrInsidePolygon3(const CSR_Vector3* pP, const CSR_Polygon3* pPo);
+
+        /**
+        * Checks if a point is inside a rectangle
+        *@param pP - point to check
+        *@param pR - rectangle to check against
+        *@return 1 if point is inside the rectangle, otherwise 0
+        */
+        int csrInsideRect(const CSR_Vector2* pP, const CSR_Rect* pR);
+
+        /**
+        * Checks if a point is inside a circle
+        *@param pP - point to check
+        *@param pC - circle to check against
+        *@return 1 if point is inside the circle, otherwise 0
+        */
+        int csrInsideCircle(const CSR_Vector2* pP, const CSR_Circle* pC);
 
         /**
         * Checks if a point is inside a box
@@ -531,7 +692,7 @@ typedef struct
         *@param[out] pR - in case of intersection, the point where the plane intersects the ray
         *@return 1 if the ray intersects the plane, otherwise 0
         */
-        int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR);
+        int csrIntersectRay3Plane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR);
 
         /**
         * Checks if a line segment intesects a plane
@@ -540,7 +701,7 @@ typedef struct
         *@param[out] pR - in case of intersection, the point where the plane intersects the segment
         *@return 1 if the line segment intersects the plane, otherwise 0
         */
-        int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR);
+        int csrIntersectSeg3Plane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR);
 
         /**
         * Checks if a ray intersects a polygon
@@ -548,7 +709,7 @@ typedef struct
         *@param pP - polygon
         *@return 1 if the ray intersects the polygon, otherwise 0
         */
-        int csrIntersectRayPolygon(const CSR_Ray3* pRay, const CSR_Polygon* pP);
+        int csrIntersectRay3Polygon3(const CSR_Ray3* pRay, const CSR_Polygon3* pP);
 
         /**
         * Checks if a line segment intersects a polygon
@@ -556,15 +717,23 @@ typedef struct
         *@param pP - polygon
         *@return 1 if the line segment intersects the polygon, otherwise 0
         */
-        int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP);
+        int csrIntersectSeg3Polygon3(const CSR_Segment3* pS, const CSR_Polygon3* pP);
 
         /**
-        * Checks if a polygon intersects another polygon
-        *@param pP1 - first polygon to check
-        *@param pP2 - second polygon to check against
-        *@return 1 if the polygons intersect, otherwise 0
+        * Checks if a circle intersects another circle
+        *@param pC1 - first circle to check
+        *@param pC2 - second circle to check against
+        *@return 1 if the circles intersect, otherwise 0
         */
-        int csrIntersectPolygons(const CSR_Polygon* pP1, const CSR_Polygon* pP2);
+        int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2);
+
+        /**
+        * Checks if a rect intersects another rect
+        *@param pR1 - first rect to check
+        *@param pR2 - second rect to check against
+        *@return 1 if the rects intersect, otherwise 0
+        */
+        int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2);
 
         /**
         * Checks if a ray intersects a box
@@ -589,7 +758,7 @@ typedef struct
         *@param pR - in case of intersection, the plane that can be used for the sliding
         *@return 1 if ray intersects polygon, otherwise 0
         */
-        int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_Plane* pR);
+        int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_Plane* pR);
 
         /**
         * Checks if a sphere intersects a box
