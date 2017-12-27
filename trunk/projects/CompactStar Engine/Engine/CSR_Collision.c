@@ -20,6 +20,64 @@
 //REM #include <math.h>
 
 //---------------------------------------------------------------------------
+// Indexed polygons
+//---------------------------------------------------------------------------
+void csrIndexedPolygonToPolygon(const float*              pVB,
+                                const CSR_IndexedPolygon* pP,
+                                      CSR_Polygon3*       pR)
+{
+    size_t i;
+
+    for (i = 0; i < 3; ++i)
+    {
+        pR->m_Vertex[i].m_X = pVB[pP->m_VertexIndex[i]];
+        pR->m_Vertex[i].m_Y = pVB[pP->m_VertexIndex[i] + 1];
+        pR->m_Vertex[i].m_Z = pVB[pP->m_VertexIndex[i] + 2];
+    }
+}
+//---------------------------------------------------------------------------
+void csrIndexedBufferAdd(size_t v1, size_t v2, size_t v3, CSR_IndexedPolygons* pPolygons)
+{
+    size_t index;
+
+    // polygon array already contains polygons?
+    if (!pPolygons->m_Count)
+    {
+        // no, add new first polygon in array
+        pPolygons->m_pBuffer = (CSR_IndexedPolygon*)malloc(sizeof(CSR_IndexedPolygon));
+        pPolygons->m_Count   = 1;
+    }
+    else
+    {
+        // yes, increase the polygons count and add new polygon inside array
+        ++pPolygons->m_Count;
+        pPolygons->m_pBuffer =
+                (CSR_IndexedPolygon*)realloc(pPolygons->m_pBuffer,
+                                             pPolygons->m_Count * sizeof(CSR_IndexedPolygon));
+    }
+
+    // populate the newly created indexed polygon
+    index                                        = pPolygons->m_Count - 1;
+    pPolygons->m_pBuffer[index].m_VertexIndex[0] = v1;
+    pPolygons->m_pBuffer[index].m_VertexIndex[1] = v2;
+    pPolygons->m_pBuffer[index].m_VertexIndex[2] = v3;
+}
+//---------------------------------------------------------------------------
+void csrIndexedBufferRelease(CSR_IndexedPolygons* pPolygons)
+{
+    if (!pPolygons)
+        return;
+
+    // delete the buffer content
+    if (pPolygons->m_pBuffer)
+    {
+        free(pPolygons->m_pBuffer);
+        pPolygons->m_pBuffer = NULL;
+    }
+
+    pPolygons->m_Count = 0;
+}
+//---------------------------------------------------------------------------
 // Aligned-Axis Bounding Box tree
 //---------------------------------------------------------------------------
 void miniAddPolygonToBoundingBox(const MINI_Polygon* pPolygon,
@@ -58,40 +116,6 @@ void miniAddPolygonToBoundingBox(const MINI_Polygon* pPolygon,
         miniMax(&pBox->m_Max.m_Z, &pPolygon->m_v[i].m_Z, &r);
         pBox->m_Max.m_Z = r;
     }
-}
-//---------------------------------------------------------------------------
-void miniAddPolygon(const float*         pVB,
-                          unsigned       v1,
-                          unsigned       v2,
-                          unsigned       v3,
-                          MINI_Polygon** pPolygons,
-                          unsigned*      pPolygonsCount)
-{
-    // polygon array already contains polygons?
-    if (!(*pPolygonsCount))
-    {
-        // no, add new first polygon in array
-        *pPolygons     = (MINI_Polygon*)malloc(sizeof(MINI_Polygon));
-        *pPolygonsCount = 1;
-    }
-    else
-    {
-        // yes, increase the polygons count and add new polygon inside array
-        ++(*pPolygonsCount);
-        *pPolygons = (MINI_Polygon*)realloc(*pPolygons,
-                                            *pPolygonsCount * sizeof(MINI_Polygon));
-    }
-
-    // copy polygon
-    (*pPolygons)[*pPolygonsCount - 1].m_v[0].m_X = pVB[v1];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[0].m_Y = pVB[v1 + 1];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[0].m_Z = pVB[v1 + 2];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[1].m_X = pVB[v2];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[1].m_Y = pVB[v2 + 1];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[1].m_Z = pVB[v2 + 2];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[2].m_X = pVB[v3];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[2].m_Y = pVB[v3 + 1];
-    (*pPolygons)[*pPolygonsCount - 1].m_v[2].m_Z = pVB[v3 + 2];
 }
 //---------------------------------------------------------------------------
 int miniGetPolygonsFromVB(const float*         pVB,
@@ -233,12 +257,6 @@ int miniGetPolygonsFromVB(const float*         pVB,
         default:
             return 0;
     }
-}
-//---------------------------------------------------------------------------
-void miniReleasePolygons(MINI_Polygon* pPolygons)
-{
-    if (pPolygons)
-        free(pPolygons);
 }
 //---------------------------------------------------------------------------
 void miniCutBox(const MINI_Box* pBox, MINI_Box* pLeftBox, MINI_Box* pRightBox)
