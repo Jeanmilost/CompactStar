@@ -12,7 +12,8 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
+
 #include "CSR_Geometry.h"
 
 // compactStar engine
@@ -22,7 +23,72 @@
 #include <math.h>
 
 //---------------------------------------------------------------------------
-// Vector functions
+// 2D vector functions
+//---------------------------------------------------------------------------
+void csrVec2Add(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR)
+{
+    pR->m_X = pV1->m_X + pV2->m_X;
+    pR->m_Y = pV1->m_Y + pV2->m_Y;
+}
+//---------------------------------------------------------------------------
+void csrVec2Sub(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR)
+{
+    pR->m_X = pV1->m_X - pV2->m_X;
+    pR->m_Y = pV1->m_Y - pV2->m_Y;
+}
+//---------------------------------------------------------------------------
+void csrVec2Length(const CSR_Vector2* pV, float* pR)
+{
+    *pR = sqrt((pV->m_X * pV->m_X) + (pV->m_Y * pV->m_Y));
+}
+//---------------------------------------------------------------------------
+void csrVec2Normalize(const CSR_Vector2* pV, CSR_Vector2* pR)
+{
+    float len;
+
+    // calculate vector length
+    csrVec2Length(pV, &len);
+
+    // no vector length?
+    if (len == 0.0f)
+    {
+        pR->m_X = 0.0f;
+        pR->m_Y = 0.0f;
+        return;
+    }
+
+    // normalize vector (thus values will always be between 0.0f, and 1.0f)
+    pR->m_X = (pV->m_X / len);
+    pR->m_Y = (pV->m_Y / len);
+}
+//---------------------------------------------------------------------------
+void csrVec2Cross(const CSR_Vector2* pV1, const CSR_Vector2* pV2, CSR_Vector2* pR)
+{
+    pR->m_X = (pV1->m_Y * pV2->m_X) - (pV2->m_Y * pV1->m_X);
+    pR->m_Y = (pV1->m_X * pV2->m_Y) - (pV2->m_X * pV1->m_Y);
+}
+//---------------------------------------------------------------------------
+void csrVec2Dot(const CSR_Vector2* pV1, const CSR_Vector2* pV2, float* pR)
+{
+    *pR = ((pV1->m_X * pV2->m_X) + (pV1->m_Y * pV2->m_Y));
+}
+//---------------------------------------------------------------------------
+int csrVec2BetweenRange(const CSR_Vector2* pV,
+                        const CSR_Vector2* pRS,
+                        const CSR_Vector2* pRE,
+                              float        tolerance)
+{
+    // check if each vector component is between start and end limits
+    if (!csrMathBetween(pV->m_X, pRS->m_X, pRE->m_X, tolerance))
+        return 0;
+
+    if (!csrMathBetween(pV->m_Y, pRS->m_Y, pRE->m_Y, tolerance))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+// 3D vector functions
 //---------------------------------------------------------------------------
 void csrVec3Add(const CSR_Vector3* pV1, const CSR_Vector3* pV2, CSR_Vector3* pR)
 {
@@ -97,7 +163,7 @@ int csrVec3BetweenRange(const CSR_Vector3* pV,
 //---------------------------------------------------------------------------
 // Matrix functions
 //---------------------------------------------------------------------------
-void csrMatIdentity(CSR_Matrix* pR)
+void csrMat4Identity(CSR_Matrix4* pR)
 {
     pR->m_Table[0][0] = 1.0f; pR->m_Table[1][0] = 0.0f; pR->m_Table[2][0] = 0.0f; pR->m_Table[3][0] = 0.0f;
     pR->m_Table[0][1] = 0.0f; pR->m_Table[1][1] = 1.0f; pR->m_Table[2][1] = 0.0f; pR->m_Table[3][1] = 0.0f;
@@ -105,7 +171,7 @@ void csrMatIdentity(CSR_Matrix* pR)
     pR->m_Table[0][3] = 0.0f; pR->m_Table[1][3] = 0.0f; pR->m_Table[2][3] = 0.0f; pR->m_Table[3][3] = 1.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatOrtho(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix* pR)
+void csrMat4Ortho(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix4* pR)
 {
     // OpenGL specifications                                 can be rewritten as
     // |  2/(r-l)  0         0        -(r+l)/(r-l)  |        |  2/(r-l)  0        0        (r+l)/(l-r)  |
@@ -130,7 +196,7 @@ void csrMatOrtho(float left, float right, float bottom, float top, float zNear, 
     pR->m_Table[0][3] = 0.0f;       pR->m_Table[1][3] = 0.0f;       pR->m_Table[2][3] = 0.0f;       pR->m_Table[3][3] = 1.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatFrustum(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix* pR)
+void csrMat4Frustum(float left, float right, float bottom, float top, float zNear, float zFar, CSR_Matrix4* pR)
 {
     // OpenGL specifications                                          can be rewritten as
     // |  2n/(r-l)     0             0             0         |        |  2n/(r-l)     0             0            0         |
@@ -156,26 +222,26 @@ void csrMatFrustum(float left, float right, float bottom, float top, float zNear
     pR->m_Table[0][3] = 0.0f;      pR->m_Table[1][3] = 0.0f;      pR->m_Table[2][3] = -1.0f;      pR->m_Table[3][3] = 0.0f;
 }
 //---------------------------------------------------------------------------
-void csrMatPerspective(float fovyDeg, float aspect, float zNear, float zFar, CSR_Matrix* pR)
+void csrMat4Perspective(float fovyDeg, float aspect, float zNear, float zFar, CSR_Matrix4* pR)
 {
     const float maxY    =  zNear *  tanf(fovyDeg * M_PI / 360.0f);
     const float maxX    =  maxY   * aspect;
     const float negMaxY = -maxY;
     const float negMaxX = -maxX;
 
-    csrMatFrustum(negMaxX, maxX, negMaxY, maxY, zNear, zFar, pR);
+    csrMat4Frustum(negMaxX, maxX, negMaxY, maxY, zNear, zFar, pR);
 }
 //---------------------------------------------------------------------------
-void csrMatTranslate(const CSR_Vector3* pT, CSR_Matrix* pR)
+void csrMat4Translate(const CSR_Vector3* pT, CSR_Matrix4* pR)
 {
-    csrMatIdentity(pR);
+    csrMat4Identity(pR);
     pR->m_Table[3][0] += pR->m_Table[0][0] * pT->m_X + pR->m_Table[1][0] * pT->m_Y + pR->m_Table[2][0] * pT->m_Z;
     pR->m_Table[3][1] += pR->m_Table[0][1] * pT->m_X + pR->m_Table[1][1] * pT->m_Y + pR->m_Table[2][1] * pT->m_Z;
     pR->m_Table[3][2] += pR->m_Table[0][2] * pT->m_X + pR->m_Table[1][2] * pT->m_Y + pR->m_Table[2][2] * pT->m_Z;
     pR->m_Table[3][3] += pR->m_Table[0][3] * pT->m_X + pR->m_Table[1][3] * pT->m_Y + pR->m_Table[2][3] * pT->m_Z;
 }
 //---------------------------------------------------------------------------
-void csrMatRotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix* pR)
+void csrMat4Rotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix4* pR)
 {
     // calculate sinus, cosinus and inverted cosinus values
     const float c  = cosf(*pAngle);
@@ -183,7 +249,7 @@ void csrMatRotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix* pR)
     const float ic = (1.0f - c);
 
     // create rotation matrix
-    csrMatIdentity(pR);
+    csrMat4Identity(pR);
     pR->m_Table[0][0] = (ic * pAxis->m_X * pAxis->m_X) +  c;
     pR->m_Table[1][0] = (ic * pAxis->m_X * pAxis->m_Y) - (s * pAxis->m_Z);
     pR->m_Table[2][0] = (ic * pAxis->m_X * pAxis->m_Z) + (s * pAxis->m_Y);
@@ -195,16 +261,16 @@ void csrMatRotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix* pR)
     pR->m_Table[2][2] = (ic * pAxis->m_Z * pAxis->m_Z) +  c;
 }
 //---------------------------------------------------------------------------
-void csrMatScale(const CSR_Vector3* pFactor, CSR_Matrix* pR)
+void csrMat4Scale(const CSR_Vector3* pFactor, CSR_Matrix4* pR)
 {
-    csrMatIdentity(pR);
+    csrMat4Identity(pR);
     pR->m_Table[0][0] *= pFactor->m_X; pR->m_Table[1][0] *= pFactor->m_Y; pR->m_Table[2][0] *= pFactor->m_Z;
     pR->m_Table[0][1] *= pFactor->m_X; pR->m_Table[1][1] *= pFactor->m_Y; pR->m_Table[2][1] *= pFactor->m_Z;
     pR->m_Table[0][2] *= pFactor->m_X; pR->m_Table[1][2] *= pFactor->m_Y; pR->m_Table[2][2] *= pFactor->m_Z;
     pR->m_Table[0][3] *= pFactor->m_X; pR->m_Table[1][3] *= pFactor->m_Y; pR->m_Table[2][3] *= pFactor->m_Z;
 }
 //---------------------------------------------------------------------------
-void csrMatMultiply(const CSR_Matrix* pM1, const CSR_Matrix* pM2, CSR_Matrix* pR)
+void csrMat4Multiply(const CSR_Matrix4* pM1, const CSR_Matrix4* pM2, CSR_Matrix4* pR)
 {
     int i;
     int j;
@@ -217,7 +283,7 @@ void csrMatMultiply(const CSR_Matrix* pM1, const CSR_Matrix* pM2, CSR_Matrix* pR
                                 pM1->m_Table[i][3] * pM2->m_Table[3][j];
 }
 //---------------------------------------------------------------------------
-void csrMatInverse(const CSR_Matrix* pM, CSR_Matrix* pR, float* pDeterminant)
+void csrMat4Inverse(const CSR_Matrix4* pM, CSR_Matrix4* pR, float* pDeterminant)
 {
     float invDet;
     float t[3];
@@ -297,46 +363,62 @@ void csrMatInverse(const CSR_Matrix* pM, CSR_Matrix* pR, float* pDeterminant)
             pR->m_Table[i][j] = v[4 * i + j] * invDet;
 }
 //---------------------------------------------------------------------------
-void csrMatApplyToVector(const CSR_Matrix* pM, const CSR_Vector3* pV, CSR_Vector3* pR)
+void csrMat4ApplyToVector(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3* pR)
 {
     pR->m_X = (pV->m_X * pM->m_Table[0][0] + pV->m_Y * pM->m_Table[1][0] + pV->m_Z * pM->m_Table[2][0] + pM->m_Table[3][0]);
     pR->m_Y = (pV->m_X * pM->m_Table[0][1] + pV->m_Y * pM->m_Table[1][1] + pV->m_Z * pM->m_Table[2][1] + pM->m_Table[3][1]);
     pR->m_Z = (pV->m_X * pM->m_Table[0][2] + pV->m_Y * pM->m_Table[1][2] + pV->m_Z * pM->m_Table[2][2] + pM->m_Table[3][2]);
 }
 //---------------------------------------------------------------------------
-void csrMatApplyToNormal(const CSR_Matrix* pM, const CSR_Vector3* pN, CSR_Vector3* pR)
+void csrMat4ApplyToNormal(const CSR_Matrix4* pM, const CSR_Vector3* pN, CSR_Vector3* pR)
 {
     pR->m_X = (pN->m_X * pM->m_Table[0][0] + pN->m_Y * pM->m_Table[1][0] + pN->m_Z * pM->m_Table[2][0]);
     pR->m_Y = (pN->m_X * pM->m_Table[0][1] + pN->m_Y * pM->m_Table[1][1] + pN->m_Z * pM->m_Table[2][1]);
     pR->m_Z = (pN->m_X * pM->m_Table[0][2] + pN->m_Y * pM->m_Table[1][2] + pN->m_Z * pM->m_Table[2][2]);
 }
 //---------------------------------------------------------------------------
-void csrMatUnproject(const CSR_Matrix*  pProj,
-                     const CSR_Matrix*  pView,
-                           CSR_Vector3* pRayPos,
-                           CSR_Vector3* pRayDir)
+void csrMat4Unproject(const CSR_Matrix4* pP, const CSR_Matrix4* pV, CSR_Ray3* pR)
 {
-    float        determinant;
-    CSR_Matrix  invertProj;
-    CSR_Matrix  invertView;
-    CSR_Matrix  unprojectMat;
+    float       determinant;
+    CSR_Matrix4 invertProj;
+    CSR_Matrix4 invertView;
+    CSR_Matrix4 unprojectMat;
     CSR_Vector3 unprojRayPos;
     CSR_Vector3 unprojRayDir;
 
+    // get infinite value (NOTE this is the only case where a division by 0 is allowed)
+    const float inf = 1.0f / 0.0f;
+
     // unproject the ray to make it in the viewport coordinates
-    csrMatInverse(pProj, &invertProj, &determinant);
-    csrMatInverse(pView, &invertView, &determinant);
-    csrMatMultiply(&invertProj, &invertView, &unprojectMat);
-    csrMatApplyToVector(&unprojectMat, pRayPos, &unprojRayPos);
-    csrMatApplyToVector(&unprojectMat, pRayDir, &unprojRayDir);
+    csrMat4Inverse(pP, &invertProj, &determinant);
+    csrMat4Inverse(pV, &invertView, &determinant);
+    csrMat4Multiply(&invertProj, &invertView, &unprojectMat);
+    csrMat4ApplyToVector(&unprojectMat, &pR->m_Pos, &unprojRayPos);
+    csrMat4ApplyToVector(&unprojectMat, &pR->m_Dir, &unprojRayDir);
 
     // copy resulting ray position
-    pRayPos->m_X = unprojRayPos.m_X;
-    pRayPos->m_Y = unprojRayPos.m_Y;
-    pRayPos->m_Z = unprojRayPos.m_Z;
+    pR->m_Pos.m_X = unprojRayPos.m_X;
+    pR->m_Pos.m_Y = unprojRayPos.m_Y;
+    pR->m_Pos.m_Z = unprojRayPos.m_Z;
 
     // normalize and copy resulting ray direction
-    csrVec3Normalize(&unprojRayDir, pRayDir);
+    csrVec3Normalize(&unprojRayDir, &pR->m_Dir);
+
+    // recompute the ray inverted direction
+    if (!pR->m_Dir.m_X)
+        pR->m_InvDir.m_X = inf;
+    else
+        pR->m_InvDir.m_X = 1.0f / pR->m_Dir.m_X;
+
+    if (!pR->m_Dir.m_Y)
+        pR->m_InvDir.m_Y = inf;
+    else
+        pR->m_InvDir.m_Y = 1.0f / pR->m_Dir.m_Y;
+
+    if (!pR->m_Dir.m_Z)
+        pR->m_InvDir.m_Z = inf;
+    else
+        pR->m_InvDir.m_Z = 1.0f / pR->m_Dir.m_Z;
 }
 //---------------------------------------------------------------------------
 // Quaternion functions
@@ -561,7 +643,7 @@ int csrQuatSlerp(const CSR_Quaternion* pQ1, const CSR_Quaternion* pQ2, float p, 
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR)
+int csrQuatFromMatrix(const CSR_Matrix4* pM, CSR_Quaternion* pR)
 {
     float diagonal;
     float scale;
@@ -658,7 +740,7 @@ int csrQuatFromMatrix(const CSR_Matrix* pM, CSR_Quaternion* pR)
     return 1;
 }
 //---------------------------------------------------------------------------
-void csrQuatToMatrix(const CSR_Quaternion* pQ, CSR_Matrix* pR)
+void csrQuatToMatrix(const CSR_Quaternion* pQ, CSR_Matrix4* pR)
 {
     pR->m_Table[0][0] = 1.0f - 2.0f * (pQ->m_Y * pQ->m_Y + pQ->m_Z * pQ->m_Z); pR->m_Table[0][1] =        2.0f * (pQ->m_X * pQ->m_Y - pQ->m_Z * pQ->m_W); pR->m_Table[0][2] =        2.0f * (pQ->m_X * pQ->m_Z + pQ->m_Y * pQ->m_W); pR->m_Table[0][3] = 0.0f;
     pR->m_Table[1][0] =        2.0f * (pQ->m_X * pQ->m_Y + pQ->m_Z * pQ->m_W); pR->m_Table[1][1] = 1.0f - 2.0f * (pQ->m_X * pQ->m_X + pQ->m_Z * pQ->m_Z); pR->m_Table[1][2] =        2.0f * (pQ->m_Y * pQ->m_Z - pQ->m_X * pQ->m_W); pR->m_Table[1][3] = 0.0f;
@@ -720,10 +802,10 @@ void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR)
 //---------------------------------------------------------------------------
 // Segment functions
 //---------------------------------------------------------------------------
-void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
-                             const CSR_Segment3* pS2,
-                                   float         tolerance,
-                                   float*        pR)
+void csrSeg3DistanceBetween(const CSR_Segment3* pS1,
+                            const CSR_Segment3* pS2,
+                                  float         tolerance,
+                                  float*        pR)
 {
     CSR_Vector3 delta21;
     CSR_Vector3 delta43;
@@ -768,8 +850,8 @@ void csrSeg3ShortestDistance(const CSR_Segment3* pS1,
     // compute the line parameters of the two closest points
     if (fabs(D) < tolerance)
     {
-        // the lines are almost parallel, force using point P0 on segment S1
-        // to prevent possible division by 0 later
+        // the lines are almost parallel, force using point P0 on segment S1 to prevent possible
+        // division by 0 later
         sN = 0.0f;
         sD = 1.0f;
         tN = e;
@@ -894,9 +976,9 @@ void csrSeg3ClosestPoint(const CSR_Segment3* pS, const CSR_Vector3* pP, CSR_Vect
     }
 }
 //---------------------------------------------------------------------------
-// Polygon functions
+// 3D polygon functions
 //---------------------------------------------------------------------------
-void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_Vector3* pR)
+void csrPolygon3ClosestPoint(const CSR_Vector3* pP, const CSR_Polygon3* pPo, CSR_Vector3* pR)
 {
     float        dAB;
     float        dBC;
@@ -953,7 +1035,78 @@ void csrPolygonClosestPoint(const CSR_Vector3* pP, const CSR_Polygon* pPo, CSR_V
 //---------------------------------------------------------------------------
 // Inside checks
 //---------------------------------------------------------------------------
-int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo)
+int csrInsidePolygon2(const CSR_Vector2* pP, const CSR_Polygon2* pPo)
+{
+    CSR_Vector2 nPToV1;
+    CSR_Vector2 nPToV2;
+    CSR_Vector2 nPToV3;
+    float       a1;
+    float       a2;
+    float       a3;
+    float       angleResult;
+
+    /*
+    * check if the point p is inside the polygon in the following manner:
+    *
+    *                  V1                         V1
+    *                  /\                         /\
+    *                 /  \                       /  \
+    *                / *p \                  *P /    \
+    *               /      \                   /      \
+    *            V2 -------- V3             V2 -------- V3
+    *
+    * calculate the vectors between the point p and each polygon vertex, then calculate the angle
+    * formed by each of these vectors. If the sum of the angles is equal to a complete circle, i.e.
+    * 2 * PI in radians, then the point p is inside the polygon limits, otherwise the point is
+    * outside. It is assumed that the point to check belongs to the polygon's plane
+    */
+    csrVec2Sub(&pPo->m_Vertex[0], pP, &nPToV1);
+    csrVec2Sub(&pPo->m_Vertex[1], pP, &nPToV2);
+    csrVec2Sub(&pPo->m_Vertex[2], pP, &nPToV3);
+    csrVec2Normalize(&nPToV1, &nPToV1);
+    csrVec2Normalize(&nPToV2, &nPToV2);
+    csrVec2Normalize(&nPToV3, &nPToV3);
+
+    // calculate the angles using the scalar product of each vectors with the following formulas:
+    // A1 = NPToV1.x * NPToV2.x + NPToV1.y * NPToV2.y
+    // A2 = NPToV2.x * NPToV3.x + NPToV2.y * NPToV3.y
+    // A3 = NPToV3.x * NPToV1.x + NPToV3.y * NPToV1.y
+    csrVec2Dot(&nPToV1, &nPToV2, &a1);
+    csrVec2Dot(&nPToV2, &nPToV3, &a2);
+    csrVec2Dot(&nPToV3, &nPToV1, &a3);
+
+    // limit a1 to avoid rounding errors
+    if (a1 > 1.0f)
+        a1 = 1.0f;
+    else
+    if (a1 < -1.0f)
+        a1 = -1.0f;
+
+    // limit a2 to avoid rounding errors
+    if (a2 > 1.0f)
+        a2 = 1.0f;
+    else
+    if (a2 < -1.0f)
+        a2 = -1.0f;
+
+    // limit a3 to avoid rounding errors
+    if (a3 > 1.0f)
+        a3 = 1.0f;
+    else
+    if (a3 < -1.0f)
+        a3 = -1.0f;
+
+    // calculate the sum of all angles
+    angleResult = acos(a1) + acos(a2) + acos(a3);
+
+    // if sum is equal or higher to 6.28 radians then point P is inside polygon
+    if (angleResult >= 6.28f)
+        return 1;
+
+    return 0;
+}
+//---------------------------------------------------------------------------
+int csrInsidePolygon3(const CSR_Vector3* pP, const CSR_Polygon3* pPo)
 {
     CSR_Vector3 nPToV1;
     CSR_Vector3 nPToV2;
@@ -973,11 +1126,10 @@ int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo)
     *               /      \                   /      \
     *            V2 -------- V3             V2 -------- V3
     *
-    * calculate the vectors between the point p and each polygon vertex, then
-    * calculate the angle formed by each of these vectors. If the sum of the
-    * angles is equal to a complete circle, i.e. 2 * pi in radians, then the
-    * point p is inside the polygon limits, otherwise the point is outside. It
-    * is assumed that the point to check belongs to the polygon's plane
+    * calculate the vectors between the point p and each polygon vertex, then calculate the angle
+    * formed by each of these vectors. If the sum of the angles is equal to a complete circle, i.e.
+    * 2 * PI in radians, then the point p is inside the polygon limits, otherwise the point is
+    * outside. It is assumed that the point to check belongs to the polygon's plane
     */
     csrVec3Sub(&pPo->m_Vertex[0], pP, &nPToV1);
     csrVec3Sub(&pPo->m_Vertex[1], pP, &nPToV2);
@@ -986,8 +1138,7 @@ int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo)
     csrVec3Normalize(&nPToV2, &nPToV2);
     csrVec3Normalize(&nPToV3, &nPToV3);
 
-    // calculate the angles using the scalar product of each vectors. We use
-    // the following algorithms:
+    // calculate the angles using the scalar product of each vectors with the following formulas:
     // A1 = NPToV1.x * NPToV2.x + NPToV1.y * NPToV2.y + NPToV1.z * NPToV2.z
     // A2 = NPToV2.x * NPToV3.x + NPToV2.y * NPToV3.y + NPToV2.z * NPToV3.z
     // A3 = NPToV3.x * NPToV1.x + NPToV3.y * NPToV1.y + NPToV3.z * NPToV1.z
@@ -1026,6 +1177,25 @@ int csrInsidePolygon(const CSR_Vector3* pP, const CSR_Polygon* pPo)
     return 0;
 }
 //---------------------------------------------------------------------------
+int csrInsideRect(const CSR_Vector2* pP, const CSR_Rect* pR)
+{
+    return (pP->m_X >= pR->m_Min.m_X && pP->m_Y >= pR->m_Min.m_Y &&
+            pP->m_X <= pR->m_Max.m_X && pP->m_Y <= pR->m_Max.m_Y);
+}
+//---------------------------------------------------------------------------
+int csrInsideCircle(const CSR_Vector2* pP, const CSR_Circle* pC)
+{
+    CSR_Vector2 length;
+    float       distance;
+
+    // calculate the distance between test point and the center of the circle
+    csrVec2Sub(pP, &pC->m_Center, &length);
+    csrVec2Length(&length, &distance);
+
+    // check if distance is shorter than the circle radius and return result
+    return (distance <= pC->m_Radius);
+}
+//---------------------------------------------------------------------------
 int csrInsideBox(const CSR_Vector3* pP, const CSR_Box* pB)
 {
     return (pP->m_X >= pB->m_Min.m_X && pP->m_Y >= pB->m_Min.m_Y && pP->m_Z >= pB->m_Min.m_Z &&
@@ -1047,7 +1217,7 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
 //---------------------------------------------------------------------------
 // Intersection checks
 //---------------------------------------------------------------------------
-int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
+int csrIntersectRay3Plane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
 {
     CSR_Vector3 n;
     float       dot;
@@ -1080,7 +1250,7 @@ int csrIntersectRayPlane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3*
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR)
+int csrIntersectSeg3Plane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR)
 {
     CSR_Vector3 dir;
     CSR_Ray3    ray;
@@ -1093,7 +1263,7 @@ int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vecto
     csrVec3Sub(&pS->m_End, &pS->m_Start, &dir);
     csrVec3Normalize(&dir, &ray.m_Dir);
 
-    if (csrIntersectRayPlane(&ray, pPl, pR))
+    if (csrIntersectRay3Plane(&ray, pPl, pR))
         // the segment will only intersect the plane if the intersection point is inside the segment
         // limits
         return csrVec3BetweenRange(pR, &pS->m_Start, &pS->m_End, M_CSR_Epsilon);
@@ -1101,7 +1271,7 @@ int csrIntersectSegPlane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vecto
     return 0;
 }
 //---------------------------------------------------------------------------
-int csrIntersectRayPolygon(const CSR_Ray3* pR, const CSR_Polygon* pP)
+int csrIntersectRay3Polygon3(const CSR_Ray3* pR, const CSR_Polygon3* pP)
 {
     CSR_Plane   polygonPlane;
     CSR_Vector3 pointOnPlane;
@@ -1110,14 +1280,14 @@ int csrIntersectRayPolygon(const CSR_Ray3* pR, const CSR_Polygon* pP)
     csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
 
     // calculate the intersection point
-    if (!csrIntersectRayPlane(pR, &polygonPlane, &pointOnPlane))
+    if (!csrIntersectRay3Plane(pR, &polygonPlane, &pointOnPlane))
         return 0;
 
     // check if calculated point is inside the polygon
-    return csrInsidePolygon(&pointOnPlane, pP);
+    return csrInsidePolygon3(&pointOnPlane, pP);
 }
 //---------------------------------------------------------------------------
-int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP)
+int csrIntersectSeg3Polygon3(const CSR_Segment3* pS, const CSR_Polygon3* pP)
 {
     CSR_Plane   polygonPlane;
     CSR_Vector3 pointOnPlane;
@@ -1126,323 +1296,34 @@ int csrIntersectSegPolygon(const CSR_Segment3* pS, const CSR_Polygon* pP)
     csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
 
     // calculate the intersection point
-    if (!csrIntersectSegPlane(pS, &polygonPlane, &pointOnPlane))
+    if (!csrIntersectSeg3Plane(pS, &polygonPlane, &pointOnPlane))
         return 0;
 
     // check if calculated point is inside the polygon
-    return csrInsidePolygon(&pointOnPlane, pP);
+    return csrInsidePolygon3(&pointOnPlane, pP);
 }
 //---------------------------------------------------------------------------
-int csrIntersectPolygons(const CSR_Polygon* pP1, const CSR_Polygon* pP2)
+int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2)
 {
-    CSR_Plane    plane1;
-    CSR_Plane    plane2;
-    CSR_Segment3 v1v2Seg;
-    CSR_Segment3 v2v3Seg;
-    CSR_Segment3 v3v1Seg;
-    CSR_Segment3 ov1ov2Seg;
-    CSR_Segment3 ov2ov3Seg;
-    CSR_Segment3 ov3ov1Seg;
-    CSR_Vector3  normal1;
-    CSR_Vector3  normal2;
-    CSR_Vector3  p1pt1;
-    CSR_Vector3  p1pt2;
-    CSR_Vector3  p1pt3;
-    CSR_Vector3  p2pt1;
-    CSR_Vector3  p2pt2;
-    CSR_Vector3  p2pt3;
-    CSR_Vector3  p;
-    int          p1ptsCount;
-    int          p2ptsCount;
-    float        planesDot;
-    float        dist1v1;
-    float        dist1v2;
-    float        dist1v3;
-    float        dist2v1;
-    float        dist2v2;
-    float        dist2v3;
-    float        result;
-
-    // todo -cCheck -oJean: I think something is wrong in this algorithm. It should be revised
-
-    // get planes from polygons
-    csrPlaneFromPoints(&pP1->m_Vertex[0], &pP1->m_Vertex[1], &pP1->m_Vertex[2], &plane1);
-    csrPlaneFromPoints(&pP2->m_Vertex[0], &pP2->m_Vertex[1], &pP2->m_Vertex[2], &plane2);
-
-    // coplanar?
-    if (((plane1.m_A ==  plane2.m_A)  &&
-         (plane1.m_B ==  plane2.m_B)  &&
-         (plane1.m_C ==  plane2.m_C)  &&
-         (plane1.m_D ==  plane2.m_D)) ||
-        ((plane1.m_A == -plane2.m_A)  &&
-         (plane1.m_B == -plane2.m_B)  &&
-         (plane1.m_C == -plane2.m_C)  &&
-         (plane1.m_D == -plane2.m_D)))
-    {
-        // is any vertex inside other polygon?
-        if (csrInsidePolygon(&pP1->m_Vertex[0], pP2) ||
-            csrInsidePolygon(&pP1->m_Vertex[1], pP2) ||
-            csrInsidePolygon(&pP1->m_Vertex[2], pP2) ||
-            csrInsidePolygon(&pP2->m_Vertex[0], pP1) ||
-            csrInsidePolygon(&pP2->m_Vertex[1], pP1) ||
-            csrInsidePolygon(&pP2->m_Vertex[2], pP1))
-            return 1;
-
-        // create polygon lines
-        v1v2Seg.m_Start   = pP1->m_Vertex[0];
-        v1v2Seg.m_End     = pP1->m_Vertex[1];
-        v2v3Seg.m_Start   = pP1->m_Vertex[1];
-        v2v3Seg.m_End     = pP1->m_Vertex[2];
-        v3v1Seg.m_Start   = pP1->m_Vertex[2];
-        v3v1Seg.m_End     = pP1->m_Vertex[0];
-        ov1ov2Seg.m_Start = pP2->m_Vertex[0];
-        ov1ov2Seg.m_End   = pP2->m_Vertex[1];
-        ov2ov3Seg.m_Start = pP2->m_Vertex[1];
-        ov2ov3Seg.m_End   = pP2->m_Vertex[2];
-        ov3ov1Seg.m_Start = pP2->m_Vertex[2];
-        ov3ov1Seg.m_End   = pP2->m_Vertex[0];
-
-        csrSeg3ShortestDistance(&v1v2Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v2v3Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v3v1Seg, &ov1ov2Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v1v2Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v2v3Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v3v1Seg, &ov2ov3Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v1v2Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v2v3Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        csrSeg3ShortestDistance(&v3v1Seg, &ov3ov1Seg, M_CSR_Epsilon, &result);
-
-        // is shortest distance between lines equal to 0?
-        if (result < M_CSR_Epsilon)
-            return 1;
-
-        return 0;
-    }
-
-    // get plane normals
-    normal1.m_X = plane1.m_A;
-    normal1.m_Y = plane1.m_B;
-    normal1.m_Z = plane1.m_C;
-
-    normal2.m_X = plane2.m_A;
-    normal2.m_Y = plane2.m_B;
-    normal2.m_Z = plane2.m_C;
-
-    // calculate angle between planes
-    csrVec3Dot(&normal1, &normal2, &planesDot);
-
-    // are plane parallels?
-    if (planesDot == 1.0f || planesDot == -1.0f)
-        // planes are parallels but not coplanars, no collision is possible
-        return 0;
-
-    // calculate distance from each first polygon vertex to second polygon plane
-    csrPlaneDistanceTo(&pP1->m_Vertex[0], &plane2, &dist1v1);
-    csrPlaneDistanceTo(&pP1->m_Vertex[1], &plane2, &dist1v2);
-    csrPlaneDistanceTo(&pP1->m_Vertex[2], &plane2, &dist1v3);
-
-    // prepare list containing first polygon intersection points
-    p1ptsCount = 0;
-
-    // is first polygon V1 to V2 line segment intersects second polygon plane?
-    if ((dist1v1 >= 0.0f && dist1v2 < 0.0f) || (dist1v1 < 0.0f && dist1v2 >= 0.0f))
-    {
-        v1v2Seg.m_Start   = pP1->m_Vertex[0];
-        v1v2Seg.m_End     = pP1->m_Vertex[1];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v1v2Seg, &plane2, &p))
-        {
-            p1pt1 = p;
-            ++p1ptsCount;
-        }
-    }
-
-    // is first polygon V2 to V3 line segment intersects second polygon plane?
-    if ((dist1v2 >= 0.0f && dist1v3 < 0.0f) || (dist1v2 < 0.0f && dist1v3 >= 0.0f))
-    {
-        v2v3Seg.m_Start   = pP1->m_Vertex[1];
-        v2v3Seg.m_End     = pP1->m_Vertex[2];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v2v3Seg, &plane2, &p))
-        {
-            p1pt2 = p;
-            ++p1ptsCount;
-        }
-    }
-
-    // is first polygon V3 to V1 line segment intersects second polygon plane?
-    if ((dist1v3 >= 0.0f && dist1v1 < 0.0f) || (dist1v3 < 0.0f && dist1v1 >= 0.0f))
-    {
-        v3v1Seg.m_Start   = pP1->m_Vertex[2];
-        v3v1Seg.m_End     = pP1->m_Vertex[0];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v3v1Seg, &plane2, &p))
-        {
-            p1pt3 = p;
-            ++p1ptsCount;
-        }
-    }
-
-    // 2 intersection point were found on the first polygon?
-    if (p1ptsCount != 2)
-        return 0;
-
-    // calculate distance from each second polygon vertex to first polygon plane
-    csrPlaneDistanceTo(&pP2->m_Vertex[0], &plane1, &dist2v1);
-    csrPlaneDistanceTo(&pP2->m_Vertex[1], &plane1, &dist2v2);
-    csrPlaneDistanceTo(&pP2->m_Vertex[2], &plane1, &dist2v3);
-
-    // prepare list containing second polygon intersection points
-    p2ptsCount = 0;
-
-    // is second polygon V1 to V2 line segment intersects first polygon plane?
-    if ((dist2v1 >= 0.0f && dist2v2 < 0.0f) || (dist2v1 < 0.0f && dist2v2 >= 0.0f))
-    {
-        v1v2Seg.m_Start   = pP2->m_Vertex[0];
-        v1v2Seg.m_End     = pP2->m_Vertex[1];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v1v2Seg, &plane1, &p))
-        {
-            p2pt1 = p;
-            ++p2ptsCount;
-        }
-    }
-
-    // is second polygon V2 to V3 line segment intersects first polygon plane?
-    if ((dist2v2 >= 0.0f && dist2v3 < 0.0f) || (dist2v2 < 0.0f && dist2v3 >= 0.0f))
-    {
-        v2v3Seg.m_Start   = pP2->m_Vertex[1];
-        v2v3Seg.m_End     = pP2->m_Vertex[2];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v2v3Seg, &plane1, &p))
-        {
-            p2pt2 = p;
-            ++p2ptsCount;
-        }
-    }
-
-    // is second polygon V3 to V1 line segment intersects first polygon plane?
-    if ((dist2v3 >= 0.0f && dist2v1 < 0.0f) || (dist2v3 < 0.0f && dist2v1 >= 0.0f))
-    {
-        v3v1Seg.m_Start   = pP2->m_Vertex[2];
-        v3v1Seg.m_End     = pP2->m_Vertex[0];
-
-        // calculate intersection point and add to list on success
-        if (csrIntersectSegPlane(&v3v1Seg, &plane1, &p))
-        {
-            p2pt3 = p;
-            ++p2ptsCount;
-        }
-    }
-
-    // 2 intersection point were found on the second polygon?
-    if (p2ptsCount != 2)
-        return 0;
-
-    // todo -cCheck -oJean: Not sure if this part is required and/or works well. To be tested
-
-    // first and second polygon intersection points are on the same line, so check if calculated
-    // first and second polygon segments intersect
-    if (csrVec3BetweenRange(&p1pt1, &p2pt1, &p2pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt2, &p2pt1, &p2pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt3, &p2pt1, &p2pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt1, &p2pt2, &p2pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt2, &p2pt2, &p2pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt3, &p2pt2, &p2pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt1, &p2pt3, &p2pt1, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt2, &p2pt3, &p2pt1, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p1pt3, &p2pt3, &p2pt1, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt1, &p1pt1, &p1pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt2, &p1pt1, &p1pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt3, &p1pt1, &p1pt2, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt1, &p1pt2, &p1pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt2, &p1pt2, &p1pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt3, &p1pt2, &p1pt3, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt1, &p1pt3, &p1pt1, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt2, &p1pt3, &p1pt1, M_CSR_Epsilon))
-        return 1;
-
-    if (csrVec3BetweenRange(&p2pt3, &p1pt3, &p1pt1, M_CSR_Epsilon))
-        return 1;
-
-    return 0;
+    CSR_Vector2 dist;
+    float       length;
+
+    // calculate the distance between the both circle centers
+    dist.m_X = fabs(pC1->m_Center.m_X - pC2->m_Center.m_X);
+    dist.m_Y = fabs(pC1->m_Center.m_Y - pC2->m_Center.m_Y);
+
+    // calculate the length between the both circle centers
+    csrVec2Length(&dist, &length);
+
+    // the circles are in collision if the length between their centers is lower than or equal to
+    // the sum of the both sphere radius
+    return (length <= (pC1->m_Radius + pC2->m_Radius));
+}
+//---------------------------------------------------------------------------
+int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2)
+{
+    return !(pR1->m_Min.m_X <= pR2->m_Max.m_X && pR1->m_Max.m_X >= pR2->m_Min.m_X &&
+             pR1->m_Min.m_Y <= pR2->m_Max.m_Y && pR1->m_Max.m_Y >= pR2->m_Min.m_Y);
 }
 //---------------------------------------------------------------------------
 int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
@@ -1539,17 +1420,15 @@ int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
 //---------------------------------------------------------------------------
 int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2)
 {
-    // FIXME implement that
-
-    /*FIXME
-    return !(pFirstRect->m_Pos.m_X                               <= pSecondRect->m_Pos.m_X + pSecondRect->m_Size.m_Width  &&
-             pFirstRect->m_Pos.m_X + pFirstRect->m_Size.m_Width  >= pSecondRect->m_Pos.m_X                                &&
-             pFirstRect->m_Pos.m_Y                               <= pSecondRect->m_Pos.m_Y + pSecondRect->m_Size.m_Height &&
-             pFirstRect->m_Pos.m_Y + pFirstRect->m_Size.m_Height >= pSecondRect->m_Pos.m_Y);
-    */
+    return !(pB1->m_Min.m_X <= pB2->m_Max.m_X &&
+             pB1->m_Max.m_X >= pB2->m_Min.m_X &&
+             pB1->m_Min.m_Y <= pB2->m_Max.m_Y &&
+             pB1->m_Max.m_Y >= pB2->m_Min.m_Y &&
+             pB1->m_Min.m_Z <= pB2->m_Max.m_Z &&
+             pB1->m_Max.m_Z >= pB2->m_Min.m_Z);
 }
 //---------------------------------------------------------------------------
-int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_Plane* pR)
+int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_Plane* pR)
 {
     float        testPoint1;
     float        testPoint2;
@@ -1609,11 +1488,11 @@ int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_P
             seg.m_End   = pointOnSphere;
 
             // calculate the intersection point
-            csrIntersectSegPlane(&seg, &polygonPlane, &pointOnPlane);
+            csrIntersectSeg3Plane(&seg, &polygonPlane, &pointOnPlane);
         }
 
         // check if calculated point is inside the polygon
-        if (csrInsidePolygon(&pointOnPlane, pP))
+        if (csrInsidePolygon3(&pointOnPlane, pP))
         {
             // if yes, the sphere collide the polygon. In this case, we copy the plane and we
             // returns true
@@ -1622,15 +1501,15 @@ int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_P
         }
         else
         {
-            // otherwise check if the sphere collide the border of the polygon. First we calculate
-            // the test point on the border of the polygon
-            csrPolygonClosestPoint(&pointOnPlane, pP, &pointOnTriangle);
+            // otherwise check if the sphere collide a polygon edge. First calculate the point to
+            // check on the polygon edge
+            csrPolygon3ClosestPoint(&pointOnPlane, pP, &pointOnTriangle);
 
-            // check if calculated point is inside the sphere
+            // check if this point is inside the sphere
             if (csrInsideSphere(&pointOnTriangle, pS))
             {
-                // if yes, the sphere collide the polygon. In this case, we copy the plane and we
-                // returns true
+                // if yes, the sphere collide the polygon. In this case the sliding plane is copied
+                // and the return value is true
                 *pR = polygonPlane;
                 return 1;
             }
@@ -1643,13 +1522,36 @@ int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon* pP, CSR_P
 //---------------------------------------------------------------------------
 int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB)
 {
-    // FIXME implement that
+    float d = 0.0f;
+
+    // find the square of the distance from the sphere to the box on the x axis
+    if (pS->m_Center.m_X < pB->m_Min.m_X)
+        d += pow(pS->m_Center.m_X - pB->m_Min.m_X, 2.0f);
+    else
+    if (pS->m_Center.m_X > pB->m_Max.m_X)
+        d += pow(pS->m_Center.m_X - pB->m_Max.m_X, 2.0f);
+
+    // find the square of the distance from the sphere to the box on the y axis
+    if (pS->m_Center.m_Y < pB->m_Min.m_Y)
+        d += pow(pS->m_Center.m_Y - pB->m_Min.m_Y, 2.0f);
+    else
+    if (pS->m_Center.m_Y > pB->m_Max.m_Y)
+        d += pow(pS->m_Center.m_Y - pB->m_Max.m_Y, 2.0f);
+
+    // find the square of the distance from the sphere to the box on the z axis
+    if (pS->m_Center.m_Z < pB->m_Min.m_Z)
+        d += pow(pS->m_Center.m_Z - pB->m_Min.m_Z, 2.0f);
+    else
+    if (pS->m_Center.m_Z > pB->m_Max.m_Z)
+        d += pow(pS->m_Center.m_Z - pB->m_Max.m_Z, 2.0f);
+
+    return (d <= pow(pS->m_Radius, 2.0f));
 }
 //---------------------------------------------------------------------------
 int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
 {
     CSR_Vector3 dist;
-    float        length;
+    float       length;
 
     // calculate the distance between the both sphere centers
     dist.m_X = fabs(pS1->m_Center.m_X - pS2->m_Center.m_X);
@@ -1659,8 +1561,8 @@ int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
     // calculate the length between the both sphere centers
     csrVec3Length(&dist, &length);
 
-    // the spheres are on collision if the length between the centers is lower than or equal to the
-    // sum of the both sphere radius
+    // the spheres are in collision if the length between their centers is lower than or equal to
+    // the sum of the both sphere radius
     return (length <= (pS1->m_Radius + pS2->m_Radius));
 }
 //---------------------------------------------------------------------------
