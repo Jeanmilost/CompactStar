@@ -686,6 +686,34 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
+        * Checks if a point intersects a ray
+        *@param pP - point
+        *@param pR - ray
+        *@return 1 if the point intersects the ray, otherwise 0
+        */
+        int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR);
+
+        /**
+        * Checks if a ray intesects a circle
+        *@param pRa - ray
+        *@param pC - circle
+        *@param[out] pR - array of 2 vectors containing the instersection points if the shapes intersect
+        *@return 1 if the ray intersects the circle, otherwise 0
+        *@note The array passed as parameter for pR should be declared as follow: CSR_Vector2 points[2]
+        */
+        int csrIntersectRay2Circle(const CSR_Ray2* pRa, const CSR_Circle* pC, CSR_Vector2* pR);
+
+        /**
+        * Checks if a line segment intesects a circle
+        *@param pS - line segment
+        *@param pC - circle
+        *@param[out] pR - array of 2 vectors containing the instersection points if the shapes intersect
+        *@return 1 if the line segment intersects the circle, otherwise 0
+        *@note The array passed as parameter for pR should be declared as follow: CSR_Vector2 points[2]
+        */
+        int csrIntersectSeg2Circle(const CSR_Segment2* pS, const CSR_Circle* pC, CSR_Vector2* pR);
+
+        /**
         * Checks if a ray intesects a plane
         *@param pRa - ray
         *@param pPl - plane
@@ -726,6 +754,14 @@ typedef struct
         *@return 1 if the circles intersect, otherwise 0
         */
         int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2);
+
+        /**
+        * Checks if a rect intersects a circle
+        *@param pC - circle to check
+        *@param pR - rect to check against
+        *@return 1 if the circle intersects the rect, otherwise 0
+        */
+        int csrIntersectCircleRect(const CSR_Circle* pC, const CSR_Rect* pR);
 
         /**
         * Checks if a rect intersects another rect
