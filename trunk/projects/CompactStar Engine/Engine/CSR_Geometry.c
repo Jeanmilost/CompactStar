@@ -800,7 +800,7 @@ void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR)
     *pR = dist + pPl->m_D;
 }
 //---------------------------------------------------------------------------
-// Segment functions
+// 3D segment functions
 //---------------------------------------------------------------------------
 void csrSeg3DistanceBetween(const CSR_Segment3* pS1,
                             const CSR_Segment3* pS2,
@@ -1217,6 +1217,105 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
 //---------------------------------------------------------------------------
 // Intersection checks
 //---------------------------------------------------------------------------
+int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR)
+{
+    int xIntersects;
+    int yIntersects;
+
+    if (pR->m_Dir.m_X >= 0.0f)
+    {
+        if (pP->m_X >= pR->m_Pos.m_X)
+            xIntersects = 1;
+        else
+            xIntersects = 0;
+    }
+    else
+    if (pP->m_X <= pR->m_Pos.m_X)
+        xIntersects = 1;
+    else
+        xIntersects = 0;
+
+    if (pR->m_Dir.m_Y >= 0.0f)
+    {
+        if (pP->m_Y >= pR->m_Pos.m_Y)
+            yIntersects = 1;
+        else
+            yIntersects = 0;
+    }
+    else
+    if (pP->m_Y <= pR->m_Pos.m_Y)
+        yIntersects = 1;
+    else
+        yIntersects = 0;
+
+    return (xIntersects && yIntersects);
+}
+//---------------------------------------------------------------------------
+int csrIntersectRay2Circle(const CSR_Ray2* pRa, const CSR_Circle* pC, CSR_Vector2* pR)
+{
+    CSR_Vector2 d;
+    size_t      i;
+    float       a;
+    float       b;
+    float       c;
+    float       discriminant;
+    float       sqrtDisc;
+    float       invA;
+    float       t[2];
+
+    csrVec2Sub(&pRa->m_Pos, &pC->m_Center, &d);
+    csrVec2Dot(&pRa->m_Dir, &pRa->m_Dir,   &a);
+    csrVec2Dot(&d,          &pRa->m_Dir,   &b);
+    csrVec2Dot(&d,          &d,            &c);
+
+    c            =  c - (pC->m_Radius * pC->m_Radius);
+    discriminant = (b * b) - (a * c);
+
+    if (discriminant < 0.0f)
+        return 0;
+
+    sqrtDisc = sqrt(discriminant);
+    invA     = 1.0f / a;
+
+    // calculate the parametric values at intersection points (i.e. the length from the ray start
+    // point to the intersection)
+    t[0] = (-b - sqrtDisc) * invA;
+    t[1] = (-b + sqrtDisc) * invA;
+
+    // calculate the intersection points
+    for (i = 0; i < 2; ++i)
+    {
+        pR[i].m_X = pRa->m_Pos.m_X + (pRa->m_Dir.m_X * t[i]);
+        pR[i].m_Y = pRa->m_Pos.m_Y + (pRa->m_Dir.m_Y * t[i]);
+    }
+
+    // check if the intersection point is really above the ray
+    return (csrIntersectRay2Point(&pR[0], pRa) || csrIntersectRay2Point(&pR[1], pRa));
+}
+//---------------------------------------------------------------------------
+int csrIntersectSeg2Circle(const CSR_Segment2* pS, const CSR_Circle* pC, CSR_Vector2* pR)
+{
+    CSR_Vector2 dir;
+    CSR_Ray2    ray;
+
+    // calculate the ray direction (NOTE the inverted direction can be omitted here, because the
+    // csrIntersectRay2Circle() will not use it)
+    csrVec2Sub(&pS->m_End, &pS->m_Start, &dir);
+    csrVec2Normalize(&dir, &ray.m_Dir);
+
+    // set the ray position
+    ray.m_Pos = pS->m_Start;
+
+    // check if ray intersects with circle and get the intersection points
+    if (!csrIntersectRay2Circle(&ray, pC, pR))
+        return 0;
+
+    // the segment intersects the circle if, and only if at least 1 intersection point is inside the
+    // segment range
+    return (csrVec2BetweenRange(&pR[0], &pS->m_Start, &pS->m_End, M_CSR_Epsilon) ||
+            csrVec2BetweenRange(&pR[1], &pS->m_Start, &pS->m_End, M_CSR_Epsilon));
+}
+//---------------------------------------------------------------------------
 int csrIntersectRay3Plane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
 {
     CSR_Vector3 n;
@@ -1318,6 +1417,59 @@ int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2)
     // the circles are in collision if the length between their centers is lower than or equal to
     // the sum of the both sphere radius
     return (length <= (pC1->m_Radius + pC2->m_Radius));
+}
+//---------------------------------------------------------------------------
+int csrIntersectCircleRect(const CSR_Circle* pC, const CSR_Rect* pR)
+{
+    CSR_Vector2  leftTop;
+    CSR_Vector2  rightTop;
+    CSR_Vector2  leftBottom;
+    CSR_Vector2  rightBottom;
+    CSR_Vector2  intersections[2];
+    CSR_Segment2 leftEdge;
+    CSR_Segment2 topEdge;
+    CSR_Segment2 rightEdge;
+    CSR_Segment2 bottomEdge;
+
+    // shapes intersect if the circle center is inside the rect
+    if (csrInsideRect(&pC->m_Center, pR))
+        return 1;
+
+    // get the rect vertices
+    leftTop.m_X     = pR->m_Min.m_X;
+    leftTop.m_Y     = pR->m_Min.m_Y;
+    rightTop.m_X    = pR->m_Max.m_X;
+    rightTop.m_Y    = pR->m_Min.m_Y;
+    leftBottom.m_X  = pR->m_Min.m_X;
+    leftBottom.m_Y  = pR->m_Max.m_Y;
+    rightBottom.m_X = pR->m_Max.m_X;
+    rightBottom.m_Y = pR->m_Max.m_Y;
+
+    // shapes also intersect if one of the rect vertex is inside the circle
+    if (csrInsideCircle(&leftTop,     pC) ||
+        csrInsideCircle(&rightTop,    pC) ||
+        csrInsideCircle(&leftBottom,  pC) ||
+        csrInsideCircle(&rightBottom, pC))
+        return 1;
+
+    // get the rect edges
+    leftEdge.m_Start   = leftBottom;
+    leftEdge.m_End     = leftTop;
+    topEdge.m_Start    = leftTop;
+    topEdge.m_End      = rightTop;
+    rightEdge.m_Start  = rightTop;
+    rightEdge.m_End    = rightBottom;
+    bottomEdge.m_Start = rightBottom;
+    bottomEdge.m_End   = leftBottom;
+
+    // shapes also intersect if one of the rect edge intersects the circle
+    if (csrIntersectSeg2Circle(&leftEdge,   pC, intersections) ||
+        csrIntersectSeg2Circle(&topEdge,    pC, intersections) ||
+        csrIntersectSeg2Circle(&rightEdge,  pC, intersections) ||
+        csrIntersectSeg2Circle(&bottomEdge, pC, intersections))
+        return 1;
+
+    return 0;
 }
 //---------------------------------------------------------------------------
 int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2)
