@@ -74,13 +74,12 @@ typedef struct
         *@param pBuffer - buffer containing wav sound
         *@param sampling - sound sampling (standard values are e.g. 48000, 44100, ...)
         *@return newly created sound on success, 0 on error
-        *@note The sound must be released when it becomes useless. The ReleaseSound() function
-        *      must be called for this purpose
+        *@note The buffer must be released when no longer used, see csrReleaseSound()
         */
-        CSR_Sound* csrSoundCreate(const ALCdevice*   pOpenALDevice,
-                                  const ALCcontext*  pOpenALContext,
-                                        CSR_Buffer*  pBuffer,
-                                        unsigned int sampling);
+        CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
+                                  const ALCcontext* pOpenALContext,
+                                        CSR_Buffer* pBuffer,
+                                        unsigned    sampling);
 
         /**
         * Opens a sound from a file
@@ -89,13 +88,12 @@ typedef struct
         *@param pFileName - file name
         *@param sampling - sound sampling (standard values are e.g. 48000, 44100, ...)
         *@return opened sound on success, 0 on error
-        *@note The sound must be released when it becomes useless. The ReleaseSound() function
-        *      must be called for this purpose
+        *@note The sound must be released when no longer used, see csrReleaseSound()
         */
-        CSR_Sound* csrSoundOpen(const ALCdevice*   pOpenALDevice,
-                                const ALCcontext*  pOpenALContext,
-                                      const char*  pFileName,
-                                      unsigned int sampling);
+        CSR_Sound* csrSoundOpen(const ALCdevice*  pOpenALDevice,
+                                const ALCcontext* pOpenALContext,
+                                      const char* pFileName,
+                                      unsigned    sampling);
 
         /**
         * Plays sound
@@ -196,7 +194,7 @@ typedef struct
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include "MiniPlayer.c"
+    #include "CSR_Sound.c"
 #endif
 
 #endif

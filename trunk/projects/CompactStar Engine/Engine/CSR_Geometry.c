@@ -1478,7 +1478,7 @@ int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2)
              pR1->m_Min.m_Y <= pR2->m_Max.m_Y && pR1->m_Max.m_Y >= pR2->m_Min.m_Y);
 }
 //---------------------------------------------------------------------------
-int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
+int csrIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
 {
     float tx1;
     float tx2;

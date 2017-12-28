@@ -777,7 +777,7 @@ typedef struct
         *@param pB - box
         *@return 1 if the ray intersects the box, otherwise 0
         */
-        int miniIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB);
+        int csrIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB);
 
         /**
         * Checks if a box intersects another box
