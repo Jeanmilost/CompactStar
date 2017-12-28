@@ -13,36 +13,19 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef MiniCollisionH
-#define MiniCollisionH
+#ifndef CSR_CollisionH
+#define CSR_CollisionH
 
 // std
 #include <stddef.h>
 
-// mini API
-//REM #include "CSR_Common.h"
+// compactStar engine
 #include "CSR_Geometry.h"
+#include "CSR_Vertex.h"
 
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
-
-/**
-* Indexed polygon, keep the index of each vertex composing the polygon data inside a vertex buffer
-*/
-typedef struct
-{
-    size_t m_VertexIndex[3];
-} CSR_IndexedPolygon;
-
-/**
-* Indexed polygon array
-*/
-typedef struct
-{
-    CSR_IndexedPolygon* m_pBuffer;
-    size_t              m_Count;
-} CSR_IndexedPolygons;
 
 // Aligned-axis bounding box tree node prototype (required to use itself inside the structure)
 typedef struct CSR_AABBNode CSR_AABBNode;
@@ -52,86 +35,37 @@ typedef struct CSR_AABBNode CSR_AABBNode;
 */
 struct CSR_AABBNode
 {
-    CSR_AABBNode*        m_pParent;
-    CSR_AABBNode*        m_pLeft;
-    CSR_AABBNode*        m_pRight;
-    CSR_Box*             m_pBox;
-    CSR_IndexedPolygons* m_pPolygons;
-    //REM? float*               m_pVertexBuffer;
+    CSR_AABBNode*            m_pParent;
+    CSR_AABBNode*            m_pLeft;
+    CSR_AABBNode*            m_pRight;
+    CSR_Box*                 m_pBox;
+    CSR_IndexedPolygonTable* m_pPolygons;
 };
 
 #ifdef __cplusplus
     extern "C"
     {
 #endif
-
         //-------------------------------------------------------------------
-        // Indexed polygons
+        // Aligned-Axis Bounding Box functions
         //-------------------------------------------------------------------
 
         /**
-        * Converts an indexed polygon to a polygon
-        *@param pVB - vertex buffer containing the vertices referred by the indexed polygon
-        *@param pP - indexed polygon
-        *@param[out] pR - polygon
+        * Extends a bounding box to include a polygon
+        *@param pVB - vertex buffer containing the indexed polygon vertices
+        *@param pP - polygon to add
+        *@param pB - bounding box in which polygon should be included
+        *@param[in, out] pEmpty - if 1, box is empty and still no contains any polygon
         */
-        void csrIndexedToPolygon(const float* pVB, const CSR_IndexedPolygon* pP, CSR_Polygon3* pR);
-
-        /**
-        * Adds a new indexed polygon, generated from his 3 indices, inside an indexed polygon buffer
-        *@param v1 - polygon first vertex index
-        *@param v2 - polygon second vertex index
-        *@param v3 - polygon third vertex index
-        *@param[out] pPolygons - indexed polygon buffer in which the new polygon should be added
-        *@note The buffer should be deleted by calling csrIndexedBufferRelease() when useless
-        */
-        void csrIndexedBufferAdd(size_t v1, size_t v2, size_t v3, CSR_IndexedPolygons* pPolygons);
-
-        /**
-        * Releases polygons previously created by csrPolygonsFromVB() or csrPolygonFromVB()
-        *@param pPolygons - polygon array to release
-        */
-        void csrIndexedBufferRelease(CSR_IndexedPolygons* pPolygons);
+        void csrBoxExtendToPolygon(const float*              pVB,
+                                   const CSR_IndexedPolygon* pP,
+                                         CSR_Box*            pB,
+                                         int*                pEmpty);
 
         //-------------------------------------------------------------------
         // Aligned-Axis Bounding Box tree
         //-------------------------------------------------------------------
-//
-//        /**
-//        * Extends a bounding box to include a polygon
-//        *@param pVB - vertex buffer containing the indexed polygon vertices
-//        *@param pP - polygon to add
-//        *@param pB - bounding box in which polygon should be included
-//        *@param[in, out] pEmpty - if 1, box is empty and still no contains any polygon
-//        */
-//        void csrBoxExtendToPolygon(const float*              pVB,
-//                                   const CSR_IndexedPolygon* pP,
-//                                         CSR_Box*            pB,
-//                                         int*                pEmpty);
-//
-//        /**
-//        * Extracts polygons from vertex buffer
-//        *@param pVB - source vertex buffer
-//        *@param length - vertex buffer length
-//        *@param type - polygons type as arranged in vertex buffer, where:
-//        *              0 = triangles
-//        *              1 = triangle strip
-//        *              2 = triangle fan
-//        *              3 = quads
-//        *              4 = quad strip
-//        *@param[out] pPolygons - polygon array that contains generated polygons
-//        *@param[out] pPolygonsCount - polygons count contained in array
-//        *@return 1 on success, otherwise 0
-//        *@note Generated polygons should be deleted by calling miniReleasePolygons()
-//        *      when useless
-//        */
-//        int csrPolygonsFromVB(const float*        pVB,
-//                                    unsigned      length,
-//                                    unsigned      type,
-//                                    unsigned      stride,
-//                                    CSR_Polygon** pPolygons,
-//                                    unsigned*     pPolygonsCount);
-//
+
 //        /**
 //        * Cuts box on the longest axis
 //        *@param pBox - box to cut
@@ -203,7 +137,7 @@ struct CSR_AABBNode
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include "MiniCollision.c"
+    #include "CSR_Collision.c"
 #endif
 
 #endif

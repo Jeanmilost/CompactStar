@@ -44,10 +44,10 @@ int csrSoundInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALCont
     return 1;
 }
 //---------------------------------------------------------------------------
-CSR_Sound* csrSoundCreate(const ALCdevice*   pOpenALDevice,
-                          const ALCcontext*  pOpenALContext,
-                                CSR_Buffer*  pBuffer,
-                                unsigned int sampling)
+CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
+                          const ALCcontext* pOpenALContext,
+                                CSR_Buffer* pBuffer,
+                                unsigned    sampling)
 {
     CSR_Sound* pSound;
 
@@ -132,10 +132,10 @@ CSR_Sound* csrSoundCreate(const ALCdevice*   pOpenALDevice,
     return pSound;
 }
 //---------------------------------------------------------------------------
-CSR_Sound* csrSoundOpen(const ALCdevice*   pOpenALDevice,
-                        const ALCcontext*  pOpenALContext,
-                              const char*  pFileName,
-                              unsigned int sampling)
+CSR_Sound* csrSoundOpen(const ALCdevice*  pOpenALDevice,
+                        const ALCcontext* pOpenALContext,
+                              const char* pFileName,
+                              unsigned    sampling)
 {
     CSR_Buffer* pBuffer;
     CSR_Sound*  pSound;

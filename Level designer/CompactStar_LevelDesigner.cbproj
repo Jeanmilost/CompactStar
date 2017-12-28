@@ -160,6 +160,12 @@
         <None Include="..\Engine\CSR_Sound.h">
             <BuildOrder>14</BuildOrder>
         </None>
+        <CppCompile Include="..\Engine\CSR_Vertex.c">
+            <BuildOrder>17</BuildOrder>
+        </CppCompile>
+        <None Include="..\Engine\CSR_Vertex.h">
+            <BuildOrder>18</BuildOrder>
+        </None>
         <CppCompile Include="CompactStar_LevelDesigner.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
@@ -222,15 +228,15 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="File1.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_LevelDesigner.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="File1.c" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

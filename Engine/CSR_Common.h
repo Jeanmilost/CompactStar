@@ -50,7 +50,7 @@ typedef struct
         * Gets the minimum value between 2 values
         *@param a - first value to compare
         *@param b - second value to compare with
-        *@param[out] pR - the minimum value between the 2
+        *@param[out] pR - the found minimum value
         */
         void csrMathMin(float a, float b, float* pR);
 
@@ -58,7 +58,7 @@ typedef struct
         * Gets the maximum value between 2 values
         *@param a - first value to compare
         *@param b - second value to compare with
-        *@param[out] pR - the maximum value between the 2
+        *@param[out] pR - the found maximum value
         */
         void csrMathMax(float a, float b, float* pR);
 
@@ -94,8 +94,7 @@ typedef struct
         /**
         * Creates a new buffer
         *@return newly created buffer, 0 on error
-        *@note The buffer must be released when it becomes useless. The ReleaseBuffer() function
-        *      must be called for this purpose
+        *@note The buffer must be released when no longer used, see csrReleaseBuffer()
         */
         CSR_Buffer* csrBufferCreate(void);
 
@@ -120,8 +119,7 @@ typedef struct
         * Opens a file
         *@param pFileName - file name
         *@return a buffer containing the file content, 0 on error
-        *@note The buffer must be released when it becomes useless. The ReleaseBuffer() function
-        *      must be called for this purpose
+        *@note The buffer must be released when no longer used, see csrReleaseBuffer()
         */
         CSR_Buffer* csrFileOpen(const char* pFileName);
 

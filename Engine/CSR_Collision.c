@@ -15,76 +15,14 @@
 
 #include "CSR_Collision.h"
 
-// std
-//REM #include <stdlib.h>
-//REM #include <math.h>
-
 //---------------------------------------------------------------------------
-// Indexed polygons
+// Aligned-Axis Bounding Box functions
 //---------------------------------------------------------------------------
-void csrIndexedPolygonToPolygon(const float*              pVB,
-                                const CSR_IndexedPolygon* pP,
-                                      CSR_Polygon3*       pR)
+void csrBoxExtendToPolygon(const float*              pVB,
+                           const CSR_IndexedPolygon* pP,
+                                 CSR_Box*            pB,
+                                 int*                pEmpty)
 {
-    size_t i;
-
-    for (i = 0; i < 3; ++i)
-    {
-        pR->m_Vertex[i].m_X = pVB[pP->m_VertexIndex[i]];
-        pR->m_Vertex[i].m_Y = pVB[pP->m_VertexIndex[i] + 1];
-        pR->m_Vertex[i].m_Z = pVB[pP->m_VertexIndex[i] + 2];
-    }
-}
-//---------------------------------------------------------------------------
-void csrIndexedBufferAdd(size_t v1, size_t v2, size_t v3, CSR_IndexedPolygons* pPolygons)
-{
-    size_t index;
-
-    // polygon array already contains polygons?
-    if (!pPolygons->m_Count)
-    {
-        // no, add new first polygon in array
-        pPolygons->m_pBuffer = (CSR_IndexedPolygon*)malloc(sizeof(CSR_IndexedPolygon));
-        pPolygons->m_Count   = 1;
-    }
-    else
-    {
-        // yes, increase the polygons count and add new polygon inside array
-        ++pPolygons->m_Count;
-        pPolygons->m_pBuffer =
-                (CSR_IndexedPolygon*)realloc(pPolygons->m_pBuffer,
-                                             pPolygons->m_Count * sizeof(CSR_IndexedPolygon));
-    }
-
-    // populate the newly created indexed polygon
-    index                                        = pPolygons->m_Count - 1;
-    pPolygons->m_pBuffer[index].m_VertexIndex[0] = v1;
-    pPolygons->m_pBuffer[index].m_VertexIndex[1] = v2;
-    pPolygons->m_pBuffer[index].m_VertexIndex[2] = v3;
-}
-//---------------------------------------------------------------------------
-void csrIndexedBufferRelease(CSR_IndexedPolygons* pPolygons)
-{
-    if (!pPolygons)
-        return;
-
-    // delete the buffer content
-    if (pPolygons->m_pBuffer)
-    {
-        free(pPolygons->m_pBuffer);
-        pPolygons->m_pBuffer = NULL;
-    }
-
-    pPolygons->m_Count = 0;
-}
-//---------------------------------------------------------------------------
-// Aligned-Axis Bounding Box tree
-//---------------------------------------------------------------------------
-void miniAddPolygonToBoundingBox(const MINI_Polygon* pPolygon,
-                                       MINI_Box*     pBox,
-                                       int*          pEmpty)
-{
-    float    r;
     unsigned i;
 
     // iterate through polygon vertices
@@ -94,170 +32,29 @@ void miniAddPolygonToBoundingBox(const MINI_Polygon* pPolygon,
         if (*pEmpty)
         {
             // initialize bounding box with first vertex
-            miniCopy(&pPolygon->m_v[i], &pBox->m_Min);
-            miniCopy(&pPolygon->m_v[i], &pBox->m_Max);
-            *pEmpty = 0;
+             pB->m_Min.m_X = pVB[pP->m_VertexIndex[i]];
+             pB->m_Min.m_Y = pVB[pP->m_VertexIndex[i] + 1];
+             pB->m_Min.m_Z = pVB[pP->m_VertexIndex[i] + 2];
+             pB->m_Max.m_X = pVB[pP->m_VertexIndex[i]];
+             pB->m_Max.m_Y = pVB[pP->m_VertexIndex[i] + 1];
+             pB->m_Max.m_Z = pVB[pP->m_VertexIndex[i] + 2];
+            *pEmpty        = 0;
             continue;
         }
 
         // search for box min edge
-        miniMin(&pBox->m_Min.m_X, &pPolygon->m_v[i].m_X, &r);
-        pBox->m_Min.m_X = r;
-        miniMin(&pBox->m_Min.m_Y, &pPolygon->m_v[i].m_Y, &r);
-        pBox->m_Min.m_Y = r;
-        miniMin(&pBox->m_Min.m_Z, &pPolygon->m_v[i].m_Z, &r);
-        pBox->m_Min.m_Z = r;
+        csrMathMin(pB->m_Min.m_X, pVB[pP->m_VertexIndex[i]],     &pB->m_Min.m_X);
+        csrMathMin(pB->m_Min.m_Y, pVB[pP->m_VertexIndex[i] + 1], &pB->m_Min.m_Y);
+        csrMathMin(pB->m_Min.m_Z, pVB[pP->m_VertexIndex[i] + 2], &pB->m_Min.m_Z);
 
         // search for box max edge
-        miniMax(&pBox->m_Max.m_X, &pPolygon->m_v[i].m_X, &r);
-        pBox->m_Max.m_X = r;
-        miniMax(&pBox->m_Max.m_Y, &pPolygon->m_v[i].m_Y, &r);
-        pBox->m_Max.m_Y = r;
-        miniMax(&pBox->m_Max.m_Z, &pPolygon->m_v[i].m_Z, &r);
-        pBox->m_Max.m_Z = r;
+        csrMathMax(pB->m_Max.m_X, pVB[pP->m_VertexIndex[i]],     &pB->m_Max.m_X);
+        csrMathMax(pB->m_Max.m_Y, pVB[pP->m_VertexIndex[i] + 1], &pB->m_Max.m_Y);
+        csrMathMax(pB->m_Max.m_Z, pVB[pP->m_VertexIndex[i] + 2], &pB->m_Max.m_Z);
     }
 }
 //---------------------------------------------------------------------------
-int miniGetPolygonsFromVB(const float*         pVB,
-                                unsigned       length,
-                                unsigned       type,
-                                unsigned       stride,
-                                MINI_Polygon** pPolygons,
-                                unsigned*      pPolygonsCount)
-{
-    unsigned i;
-    unsigned index;
-
-    // no data to extract from?
-    if (!length)
-        return 1;
-
-    // search for vertex type
-    switch (type)
-    {
-        // triangles
-        case 0:
-        {
-            // calculate iteration step
-            const unsigned step = (stride * 3);
-
-            // iterate through source vertices
-            for (i = 0; i < length; i += step)
-                // extract polygon from source buffer
-                miniAddPolygon(pVB,
-                               i,
-                               i +  stride,
-                               i + (stride * 2),
-                               pPolygons,
-                               pPolygonsCount);
-
-            return 1;
-        }
-
-        // triangle strip
-        case 1:
-        {
-            // calculate length to read in triangle strip buffer
-            const unsigned stripLength = (length - (stride * 2));
-                           index       = 0;
-
-            // iterate through source vertices
-            for (i = 0; i < stripLength; i += stride)
-            {
-                // extract polygon from source buffer, revert odd polygons
-                if (!index || !(index % 2))
-                    miniAddPolygon(pVB,
-                                   i,
-                                   i +  stride,
-                                   i + (stride * 2),
-                                   pPolygons,
-                                   pPolygonsCount);
-                else
-                    miniAddPolygon(pVB,
-                                   i +  stride,
-                                   i,
-                                   i + (stride * 2),
-                                   pPolygons,
-                                   pPolygonsCount);
-
-                ++index;
-            }
-
-            return 1;
-        }
-
-        // triangle fan
-        case 2:
-        {
-            // calculate length to read in triangle fan buffer
-            const unsigned fanLength = (length - stride);
-
-            // iterate through source vertices
-            for (i = stride; i < fanLength; i += stride)
-                // extract polygon from source buffer
-                miniAddPolygon(pVB,
-                               0,
-                               i,
-                               i + stride,
-                               pPolygons,
-                               pPolygonsCount);
-
-            return 1;
-        }
-
-        // quads
-        case 3:
-        {
-            // calculate iteration step
-            const unsigned step = (stride * 4);
-
-            // iterate through source vertices
-            for (i = 0; i < length; i += step)
-            {
-                // calculate vertices position
-                const unsigned v1 = i;
-                const unsigned v2 = i +  stride;
-                const unsigned v3 = i + (stride * 2);
-                const unsigned v4 = i + (stride * 3);
-
-                // extract polygons from source buffer
-                miniAddPolygon(pVB, v1, v2, v3, pPolygons, pPolygonsCount);
-                miniAddPolygon(pVB, v3, v2, v4, pPolygons, pPolygonsCount);
-            }
-
-            return 1;
-        }
-
-        // quad strip
-        case 4:
-        {
-            // calculate iteration step
-            const unsigned step = (stride * 2);
-
-            // calculate length to read in triangle strip buffer
-            const unsigned stripLength = (length - (stride * 2));
-
-            // iterate through source vertices
-            for (i = 0; i < stripLength; i += step)
-            {
-                // calculate vertices position
-                const unsigned v1 = i;
-                const unsigned v2 = i +  stride;
-                const unsigned v3 = i + (stride * 2);
-                const unsigned v4 = i + (stride * 3);
-
-                // extract polygons from source buffer
-                miniAddPolygon(pVB, v1, v2, v3, pPolygons, pPolygonsCount);
-                miniAddPolygon(pVB, v3, v2, v4, pPolygons, pPolygonsCount);
-            }
-
-            return 1;
-        }
-
-        default:
-            return 0;
-    }
-}
+// Aligned-Axis Bounding Box tree
 //---------------------------------------------------------------------------
 void miniCutBox(const MINI_Box* pBox, MINI_Box* pLeftBox, MINI_Box* pRightBox)
 {
