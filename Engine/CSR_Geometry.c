@@ -1217,6 +1217,7 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
 //---------------------------------------------------------------------------
 // Intersection checks
 //---------------------------------------------------------------------------
+/* FIXME or REM
 int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR)
 {
     int xIntersects;
@@ -1717,4 +1718,5 @@ int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
     // the sum of the both sphere radius
     return (length <= (pS1->m_Radius + pS2->m_Radius));
 }
+*/
 //---------------------------------------------------------------------------
