@@ -1648,7 +1648,7 @@ int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_
         if (csrInsidePolygon3(&pointOnPlane, pP))
         {
             // if yes, the sphere collide the polygon. In this case, we copy the plane and we
-            // returns true
+            // returns 1
             *pR = polygonPlane;
             return 1;
         }
@@ -1662,7 +1662,7 @@ int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_
             if (csrInsideSphere(&pointOnTriangle, pS))
             {
                 // if yes, the sphere collide the polygon. In this case the sliding plane is copied
-                // and the return value is true
+                // and the return value is 1
                 *pR = polygonPlane;
                 return 1;
             }

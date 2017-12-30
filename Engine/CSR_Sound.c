@@ -52,7 +52,7 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     CSR_Sound* pSound;
 
     // no sound file to load?
-    if (!pBuffer->m_pData || !pBuffer->m_Length)
+    if (!pBuffer || !pBuffer->m_pData || !pBuffer->m_Length)
         return 0;
 
     // no OpenAL device?
@@ -145,7 +145,10 @@ CSR_Sound* csrSoundOpen(const ALCdevice*  pOpenALDevice,
 
     // succeeded?
     if (!pBuffer || !pBuffer->m_Length)
+    {
+        csrBufferRelease(pBuffer);
         return 0;
+    }
 
     // create the sound from file content
     pSound = csrSoundCreate(pOpenALDevice, pOpenALContext, pBuffer, sampling);
