@@ -19,6 +19,23 @@
 // std
 #include <stddef.h>
 
+// openGL
+#if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
+    #include <gles2.h>
+    #include <gles2ext.h>
+#elif defined(__APPLE__)
+    #include <OpenGLES/ES2/gl.h>
+    #include <OpenGLES/ES2/glext.h>
+#elif defined(__CODEGEARC__) || defined(__GNUC__)
+    #include <Windows.h>
+    #define GLEW_STATIC
+    #include <gl/glew.h>
+    #include <gl/gl.h>
+
+    // missing in RAD studio OpenGL header
+    #define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------

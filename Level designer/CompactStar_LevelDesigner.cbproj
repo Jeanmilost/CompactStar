@@ -50,9 +50,9 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\Third-party\OpenAL\libs\Win32\;..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\Third-party\OpenAL\libs\Win32\;..\Third-party\glew\;..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
-        <IncludePath>..\Third-party\OpenAL\include\;..\Engine\;$(IncludePath)</IncludePath>
+        <IncludePath>..\Third-party\OpenAL\include\;..\Third-party\glew\;..\Engine\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -159,12 +159,6 @@
         </CppCompile>
         <None Include="..\Engine\CSR_Sound.h">
             <BuildOrder>14</BuildOrder>
-        </None>
-        <CppCompile Include="..\Engine\CSR_Vertex.c">
-            <BuildOrder>17</BuildOrder>
-        </CppCompile>
-        <None Include="..\Engine\CSR_Vertex.h">
-            <BuildOrder>18</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_LevelDesigner.cpp">
             <BuildOrder>0</BuildOrder>

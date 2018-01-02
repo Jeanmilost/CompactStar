@@ -13,8 +13,8 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef CSR_VertexH
-#define CSR_VertexH
+#ifndef CSR_ModelsH
+#define CSR_ModelsH
 
 // compactStar engine
 #include "CSR_Geometry.h"
