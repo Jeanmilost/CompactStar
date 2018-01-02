@@ -2,8 +2,8 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'MainForm'
-  ClientHeight = 300
-  ClientWidth = 635
+  ClientHeight = 600
+  ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,22 +13,29 @@ object MainForm: TMainForm
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object bt1: TButton
-    Left = 320
-    Top = 248
-    Width = 75
-    Height = 25
-    Caption = 'bt1'
+  object pcMain: TPageControl
+    Left = 0
+    Top = 0
+    Width = 800
+    Height = 600
+    ActivePage = tsView
+    Align = alClient
     TabOrder = 0
-    OnClick = bt1Click
-  end
-  object me1: TMemo
-    Left = 256
-    Top = 48
-    Width = 185
-    Height = 89
-    Lines.Strings = (
-      'me1')
-    TabOrder = 1
+    object tsView: TTabSheet
+      Caption = 'tsView'
+      object paView: TPanel
+        Left = 0
+        Top = 0
+        Width = 792
+        Height = 572
+        Align = alClient
+        BevelOuter = bvNone
+        TabOrder = 0
+        ExplicitLeft = 248
+        ExplicitTop = 288
+        ExplicitWidth = 185
+        ExplicitHeight = 41
+      end
+    end
   end
 end

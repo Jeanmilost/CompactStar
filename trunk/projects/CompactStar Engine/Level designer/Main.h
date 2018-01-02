@@ -7,13 +7,15 @@
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.ExtCtrls.hpp>
 //---------------------------------------------------------------------------
 class TMainForm : public TForm
 {
 __published:	// IDE-managed Components
-    TButton *bt1;
-    TMemo *me1;
-    void __fastcall bt1Click(TObject *Sender);
+    TPageControl *pcMain;
+    TTabSheet *tsView;
+    TPanel *paView;
 private:	// User declarations
 public:		// User declarations
     __fastcall TMainForm(TComponent* Owner);
