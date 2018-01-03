@@ -16,17 +16,71 @@
 #ifndef CSR_CollisionH
 #define CSR_CollisionH
 
+// compactStart engine
+#include "CSR_Common.h"
+#include "CSR_Geometry.h"
+#include "CSR_Models.h"
+
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
+
+// Aligned-axis bounding box tree node prototype
+typedef struct CSR_AABBNode CSR_AABBNode;
+
+/**
+* Aligned-axis bounding box tree node
+*/
+struct CSR_AABBNode
+{
+    CSR_AABBNode*      m_pParent;
+    CSR_AABBNode*      m_pLeft;
+    CSR_AABBNode*      m_pRight;
+    CSR_Box*           m_pBox;
+    CSR_PolygonBuffer* m_pPolygons;
+};
 
 #ifdef __cplusplus
     extern "C"
     {
 #endif
         //-------------------------------------------------------------------
-        //
+        // Aligned-Axis Bounding Box tree functions
         //-------------------------------------------------------------------
+
+        /**
+        * Populates an AABB tree from a polygon buffer
+        *@param pPolygons - buffer containing the polygons from which the tree will be populated
+        *@param[in, out] pNode - root or parent node to create from, populated node on function ends
+        *@return 1 on success, otherwise 0
+        */
+        int csrAABBTreePopulate(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pNode);
+
+//        /**
+//        * Resolves AABB tree
+//        *@param pRay - ray against which tree boxes will be tested
+//        *@param pNode - root or parent node to resolve
+//        *@param[out] pPolygons - polygons belonging to boxes hit by ray
+//        *@param[out] polygonsCount - polygon array count
+//        *@return 1 on success, otherwise 0
+//        */
+//        int csrAABBTreeResolve(MINI_Ray*      pRay,
+//                               MINI_AABBNode* pNode,
+//                               MINI_Polygon** pPolygons,
+//                               unsigned*      pPolygonsCount);
+//
+//        /**
+//        * Releases node content
+//        *@param pNode - node for which content should be released
+//        *@note Only the node content is released, the node itself is not released
+//        */
+//        void csrAABBTreeNodeRelease(MINI_AABBNode* pNode);
+//
+//        /**
+//        * Releases tree content
+//        *@param pNode - root node from which content should be released
+//        */
+//        void csrAABBTreeRelease(MINI_AABBNode* pNode);
 
 #ifdef __cplusplus
     }

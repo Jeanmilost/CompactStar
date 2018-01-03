@@ -16,9 +16,6 @@
 
 #include "CSR_Geometry.h"
 
-// compactStar engine
-#include "CSR_Common.h"
-
 // std
 #include <math.h>
 
@@ -1031,6 +1028,98 @@ void csrPolygon3ClosestPoint(const CSR_Vector3* pP, const CSR_Polygon3* pPo, CSR
     // check if dCA is shortest
     if (dCA < min)
         *pR = rca;
+}
+//---------------------------------------------------------------------------
+// Box functions
+//---------------------------------------------------------------------------
+void csrBoxExtendToPolygon(const CSR_Polygon3* pPolygon,
+                                 CSR_Box*      pBox,
+                                 int*          pEmpty)
+{
+    unsigned i;
+
+    // iterate through polygon vertices
+    for (i = 0; i < 3; ++i)
+    {
+        // is box empty?
+        if (*pEmpty)
+        {
+            // initialize bounding box with first vertex
+             pBox->m_Min = pPolygon->m_Vertex[i];
+             pBox->m_Max = pPolygon->m_Vertex[i];
+            *pEmpty      = 0;
+            continue;
+        }
+
+        // search for box min edge
+        csrMathMin(pBox->m_Min.m_X, pPolygon->m_Vertex[i].m_X, &pBox->m_Min.m_X);
+        csrMathMin(pBox->m_Min.m_Y, pPolygon->m_Vertex[i].m_Y, &pBox->m_Min.m_Y);
+        csrMathMin(pBox->m_Min.m_Z, pPolygon->m_Vertex[i].m_Z, &pBox->m_Min.m_Z);
+
+        // search for box max edge
+        csrMathMax(pBox->m_Max.m_X, pPolygon->m_Vertex[i].m_X, &pBox->m_Max.m_X);
+        csrMathMax(pBox->m_Max.m_Y, pPolygon->m_Vertex[i].m_Y, &pBox->m_Max.m_Y);
+        csrMathMax(pBox->m_Max.m_Z, pPolygon->m_Vertex[i].m_Z, &pBox->m_Max.m_Z);
+    }
+}
+//---------------------------------------------------------------------------
+void csrBoxCut(const CSR_Box* pBox, CSR_Box* pLeftBox, CSR_Box* pRightBox)
+{
+    float    x;
+    float    y;
+    float    z;
+    unsigned longestAxis;
+
+    // calculate each edge length
+    x = fabs(pBox->m_Max.m_X - pBox->m_Min.m_X);
+    y = fabs(pBox->m_Max.m_Y - pBox->m_Min.m_Y);
+    z = fabs(pBox->m_Max.m_Z - pBox->m_Min.m_Z);
+
+    // search for longest axis
+    if (x >= y && x >= z)
+        longestAxis = 0;
+    else
+    if (y >= x && y >= z)
+        longestAxis = 1;
+    else
+        longestAxis = 2;
+
+    // cut box
+    switch (longestAxis)
+    {
+        // cut on x axis
+        case 0:
+            pLeftBox->m_Min     = pBox->m_Min;
+            pLeftBox->m_Max     = pBox->m_Max;
+            pLeftBox->m_Max.m_X = pBox->m_Min.m_X + (x / 2.0f);
+
+            pRightBox->m_Min     = pBox->m_Min;
+            pRightBox->m_Max     = pBox->m_Max;
+            pRightBox->m_Min.m_X = pBox->m_Min.m_X + (x / 2.0f);
+            break;
+
+        // cut on y axis
+        case 1:
+            pLeftBox->m_Min     = pBox->m_Min;
+            pLeftBox->m_Max     = pBox->m_Max;
+            pLeftBox->m_Max.m_Y = pBox->m_Min.m_Y + (y / 2.0f);
+
+            pRightBox->m_Min     = pBox->m_Min;
+            pRightBox->m_Max     = pBox->m_Max;
+            pRightBox->m_Min.m_Y = pBox->m_Min.m_Y + (y / 2.0f);
+            break;
+
+        // cut on z axis
+        case 2:
+            pLeftBox->m_Min     = pBox->m_Min;
+            pLeftBox->m_Max     = pBox->m_Max;
+            pLeftBox->m_Max.m_Z = pBox->m_Min.m_Z + (z / 2.0f);
+
+            pRightBox->m_Min     = pBox->m_Min;
+            pRightBox->m_Max     = pBox->m_Max;
+            pRightBox->m_Min.m_Z = pBox->m_Min.m_Z + (z / 2.0f);
+            break;
+    }
 }
 //---------------------------------------------------------------------------
 // Inside checks
