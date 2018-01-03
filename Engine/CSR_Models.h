@@ -62,30 +62,29 @@ typedef struct
 */
 typedef struct
 {
-    CSR_VertexBuffer* m_pVB;
+    CSR_VertexBuffer* m_pVertices;
     size_t            m_Count;
 } CSR_Mesh;
 
 /**
-* Face, it's a list of indexes pointing to the vertices composing a face inside a vertex buffer
-*/
-typedef struct
-{
-    size_t* m_pIndex;
-    size_t  m_Count;
-} CSR_Face;
-
-/**
-* Face buffer
+* Polygon index, used to get the polygon vertices from a vertex buffer
 */
 typedef struct
 {
     const CSR_VertexBuffer* m_pVB;
-    CSR_Face*               m_pData;
-    size_t                  m_Count;
-} CSR_FaceBuffer;
-
-#ifdef __cplusplus
+          size_t            m_pIndex[3];
+} CSR_PolygonIndex;
+
+/**
+* Polygon buffer
+*/
+typedef struct
+{
+    CSR_PolygonIndex* m_pPolygons;
+    size_t            m_Count;
+} CSR_PolygonBuffer;
+
+#ifdef __cplusplus
     extern "C"
     {
 #endif
@@ -144,39 +143,39 @@ typedef struct
         void csrMeshRelease(CSR_Mesh* pMesh);
 
         //-------------------------------------------------------------------
-        // Face functions
+        // Polygon functions
         //-------------------------------------------------------------------
 
         /**
-        * Creates a face buffer
-        *@return newly created face buffer, 0 on error
-        *@note The face buffer must be released when no longer used, see csrFaceBufferRelease()
+        * Creates a polygon buffer
+        *@return newly created polygon buffer, 0 on error
+        *@note The polygon buffer must be released when no longer used, see csrPolygonBufferRelease()
         */
-        CSR_FaceBuffer* csrFaceBufferCreate(void);
+        CSR_PolygonBuffer* csrPolygonBufferCreate(void);
 
         /**
-        * Releases a face buffer
-        *@param pFB - face buffer to release
+        * Releases a polygon buffer
+        *@param pPB - polygon buffer to release
         */
-        void csrFaceBufferRelease(CSR_FaceBuffer* pFB);
+        void csrPolygonBufferRelease(CSR_PolygonBuffer* pPB);
 
         /**
-        * Adds a face to a face buffer
-        *@param pIndexes - index list composing the face to add to face buffer
-        *@param indexCount - index count
-        *@param[in, out] pFB - face buffer to add to
+        * Adds a polygon index to a polygon buffer
+        *@param pPI - polygon index to add to the polygon buffer
+        *@param[in, out] pPB - polygon buffer to add to
         */
-        void csrFaceAdd(const size_t* pIndexes, size_t indexCount, CSR_FaceBuffer* pFB);
+        void csrPolygonIndexAdd(const CSR_PolygonIndex* pPI, CSR_PolygonBuffer* pPB);
 
         /**
-        * Gets polygons from vertex buffer
-        *@param pVB - source vertex buffer
-        *@return newly created face buffer, 0 on error
-        *@note The face buffer must be released when no longer used, see csrFaceBufferRelease()
-        *@note BE CAREFUL, the face buffer is valid as long as his source vertex buffer is valid. If
-        *      the vertex buffer is released, the face buffer should be released together
+        * Gets a polygon buffer from a mesh
+        *@param pMesh - mesh
+        *@return polygon buffer, 0 on error
+        *@note The polygon buffer must be released when no longer used, see csrPolygonBufferRelease()
+        *@note BE CAREFUL, the polygon buffer is valid as long as his source mesh is valid. If the
+        *      mesh is released, the polygon buffer should be released together. However the polygon
+        *      buffer may be released after the mesh
         */
-        CSR_FaceBuffer* csrFaceBufferFromVertexBuffer(const CSR_VertexBuffer* pVB);
+        CSR_PolygonBuffer* csrPolygonBufferFromMesh(const CSR_Mesh* pMesh);
 
         //-------------------------------------------------------------------
         // Shape functions

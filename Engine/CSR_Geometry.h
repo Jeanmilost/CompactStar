@@ -19,6 +19,9 @@
 // std
 #include <stddef.h>
 
+// compactStar engine
+#include "CSR_Common.h"
+
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
@@ -592,7 +595,7 @@ typedef struct
         * Calculates and gets the closest point on a line segment from a point
         *@param pS - line segment
         *@param pP - point
-        *@param pR - closest point on the line segment
+        *@param[out] pR - closest point on the line segment
         *@note The closest point is calculated as follow:
         *      pS->m_End
         *          |
@@ -614,7 +617,7 @@ typedef struct
         * Calculates and gets the closest point on a polygon edge from a point
         *@param pP - point
         *@param pPo - polygon
-        *@param pR - closest point on the polygon edge
+        *@param[out] pR - closest point on the polygon edge
         *@note The closest point is calculated as follow:
         *                      pPo->m_Vertex[0]
         *                            /\
@@ -628,6 +631,28 @@ typedef struct
         *                            x pP
         */
         void csrPolygon3ClosestPoint(const CSR_Vector3* pP, const CSR_Polygon3* pPo, CSR_Vector3* pR);
+
+        //-------------------------------------------------------------------
+        // Box functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Extends a box to encompass a polygon
+        *@param pPolygon - polygon to encompass in the box
+        *@param[in, out] pBox - bounding box that will encompass the polygon
+        *@param[in, out] pEmpty - if 1, box is empty and still not contains any polygon
+        */
+        void csrBoxExtendToPolygon(const CSR_Polygon3* pPolygon,
+                                         CSR_Box*      pBox,
+                                         int*          pEmpty);
+
+        /**
+        * Cuts box on the longest axis
+        *@param pBox - box to cut
+        *@param[out] pLeftBox - resulting left box
+        *@param[out] pRightBox - resulting right box
+        */
+        void csrBoxCut(const CSR_Box* pBox, CSR_Box* pLeftBox, CSR_Box* pRightBox);
 
         //-------------------------------------------------------------------
         // Inside checks
