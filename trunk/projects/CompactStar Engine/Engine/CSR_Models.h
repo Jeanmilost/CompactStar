@@ -160,6 +160,13 @@ typedef struct
         void csrPolygonBufferRelease(CSR_PolygonBuffer* pPB);
 
         /**
+        * Gets a polygon from a polygon index
+        *@param pPolygonIndex - polygon index to get from
+        *@param[out] pPolygon - polygon to populate
+        */
+        void csrPolygonFromIndex(const CSR_PolygonIndex* pPolygonIndex, CSR_Polygon3* pPolygon);
+
+        /**
         * Adds a polygon index to a polygon buffer
         *@param pPI - polygon index to add to the polygon buffer
         *@param[in, out] pPB - polygon buffer to add to
