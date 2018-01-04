@@ -18,21 +18,23 @@
 //---------------------------------------------------------------------------
 // Aligned-Axis Bounding Box tree functions
 //---------------------------------------------------------------------------
-int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pNode)
+int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
+                                              CSR_AABBNode*             pNode)
 {
-    size_t             i;
-    size_t             j;
-    CSR_Box            leftBox;
-    CSR_Box            rightBox;
-    CSR_Polygon3       polygon;
-    CSR_PolygonIndex*  pNewPolygons    = 0;
-    CSR_PolygonBuffer* pLeftPolygons   = 0;
-    CSR_PolygonBuffer* pRightPolygons  = 0;
-    int                boxEmpty        = 1;
-    int                canResolveLeft  = 0;
-    int                canResolveRight = 0;
-    int                result          = 0;
-    float              tolerance       = M_CSR_Epsilon;
+    size_t                    i;
+    size_t                    j;
+    CSR_Box                   leftBox;
+    CSR_Box                   rightBox;
+    CSR_Polygon3              polygon;
+    CSR_IndexedPolygon*       pNewPolygons    = 0;
+    CSR_IndexedPolygonBuffer* pLeftPolygons   = 0;
+    CSR_IndexedPolygonBuffer* pRightPolygons  = 0;
+    int                       boxEmpty        = 1;
+    int                       insideLeft      = 0;
+    int                       insideRight     = 0;
+    int                       canResolveLeft  = 0;
+    int                       canResolveRight = 0;
+    int                       result          = 0;
 
     // no node?
     if (!pNode)
@@ -43,7 +45,7 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
     pNode->m_pLeft          = 0;
     pNode->m_pRight         = 0;
     pNode->m_pBox           = (CSR_Box*)malloc(sizeof(CSR_Box));
-    pNode->m_pPolygonBuffer = csrPolygonBufferCreate();
+    pNode->m_pPolygonBuffer = csrIndexedPolygonBufferCreate();
 
     // succeeded?
     if (!pNode->m_pBox || !pNode->m_pPolygonBuffer)
@@ -53,23 +55,23 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
     }
 
     // create the polygon buffers that will contain the divided polygons
-    pLeftPolygons  = csrPolygonBufferCreate();
-    pRightPolygons = csrPolygonBufferCreate();
+    pLeftPolygons  = csrIndexedPolygonBufferCreate();
+    pRightPolygons = csrIndexedPolygonBufferCreate();
 
     // succeeded?
     if (!pLeftPolygons || !pRightPolygons)
     {
-        csrPolygonBufferRelease(pLeftPolygons);
-        csrPolygonBufferRelease(pRightPolygons);
+        csrIndexedPolygonBufferRelease(pLeftPolygons);
+        csrIndexedPolygonBufferRelease(pRightPolygons);
         csrAABBTreeNodeRelease(pNode);
         return 0;
     }
 
     // iterate through polygons to divide
-    for (i = 0; i < pPolygons->m_Count; ++i)
+    for (i = 0; i < pIPB->m_Count; ++i)
     {
         // using his index, extract the polygon from his vertex buffer
-        csrPolygonFromIndex(&pPolygons->m_pPolygons[i], &polygon);
+        csrIndexedPolygonToPolygon(&pIPB->m_pIndexedPolygon[i], &polygon);
 
         // extend the bounding box to include the polygon
         csrBoxExtendToPolygon(&polygon, pNode->m_pBox, &boxEmpty);
@@ -79,185 +81,132 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
     csrBoxCut(pNode->m_pBox, &leftBox, &rightBox);
 
     // iterate again through polygons to divide
-    for (i = 0; i < pPolygons->m_Count; ++i)
+    for (i = 0; i < pIPB->m_Count; ++i)
     {
-        // using his index, extract the polygon from his vertex buffer
-        csrPolygonFromIndex(&pPolygons->m_pPolygons[i], &polygon);
+        // get the concrete polygon (i.e. with physical coordinates, not indexes)
+        csrIndexedPolygonToPolygon(&pIPB->m_pIndexedPolygon[i], &polygon);
 
-        // iterate through the polygon vertices
-        for (j = 0; j < 3; ++j)
-            // check at which sub-box the polygon vertex belongs (and thus to which buffer it should
-            // be added)
-            if (csrVec3BetweenRange(&polygon.m_Vertex[j], &leftBox.m_Min, &leftBox.m_Max, tolerance))
-            {
-                // left polygon buffer already contains polygons?
-                if (!pLeftPolygons->m_Count)
-                {
-                    // no, create memory for the first polygon in the polygon buffer
-                    pLeftPolygons->m_pPolygons = (CSR_PolygonIndex*)malloc(sizeof(CSR_PolygonIndex));
-                    pLeftPolygons->m_Count     = 1;
-                }
-                else
-                {
-                    // yes, increase the memory to contain a new polygon in the polygon buffer
-                    ++pLeftPolygons->m_Count;
-                    pNewPolygons =
-                            (CSR_PolygonIndex*)realloc(pLeftPolygons->m_pPolygons,
-                                                       pLeftPolygons->m_Count * sizeof(CSR_PolygonIndex));
+        insideLeft  = 0;
+        insideRight = 0;
 
-                    // certify that the new memory block was well allocated
-                    if (!pNewPolygons)
-                        free(pLeftPolygons->m_pPolygons);
-
-                    pLeftPolygons->m_pPolygons = pNewPolygons;
-                }
-
-                // failed to create memory for the new polygon in the polygon buffer?
-                if (!pLeftPolygons->m_pPolygons)
-                {
-                    // serious error, probably not enough memory, clear all and break the process
-                    csrPolygonBufferRelease(pLeftPolygons);
-                    csrPolygonBufferRelease(pRightPolygons);
-                    csrAABBTreeNodeRelease(pNode);
-                    return 0;
-                }
-
-                // copy the polygon index content inside his buffer
-                pLeftPolygons->m_pPolygons[pLeftPolygons->m_Count - 1] = pPolygons->m_pPolygons[i];
-                break;
-            }
+        // check which box contains the most vertices
+        for (j = 0; i < 3; ++j)
+            // is vertex inside left or right sub-box?
+            if (csrInsideBox(&polygon.m_Vertex[j], &leftBox))
+                ++insideLeft;
             else
-            if (csrVec3BetweenRange(&polygon.m_Vertex[j], &rightBox.m_Min, &rightBox.m_Max, tolerance))
+                ++insideRight;
+
+        // check at which sub-box the polygon belongs (and thus to which buffer it should be added)
+        if (insideLeft >= insideRight)
+        {
+            // allocate the memory to add a new polygon in the left polygon buffer
+            pNewPolygons = (CSR_IndexedPolygon*)csrMemoryAlloc(pLeftPolygons->m_pIndexedPolygon,
+                                                               sizeof(CSR_IndexedPolygon),
+                                                               pLeftPolygons->m_Count + 1);
+
+            // succeeded?
+            if (!pNewPolygons)
             {
-                // right polygon buffer already contains polygons?
-                if (!pRightPolygons->m_Count)
-                {
-                    // no, create memory for the first polygon in the polygon buffer
-                    pRightPolygons->m_pPolygons = (CSR_PolygonIndex*)malloc(sizeof(CSR_PolygonIndex));
-                    pRightPolygons->m_Count     = 1;
-                }
-                else
-                {
-                    // yes, increase the memory to contain a new polygon in the polygon buffer
-                    ++pRightPolygons->m_Count;
-                    pNewPolygons =
-                            (CSR_PolygonIndex*)realloc(pRightPolygons->m_pPolygons,
-                                                       pRightPolygons->m_Count * sizeof(CSR_PolygonIndex));
-
-                    // certify that the new memory block was well allocated
-                    if (!pNewPolygons)
-                        free(pRightPolygons->m_pPolygons);
-
-                    pRightPolygons->m_pPolygons = pNewPolygons;
-                }
-
-                // failed to create memory for the new polygon in the polygon buffer?
-                if (!pRightPolygons->m_pPolygons)
-                {
-                    // serious error, probably not enough memory, clear all and break the process
-                    csrPolygonBufferRelease(pLeftPolygons);
-                    csrPolygonBufferRelease(pRightPolygons);
-                    csrAABBTreeNodeRelease(pNode);
-                    return 0;
-                }
-
-                // copy the polygon content inside his buffer
-                pRightPolygons->m_pPolygons[pRightPolygons->m_Count - 1] = pPolygons->m_pPolygons[i];
-                break;
+                csrIndexedPolygonBufferRelease(pLeftPolygons);
+                csrIndexedPolygonBufferRelease(pRightPolygons);
+                csrAABBTreeNodeRelease(pNode);
+                return 0;
             }
+
+            // update the buffer content
+            pLeftPolygons->m_pIndexedPolygon = pNewPolygons;
+            ++pLeftPolygons->m_Count;
+
+            // copy the polygon index content in the left buffer
+            pLeftPolygons->m_pIndexedPolygon[pLeftPolygons->m_Count - 1] = pIPB->m_pIndexedPolygon[i];
+        }
+        else
+        {
+            // allocate the memory to add a new polygon in the left polygon buffer
+            pNewPolygons = (CSR_IndexedPolygon*)csrMemoryAlloc(pRightPolygons->m_pIndexedPolygon,
+                                                               sizeof(CSR_IndexedPolygon),
+                                                               pRightPolygons->m_Count + 1);
+
+            // succeeded?
+            if (!pNewPolygons)
+            {
+                csrIndexedPolygonBufferRelease(pLeftPolygons);
+                csrIndexedPolygonBufferRelease(pRightPolygons);
+                csrAABBTreeNodeRelease(pNode);
+                return 0;
+            }
+
+            // update the buffer content
+            pRightPolygons->m_pIndexedPolygon = pNewPolygons;
+            ++pRightPolygons->m_Count;
+
+            // copy the polygon content inside his buffer
+            pRightPolygons->m_pIndexedPolygon[pRightPolygons->m_Count - 1] = pIPB->m_pIndexedPolygon[i];
+        }
     }
 
-    canResolveLeft  = (pLeftPolygons->m_Count  && pLeftPolygons->m_Count  < pPolygons->m_Count);
-    canResolveRight = (pRightPolygons->m_Count && pRightPolygons->m_Count < pPolygons->m_Count);
+    canResolveLeft  = (pLeftPolygons->m_Count  && pLeftPolygons->m_Count  < pIPB->m_Count);
+    canResolveRight = (pRightPolygons->m_Count && pRightPolygons->m_Count < pIPB->m_Count);
 
     // leaf reached?
     if (!canResolveLeft && !canResolveRight)
     {
-        // copy the left polygons in the node polygon buffer
+        // iterate through left polygons to copy to the leaf polygon buffer
         for (i = 0; i < pLeftPolygons->m_Count; ++i)
         {
-            // node polygon buffer already contains polygons?
-            if (!pNode->m_pPolygonBuffer->m_Count)
-            {
-                // no, create memory for the first polygon in the polygon buffer
-                pNode->m_pPolygonBuffer->m_pPolygons = (CSR_PolygonIndex*)malloc(sizeof(CSR_PolygonIndex));
-                pNode->m_pPolygonBuffer->m_Count     = 1;
-            }
-            else
-            {
-                // yes, increase the memory to contain a new polygon in the polygon buffer
-                ++pNode->m_pPolygonBuffer->m_Count;
-                pNewPolygons =
-                        (CSR_PolygonIndex*)realloc(pNode->m_pPolygonBuffer,
-                                                   pNode->m_pPolygonBuffer->m_Count *
-                                                           sizeof(CSR_PolygonIndex));
+            // allocate the memory to add a new polygon in the leaf node
+            pNewPolygons = (CSR_IndexedPolygon*)csrMemoryAlloc(pNode->m_pPolygonBuffer->m_pIndexedPolygon,
+                                                               sizeof(CSR_IndexedPolygon),
+                                                               pNode->m_pPolygonBuffer->m_Count + 1);
 
-                // certify that the new memory block was well allocated
-                if (!pNewPolygons)
-                    free(pNode->m_pPolygonBuffer);
-
-                pNode->m_pPolygonBuffer->m_pPolygons = pNewPolygons;
-            }
-
-            // failed to create memory for the new polygon in the polygon buffer?
-            if (!pNode->m_pPolygonBuffer->m_pPolygons)
+            // succeeded?
+            if (!pNewPolygons)
             {
-                // serious error, probably not enough memory, stop all the process
-                csrPolygonBufferRelease(pLeftPolygons);
-                csrPolygonBufferRelease(pRightPolygons);
+                csrIndexedPolygonBufferRelease(pLeftPolygons);
+                csrIndexedPolygonBufferRelease(pRightPolygons);
                 csrAABBTreeNodeRelease(pNode);
                 return 0;
             }
 
-            // copy the polygon content inside his buffer
-            pNode->m_pPolygonBuffer->m_pPolygons[pNode->m_pPolygonBuffer->m_Count - 1] =
-                    pLeftPolygons->m_pPolygons[i];
+            // update the buffer content
+            pNode->m_pPolygonBuffer->m_pIndexedPolygon = pNewPolygons;
+            ++pNode->m_pPolygonBuffer->m_Count;
+
+            // copy the polygon content inside the polygon buffer
+            pNode->m_pPolygonBuffer->m_pIndexedPolygon[pNode->m_pPolygonBuffer->m_Count - 1] =
+                    pLeftPolygons->m_pIndexedPolygon[i];
         }
 
-        // copy right polygons in polygon list
+        // iterate through right polygons to copy to the leaf polygon buffer
         for (i = 0; i < pRightPolygons->m_Count; ++i)
         {
-            // node polygon buffer already contains polygons?
-            if (!pNode->m_pPolygonBuffer->m_Count)
-            {
-                // no, create memory for the first polygon in the polygon buffer
-                pNode->m_pPolygonBuffer->m_pPolygons = (CSR_PolygonIndex*)malloc(sizeof(CSR_PolygonIndex));
-                pNode->m_pPolygonBuffer->m_Count     = 1;
-            }
-            else
-            {
-                // yes, increase the memory to contain a new polygon in the polygon buffer
-                ++pNode->m_pPolygonBuffer->m_Count;
-                pNewPolygons =
-                        (CSR_PolygonIndex*)realloc(pNode->m_pPolygonBuffer,
-                                                   pNode->m_pPolygonBuffer->m_Count *
-                                                           sizeof(CSR_PolygonIndex));
+            // allocate the memory to add a new polygon in the leaf node
+            pNewPolygons = (CSR_IndexedPolygon*)csrMemoryAlloc(pNode->m_pPolygonBuffer->m_pIndexedPolygon,
+                                                               sizeof(CSR_IndexedPolygon),
+                                                               pNode->m_pPolygonBuffer->m_Count + 1);
 
-                // certify that the new memory block was well allocated
-                if (!pNewPolygons)
-                    free(pNode->m_pPolygonBuffer);
-
-                pNode->m_pPolygonBuffer->m_pPolygons = pNewPolygons;
-            }
-
-            // failed to create memory for the new polygon in the polygon buffer?
-            if (!pNode->m_pPolygonBuffer->m_pPolygons)
+            // succeeded?
+            if (!pNewPolygons)
             {
-                // serious error, probably not enough memory, stop all the process
-                csrPolygonBufferRelease(pLeftPolygons);
-                csrPolygonBufferRelease(pRightPolygons);
+                csrIndexedPolygonBufferRelease(pLeftPolygons);
+                csrIndexedPolygonBufferRelease(pRightPolygons);
                 csrAABBTreeNodeRelease(pNode);
                 return 0;
             }
 
-            // copy the polygon content inside his buffer
-            pNode->m_pPolygonBuffer->m_pPolygons[pNode->m_pPolygonBuffer->m_Count - 1] =
-                    pRightPolygons->m_pPolygons[i];
+            // update the buffer content
+            pNode->m_pPolygonBuffer->m_pIndexedPolygon = pNewPolygons;
+            ++pNode->m_pPolygonBuffer->m_Count;
+
+            // copy the polygon content inside the polygon buffer
+            pNode->m_pPolygonBuffer->m_pIndexedPolygon[pNode->m_pPolygonBuffer->m_Count - 1] =
+                    pRightPolygons->m_pIndexedPolygon[i];
         }
 
-        // delete left and right polygon buffers, as they will no longer be used
-        csrPolygonBufferRelease(pLeftPolygons);
-        csrPolygonBufferRelease(pRightPolygons);
+        // release the left and right polygon buffers, as they will no longer be used
+        csrIndexedPolygonBufferRelease(pLeftPolygons);
+        csrIndexedPolygonBufferRelease(pRightPolygons);
 
         return 1;
     }
@@ -269,10 +218,10 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
         pNode->m_pLeft            = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
         pNode->m_pLeft->m_pParent = pNode;
 
-        result |= csrAABBTreeFromPolygons(pLeftPolygons, pNode->m_pLeft);
+        result |= csrAABBTreeFromIndexedPolygonBuffer(pLeftPolygons, pNode->m_pLeft);
 
         // delete left polygon buffer, as it will no longer be used
-        csrPolygonBufferRelease(pLeftPolygons);
+        csrIndexedPolygonBufferRelease(pLeftPolygons);
     }
 
     // do create right node?
@@ -282,10 +231,10 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
         pNode->m_pRight            = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
         pNode->m_pRight->m_pParent = pNode;
 
-        result |= csrAABBTreeFromPolygons(pRightPolygons, pNode->m_pRight);
+        result |= csrAABBTreeFromIndexedPolygonBuffer(pRightPolygons, pNode->m_pRight);
 
         // delete right polygon buffer, as it will no longer be used
-        csrPolygonBufferRelease(pRightPolygons);
+        csrIndexedPolygonBufferRelease(pRightPolygons);
     }
 
     return result;
@@ -294,11 +243,13 @@ int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pN
 CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
 {
     CSR_AABBNode* pRoot;
+    int           success;
 
-    // get polygon buffer from mesh
-    CSR_PolygonBuffer* pPolygonBuffer = csrPolygonBufferFromMesh(pMesh);
+    // get indexed polygon buffer from mesh
+    CSR_IndexedPolygonBuffer* pIPB = csrIndexedPolygonBufferFromMesh(pMesh);
 
-    if (!pPolygonBuffer)
+    // succeeded?
+    if (!pIPB)
         return 0;
 
     // create the root node
@@ -307,20 +258,22 @@ CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
     // succeeded?
     if (!pRoot)
     {
-        csrPolygonBufferRelease(pPolygonBuffer);
+        csrIndexedPolygonBufferRelease(pIPB);
         return 0;
     }
 
-    // populate the tree
-    if (!csrAABBTreeFromPolygons(pPolygonBuffer, pRoot))
-    {
-        csrAABBTreeRelease(pRoot);
-        csrPolygonBufferRelease(pPolygonBuffer);
-        return 0;
-    }
+    // populate the AABB tree
+    success = csrAABBTreeFromIndexedPolygonBuffer(pIPB, pRoot);
 
     // release the polygon buffer
-    csrPolygonBufferRelease(pPolygonBuffer);
+    csrIndexedPolygonBufferRelease(pIPB);
+
+    // tree was populated successfully?
+    if (!success)
+    {
+        csrAABBTreeRelease(pRoot);
+        return 0;
+    }
 
     return pRoot;
 }
@@ -338,8 +291,8 @@ void csrAABBTreeNodeRelease(CSR_AABBNode* pNode)
     if (pNode->m_pPolygonBuffer)
     {
         // release the polygon buffer content
-        if (pNode->m_pPolygonBuffer->m_pPolygons)
-            free(pNode->m_pPolygonBuffer->m_pPolygons);
+        if (pNode->m_pPolygonBuffer->m_pIndexedPolygon)
+            free(pNode->m_pPolygonBuffer->m_pIndexedPolygon);
 
         free(pNode->m_pPolygonBuffer);
         pNode->m_pPolygonBuffer = 0;

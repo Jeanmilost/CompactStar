@@ -297,17 +297,17 @@ void csrSoundRelease(CSR_Sound* pSound)
     if (pSound->m_BufferID != M_OPENAL_ERROR_ID)
         alDeleteBuffers(1, &pSound->m_BufferID);
 
-    // delete the sound container
+    // free the sound
     free(pSound);
 }
 //---------------------------------------------------------------------------
 void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
 {
-    // release context
+    // destroy OpenAL context
     if (pOpenALContext)
         alcDestroyContext(pOpenALContext);
 
-    // close device
+    // close the device
     if (pOpenALDevice)
         alcCloseDevice(pOpenALDevice);
 }

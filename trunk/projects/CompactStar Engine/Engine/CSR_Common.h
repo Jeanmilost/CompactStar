@@ -60,6 +60,23 @@ typedef struct
     {
 #endif
         //-------------------------------------------------------------------
+        // Memory functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Allocates or reallocates a new block of memory
+        *@param pMemory - previous memory block to reallocate, if 0 a new block will be allocated
+        *@param size - size of a single item in the memory block, in bytes
+        *@param count - number of items the memory block will contain
+        *@return newly allocated or reallocated memory block, 0 on error
+        *@note If the newly allocated size is smaller than the existing one, the remaining extra
+        *      memory will be freed internally
+        *@note The memory pointed by pMemory is preserved in case the reallocation failed
+        *@note The new memory block should be freed with the free() function when becoming useless
+        */
+        void* csrMemoryAlloc(void* pMemory, size_t size, size_t count);
+
+        //-------------------------------------------------------------------
         // Math functions
         //-------------------------------------------------------------------
 
