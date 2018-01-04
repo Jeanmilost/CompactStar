@@ -136,11 +136,11 @@
         <None Include="..\Engine\CSR_Geometry.h">
             <BuildOrder>8</BuildOrder>
         </None>
-        <CppCompile Include="..\Engine\CSR_Models.c">
-            <BuildOrder>5</BuildOrder>
+        <CppCompile Include="..\Engine\CSR_Model.c">
+            <BuildOrder>17</BuildOrder>
         </CppCompile>
-        <None Include="..\Engine\CSR_Models.h">
-            <BuildOrder>6</BuildOrder>
+        <None Include="..\Engine\CSR_Model.h">
+            <BuildOrder>18</BuildOrder>
         </None>
         <CppCompile Include="..\Engine\CSR_Renderer.c">
             <BuildOrder>9</BuildOrder>
@@ -159,6 +159,12 @@
         </CppCompile>
         <None Include="..\Engine\CSR_Sound.h">
             <BuildOrder>14</BuildOrder>
+        </None>
+        <CppCompile Include="..\Engine\CSR_Vertex.c">
+            <BuildOrder>17</BuildOrder>
+        </CppCompile>
+        <None Include="..\Engine\CSR_Vertex.h">
+            <BuildOrder>18</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_LevelDesigner.cpp">
             <BuildOrder>0</BuildOrder>
@@ -206,17 +212,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\Engine\CSR_Models.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -224,6 +219,29 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_LevelDesigner.tds</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="..\Engine\CSR_Vertex.c" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_LevelDesigner.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -235,18 +253,6 @@
                 </DeployFile>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win32">
-                        <RemoteName>CompactStar_LevelDesigner.tds</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>CompactStar_LevelDesigner.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

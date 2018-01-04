@@ -19,7 +19,7 @@
 // compactStart engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
-#include "CSR_Models.h"
+#include "CSR_Vertex.h"
 
 //---------------------------------------------------------------------------
 // Structures
@@ -33,11 +33,11 @@ typedef struct CSR_AABBNode CSR_AABBNode;
 */
 struct CSR_AABBNode
 {
-    CSR_AABBNode*      m_pParent;
-    CSR_AABBNode*      m_pLeft;
-    CSR_AABBNode*      m_pRight;
-    CSR_Box*           m_pBox;
-    CSR_PolygonBuffer* m_pPolygonBuffer;
+    CSR_AABBNode*             m_pParent;
+    CSR_AABBNode*             m_pLeft;
+    CSR_AABBNode*             m_pRight;
+    CSR_Box*                  m_pBox;
+    CSR_IndexedPolygonBuffer* m_pPolygonBuffer;
 };
 
 #ifdef __cplusplus
@@ -49,12 +49,13 @@ struct CSR_AABBNode
         //-------------------------------------------------------------------
 
         /**
-        * Populates an AABB tree from a polygon buffer
-        *@param pPolygons - buffer containing the polygons from which the tree will be populated
+        * Populates an AABB tree from an indexed polygon buffer
+        *@param pIPB - indexed polygon buffer to use to populate the tree
         *@param[in, out] pNode - root or parent node to create from, populated node on function ends
         *@return 1 on success, otherwise 0
         */
-        int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pNode);
+        int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
+                                                      CSR_AABBNode*             pNode);
 
         /**
         * Gets an AABB tree from a mesh
@@ -78,15 +79,15 @@ struct CSR_AABBNode
 //                               unsigned*      pPolygonsCount);
 
         /**
-        * Releases node content
+        * Releases an AABB tree node content
         *@param pNode - node for which content should be released
         *@note Only the node content is released, the node itself is not released
         */
         void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
 
         /**
-        * Releases tree content
-        *@param pNode - root node from which content should be released
+        * Releases an AABB tree
+        *@param pNode - AABB tree root node to release from
         */
         void csrAABBTreeRelease(CSR_AABBNode* pNode);
 

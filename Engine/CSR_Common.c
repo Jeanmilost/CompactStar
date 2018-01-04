@@ -21,6 +21,19 @@
 #include <math.h>
 
 //---------------------------------------------------------------------------
+// Memory functions
+//---------------------------------------------------------------------------
+void* csrMemoryAlloc(void* pMemory, size_t size, size_t count)
+{
+    // do reallocate a previously existing memory?
+    if (!pMemory)
+        // no, just allocate the new memory
+        return malloc(size * count);
+
+    // yes, reallocate the existing memory to include the new size
+    return realloc(pMemory, size * count);
+}
+//---------------------------------------------------------------------------
 // Math functions
 //---------------------------------------------------------------------------
 void csrMathMin(float a, float b, float* pR)
@@ -97,7 +110,7 @@ CSR_Buffer* csrBufferCreate(void)
 //---------------------------------------------------------------------------
 void csrBufferRelease(CSR_Buffer* pBuffer)
 {
-    // no buffer to free?
+    // no buffer to release?
     if (!pBuffer)
         return;
 

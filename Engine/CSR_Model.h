@@ -1,7 +1,7 @@
 /****************************************************************************
- * ==> CSR_Models ----------------------------------------------------------*
+ * ==> CSR_Model -----------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the basic models functions and types  *
+ * Description : This module provides the basic model functions and types   *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -13,177 +13,17 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef CSR_ModelsH
-#define CSR_ModelsH
+#ifndef CSR_ModelH
+#define CSR_ModelH
 
 // compactStar engine
 #include "CSR_Geometry.h"
-
-//---------------------------------------------------------------------------
-// Structures
-//---------------------------------------------------------------------------
-
-/**
-* Vertex type
-*/
-typedef enum
-{
-    CSR_VT_Triangles,
-    CSR_VT_TriangleStrip,
-    CSR_VT_TriangleFan,
-    CSR_VT_Quads,
-    CSR_VT_QuadStrip
-} CSR_EVertexType;
-
-/**
-* Vertex format
-*/
-typedef struct
-{
-    CSR_EVertexType m_Type;
-    int             m_UseNormals;
-    int             m_UseTextures;
-    int             m_UseColors;
-    unsigned        m_Stride;
-} CSR_VertexFormat;
-
-/**
-* Vertex buffer
-*/
-typedef struct
-{
-    CSR_VertexFormat m_Format;
-    float*           m_pData;
-    size_t           m_Count;
-} CSR_VertexBuffer;
-
-/**
-* Mesh
-*/
-typedef struct
-{
-    CSR_VertexBuffer* m_pVertices;
-    size_t            m_Count;
-} CSR_Mesh;
-
-/**
-* Polygon index, used to get the polygon vertices from a vertex buffer
-*/
-typedef struct
-{
-    const CSR_VertexBuffer* m_pVB;
-          size_t            m_pIndex[3];
-} CSR_PolygonIndex;
-
-/**
-* Polygon buffer
-*/
-typedef struct
-{
-    CSR_PolygonIndex* m_pPolygons;
-    size_t            m_Count;
-} CSR_PolygonBuffer;
+#include "CSR_Vertex.h"
 
 #ifdef __cplusplus
     extern "C"
     {
 #endif
-        //-------------------------------------------------------------------
-        // Vertex functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Creates a vertex buffer
-        *@return newly created vertex buffer, 0 on error
-        *@note The vertex buffer must be released when no longer used, see csrVertexBufferRelease()
-        */
-        CSR_VertexBuffer* csrVertexBufferCreate(void);
-
-        /**
-        * Releases a vertex buffer
-        *@param pV - vertex buffer to release
-        */
-        void csrVertexBufferRelease(CSR_VertexBuffer* pV);
-
-        /**
-        * Calculates the vertex stride
-        *@param[in, out] pVertexFormat - vertex format for which the stride should be calculated
-        */
-        void csrVertexCalculateStride(CSR_VertexFormat* pVertexFormat);
-
-        /**
-        * Adds a vertex to a vertex buffer
-        *@param pVertex - vertex
-        *@param pNormal - normal
-        *@param pUV - texture coordinate
-        *@param color - color
-        *@param[in, out] pVB - vertex buffer to add to
-        */
-        void csrVertexAdd(CSR_Vector3*      pVertex,
-                          CSR_Vector3*      pNormal,
-                          CSR_Vector2*      pUV,
-                          unsigned          color,
-                          CSR_VertexBuffer* pVB);
-
-        //-------------------------------------------------------------------
-        // Mesh functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Creates a mesh
-        *@return newly created mesh, 0 on error
-        *@note The mesh must be released when no longer used, see csrMeshRelease()
-        */
-        CSR_Mesh* csrMeshCreate(void);
-
-        /**
-        * Releases a mesh
-        *@param pMesh - mesh to release
-        */
-        void csrMeshRelease(CSR_Mesh* pMesh);
-
-        //-------------------------------------------------------------------
-        // Polygon functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Creates a polygon buffer
-        *@return newly created polygon buffer, 0 on error
-        *@note The polygon buffer must be released when no longer used, see csrPolygonBufferRelease()
-        */
-        CSR_PolygonBuffer* csrPolygonBufferCreate(void);
-
-        /**
-        * Releases a polygon buffer
-        *@param pPB - polygon buffer to release
-        */
-        void csrPolygonBufferRelease(CSR_PolygonBuffer* pPB);
-
-        /**
-        * Gets a polygon from a polygon index
-        *@param pPolygonIndex - polygon index to get from
-        *@param[out] pPolygon - polygon to populate
-        */
-        void csrPolygonFromIndex(const CSR_PolygonIndex* pPolygonIndex, CSR_Polygon3* pPolygon);
-
-        /**
-        * Adds a polygon index to a polygon buffer
-        *@param pPI - polygon index to add to the polygon buffer
-        *@param[in, out] pPB - polygon buffer to add to
-        */
-        void csrPolygonIndexAdd(const CSR_PolygonIndex* pPI, CSR_PolygonBuffer* pPB);
-
-        /**
-        * Gets a polygon buffer from a mesh
-        *@param pMesh - mesh
-        *@return polygon buffer, 0 on error
-        *@note The polygon buffer must be released when no longer used, see csrPolygonBufferRelease()
-        *@note BE CAREFUL, the polygon buffer is valid as long as his source mesh is valid. If the
-        *      mesh is released, the polygon buffer should be released together. However the polygon
-        *      buffer may be released after the mesh
-        */
-        CSR_PolygonBuffer* csrPolygonBufferFromMesh(const CSR_Mesh* pMesh);
-
         //-------------------------------------------------------------------
         // Shape functions
         //-------------------------------------------------------------------
@@ -331,7 +171,7 @@ typedef struct
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include "CSR_Models.c"
+    #include "CSR_Model.c"
 #endif
 
 #endif
