@@ -37,7 +37,7 @@ struct CSR_AABBNode
     CSR_AABBNode*      m_pLeft;
     CSR_AABBNode*      m_pRight;
     CSR_Box*           m_pBox;
-    CSR_PolygonBuffer* m_pPolygons;
+    CSR_PolygonBuffer* m_pPolygonBuffer;
 };
 
 #ifdef __cplusplus
@@ -54,7 +54,15 @@ struct CSR_AABBNode
         *@param[in, out] pNode - root or parent node to create from, populated node on function ends
         *@return 1 on success, otherwise 0
         */
-        int csrAABBTreePopulate(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pNode);
+        int csrAABBTreeFromPolygons(const CSR_PolygonBuffer* pPolygons, CSR_AABBNode* pNode);
+
+        /**
+        * Gets an AABB tree from a mesh
+        *@param pMesh - mesh
+        *@return aligned-axis bounding box tree root node, 0 on error
+        *@note The AABB tree must be released when no longer used, see csrAABBTreeRelease()
+        */
+        CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh);
 
 //        /**
 //        * Resolves AABB tree
@@ -68,19 +76,19 @@ struct CSR_AABBNode
 //                               MINI_AABBNode* pNode,
 //                               MINI_Polygon** pPolygons,
 //                               unsigned*      pPolygonsCount);
-//
-//        /**
-//        * Releases node content
-//        *@param pNode - node for which content should be released
-//        *@note Only the node content is released, the node itself is not released
-//        */
-//        void csrAABBTreeNodeRelease(MINI_AABBNode* pNode);
-//
-//        /**
-//        * Releases tree content
-//        *@param pNode - root node from which content should be released
-//        */
-//        void csrAABBTreeRelease(MINI_AABBNode* pNode);
+
+        /**
+        * Releases node content
+        *@param pNode - node for which content should be released
+        *@note Only the node content is released, the node itself is not released
+        */
+        void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
+
+        /**
+        * Releases tree content
+        *@param pNode - root node from which content should be released
+        */
+        void csrAABBTreeRelease(CSR_AABBNode* pNode);
 
 #ifdef __cplusplus
     }
