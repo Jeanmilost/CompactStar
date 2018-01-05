@@ -28,19 +28,19 @@ CSR_Shader* csrShaderCreate(void)
         return 0;
 
     // initialize the vertex buffer content
-    pShader->m_ProgramID    = 0;
-    pShader->m_VertexID     = 0;
-    pShader->m_FragmentID   = 0;
-    pShader->m_VertexSlot   = 0;
-    pShader->m_NormalSlot   = 0;
-    pShader->m_TexCoordSlot = 0;
-    pShader->m_ColorSlot    = 0;
-    pShader->m_ModelSlot    = 0;
+    pShader->m_ProgramID    =  0;
+    pShader->m_VertexID     =  0;
+    pShader->m_FragmentID   =  0;
+    pShader->m_VertexSlot   = -1;
+    pShader->m_NormalSlot   = -1;
+    pShader->m_TexCoordSlot = -1;
+    pShader->m_ColorSlot    = -1;
+    pShader->m_ModelSlot    = -1;
 
     return pShader;
 }
 //---------------------------------------------------------------------------
-CSR_Shader* csrShaderFileLoad(const char* pVertex, const char* pFragment)
+CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
 {
     CSR_Buffer* pVertexProgram;
     CSR_Buffer* pFragmentProgram;
@@ -50,21 +50,21 @@ CSR_Shader* csrShaderFileLoad(const char* pVertex, const char* pFragment)
     pVertexProgram = csrFileOpen(pVertex);
 
     // succeeded?
-    if (pVertexProgram)
+    if (!pVertexProgram)
         return 0;
 
     // open the fragment file to load
     pFragmentProgram = csrFileOpen(pFragment);
 
     // succeeded?
-    if (pFragmentProgram)
+    if (!pFragmentProgram)
     {
         csrBufferRelease(pVertexProgram);
         return 0;
     }
 
     // load the shader from opened vertex and fragment programs
-    pShader = csrShaderBufferLoad(pVertexProgram, pFragmentProgram);
+    pShader = csrShaderLoadFromBuffer(pVertexProgram, pFragmentProgram);
 
     // release the program buffers
     csrBufferRelease(pVertexProgram);
@@ -73,10 +73,9 @@ CSR_Shader* csrShaderFileLoad(const char* pVertex, const char* pFragment)
     return pShader;
 }
 //---------------------------------------------------------------------------
-CSR_Shader* csrShaderBufferLoad(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment)
+CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment)
 {
     CSR_Shader* pShader;
-    GLint       linkSuccess;
 
     // source vertex or fragment program is missing?
     if (!pVertex || !pFragment)
@@ -113,16 +112,12 @@ CSR_Shader* csrShaderBufferLoad(const CSR_Buffer* pVertex, const CSR_Buffer* pFr
         return 0;
     }
 
-    // link shader programs
+    // attach compiled programs with shader
     glAttachShader(pShader->m_ProgramID, pShader->m_VertexID);
     glAttachShader(pShader->m_ProgramID, pShader->m_FragmentID);
-    glLinkProgram(pShader->m_ProgramID);
 
-    // get linker result
-    glGetProgramiv(pShader->m_ProgramID, GL_LINK_STATUS, &linkSuccess);
-
-    // succeeded?
-    if (linkSuccess == GL_FALSE)
+    // link shader
+    if (!csrShaderLink(pShader))
     {
         csrShaderRelease(pShader);
         return 0;
@@ -137,15 +132,21 @@ int csrShaderCompile(const CSR_Buffer* pSource, GLenum shaderType, CSR_Shader* p
     GLint  success;
 
     // no source data to compile?
-    if (!pSource)
+    if (!pSource || !pSource->m_Length || !pSource->m_pData)
         return 0;
 
     // no shader to add result to?
     if (!pShader)
         return 0;
 
-    // create and compile shader program
+    // create a new shader program
     shaderID = glCreateShader(shaderType);
+
+    // succeeded?
+    if (!shaderID)
+        return 0;
+
+    // compile the shader program
     glShaderSource(shaderID, 1, (GLchar**)&pSource->m_pData, 0);
     glCompileShader(shaderID);
 
@@ -169,6 +170,41 @@ int csrShaderCompile(const CSR_Buffer* pSource, GLenum shaderType, CSR_Shader* p
     }
 
     return 1;
+}
+//---------------------------------------------------------------------------
+int csrShaderLink(CSR_Shader* pShader)
+{
+    GLint success;
+
+    // no shader to link?
+    if (!pShader || !pShader->m_ProgramID)
+        return 0;
+
+    // link the shader
+    glLinkProgram(pShader->m_ProgramID);
+
+    // get linker result
+    glGetProgramiv(pShader->m_ProgramID, GL_LINK_STATUS, &success);
+
+    // succeeded?
+    if (success == GL_FALSE)
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+void csrShaderEnable(CSR_Shader* pShader)
+{
+    // no shader to enable?
+    if (!pShader)
+    {
+        // disable all
+        glUseProgram(0);
+        return;
+    }
+
+    // enable the shader
+    glUseProgram(pShader->m_ProgramID);
 }
 //---------------------------------------------------------------------------
 void csrShaderRelease(CSR_Shader* pShader)

@@ -44,6 +44,21 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         if (!pMesh->m_pVB[i].m_Count || !pMesh->m_pVB[i].m_Format.m_Stride)
             continue;
 
+        // enable position slot
+        glEnableVertexAttribArray(pShader->m_VertexSlot);
+
+        // enable normal slot
+        if (pMesh->m_pVB[i].m_Format.m_UseNormals)
+            glEnableVertexAttribArray(pShader->m_NormalSlot);
+
+        // enable texture slot
+        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+            glEnableVertexAttribArray(pShader->m_TexCoordSlot);
+
+        // enable color slot
+        if (pMesh->m_pVB[i].m_Format.m_UseColors)
+            glEnableVertexAttribArray(pShader->m_ColorSlot);
+
         offset = 0;
 
         // send vertices to shader
@@ -110,6 +125,21 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
             case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
         }
+
+        // disable vertices slots from shader
+        glDisableVertexAttribArray(pShader->m_VertexSlot);
+
+        // disable normal slot
+        if (pMesh->m_pVB[i].m_Format.m_UseNormals)
+            glDisableVertexAttribArray(pShader->m_NormalSlot);
+
+        // disable texture slot
+        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+            glDisableVertexAttribArray(pShader->m_TexCoordSlot);
+
+        // disable color slot
+        if (pMesh->m_pVB[i].m_Format.m_UseColors)
+            glDisableVertexAttribArray(pShader->m_ColorSlot);
     }
 }
 //---------------------------------------------------------------------------
