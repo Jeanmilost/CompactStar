@@ -17,6 +17,7 @@
 #define CSR_ModelH
 
 // compactStar engine
+#include "CSR_Common.h"
 #include "CSR_Geometry.h"
 #include "CSR_Vertex.h"
 
@@ -30,6 +31,7 @@
 
         /**
         * Creates a surface
+        *@param pVertexFormat - vertex format
         *@param width - surface width
         *@param height - surface height
         *@param color - color in ARGB format
@@ -41,28 +43,23 @@
                                               float             height,
                                               unsigned          color);
 
-//        /**
-//        * Creates a sphere
-//        *@param pRadius - sphere radius
-//        *@param slices - slices (longitude) number
-//        *@param stacks - stacks (latitude) number
-//        *@param color - color in RGBA format
-//        *@param [in, out] pVertexFormat - vertex format to use
-//        *@param[out] pVertices - resulting vertex buffer
-//        *@param[out] pVertexCount - vertex count in buffer
-//        *@param[out] pIndexes - index list containing offset and length of each vertex buffer composing sphere
-//        *@param[out] pIndexCount - resulting index count
-//        */
-//        void miniCreateSphere(const float*             pRadius,
-//                                    int                slices,
-//                                    int                stacks,
-//                                    unsigned           color,
-//                                    MINI_VertexFormat* pVertexFormat,
-//                                    float**            pVertices,
-//                                    unsigned*          pVertexCount,
-//                                    MINI_Index**       pIndexes,
-//                                    unsigned*          pIndexCount);
-//
+        /**
+        * Creates a sphere
+        *@param pVertexFormat - vertex format
+        *@param radius - sphere radius
+        *@param slices - slices (longitude) count
+        *@param stacks - stacks (latitude) count
+        *@param color - color in RGBA format
+        *@return mesh containing the sphere, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
+                                             float             radius,
+                                             int               slices,
+                                             int               stacks,
+                                             unsigned          color);
+;
+
 //        /**
 //        * Creates a cylinder
 //        *@param pRadius - cylinder radius

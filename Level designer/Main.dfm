@@ -11,6 +11,8 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pcMain: TPageControl
@@ -31,10 +33,6 @@ object MainForm: TMainForm
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitLeft = 248
-        ExplicitTop = 288
-        ExplicitWidth = 185
-        ExplicitHeight = 41
       end
     end
   end
