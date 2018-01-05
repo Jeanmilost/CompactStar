@@ -367,7 +367,7 @@ CSR_IndexedPolygonBuffer* csrIndexedPolygonBufferFromMesh(const CSR_Mesh* pMesh)
         indexedPolygon.m_pVB = &pMesh->m_pVB[i];
 
         // search for vertex type
-        switch (!pMesh->m_pVB[i].m_Format.m_Type)
+        switch (pMesh->m_pVB[i].m_Format.m_Type)
         {
             case CSR_VT_Triangles:
             {

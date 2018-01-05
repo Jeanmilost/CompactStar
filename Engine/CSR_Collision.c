@@ -41,7 +41,6 @@ int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
         return 0;
 
     // initialize node content
-    pNode->m_pParent        = 0;
     pNode->m_pLeft          = 0;
     pNode->m_pRight         = 0;
     pNode->m_pBox           = (CSR_Box*)malloc(sizeof(CSR_Box));
@@ -90,7 +89,7 @@ int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
         insideRight = 0;
 
         // check which box contains the most vertices
-        for (j = 0; i < 3; ++j)
+        for (j = 0; j < 3; ++j)
             // is vertex inside left or right sub-box?
             if (csrInsideBox(&polygon.m_Vertex[j], &leftBox))
                 ++insideLeft;
@@ -261,6 +260,9 @@ CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
         csrIndexedPolygonBufferRelease(pIPB);
         return 0;
     }
+
+    // initialize the root node content
+    pRoot->m_pParent = 0;
 
     // populate the AABB tree
     success = csrAABBTreeFromIndexedPolygonBuffer(pIPB, pRoot);

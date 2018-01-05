@@ -2,6 +2,8 @@
 #pragma hdrstop
 #include "Main.h"
 
+#include <string>
+
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
@@ -160,19 +162,27 @@ void TMainForm::InitScene(int w, int h)
     std::string data = miniGetVSColored();
 
     pVS->m_Length = data.length();
-    pVS->m_pData  = new unsigned char[pVS->m_Length];
+    pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
     std::memcpy(pVS->m_pData, data.c_str(), pVS->m_Length);
+    pVS->m_pData[pVS->m_Length] = 0x0;
 
     data = miniGetFSColored();
 
     pFS->m_Length = data.length();
-    pFS->m_pData  = new unsigned char[pFS->m_Length];
+    pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
     std::memcpy(pFS->m_pData, data.c_str(), pFS->m_Length);
+    pFS->m_pData[pFS->m_Length] = 0x0;
 
-    m_pShader = csrShaderBufferLoad(pVS, pFS);
+    m_pShader = csrShaderLoadFromBuffer(pVS, pFS);
 
     csrBufferRelease(pVS);
     csrBufferRelease(pFS);
+
+    csrShaderEnable(m_pShader);
+
+    // get shader attributes
+    m_pShader->m_VertexSlot = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vPosition");
+    m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vColor");
 
     CSR_VertexFormat vf;
     vf.m_Type = CSR_VT_TriangleStrip;
@@ -180,11 +190,24 @@ void TMainForm::InitScene(int w, int h)
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
-    m_pSphere = csrShapeCreateSphere(&vf, 1.0f, 20, 20, 0xFF0000FF);
+    m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 20, 20, 0xFFFF);
+    m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
+
+    // configure OpenGL depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRangef(0.0f, 1.0f);
+
+    // enable culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
+    csrAABBTreeRelease(m_pAABBTree);
     csrMeshRelease(m_pSphere);
     csrShaderRelease(m_pShader);
 }
@@ -195,7 +218,54 @@ void TMainForm::UpdateScene(float elapsedTime)
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
 {
+    float       xAngle;
+    float       yAngle;
+    CSR_Vector3 t;
+    CSR_Vector3 r;
+    CSR_Matrix4 translateMatrix;
+    CSR_Matrix4 xRotateMatrix;
+    CSR_Matrix4 yRotateMatrix;
+    CSR_Matrix4 rotateMatrix;
+    CSR_Matrix4 modelMatrix;
+
     csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // set translation
+    t.m_X =  0.0f;
+    t.m_Y =  0.0f;
+    t.m_Z = -2.0f;
+
+    csrMat4Translate(&t, &translateMatrix);
+
+    // set rotation on X axis
+    r.m_X = 1.0f;
+    r.m_Y = 0.0f;
+    r.m_Z = 0.0f;
+
+    // rotate 90 degrees
+    xAngle = 1.57075f;
+
+    csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
+
+    // set rotation on Y axis
+    r.m_X = 0.0f;
+    r.m_Y = 1.0f;
+    r.m_Z = 0.0f;
+
+    yAngle = 0.0f;
+
+    csrMat4Rotate(&yAngle, &r, &yRotateMatrix);
+
+    // build model view matrix
+    csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
+    csrMat4Multiply(&rotateMatrix,  &translateMatrix, &modelMatrix);
+
+    // connect model view matrix to shader
+    GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "qr_uModelview");
+    glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
+
+    csrSceneDrawMesh(m_pSphere, m_pShader);
+
     csrSceneEnd();
 }
 //---------------------------------------------------------------------------

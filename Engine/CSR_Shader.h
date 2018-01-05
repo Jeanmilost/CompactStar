@@ -31,11 +31,11 @@ typedef struct
     GLuint m_ProgramID;
     GLuint m_VertexID;
     GLuint m_FragmentID;
-    GLuint m_VertexSlot;
-    GLuint m_NormalSlot;
-    GLuint m_TexCoordSlot;
-    GLuint m_ColorSlot;
-    GLuint m_ModelSlot;
+    GLint  m_VertexSlot;
+    GLint  m_NormalSlot;
+    GLint  m_TexCoordSlot;
+    GLint  m_ColorSlot;
+    GLint  m_ModelSlot;
 } CSR_Shader;
 
 #ifdef __cplusplus
@@ -60,7 +60,7 @@ typedef struct
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
-        CSR_Shader* csrShaderFileLoad(const char* pVertex, const char* pFragment);
+        CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment);
 
         /**
         * Loads, compiles and links a shader from vertex and fragment buffers
@@ -69,7 +69,7 @@ typedef struct
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
-        CSR_Shader* csrShaderBufferLoad(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment);
+        CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment);
 
         /**
         * Compiles a shader program
@@ -81,6 +81,19 @@ typedef struct
         *@return 1 on success, otherwise 0
         */
         int csrShaderCompile(const CSR_Buffer* pSource, GLenum shaderType, CSR_Shader* pShader);
+
+        /**
+        * Links the shader
+        *@param[in, out] pShader - shader to link, linked shader if function ends with success
+        *@return 1 on success, otherwise 0
+        */
+        int csrShaderLink(CSR_Shader* pShader);
+
+        /**
+        * Enables a shader (i.e. notify that from now this shader will be used)
+        *@param pShader - shader to enable, disable any previously enabled shader if 0
+        */
+        void csrShaderEnable(CSR_Shader* pShader);
 
         /**
         * Releases a shader

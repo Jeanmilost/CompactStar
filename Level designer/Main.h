@@ -10,6 +10,7 @@
 
 // compactStar engine
 #include "CSR_Model.h"
+#include "CSR_Collision.h"
 #include "CSR_Shader.h"
 
 class TMainForm : public TForm
@@ -31,6 +32,7 @@ class TMainForm : public TForm
         HGLRC            m_hRC;
         CSR_Shader*      m_pShader;
         CSR_Mesh*        m_pSphere;
+        CSR_AABBNode*    m_pAABBTree;
         unsigned __int64 m_PreviousTime;
 
         /**
