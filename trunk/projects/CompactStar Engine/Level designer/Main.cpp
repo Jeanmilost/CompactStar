@@ -191,6 +191,7 @@ void TMainForm::InitScene(int w, int h)
     vf.m_UseColors   = 1;
 
     m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 20, 20, 0xFFFF);
+    m_pBox      = csrShapeCreateBox(&vf, 1.0f, 1.0f, 1.0f, 0xFF0000FF, 0);
     m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
 
     // configure OpenGL depth testing
@@ -208,6 +209,7 @@ void TMainForm::InitScene(int w, int h)
 void TMainForm::DeleteScene()
 {
     csrAABBTreeRelease(m_pAABBTree);
+    csrMeshRelease(m_pBox);
     csrMeshRelease(m_pSphere);
     csrShaderRelease(m_pShader);
 }
@@ -265,6 +267,7 @@ void TMainForm::DrawScene()
     glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
 
     csrSceneDrawMesh(m_pSphere, m_pShader);
+    csrSceneDrawMesh(m_pBox, m_pShader);
 
     csrSceneEnd();
 }

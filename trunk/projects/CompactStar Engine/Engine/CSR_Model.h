@@ -34,7 +34,7 @@
         *@param pVertexFormat - vertex format
         *@param width - surface width
         *@param height - surface height
-        *@param color - color in ARGB format
+        *@param color - color in RGBA format
         *@return mesh containing the surface, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
@@ -42,6 +42,24 @@
                                               float             width,
                                               float             height,
                                               unsigned          color);
+
+        /**
+        * Creates a box
+        *@param pVertexFormat - vertex format
+        *@param width - box width
+        *@param height - box height
+        *@param depth - box depth
+        *@param color - color in RGBA format
+        *@param repeatTexOnEachFace - if 1 the texture will be repeated on each face
+        *@return mesh containing the surface, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
+                                          float             width,
+                                          float             height,
+                                          float             depth,
+                                          unsigned          color,
+                                          int               repeatTexOnEachFace);
 
         /**
         * Creates a sphere

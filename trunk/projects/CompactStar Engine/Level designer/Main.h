@@ -32,6 +32,7 @@ class TMainForm : public TForm
         HGLRC            m_hRC;
         CSR_Shader*      m_pShader;
         CSR_Mesh*        m_pSphere;
+        CSR_Mesh*        m_pBox;
         CSR_AABBNode*    m_pAABBTree;
         unsigned __int64 m_PreviousTime;
 
