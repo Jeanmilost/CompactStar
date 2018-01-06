@@ -35,6 +35,8 @@ typedef enum
     CSR_VT_QuadStrip
 } CSR_EVertexType;
 
+// todo FIXME -cFeature -oJean: add the cull mode and face
+
 /**
 * Vertex format
 */
