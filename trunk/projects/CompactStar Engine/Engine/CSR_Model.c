@@ -165,6 +165,10 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
         pMesh->m_pVB[i].m_Format        = *pVertexFormat;
         pMesh->m_pVB[i].m_Format.m_Type = CSR_VT_TriangleStrip;
         csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
+
+        // initialize the vertex buffer data
+        pMesh->m_pVB[i].m_pData = 0;
+        pMesh->m_pVB[i].m_Count = 0;
     }
 
     // iterate through vertices to create. Vertices are generated as follow:
