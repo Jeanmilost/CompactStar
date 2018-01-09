@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Common ----------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the common functions and declarations *
+ * Description : This module provides the common functions and types        *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *

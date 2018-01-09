@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Vertex ----------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the basic vertex functions and types  *
+ * Description : This module provides the vertex functions and types        *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *

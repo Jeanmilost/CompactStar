@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Vertex ----------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the basic vertex functions and types  *
+ * Description : This module provides the vertex functions and types        *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -18,6 +18,7 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
+#include "CSR_Texture.h"
 
 //---------------------------------------------------------------------------
 // Structures
@@ -58,15 +59,6 @@ typedef struct
     float*           m_pData;
     size_t           m_Count;
 } CSR_VertexBuffer;
-
-/**
-* Texture
-*/
-typedef struct
-{
-    GLuint m_TextureID;
-    GLuint m_BumpMapID;
-} CSR_Texture;
 
 /**
 * Mesh

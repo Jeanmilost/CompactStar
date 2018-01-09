@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'AABB Tool'
+  Caption = 'Aligned-Axis Bounding Box Tool'
   ClientHeight = 600
   ClientWidth = 800
   Color = clBtnFace
@@ -32,11 +32,15 @@ object MainForm: TMainForm
     Top = 0
     Width = 612
     Height = 600
+    Cursor = crCross
     Align = alClient
     BevelOuter = bvNone
+    DoubleBuffered = False
+    ParentBackground = False
+    ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitWidth = 792
-    ExplicitHeight = 572
+    OnMouseLeave = paViewMouseLeave
+    OnMouseMove = paViewMouseMove
   end
   object paControls: TPanel
     Left = 615
@@ -45,34 +49,77 @@ object MainForm: TMainForm
     Height = 600
     Align = alRight
     BevelOuter = bvNone
+    Constraints.MinWidth = 185
     TabOrder = 1
-    object laTreeControl: TLabel
+    ExplicitLeft = 618
+    object laTreeOptionsCaption: TLabel
       AlignWithMargins = True
       Left = 3
       Top = 3
       Width = 179
-      Height = 13
+      Height = 19
       Align = alTop
-      Caption = 'Tree control'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 58
+      Caption = 'Tree Options'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitWidth = 105
     end
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 70
+      Top = 78
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
+      ExplicitTop = 70
       ExplicitWidth = 66
+    end
+    object blTreeControlSeparator: TBevel
+      Left = 0
+      Top = 25
+      Width = 185
+      Height = 2
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitTop = 19
+    end
+    object blFilesSeparator: TBevel
+      Left = 0
+      Top = 148
+      Width = 185
+      Height = 2
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = 3
+      ExplicitTop = 449
+    end
+    object laFilesCaption: TLabel
+      AlignWithMargins = True
+      Left = 3
+      Top = 126
+      Width = 179
+      Height = 19
+      Margins.Top = 10
+      Align = alTop
+      Caption = 'Files'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitTop = 125
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 22
+      Top = 30
       Width = 179
       Height = 17
       Align = alTop
@@ -80,29 +127,25 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitLeft = 80
-      ExplicitTop = 96
-      ExplicitWidth = 97
+      ExplicitTop = 22
     end
     object ckShowLeafOnly: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 45
+      Top = 53
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Show Leaf Only'
       TabOrder = 1
-      ExplicitLeft = 48
-      ExplicitTop = 96
-      ExplicitWidth = 97
+      ExplicitTop = 45
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 86
+      Top = 94
       Width = 179
-      Height = 45
+      Height = 19
       Margins.Top = 0
       Align = alTop
       Max = 100
@@ -110,7 +153,32 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 2
       TickStyle = tsNone
-      ExplicitTop = 87
+    end
+    object btLoadModel: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 153
+      Width = 179
+      Height = 25
+      Align = alTop
+      Caption = 'Load Model...'
+      TabOrder = 3
+      ExplicitLeft = 72
+      ExplicitTop = 552
+      ExplicitWidth = 75
+    end
+    object btSaveTree: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 184
+      Width = 179
+      Height = 25
+      Align = alTop
+      Caption = 'Save Tree...'
+      TabOrder = 4
+      ExplicitLeft = 56
+      ExplicitTop = 248
+      ExplicitWidth = 75
     end
   end
 end

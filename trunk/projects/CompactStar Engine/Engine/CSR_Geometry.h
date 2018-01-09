@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Geometry --------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the geometric functions and structs   *
+ * Description : This module provides the geometric functions and types     *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -25,6 +25,33 @@
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
+
+/**
+* 2D geometric figure enumeration
+*/
+typedef enum
+{
+    CSR_F2_Line,
+    CSR_F2_Ray,
+    CSR_F2_Segment,
+    CSR_F2_Polygon,
+    CSR_F2_Rect,
+    CSR_F2_Circle
+} CSR_EFigure2;
+
+/**
+* 2D geometric figure enumeration
+*/
+typedef enum
+{
+    CSR_F3_Line,
+    CSR_F3_Ray,
+    CSR_F3_Segment,
+    CSR_F3_Plane,
+    CSR_F3_Polygon,
+    CSR_F3_Box,
+    CSR_F3_Sphere
+} CSR_EFigure3;
 
 /**
 * 2D vector
@@ -164,6 +191,24 @@ typedef struct
 {
     CSR_Vector3 m_Vertex[3];
 } CSR_Polygon3;
+
+/**
+* 2D Figure
+*/
+typedef struct
+{
+    CSR_EFigure2 m_Type;
+    void*        m_pFigure;
+} CSR_Figure2;
+
+/**
+* 3D Figure
+*/
+typedef struct
+{
+    CSR_EFigure3 m_Type;
+    void*        m_pFigure;
+} CSR_Figure3;
 
 #ifdef __cplusplus
     extern "C"
@@ -706,11 +751,39 @@ typedef struct
         */
         int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS);
 
-        // todo REM or FIXME -cCheck -oJean: This part isn't ready and it's too sooner to do that
-//        //-------------------------------------------------------------------
-//        // Intersection checks
-//        //-------------------------------------------------------------------
-//
+        //-------------------------------------------------------------------
+        // Intersection checks
+        //-------------------------------------------------------------------
+
+        /**
+        * Checks if a geometric 2D figure intersects another geometric 2D figure
+        *@param pFigure1 - first geometric figure to check
+        *@param pFigure2 - second geometric figure to check against
+        *@param[out] pP1 - first point where the figures intersect (if any), ignored if 0
+        *@param[out] pP2 - second point where the figures intersect (if any), ignored if 0
+        *@return 1 if geometric figure intersect, otherwise 0
+        *@note Some geometric figures may be unsupported. In this case the result is always 0
+        */
+        int csrIntersect2(const CSR_Figure2* pFigure1,
+                          const CSR_Figure2* pFigure2,
+                                CSR_Vector2* pP1,
+                                CSR_Vector2* pP2);
+
+        /**
+        * Checks if a geometric 3D figure intersects another geometric 3D figure
+        *@param pFigure1 - first geometric figure to check
+        *@param pFigure2 - second geometric figure to check against
+        *@param[out] pP1 - first point where the figures intersect (if any), ignored if 0
+        *@param[out] pP2 - second point where the figures intersect (if any), ignored if 0
+        *@return 1 if geometric figure intersect, otherwise 0
+        *@note Some geometric figures may be unsupported. In this case the result is always 0
+        */
+        int csrIntersect3(const CSR_Figure3* pFigure1,
+                          const CSR_Figure3* pFigure2,
+                                CSR_Vector3* pP1,
+                                CSR_Vector3* pP2);
+
+        //REM
 //        /**
 //        * Checks if a point intersects a ray
 //        *@param pP - point

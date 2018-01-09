@@ -19,16 +19,23 @@ class TMainForm : public TForm
         TPanel *paView;
         TPanel *paControls;
         TSplitter *spMainView;
-        TLabel *laTreeControl;
+        TLabel *laTreeOptionsCaption;
         TCheckBox *ckWireFrame;
         TCheckBox *ckShowLeafOnly;
         TTrackBar *tbTransparency;
         TLabel *laTransparency;
+        TButton *btLoadModel;
+        TBevel *blTreeControlSeparator;
+        TBevel *blFilesSeparator;
+        TLabel *laFilesCaption;
+        TButton *btSaveTree;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
+        void __fastcall paViewMouseMove(TObject* pSender, TShiftState shift, int x, int y);
+        void __fastcall paViewMouseLeave(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -103,6 +110,10 @@ class TMainForm : public TForm
         void DrawTreeBoxes(const CSR_AABBNode* pTree) const;
 
         CSR_Mesh* CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const;
+
+        CSR_Vector3 MousePosToViewportPos(const TPoint&   mousePos,
+                                          const TRect&    clientRect,
+                                          const CSR_Rect& viewRect);
 
         /**
         * Called while application is idle

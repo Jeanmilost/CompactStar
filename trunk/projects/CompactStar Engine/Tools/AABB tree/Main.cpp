@@ -125,6 +125,36 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::paViewMouseMove(TObject* pSender, TShiftState shift, int x, int y)
+{
+    CSR_Rect viewRect;
+    viewRect.m_Min.m_X = -1.0f;
+    viewRect.m_Min.m_Y =  1.0f;
+    viewRect.m_Max.m_X =  1.0f;
+    viewRect.m_Max.m_Y = -1.0f;
+
+    const CSR_Vector3 pointInView = MousePosToViewportPos(TPoint(x, y), ClientRect, viewRect);
+
+    QR_Vector3DP rayPosToDraw = rayPos;
+    QR_Vector3DP rayDirToDraw = rayDir;
+    QR_Matrix16P identity;
+
+    // unproject the ray to make it inside the 3d world coordinates. In this mode, the model and
+    // view matrices are already combined, so don't unproject the view matrix
+    QR_Renderer::Unproject(projectionMatrix, identity, rayPos, rayDir);
+
+    // on the other hand, the ray to draw isn't concerned by the model matrix, so unproject it
+    // completely
+    QR_Renderer::Unproject(projectionMatrix, viewMatrix, rayPosToDraw, rayDirToDraw);
+
+    csrMat4Unproject(&m_ProjectionMatrix, &m_ViewMatrix, rayPos, rayDir);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::paViewMouseLeave(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
 {
     switch (message.Msg)
@@ -316,9 +346,9 @@ void TMainForm::DeleteScene()
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    m_AngleY += 0.001f;
+    m_AngleY += (elapsedTime * 0.5f);
 
-    if (m_AngleY > M_PI * 2.0f)
+    while (m_AngleY > M_PI * 2.0f)
         m_AngleY -= M_PI * 2.0f;
 }
 //------------------------------------------------------------------------------
@@ -519,6 +549,28 @@ CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, u
     csrVertexBufferAdd(&vertices[4], NULL, NULL, color, &pMesh->m_pVB[5]);
 
     return pMesh;
+}
+//---------------------------------------------------------------------------
+CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint&   mousePos,
+                                             const TRect&    clientRect,
+                                             const CSR_Rect& viewRect)
+{
+    CSR_Vector3 result;
+
+    // invalid client width or height?
+    if (!ClientWidth || !ClientHeight)
+    {
+        result.m_X = 0.0f;
+        result.m_Y = 0.0f;
+        result.m_Z = 0.0f;
+        return result;
+    }
+
+    // convert mouse position to scene position
+    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / ClientWidth);
+    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Max.m_Y - viewRect.m_Min.m_Y)) / ClientHeight);
+    result.m_Z = 0.0f;
+    return result;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
