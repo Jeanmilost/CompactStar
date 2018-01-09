@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Geometry --------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the geometric functions and structs   *
+ * Description : This module provides the geometric functions and types     *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -1305,6 +1305,480 @@ int csrInsideSphere(const CSR_Vector3* pP, const CSR_Sphere* pS)
 }
 //---------------------------------------------------------------------------
 // Intersection checks
+//---------------------------------------------------------------------------
+int csrIntersect2(const CSR_Figure2* pFigure1,
+                  const CSR_Figure2* pFigure2,
+                        CSR_Vector2* pP1,
+                        CSR_Vector2* pP2)
+{
+    int          intersectionType;
+    CSR_Figure2* pFirst;
+    CSR_Figure2* pSecond;
+
+    // intersection calculation isn't possible if at least one of the figures is missing
+    if (!pFigure1 || !pFigure2)
+        return 0;
+
+    // determine which intersection type should be applied
+    switch (pFigure1->m_Type)
+    {
+        case CSR_F2_Line:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  0; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Ray:     intersectionType =  1; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Segment: intersectionType =  2; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  3; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  4; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  5; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F2_Ray:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  1;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  6;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Segment: intersectionType =  7;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  8;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  9;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  10; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F2_Segment:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  2;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  7;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  11; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  12; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  13; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  14; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F2_Polygon:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  3;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  8;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  12; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  15; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  16; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  17; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F2_Rect:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  4;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  9;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  11; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  16; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Rect:    intersectionType =  18; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  19; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F2_Circle:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F2_Line:    intersectionType =  5;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  10; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  14; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  17; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Rect:    intersectionType =  19; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F2_Circle:  intersectionType =  20; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        default:
+            intersectionType = -1;
+            break;
+    }
+
+    // unknown intersection type?
+    if (intersectionType == -1)
+        return 0;
+
+    // calculate the intersection
+    switch (intersectionType)
+    {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+
+        default:
+            return 0;
+    }
+}
+//---------------------------------------------------------------------------
+int csrIntersect3(const CSR_Figure3* pFigure1,
+                  const CSR_Figure3* pFigure2,
+                        CSR_Vector3* pP1,
+                        CSR_Vector3* pP2)
+{
+    int          intersectionType;
+    CSR_Figure3* pFirst;
+    CSR_Figure3* pSecond;
+
+    // intersection calculation isn't possible if at least one of the figures is missing
+    if (!pFigure1 || !pFigure2)
+        return 0;
+
+    // determine which intersection type should be applied
+    switch (pFigure1->m_Type)
+    {
+        case CSR_F3_Line:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  0; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Ray:     intersectionType =  1; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Segment: intersectionType =  2; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Plane:   intersectionType =  3; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Polygon: intersectionType =  4; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Box:     intersectionType =  5; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  6; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Ray:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  1;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  7;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Segment: intersectionType =  8;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Plane:   intersectionType =  9;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Polygon: intersectionType =  10; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Box:     intersectionType =  11; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  12; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Segment:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  2;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  8;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Segment: intersectionType =  13; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Plane:   intersectionType =  14; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Polygon: intersectionType =  15; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Box:     intersectionType =  16; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  17; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Plane:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  3;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  9;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Segment: intersectionType =  14; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Plane:   intersectionType =  18; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Polygon: intersectionType =  19; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Box:     intersectionType =  20; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  21; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Polygon:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  4;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  10; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Segment: intersectionType =  15; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Plane:   intersectionType =  19; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Polygon: intersectionType =  22; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Box:     intersectionType =  23; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  24; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Box:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  5;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  11; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Segment: intersectionType =  16; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Plane:   intersectionType =  20; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Polygon: intersectionType =  23; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Box:     intersectionType =  25; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F3_Sphere:  intersectionType =  26; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        case CSR_F3_Sphere:
+            switch (pFigure2->m_Type)
+            {
+                case CSR_F3_Line:    intersectionType =  6;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Ray:     intersectionType =  12; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Segment: intersectionType =  17; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Plane:   intersectionType =  21; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Polygon: intersectionType =  24; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Box:     intersectionType =  26; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
+                case CSR_F3_Sphere:  intersectionType =  27; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                default:             intersectionType = -1;
+            }
+
+            break;
+
+        default:
+            intersectionType = -1;
+            break;
+    }
+
+    // unknown intersection type?
+    if (intersectionType == -1)
+        return 0;
+
+    // calculate the intersection
+    switch (intersectionType)
+    {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            // unknown for now
+            return 0;
+
+        // ray-plane intersection
+        case 9:
+        {
+            CSR_Vector3 n;
+            float       dot;
+            float       nDot;
+            float       temp;
+
+            // get the figures to check
+            const CSR_Ray3*  pRay   = (CSR_Ray3*)pFirst->m_pFigure;
+            const CSR_Plane* pPlane = (CSR_Plane*)pSecond->m_pFigure;
+
+            // get the normal of the plane
+            n.m_X = pPlane->m_A;
+            n.m_Y = pPlane->m_B;
+            n.m_Z = pPlane->m_C;
+
+            // calculate the angle between the line and the normal to the plane
+            csrVec3Dot(&n, &pRay->m_Dir, &dot);
+
+            // if normal to the plane is perpendicular to the line, then the line is either parallel
+            // to the plane and there are no solutions or the line is on the plane in which case
+            // there are an infinite number of solutions
+            if (!dot)
+                return 0;
+
+            csrVec3Dot(&n, &pRay->m_Pos, &nDot);
+
+            temp = ((pPlane->m_D + nDot) / dot);
+
+            // calculate the intersection point
+            if (pP1)
+            {
+                pP1->m_X = (pRay->m_Pos.m_X - (temp * pRay->m_Dir.m_X));
+                pP1->m_Y = (pRay->m_Pos.m_Y - (temp * pRay->m_Dir.m_Y));
+                pP1->m_Z = (pRay->m_Pos.m_Z - (temp * pRay->m_Dir.m_Z));
+            }
+
+            return 1;
+        }
+
+        // ray-polygon intersection
+        case 10:
+        {
+            CSR_Plane     polygonPlane;
+            CSR_Vector3   pointOnPlane;
+            CSR_Figure3   plane;
+
+            // get the polygon to check
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
+
+            // create a plane using the 3 vertices of the polygon
+            csrPlaneFromPoints(&pPolygon->m_Vertex[0],
+                               &pPolygon->m_Vertex[1],
+                               &pPolygon->m_Vertex[2],
+                               &polygonPlane);
+
+            // build a figure for the plane
+            plane.m_Type    = CSR_F3_Plane;
+            plane.m_pFigure = &polygonPlane;
+
+            // calculate the intersection point
+            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pP2))
+                return 0;
+
+            // check if calculated point is inside the polygon
+            return csrInsidePolygon3(&pointOnPlane, pPolygon);
+        }
+
+        // ray-box intersection
+        case 11:
+        {
+            float tX1;
+            float tX2;
+            float tY1;
+            float tY2;
+            float tZ1;
+            float tZ2;
+            float tXn;
+            float tXf;
+            float tYn;
+            float tYf;
+            float tZn;
+            float tZf;
+            float tNear;
+            float tFar;
+
+            // get the figures to check
+            const CSR_Ray3* pRay = (CSR_Ray3*)pFirst->m_pFigure;
+            const CSR_Box*  pBox = (CSR_Box*)pSecond->m_pFigure;
+
+            // get infinite value
+            const float inf = 1.0f / 0.0f;
+
+            // calculate nearest point where ray intersects box on x coordinate
+            if (pRay->m_InvDir.m_X != inf)
+                tX1 = ((pBox->m_Min.m_X - pRay->m_Pos.m_X) * pRay->m_InvDir.m_X);
+            else
+            if ((pBox->m_Min.m_X - pRay->m_Pos.m_X) < 0.0f)
+                tX1 = -inf;
+            else
+                tX1 =  inf;
+
+            // calculate farthest point where ray intersects box on x coordinate
+            if (pRay->m_InvDir.m_X != inf)
+                tX2 = ((pBox->m_Max.m_X - pRay->m_Pos.m_X) * pRay->m_InvDir.m_X);
+            else
+            if ((pBox->m_Max.m_X - pRay->m_Pos.m_X) < 0.0f)
+                tX2 = -inf;
+            else
+                tX2 =  inf;
+
+            // calculate nearest point where ray intersects box on y coordinate
+            if (pRay->m_InvDir.m_Y != inf)
+                tY1 = ((pBox->m_Min.m_Y - pRay->m_Pos.m_Y) * pRay->m_InvDir.m_Y);
+            else
+            if ((pBox->m_Min.m_Y - pRay->m_Pos.m_Y) < 0.0f)
+                tY1 = -inf;
+            else
+                tY1 =  inf;
+
+            // calculate farthest point where ray intersects box on y coordinate
+            if (pRay->m_InvDir.m_Y != inf)
+                tY2 = ((pBox->m_Max.m_Y - pRay->m_Pos.m_Y) * pRay->m_InvDir.m_Y);
+            else
+            if ((pBox->m_Max.m_Y - pRay->m_Pos.m_Y) < 0.0f)
+                tY2 = -inf;
+            else
+                tY2 =  inf;
+
+            // calculate nearest point where ray intersects box on z coordinate
+            if (pRay->m_InvDir.m_Z != inf)
+                tZ1 = ((pBox->m_Min.m_Z - pRay->m_Pos.m_Z) * pRay->m_InvDir.m_Z);
+            else
+            if ((pBox->m_Min.m_Z - pRay->m_Pos.m_Z) < 0.0f)
+                tZ1 = -inf;
+            else
+                tZ1 =  inf;
+
+            // calculate farthest point where ray intersects box on z coordinate
+            if (pRay->m_InvDir.m_Z != inf)
+                tZ2 = ((pBox->m_Max.m_Z - pRay->m_Pos.m_Z) * pRay->m_InvDir.m_Z);
+            else
+            if ((pBox->m_Max.m_Z - pRay->m_Pos.m_Z) < 0.0f)
+                tZ2 = -inf;
+            else
+                tZ2 =  inf;
+
+            // calculate near/far intersection on each axis
+            csrMathMin(tX1, tX2, &tXn);
+            csrMathMax(tX1, tX2, &tXf);
+            csrMathMin(tY1, tY2, &tYn);
+            csrMathMax(tY1, tY2, &tYf);
+            csrMathMin(tZ1, tZ2, &tZn);
+            csrMathMax(tZ1, tZ2, &tZf);
+
+            // calculate final near/far intersection point
+            csrMathMax(tYn, tZn,   &tNear);
+            csrMathMax(tXn, tNear, &tNear);
+            csrMathMin(tYf, tZf,   &tFar);
+            csrMathMin(tXf, tFar,  &tFar);
+
+            // check if ray intersects box
+            return (tFar >= tNear);
+        }
+
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+            // unknown for now
+            return 0;
+
+        default:
+            return 0;
+    }
+}
 //---------------------------------------------------------------------------
 /* FIXME or REM
 int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR)
