@@ -53,9 +53,13 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_hDC(NULL),
     m_hRC(NULL),
+    m_pDocCanvas(NULL),
     m_pShader(NULL),
     m_pSphere(NULL),
-    m_PreviousTime(0)
+    m_AngleY(0),
+    m_PreviousTime(0),
+    m_Initialized(false),
+    m_fViewWndProc_Backup(NULL)
 {
     // enable OpenGL
     EnableOpenGL(paView->Handle, &m_hDC, &m_hRC);
@@ -76,14 +80,31 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
 //---------------------------------------------------------------------------
 __fastcall TMainForm::~TMainForm()
 {
+    // restore the normal view procedure
+    if (m_fViewWndProc_Backup)
+        paView->WindowProc = m_fViewWndProc_Backup;
+
     DeleteScene();
     DisableOpenGL(paView->Handle, m_hDC, m_hRC);
+
+    if (m_pDocCanvas)
+        delete m_pDocCanvas;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FormCreate(TObject* pSender)
+{
+    if (!m_pDocCanvas)
+        m_pDocCanvas = new TCanvas();
+
+    // hook the panel procedure
+    m_fViewWndProc_Backup = paView->WindowProc;
+    paView->WindowProc    = ViewWndProc;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
 {
     // initialize the scene
-    InitScene(ClientWidth, ClientHeight);
+    InitScene(paView->ClientWidth, paView->ClientHeight);
 
     // initialize the timer
     m_PreviousTime = ::GetTickCount();
@@ -92,11 +113,89 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     Application->OnIdle = OnIdle;
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::FormResize(TObject *Sender)
+void __fastcall TMainForm::FormResize(TObject* pSender)
 {
     // update the viewport
-    CreateViewport(ClientWidth, ClientHeight);
+    CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
+{
+    // update the viewport
+    CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ViewWndProc(TMessage& message)
+{
+    switch (message.Msg)
+    {
+        case WM_WINDOWPOSCHANGED:
+        {
+            if (!m_Initialized)
+                break;
 
+            if (!m_pDocCanvas)
+                break;
+
+            if (m_fViewWndProc_Backup)
+                m_fViewWndProc_Backup(message);
+
+            HDC hDC = NULL;
+
+            try
+            {
+                hDC = ::GetDC(paView->Handle);
+
+                if (hDC)
+                {
+                    m_pDocCanvas->Handle = hDC;
+
+                    // redraw here, thus the view will be redrawn to the correct size in real time
+                    // while the size changes
+                    DrawScene();
+                }
+            }
+            __finally
+            {
+                if (hDC)
+                    ::ReleaseDC(paView->Handle, hDC);
+            }
+
+            return;
+        }
+
+        case WM_PAINT:
+        {
+            if (!m_Initialized)
+                break;
+
+            if (!m_pDocCanvas)
+                break;
+
+            HDC           hDC = NULL;
+            ::PAINTSTRUCT ps;
+
+            try
+            {
+                hDC = ::BeginPaint(paView->Handle, &ps);
+
+                if (hDC)
+                {
+                    m_pDocCanvas->Handle = hDC;
+                    DrawScene();
+                }
+            }
+            __finally
+            {
+                ::EndPaint(paView->Handle, &ps);
+            }
+
+            return;
+        }
+    }
+
+    if (m_fViewWndProc_Backup)
+        m_fViewWndProc_Backup(message);
 }
 //---------------------------------------------------------------------------
 void TMainForm::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
@@ -191,7 +290,7 @@ void TMainForm::InitScene(int w, int h)
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
-    m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 20, 20, 0xFFFF);
+    m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
     m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
 
     // configure OpenGL depth testing
@@ -204,6 +303,8 @@ void TMainForm::InitScene(int w, int h)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    m_Initialized = true;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
@@ -214,7 +315,12 @@ void TMainForm::DeleteScene()
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
-{}
+{
+    m_AngleY += 0.001f;
+
+    if (m_AngleY > M_PI * 2.0f)
+        m_AngleY -= M_PI * 2.0f;
+}
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
 {
@@ -252,9 +358,7 @@ void TMainForm::DrawScene()
     r.m_Y = 1.0f;
     r.m_Z = 0.0f;
 
-    yAngle = 0.0f;
-
-    csrMat4Rotate(&yAngle, &r, &yRotateMatrix);
+    csrMat4Rotate(&m_AngleY, &r, &yRotateMatrix);
 
     // build model view matrix
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
@@ -269,15 +373,12 @@ void TMainForm::DrawScene()
 
     csrSceneDrawMesh(m_pSphere, m_pShader);
 
-    // reset model view matrix
-    //csrMat4Identity(&modelMatrix);
-    //glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
-
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if (ckWireFrame->Checked)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     DrawTreeBoxes(m_pAABBTree);
 
@@ -292,11 +393,16 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree) const
     if (pTree->m_pRight)
         DrawTreeBoxes(pTree->m_pRight);
 
+    if (ckShowLeafOnly->Checked && (pTree->m_pLeft || pTree->m_pRight))
+        return;
+
     CSR_Mesh* pMesh = NULL;
 
     try
     {
-        pMesh = CreateBox(pTree->m_pBox->m_Min, pTree->m_pBox->m_Max, 0xFF000080);
+        pMesh = CreateBox(pTree->m_pBox->m_Min,
+                          pTree->m_pBox->m_Max,
+                          0xFF000000 | ((tbTransparency->Position * 0xFF) / tbTransparency->Max));
 
         if (pMesh)
             csrSceneDrawMesh(pMesh, m_pShader);
