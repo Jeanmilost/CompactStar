@@ -34,8 +34,6 @@ class TMainForm : public TForm
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
-        void __fastcall paViewMouseMove(TObject* pSender, TShiftState shift, int x, int y);
-        void __fastcall paViewMouseLeave(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -49,12 +47,29 @@ class TMainForm : public TForm
         void __fastcall ViewWndProc(TMessage& message);
 
     private:
+        struct ITreeStats
+        {
+            std::size_t m_HitBoxCount;
+
+            ITreeStats();
+            ~ITreeStats();
+
+            /**
+            * Clears the stats
+            */
+            void Clear();
+        };
+
         HDC              m_hDC;
         HGLRC            m_hRC;
         TCanvas*         m_pDocCanvas;
+        ITreeStats       m_Stats;
         CSR_Shader*      m_pShader;
         CSR_Mesh*        m_pSphere;
         CSR_AABBNode*    m_pAABBTree;
+        CSR_Matrix4      m_ProjectionMatrix;
+        CSR_Matrix4      m_ModelMatrix;
+        CSR_Ray3         m_Ray;
         float            m_AngleY;
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
@@ -107,13 +122,15 @@ class TMainForm : public TForm
         void DrawScene();
 
 
-        void DrawTreeBoxes(const CSR_AABBNode* pTree) const;
+        void DrawTreeBoxes(const CSR_AABBNode* pTree);
 
         CSR_Mesh* CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const;
 
         CSR_Vector3 MousePosToViewportPos(const TPoint&   mousePos,
                                           const TRect&    clientRect,
                                           const CSR_Rect& viewRect);
+
+        void CalculateMouseRay();
 
         /**
         * Called while application is idle

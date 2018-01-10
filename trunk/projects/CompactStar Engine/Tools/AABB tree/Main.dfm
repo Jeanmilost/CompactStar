@@ -39,8 +39,6 @@ object MainForm: TMainForm
     ParentBackground = False
     ParentDoubleBuffered = False
     TabOrder = 0
-    OnMouseLeave = paViewMouseLeave
-    OnMouseMove = paViewMouseMove
   end
   object paControls: TPanel
     Left = 615
@@ -51,7 +49,6 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     Constraints.MinWidth = 185
     TabOrder = 1
-    ExplicitLeft = 618
     object laTreeOptionsCaption: TLabel
       AlignWithMargins = True
       Left = 3
@@ -77,7 +74,6 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
-      ExplicitTop = 70
       ExplicitWidth = 66
     end
     object blTreeControlSeparator: TBevel
@@ -114,7 +110,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 125
+      ExplicitWidth = 37
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
@@ -127,7 +123,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitTop = 22
     end
     object ckShowLeafOnly: TCheckBox
       AlignWithMargins = True
@@ -138,7 +133,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show Leaf Only'
       TabOrder = 1
-      ExplicitTop = 45
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
@@ -163,9 +157,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Load Model...'
       TabOrder = 3
-      ExplicitLeft = 72
-      ExplicitTop = 552
-      ExplicitWidth = 75
     end
     object btSaveTree: TButton
       AlignWithMargins = True
@@ -176,9 +167,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Save Tree...'
       TabOrder = 4
-      ExplicitLeft = 56
-      ExplicitTop = 248
-      ExplicitWidth = 75
     end
   end
 end

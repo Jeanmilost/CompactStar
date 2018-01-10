@@ -47,6 +47,22 @@ const char* g_FragmentProgram =
     "    gl_FragColor = csr_fColor;"
     "}";
 //---------------------------------------------------------------------------
+// TMainForm::ITreeStats
+//---------------------------------------------------------------------------
+TMainForm::ITreeStats::ITreeStats() :
+    m_HitBoxCount(0)
+{}
+//---------------------------------------------------------------------------
+TMainForm::ITreeStats::~ITreeStats()
+{}
+//---------------------------------------------------------------------------
+void TMainForm::ITreeStats::Clear()
+{
+    m_HitBoxCount = 0;
+}
+//---------------------------------------------------------------------------
+// TMainForm
+//---------------------------------------------------------------------------
 TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
@@ -56,7 +72,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pDocCanvas(NULL),
     m_pShader(NULL),
     m_pSphere(NULL),
-    m_AngleY(0),
+    m_AngleY(0.0f),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
@@ -123,36 +139,6 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
     // update the viewport
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::paViewMouseMove(TObject* pSender, TShiftState shift, int x, int y)
-{
-    CSR_Rect viewRect;
-    viewRect.m_Min.m_X = -1.0f;
-    viewRect.m_Min.m_Y =  1.0f;
-    viewRect.m_Max.m_X =  1.0f;
-    viewRect.m_Max.m_Y = -1.0f;
-
-    const CSR_Vector3 pointInView = MousePosToViewportPos(TPoint(x, y), ClientRect, viewRect);
-
-    QR_Vector3DP rayPosToDraw = rayPos;
-    QR_Vector3DP rayDirToDraw = rayDir;
-    QR_Matrix16P identity;
-
-    // unproject the ray to make it inside the 3d world coordinates. In this mode, the model and
-    // view matrices are already combined, so don't unproject the view matrix
-    QR_Renderer::Unproject(projectionMatrix, identity, rayPos, rayDir);
-
-    // on the other hand, the ray to draw isn't concerned by the model matrix, so unproject it
-    // completely
-    QR_Renderer::Unproject(projectionMatrix, viewMatrix, rayPosToDraw, rayDirToDraw);
-
-    csrMat4Unproject(&m_ProjectionMatrix, &m_ViewMatrix, rayPos, rayDir);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::paViewMouseLeave(TObject* pSender)
-{
-    //
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
@@ -276,12 +262,11 @@ void TMainForm::CreateViewport(float w, float h)
     // create the OpenGL viewport
     glViewport(0, 0, w, h);
 
-    CSR_Matrix4 matrix;
-    csrMat4Perspective(fov, aspect, zNear, zFar, &matrix);
+    csrMat4Perspective(fov, aspect, zNear, zFar, &m_ProjectionMatrix);
 
     // connect projection matrix to shader
     GLint projectionUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
+    glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -362,7 +347,6 @@ void TMainForm::DrawScene()
     CSR_Matrix4 xRotateMatrix;
     CSR_Matrix4 yRotateMatrix;
     CSR_Matrix4 rotateMatrix;
-    CSR_Matrix4 modelMatrix;
 
     csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -392,11 +376,11 @@ void TMainForm::DrawScene()
 
     // build model view matrix
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-    csrMat4Multiply(&rotateMatrix,  &translateMatrix, &modelMatrix);
+    csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
     // connect model view matrix to shader
     GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModelview");
-    glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
+    glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
     glDisable(GL_BLEND);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -410,12 +394,14 @@ void TMainForm::DrawScene()
     if (ckWireFrame->Checked)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    CalculateMouseRay();
+
     DrawTreeBoxes(m_pAABBTree);
 
     csrSceneEnd();
 }
 //---------------------------------------------------------------------------
-void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree) const
+void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 {
     if (pTree->m_pLeft)
         DrawTreeBoxes(pTree->m_pLeft);
@@ -426,13 +412,31 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree) const
     if (ckShowLeafOnly->Checked && (pTree->m_pLeft || pTree->m_pRight))
         return;
 
+    CSR_Figure3 ray;
+    ray.m_Type    = CSR_F3_Ray;
+    ray.m_pFigure = (void*)&m_Ray;
+
+    CSR_Figure3 box;
+    box.m_Type    = CSR_F3_Box;
+    box.m_pFigure = pTree->m_pBox;
+
+    unsigned color;
+
+    if (csrIntersect3(&ray, &box, 0, 0))
+    {
+        ++m_Stats.m_HitBoxCount;
+        color = 0xFF0000;
+    }
+    else
+        color = 0xFF000000;
+
     CSR_Mesh* pMesh = NULL;
 
     try
     {
         pMesh = CreateBox(pTree->m_pBox->m_Min,
                           pTree->m_pBox->m_Max,
-                          0xFF000000 | ((tbTransparency->Position * 0xFF) / tbTransparency->Max));
+                          color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max));
 
         if (pMesh)
             csrSceneDrawMesh(pMesh, m_pShader);
@@ -442,6 +446,71 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree) const
         if (pMesh)
             csrMeshRelease(pMesh);
     }
+
+    /*
+    try
+    {
+        // get polygons to check for collision by resolving AABB tree
+        pAABBTree->Resolve(pRay.get(), polygons);
+
+        QR_PolygonsP pickedPolygons;
+        QR_SizeT     polygonCount = polygons.size();
+
+        #ifdef USE_DETECTION_COLLISION_DEBUG_TOOLS
+            #ifdef OS_WIN
+                #ifdef CP_EMBARCADERO
+                    polysCount = pAABBTree->GetPolygonCount();
+                    polysFound = polygonCount;
+                #endif
+            #endif
+        #endif
+
+        // iterate through polygons to check
+        if (polygonCount > 0)
+            for (QR_PolygonsP::const_iterator it = polygons.begin(); it != polygons.end(); ++it)
+                // is polygon intersecting ray?
+                if (QR_GeometryHelper::RayIntersectsPolygon(*(pRay.get()), *(*it)))
+                    // add polygon in collision to resulting list
+                    pickedPolygons.push_back(*it);
+
+        #ifdef USE_DETECTION_COLLISION_DEBUG_TOOLS
+            #ifdef OS_WIN
+                #ifdef CP_EMBARCADERO
+                    polysinCollision = pickedPolygons.size();
+                #endif
+            #endif
+        #endif
+
+        // found collision?
+        if (pickedPolygons.size())
+        {
+            // draw polygons in collision if required
+            if (m_ShowCollisionWithMouse)
+                DrawPolygons(pickedPolygons, modelMatrix);
+
+            // notify that a picked model was found
+            if (m_fOnModelPicked)
+                m_fOnModelPicked(pRenderer,
+                                 pSender,
+                                 id,
+                                 pModel,
+                                 pMesh,
+                                 pAABBTree,
+                                 pickedPolygons,
+                                 projectionMatrix,
+                                 viewMatrix,
+                                 modelMatrix,
+                                 m_MousePos);
+        }
+    }
+    catch (...)
+    {
+        QR_STDTools::DelAndClear(polygons);
+        throw;
+    }
+
+    QR_STDTools::DelAndClear(polygons);
+    */
 }
 //---------------------------------------------------------------------------
 CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const
@@ -567,10 +636,59 @@ CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint&   mousePos,
     }
 
     // convert mouse position to scene position
-    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / ClientWidth);
-    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Max.m_Y - viewRect.m_Min.m_Y)) / ClientHeight);
+    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / paView->ClientWidth);
+    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Min.m_Y - viewRect.m_Max.m_Y)) / paView->ClientHeight);
     result.m_Z = 0.0f;
     return result;
+}
+//---------------------------------------------------------------------------
+void TMainForm::CalculateMouseRay()
+{
+    // clear the tree stats
+    m_Stats.Clear();
+
+    // get the mouse position
+    TPoint mousePos = Mouse->CursorPos;
+
+    // convert to view position
+    if (!::ScreenToClient(paView->Handle, &mousePos))
+        return;
+
+    CSR_Rect viewRect;
+
+    // get the viewport rectangle
+    viewRect.m_Min.m_X = -1.0f;
+    viewRect.m_Min.m_Y =  1.0f;
+    viewRect.m_Max.m_X =  1.0f;
+    viewRect.m_Max.m_Y = -1.0f;
+
+    // get the ray in the Windows coordinate
+    m_Ray.m_Pos     =  MousePosToViewportPos(mousePos, paView->ClientRect, viewRect);
+    m_Ray.m_Dir.m_X =  m_Ray.m_Pos.m_X;
+    m_Ray.m_Dir.m_Y =  m_Ray.m_Pos.m_Y;
+    m_Ray.m_Dir.m_Z = -1.0f;
+
+    CSR_Matrix4 identity;
+    csrMat4Identity(&identity);
+
+    // put the ray in the world coordinates
+    csrMat4Unproject(&m_ProjectionMatrix, &identity, &m_Ray);
+
+    float determinant;
+
+    CSR_Vector3 rayPos;
+    CSR_Vector3 rayDir;
+    CSR_Vector3 rayDirN;
+
+    // now transform the ray to match with the model position
+    CSR_Matrix4 invertModel;
+    csrMat4Inverse(&m_ModelMatrix, &invertModel, &determinant);
+    csrMat4ApplyToVector(&invertModel, &m_Ray.m_Pos, &rayPos);
+    csrMat4ApplyToNormal(&invertModel, &m_Ray.m_Dir, &rayDir);
+    csrVec3Normalize(&rayDir, &rayDirN);
+
+    // get the transformed ray
+    csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
