@@ -198,7 +198,7 @@ typedef struct
 typedef struct
 {
     CSR_EFigure2 m_Type;
-    void*        m_pFigure;
+    const void*  m_pFigure;
 } CSR_Figure2;
 
 /**
@@ -207,7 +207,7 @@ typedef struct
 typedef struct
 {
     CSR_EFigure3 m_Type;
-    void*        m_pFigure;
+    const void*  m_pFigure;
 } CSR_Figure3;
 
 #ifdef __cplusplus
@@ -619,6 +619,18 @@ typedef struct
         *@param[out] - resulting distance
         */
         void csrPlaneDistanceTo(const CSR_Vector3* pP, const CSR_Plane* pPl, float* pR);
+
+        //-------------------------------------------------------------------
+        // 3D ray functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Calculates a ray from a point and a direction
+        *@param pP - point
+        *@param pD - direction
+        *@param[out] pR - ray
+        */
+        void csrRay3FromPointDir(const CSR_Vector3* pP, const CSR_Vector3* pD, CSR_Ray3* pR);
 
         //-------------------------------------------------------------------
         // 3D segment functions
