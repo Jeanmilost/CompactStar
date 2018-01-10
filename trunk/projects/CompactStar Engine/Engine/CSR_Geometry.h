@@ -193,6 +193,15 @@ typedef struct
 } CSR_Polygon3;
 
 /**
+* 3D polygon buffer
+*/
+typedef struct
+{
+    CSR_Polygon3* m_pPolygon;
+    size_t        m_Count;
+} CSR_Polygon3Buffer;
+
+/**
 * 2D Figure
 */
 typedef struct
@@ -771,157 +780,31 @@ typedef struct
         * Checks if a geometric 2D figure intersects another geometric 2D figure
         *@param pFigure1 - first geometric figure to check
         *@param pFigure2 - second geometric figure to check against
-        *@param[out] pP1 - first point where the figures intersect (if any), ignored if 0
-        *@param[out] pP2 - second point where the figures intersect (if any), ignored if 0
+        *@param[out] pP1 - first resulting point where the figures intersect (if any), ignored if 0
+        *@param[out] pP2 - second resulting point where the figures intersect (if any), ignored if 0
         *@return 1 if geometric figure intersect, otherwise 0
         *@note Some geometric figures may be unsupported. In this case the result is always 0
         */
         int csrIntersect2(const CSR_Figure2* pFigure1,
                           const CSR_Figure2* pFigure2,
-                                CSR_Vector2* pP1,
-                                CSR_Vector2* pP2);
+                                CSR_Vector2* pR1,
+                                CSR_Vector2* pR2);
 
         /**
         * Checks if a geometric 3D figure intersects another geometric 3D figure
         *@param pFigure1 - first geometric figure to check
         *@param pFigure2 - second geometric figure to check against
-        *@param[out] pP1 - first point where the figures intersect (if any), ignored if 0
-        *@param[out] pP2 - second point where the figures intersect (if any), ignored if 0
+        *@param[out] pR1 - first resulting point where the figures intersect (if any), ignored if 0
+        *@param[out] pR2 - second resulting point where the figures intersect (if any), ignored if 0
+        *@param[out] pR3 - plane resulting from intersection (if any), ignored if 0
         *@return 1 if geometric figure intersect, otherwise 0
         *@note Some geometric figures may be unsupported. In this case the result is always 0
         */
         int csrIntersect3(const CSR_Figure3* pFigure1,
                           const CSR_Figure3* pFigure2,
-                                CSR_Vector3* pP1,
-                                CSR_Vector3* pP2);
-
-        //REM
-//        /**
-//        * Checks if a point intersects a ray
-//        *@param pP - point
-//        *@param pR - ray
-//        *@return 1 if the point intersects the ray, otherwise 0
-//        */
-//        int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR);
-//
-//        /**
-//        * Checks if a ray intesects a circle
-//        *@param pRa - ray
-//        *@param pC - circle
-//        *@param[out] pR - array of 2 vectors containing the instersection points if the shapes intersect
-//        *@return 1 if the ray intersects the circle, otherwise 0
-//        *@note The array passed as parameter for pR should be declared as follow: CSR_Vector2 points[2]
-//        */
-//        int csrIntersectRay2Circle(const CSR_Ray2* pRa, const CSR_Circle* pC, CSR_Vector2* pR);
-//
-//        /**
-//        * Checks if a line segment intesects a circle
-//        *@param pS - line segment
-//        *@param pC - circle
-//        *@param[out] pR - array of 2 vectors containing the instersection points if the shapes intersect
-//        *@return 1 if the line segment intersects the circle, otherwise 0
-//        *@note The array passed as parameter for pR should be declared as follow: CSR_Vector2 points[2]
-//        */
-//        int csrIntersectSeg2Circle(const CSR_Segment2* pS, const CSR_Circle* pC, CSR_Vector2* pR);
-//
-//        /**
-//        * Checks if a ray intesects a plane
-//        *@param pRa - ray
-//        *@param pPl - plane
-//        *@param[out] pR - in case of intersection, the point where the plane intersects the ray
-//        *@return 1 if the ray intersects the plane, otherwise 0
-//        */
-//        int csrIntersectRay3Plane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR);
-//
-//        /**
-//        * Checks if a line segment intesects a plane
-//        *@param pS - line segment
-//        *@param pPl - plane
-//        *@param[out] pR - in case of intersection, the point where the plane intersects the segment
-//        *@return 1 if the line segment intersects the plane, otherwise 0
-//        */
-//        int csrIntersectSeg3Plane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR);
-//
-//        /**
-//        * Checks if a ray intersects a polygon
-//        *@param pRay - ray
-//        *@param pP - polygon
-//        *@return 1 if the ray intersects the polygon, otherwise 0
-//        */
-//        int csrIntersectRay3Polygon3(const CSR_Ray3* pRay, const CSR_Polygon3* pP);
-//
-//        /**
-//        * Checks if a line segment intersects a polygon
-//        *@param pS - line segment
-//        *@param pP - polygon
-//        *@return 1 if the line segment intersects the polygon, otherwise 0
-//        */
-//        int csrIntersectSeg3Polygon3(const CSR_Segment3* pS, const CSR_Polygon3* pP);
-//
-//        /**
-//        * Checks if a circle intersects another circle
-//        *@param pC1 - first circle to check
-//        *@param pC2 - second circle to check against
-//        *@return 1 if the circles intersect, otherwise 0
-//        */
-//        int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2);
-//
-//        /**
-//        * Checks if a rect intersects a circle
-//        *@param pC - circle to check
-//        *@param pR - rect to check against
-//        *@return 1 if the circle intersects the rect, otherwise 0
-//        */
-//        int csrIntersectCircleRect(const CSR_Circle* pC, const CSR_Rect* pR);
-//
-//        /**
-//        * Checks if a rect intersects another rect
-//        *@param pR1 - first rect to check
-//        *@param pR2 - second rect to check against
-//        *@return 1 if the rects intersect, otherwise 0
-//        */
-//        int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2);
-//
-//        /**
-//        * Checks if a ray intersects a box
-//        *@param pR - ray
-//        *@param pB - box
-//        *@return 1 if the ray intersects the box, otherwise 0
-//        */
-//        int csrIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB);
-//
-//        /**
-//        * Checks if a box intersects another box
-//        *@param pB1 - first box to check
-//        *@param pB2 - second box to check against
-//        *@return 1 if the boxes intersect, otherwise 0
-//        */
-//        int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2);
-//
-//        /**
-//        * Checks if a sphere intersects a polygon
-//        *@param pS - sphere
-//        *@param pP - polygon
-//        *@param pR - in case of intersection, the plane that can be used for the sliding
-//        *@return 1 if ray intersects polygon, otherwise 0
-//        */
-//        int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_Plane* pR);
-//
-//        /**
-//        * Checks if a sphere intersects a box
-//        *@param pS - sphere
-//        *@param pB - box
-//        *@return 1 if the sphere intersects the box, otherwise 0
-//        */
-//        int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB);
-//
-//        /**
-//        * Checks if a sphere intersects another sphere
-//        *@param pS1 - first sphere to check
-//        *@param pS2 - second sphere to check against
-//        *@return 1 if the spheres intersect, otherwise 0
-//        */
-//        int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2);
+                                CSR_Vector3* pR1,
+                                CSR_Vector3* pR2,
+                                CSR_Plane*   pR3);
 
 #ifdef __cplusplus
     }

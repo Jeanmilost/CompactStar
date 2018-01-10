@@ -36,11 +36,16 @@ int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
     int                       canResolveRight = 0;
     int                       result          = 0;
 
+    // no indexed polygon buffer?
+    if (!pIPB)
+        return 0;
+
     // no node?
     if (!pNode)
         return 0;
 
     // initialize node content
+    pNode->m_pParent        = 0;
     pNode->m_pLeft          = 0;
     pNode->m_pRight         = 0;
     pNode->m_pBox           = (CSR_Box*)malloc(sizeof(CSR_Box));
@@ -213,11 +218,15 @@ int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
     // do create left node?
     if (canResolveLeft)
     {
-        // create and populate left node
-        pNode->m_pLeft            = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
-        pNode->m_pLeft->m_pParent = pNode;
+        // create the left node
+        pNode->m_pLeft = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
 
+        // populate it
         result |= csrAABBTreeFromIndexedPolygonBuffer(pLeftPolygons, pNode->m_pLeft);
+
+        // set node parent. IMPORTANT must be done after the node is populated (because this value
+        // will be reseted while the node is filled by csrAABBTreeFromIndexedPolygonBuffer())
+        pNode->m_pLeft->m_pParent = pNode;
 
         // delete left polygon buffer, as it will no longer be used
         csrIndexedPolygonBufferRelease(pLeftPolygons);
@@ -226,11 +235,15 @@ int csrAABBTreeFromIndexedPolygonBuffer(const CSR_IndexedPolygonBuffer* pIPB,
     // do create right node?
     if (canResolveRight)
     {
-        // create and populate right node
-        pNode->m_pRight            = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
-        pNode->m_pRight->m_pParent = pNode;
+        // create the right node
+        pNode->m_pRight = (CSR_AABBNode*)malloc(sizeof(CSR_AABBNode));
 
+        // populate it
         result |= csrAABBTreeFromIndexedPolygonBuffer(pRightPolygons, pNode->m_pRight);
+
+        // set node parent. IMPORTANT must be done after the node is populated (because this value
+        // will be reseted while the node is filled by csrAABBTreeFromIndexedPolygonBuffer())
+        pNode->m_pRight->m_pParent = pNode;
 
         // delete right polygon buffer, as it will no longer be used
         csrIndexedPolygonBufferRelease(pRightPolygons);
@@ -261,9 +274,6 @@ CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
         return 0;
     }
 
-    // initialize the root node content
-    pRoot->m_pParent = 0;
-
     // populate the AABB tree
     success = csrAABBTreeFromIndexedPolygonBuffer(pIPB, pRoot);
 
@@ -278,6 +288,91 @@ CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
     }
 
     return pRoot;
+}
+//---------------------------------------------------------------------------
+int csrAABBTreeResolve(const CSR_Ray3*           pRay,
+                       const CSR_AABBNode*       pNode,
+                             CSR_Polygon3Buffer* pPolygons)
+{
+    unsigned      i;
+    unsigned      j;
+    int           leftResolved  = 0;
+    int           rightResolved = 0;
+    CSR_Polygon3* pPolygonBuffer;
+    CSR_Figure3   ray;
+    CSR_Figure3   box;
+
+    // no ray?
+    if (!pRay)
+        return 0;
+
+    // no node to resolve?
+    if (!pNode)
+        return 0;
+
+    // no polygon buffer to contain the result?
+    if (!pPolygons)
+        return 0;
+
+    // is leaf?
+    if (!pNode->m_pLeft && !pNode->m_pRight)
+    {
+        // iterate through polygons contained in leaf
+        for (i = 0; i < pNode->m_pPolygonBuffer->m_Count; ++i)
+        {
+            // allocate memory for a new polygon in the buffer
+            pPolygonBuffer = (CSR_Polygon3*)csrMemoryAlloc(pPolygons->m_pPolygon,
+                                                           sizeof(CSR_Polygon3),
+                                                           pPolygons->m_Count + 1);
+
+            // succeeded?
+            if (!pPolygonBuffer)
+                return 0;
+
+            // update the polygon buffer
+            pPolygons->m_pPolygon = pPolygonBuffer;
+            ++pPolygons->m_Count;
+
+            // copy the polygon content
+            if (!csrIndexedPolygonToPolygon(&pNode->m_pPolygonBuffer->m_pIndexedPolygon[i],
+                                            &pPolygons->m_pPolygon[pPolygons->m_Count - 1]))
+                return 0;
+        }
+
+        return 1;
+    }
+
+    // convert ray to geometric figure
+    ray.m_Type    = CSR_F3_Ray;
+    ray.m_pFigure = pRay;
+
+    // node contains a left child?
+    if (pNode->m_pLeft)
+    {
+        // convert left box to geometric figure
+        box.m_Type    = CSR_F3_Box;
+        box.m_pFigure = pNode->m_pLeft->m_pBox;
+
+        // check if ray intersects the left box
+        if (csrIntersect3(&ray, &box, 0, 0, 0))
+            // resolve left node
+            leftResolved = csrAABBTreeResolve(pRay, pNode->m_pLeft, pPolygons);
+    }
+
+    // node contains a right child?
+    if (pNode->m_pRight)
+    {
+        // convert right box to geometric figure
+        box.m_Type    = CSR_F3_Box;
+        box.m_pFigure = pNode->m_pRight->m_pBox;
+
+        // check if ray intersects the right box
+        if (csrIntersect3(&ray, &box, 0, 0, 0))
+            // resolve right node
+            rightResolved = csrAABBTreeResolve(pRay, pNode->m_pRight, pPolygons);
+    }
+
+    return (leftResolved || rightResolved);
 }
 //---------------------------------------------------------------------------
 void csrAABBTreeNodeRelease(CSR_AABBNode* pNode)

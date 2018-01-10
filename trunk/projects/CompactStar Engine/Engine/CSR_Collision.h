@@ -65,18 +65,16 @@ struct CSR_AABBNode
         */
         CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh);
 
-//        /**
-//        * Resolves AABB tree
-//        *@param pRay - ray against which tree boxes will be tested
-//        *@param pNode - root or parent node to resolve
-//        *@param[out] pPolygons - polygons belonging to boxes hit by ray
-//        *@param[out] polygonsCount - polygon array count
-//        *@return 1 on success, otherwise 0
-//        */
-//        int csrAABBTreeResolve(MINI_Ray*      pRay,
-//                               MINI_AABBNode* pNode,
-//                               MINI_Polygon** pPolygons,
-//                               unsigned*      pPolygonsCount);
+        /**
+        * Resolves AABB tree
+        *@param pRay - ray against which tree items will be tested
+        *@param pNode - root or parent node to resolve
+        *@param[out] pPolygons - polygons belonging to boxes hit by ray
+        *@return 1 on success, otherwise 0
+        */
+        int csrAABBTreeResolve(const CSR_Ray3*           pRay,
+                               const CSR_AABBNode*       pNode,
+                                     CSR_Polygon3Buffer* pPolygons);
 
         /**
         * Releases an AABB tree node content

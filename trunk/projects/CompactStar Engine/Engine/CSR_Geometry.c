@@ -1338,9 +1338,9 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
                         CSR_Vector2* pP1,
                         CSR_Vector2* pP2)
 {
-    int          intersectionType;
-    CSR_Figure2* pFirst;
-    CSR_Figure2* pSecond;
+    int                intersectionType;
+    const CSR_Figure2* pFirst;
+    const CSR_Figure2* pSecond;
 
     // intersection calculation isn't possible if at least one of the figures is missing
     if (!pFigure1 || !pFigure2)
@@ -1352,12 +1352,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Line:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  0; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Ray:     intersectionType =  1; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Segment: intersectionType =  2; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  3; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  4; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  5; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  0; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Ray:     intersectionType =  1; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Segment: intersectionType =  2; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  3; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  4; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  5; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1366,12 +1366,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Ray:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  1;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  6;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Segment: intersectionType =  7;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  8;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  9;  *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  10; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  1;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  6;  pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Segment: intersectionType =  7;  pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  8;  pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  9;  pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  10; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1380,12 +1380,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Segment:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  2;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  7;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  11; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  12; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  13; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  14; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  2;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  7;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Polygon: intersectionType =  12; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  13; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  14; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1394,12 +1394,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Polygon:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  3;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  8;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  12; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  15; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  16; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  17; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  3;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  8;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  12; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  15; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Rect:    intersectionType =  16; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  17; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1408,12 +1408,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Rect:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  4;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  9;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  11; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  16; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Rect:    intersectionType =  18; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  19; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  4;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  9;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  16; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Rect:    intersectionType =  18; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Circle:  intersectionType =  19; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1422,12 +1422,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Circle:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  5;  *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  10; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  14; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  17; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Rect:    intersectionType =  19; *pFirst = *pFigure2; *pSecond = *pFigure1; break;
-                case CSR_F2_Circle:  intersectionType =  20; *pFirst = *pFigure1; *pSecond = *pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  5;  pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Ray:     intersectionType =  10; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Segment: intersectionType =  14; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Polygon: intersectionType =  17; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Rect:    intersectionType =  19; pFirst = pFigure2; pSecond = pFigure1; break;
+                case CSR_F2_Circle:  intersectionType =  20; pFirst = pFigure1; pSecond = pFigure2; break;
                 default:             intersectionType = -1;
             }
 
@@ -1445,37 +1445,50 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
     // calculate the intersection
     switch (intersectionType)
     {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14:
-        case 15:
-        case 16:
-        case 17:
+        // rect-rect intersection
         case 18:
-        case 19:
+        {
+            // get the figures to check
+            const CSR_Rect* pRect1 = (CSR_Rect*)pFirst->m_pFigure;
+            const CSR_Rect* pRect2 = (CSR_Rect*)pSecond->m_pFigure;
+
+            return !(pRect1->m_Min.m_X <= pRect2->m_Max.m_X && pRect1->m_Max.m_X >= pRect2->m_Min.m_X &&
+                     pRect1->m_Min.m_Y <= pRect2->m_Max.m_Y && pRect1->m_Max.m_Y >= pRect2->m_Min.m_Y);
+        }
+
+        // circle-circle intersection
         case 20:
+        {
+            CSR_Vector2 dist;
+            float       length;
+
+            // get the figures to check
+            const CSR_Circle* pCircle1 = (CSR_Circle*)pFirst->m_pFigure;
+            const CSR_Circle* pCircle2 = (CSR_Circle*)pSecond->m_pFigure;
+
+            // calculate the distance between the both circle centers
+            dist.m_X = fabs(pCircle1->m_Center.m_X - pCircle2->m_Center.m_X);
+            dist.m_Y = fabs(pCircle1->m_Center.m_Y - pCircle2->m_Center.m_Y);
+
+            // calculate the length between the both circle centers
+            csrVec2Length(&dist, &length);
+
+            // the circles are in collision if the length between their centers is lower than or
+            // equal to the sum of the both sphere radius
+            return (length <= (pCircle1->m_Radius + pCircle2->m_Radius));
+        }
 
         default:
+            // unknown or unsupported
             return 0;
     }
 }
 //---------------------------------------------------------------------------
 int csrIntersect3(const CSR_Figure3* pFigure1,
                   const CSR_Figure3* pFigure2,
-                        CSR_Vector3* pP1,
-                        CSR_Vector3* pP2)
+                        CSR_Vector3* pR1,
+                        CSR_Vector3* pR2,
+                        CSR_Plane*   pR3)
 {
     int                intersectionType;
     const CSR_Figure3* pFirst;
@@ -1605,18 +1618,6 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
     // calculate the intersection
     switch (intersectionType)
     {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-            // unknown for now
-            return 0;
-
         // ray-plane intersection
         case 9:
         {
@@ -1648,11 +1649,11 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             temp = ((pPlane->m_D + nDot) / dot);
 
             // calculate the intersection point
-            if (pP1)
+            if (pR1)
             {
-                pP1->m_X = (pRay->m_Pos.m_X - (temp * pRay->m_Dir.m_X));
-                pP1->m_Y = (pRay->m_Pos.m_Y - (temp * pRay->m_Dir.m_Y));
-                pP1->m_Z = (pRay->m_Pos.m_Z - (temp * pRay->m_Dir.m_Z));
+                pR1->m_X = (pRay->m_Pos.m_X - (temp * pRay->m_Dir.m_X));
+                pR1->m_Y = (pRay->m_Pos.m_Y - (temp * pRay->m_Dir.m_Y));
+                pR1->m_Z = (pRay->m_Pos.m_Z - (temp * pRay->m_Dir.m_Z));
             }
 
             return 1;
@@ -1679,11 +1680,19 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             plane.m_pFigure = &polygonPlane;
 
             // calculate the intersection point
-            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pP2))
+            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pR2, pR3))
                 return 0;
 
             // check if calculated point is inside the polygon
-            return csrInsidePolygon3(&pointOnPlane, pPolygon);
+            if (csrInsidePolygon3(&pointOnPlane, pPolygon))
+            {
+                if (pR1)
+                    *pR1 = pointOnPlane;
+
+                return 1;
+            }
+
+            return 0;
         }
 
         // ray-box intersection
@@ -1783,530 +1792,268 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             return (tFar >= tNear);
         }
 
-        case 12:
-        case 13:
+        // segment-plane intersection
         case 14:
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
-        case 20:
-        case 21:
-        case 22:
-        case 23:
-        case 24:
-        case 25:
-        case 26:
-        case 27:
-            // unknown for now
-            return 0;
-
-        default:
-            return 0;
-    }
-}
-//---------------------------------------------------------------------------
-/* FIXME or REM
-int csrIntersectRay2Point(const CSR_Vector2* pP, const CSR_Ray2* pR)
-{
-    int xIntersects;
-    int yIntersects;
-
-    if (pR->m_Dir.m_X >= 0.0f)
-    {
-        if (pP->m_X >= pR->m_Pos.m_X)
-            xIntersects = 1;
-        else
-            xIntersects = 0;
-    }
-    else
-    if (pP->m_X <= pR->m_Pos.m_X)
-        xIntersects = 1;
-    else
-        xIntersects = 0;
-
-    if (pR->m_Dir.m_Y >= 0.0f)
-    {
-        if (pP->m_Y >= pR->m_Pos.m_Y)
-            yIntersects = 1;
-        else
-            yIntersects = 0;
-    }
-    else
-    if (pP->m_Y <= pR->m_Pos.m_Y)
-        yIntersects = 1;
-    else
-        yIntersects = 0;
-
-    return (xIntersects && yIntersects);
-}
-//---------------------------------------------------------------------------
-int csrIntersectRay2Circle(const CSR_Ray2* pRa, const CSR_Circle* pC, CSR_Vector2* pR)
-{
-    CSR_Vector2 d;
-    size_t      i;
-    float       a;
-    float       b;
-    float       c;
-    float       discriminant;
-    float       sqrtDisc;
-    float       invA;
-    float       t[2];
-
-    csrVec2Sub(&pRa->m_Pos, &pC->m_Center, &d);
-    csrVec2Dot(&pRa->m_Dir, &pRa->m_Dir,   &a);
-    csrVec2Dot(&d,          &pRa->m_Dir,   &b);
-    csrVec2Dot(&d,          &d,            &c);
-
-    c            =  c - (pC->m_Radius * pC->m_Radius);
-    discriminant = (b * b) - (a * c);
-
-    if (discriminant < 0.0f)
-        return 0;
-
-    sqrtDisc = sqrt(discriminant);
-    invA     = 1.0f / a;
-
-    // calculate the parametric values at intersection points (i.e. the length from the ray start
-    // point to the intersection)
-    t[0] = (-b - sqrtDisc) * invA;
-    t[1] = (-b + sqrtDisc) * invA;
-
-    // calculate the intersection points
-    for (i = 0; i < 2; ++i)
-    {
-        pR[i].m_X = pRa->m_Pos.m_X + (pRa->m_Dir.m_X * t[i]);
-        pR[i].m_Y = pRa->m_Pos.m_Y + (pRa->m_Dir.m_Y * t[i]);
-    }
-
-    // check if the intersection point is really above the ray
-    return (csrIntersectRay2Point(&pR[0], pRa) || csrIntersectRay2Point(&pR[1], pRa));
-}
-//---------------------------------------------------------------------------
-int csrIntersectSeg2Circle(const CSR_Segment2* pS, const CSR_Circle* pC, CSR_Vector2* pR)
-{
-    CSR_Vector2 dir;
-    CSR_Ray2    ray;
-
-    // calculate the ray direction (NOTE the inverted direction can be omitted here, because the
-    // csrIntersectRay2Circle() will not use it)
-    csrVec2Sub(&pS->m_End, &pS->m_Start, &dir);
-    csrVec2Normalize(&dir, &ray.m_Dir);
-
-    // set the ray position
-    ray.m_Pos = pS->m_Start;
-
-    // check if ray intersects with circle and get the intersection points
-    if (!csrIntersectRay2Circle(&ray, pC, pR))
-        return 0;
-
-    // the segment intersects the circle if, and only if at least 1 intersection point is inside the
-    // segment range
-    return (csrVec2BetweenRange(&pR[0], &pS->m_Start, &pS->m_End, M_CSR_Epsilon) ||
-            csrVec2BetweenRange(&pR[1], &pS->m_Start, &pS->m_End, M_CSR_Epsilon));
-}
-//---------------------------------------------------------------------------
-int csrIntersectRay3Plane(const CSR_Ray3* pRa, const CSR_Plane* pPl, CSR_Vector3* pR)
-{
-    CSR_Vector3 n;
-    float       dot;
-    float       nDot;
-    float       temp;
-
-    // get the normal of the plane
-    n.m_X = pPl->m_A;
-    n.m_Y = pPl->m_B;
-    n.m_Z = pPl->m_C;
-
-    // calculate the angle between the line and the normal to the plane
-    csrVec3Dot(&n, &pRa->m_Dir, &dot);
-
-    // if normal to the plane is perpendicular to the line, then the line is either parallel to the
-    // plane and there are no solutions or the line is on the plane in which case there are an
-    // infinite number of solutions
-    if (!dot)
-        return 0;
-
-    csrVec3Dot(&n, &pRa->m_Pos, &nDot);
-
-    temp = ((pPl->m_D + nDot) / dot);
-
-    // calculates the intersection point
-    pR->m_X = (pRa->m_Pos.m_X - (temp * pRa->m_Dir.m_X));
-    pR->m_Y = (pRa->m_Pos.m_Y - (temp * pRa->m_Dir.m_Y));
-    pR->m_Z = (pRa->m_Pos.m_Z - (temp * pRa->m_Dir.m_Z));
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-int csrIntersectSeg3Plane(const CSR_Segment3* pS, const CSR_Plane* pPl, CSR_Vector3* pR)
-{
-    CSR_Vector3 dir;
-    CSR_Ray3    ray;
-
-    // get the ray start position
-    ray.m_Pos = pS->m_Start;
-
-    // calculate the ray direction. NOTE the inverted direction can be omitted here because this
-    // value will not be used by the csrIntersectRayPlane() function
-    csrVec3Sub(&pS->m_End, &pS->m_Start, &dir);
-    csrVec3Normalize(&dir, &ray.m_Dir);
-
-    if (csrIntersectRay3Plane(&ray, pPl, pR))
-        // the segment will only intersect the plane if the intersection point is inside the segment
-        // limits
-        return csrVec3BetweenRange(pR, &pS->m_Start, &pS->m_End, M_CSR_Epsilon);
-
-    return 0;
-}
-//---------------------------------------------------------------------------
-int csrIntersectRay3Polygon3(const CSR_Ray3* pR, const CSR_Polygon3* pP)
-{
-    CSR_Plane   polygonPlane;
-    CSR_Vector3 pointOnPlane;
-
-    // create a plane using the 3 vertices of the polygon
-    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
-
-    // calculate the intersection point
-    if (!csrIntersectRay3Plane(pR, &polygonPlane, &pointOnPlane))
-        return 0;
-
-    // check if calculated point is inside the polygon
-    return csrInsidePolygon3(&pointOnPlane, pP);
-}
-//---------------------------------------------------------------------------
-int csrIntersectSeg3Polygon3(const CSR_Segment3* pS, const CSR_Polygon3* pP)
-{
-    CSR_Plane   polygonPlane;
-    CSR_Vector3 pointOnPlane;
-
-    // create a plane using the 3 vertices of the polygon
-    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
-
-    // calculate the intersection point
-    if (!csrIntersectSeg3Plane(pS, &polygonPlane, &pointOnPlane))
-        return 0;
-
-    // check if calculated point is inside the polygon
-    return csrInsidePolygon3(&pointOnPlane, pP);
-}
-//---------------------------------------------------------------------------
-int csrIntersectCircles(const CSR_Circle* pC1, const CSR_Circle* pC2)
-{
-    CSR_Vector2 dist;
-    float       length;
-
-    // calculate the distance between the both circle centers
-    dist.m_X = fabs(pC1->m_Center.m_X - pC2->m_Center.m_X);
-    dist.m_Y = fabs(pC1->m_Center.m_Y - pC2->m_Center.m_Y);
-
-    // calculate the length between the both circle centers
-    csrVec2Length(&dist, &length);
-
-    // the circles are in collision if the length between their centers is lower than or equal to
-    // the sum of the both sphere radius
-    return (length <= (pC1->m_Radius + pC2->m_Radius));
-}
-//---------------------------------------------------------------------------
-int csrIntersectCircleRect(const CSR_Circle* pC, const CSR_Rect* pR)
-{
-    CSR_Vector2  leftTop;
-    CSR_Vector2  rightTop;
-    CSR_Vector2  leftBottom;
-    CSR_Vector2  rightBottom;
-    CSR_Vector2  intersections[2];
-    CSR_Segment2 leftEdge;
-    CSR_Segment2 topEdge;
-    CSR_Segment2 rightEdge;
-    CSR_Segment2 bottomEdge;
-
-    // shapes intersect if the circle center is inside the rect
-    if (csrInsideRect(&pC->m_Center, pR))
-        return 1;
-
-    // get the rect vertices
-    leftTop.m_X     = pR->m_Min.m_X;
-    leftTop.m_Y     = pR->m_Min.m_Y;
-    rightTop.m_X    = pR->m_Max.m_X;
-    rightTop.m_Y    = pR->m_Min.m_Y;
-    leftBottom.m_X  = pR->m_Min.m_X;
-    leftBottom.m_Y  = pR->m_Max.m_Y;
-    rightBottom.m_X = pR->m_Max.m_X;
-    rightBottom.m_Y = pR->m_Max.m_Y;
-
-    // shapes also intersect if one of the rect vertex is inside the circle
-    if (csrInsideCircle(&leftTop,     pC) ||
-        csrInsideCircle(&rightTop,    pC) ||
-        csrInsideCircle(&leftBottom,  pC) ||
-        csrInsideCircle(&rightBottom, pC))
-        return 1;
-
-    // get the rect edges
-    leftEdge.m_Start   = leftBottom;
-    leftEdge.m_End     = leftTop;
-    topEdge.m_Start    = leftTop;
-    topEdge.m_End      = rightTop;
-    rightEdge.m_Start  = rightTop;
-    rightEdge.m_End    = rightBottom;
-    bottomEdge.m_Start = rightBottom;
-    bottomEdge.m_End   = leftBottom;
-
-    // shapes also intersect if one of the rect edge intersects the circle
-    if (csrIntersectSeg2Circle(&leftEdge,   pC, intersections) ||
-        csrIntersectSeg2Circle(&topEdge,    pC, intersections) ||
-        csrIntersectSeg2Circle(&rightEdge,  pC, intersections) ||
-        csrIntersectSeg2Circle(&bottomEdge, pC, intersections))
-        return 1;
-
-    return 0;
-}
-//---------------------------------------------------------------------------
-int csrIntersectRects(const CSR_Rect* pR1, const CSR_Rect* pR2)
-{
-    return !(pR1->m_Min.m_X <= pR2->m_Max.m_X && pR1->m_Max.m_X >= pR2->m_Min.m_X &&
-             pR1->m_Min.m_Y <= pR2->m_Max.m_Y && pR1->m_Max.m_Y >= pR2->m_Min.m_Y);
-}
-//---------------------------------------------------------------------------
-int csrIntersectRayBox(const CSR_Ray3* pR, const CSR_Box* pB)
-{
-    float tx1;
-    float tx2;
-    float ty1;
-    float ty2;
-    float tz1;
-    float tz2;
-    float txn;
-    float txf;
-    float tyn;
-    float tyf;
-    float tzn;
-    float tzf;
-    float tnear;
-    float tfar;
-
-    // get infinite value
-    const float inf = 1.0f / 0.0f;
-
-    // calculate nearest point where ray intersects box on x coordinate
-    if (pR->m_InvDir.m_X != inf)
-        tx1 = ((pB->m_Min.m_X - pR->m_Pos.m_X) * pR->m_InvDir.m_X);
-    else
-    if ((pB->m_Min.m_X - pR->m_Pos.m_X) < 0.0f)
-        tx1 = -inf;
-    else
-        tx1 = inf;
-
-    // calculate farthest point where ray intersects box on x coordinate
-    if (pR->m_InvDir.m_X != inf)
-        tx2 = ((pB->m_Max.m_X - pR->m_Pos.m_X) * pR->m_InvDir.m_X);
-    else
-    if ((pB->m_Max.m_X - pR->m_Pos.m_X) < 0.0f)
-        tx2 = -inf;
-    else
-        tx2 = inf;
-
-    // calculate nearest point where ray intersects box on y coordinate
-    if (pR->m_InvDir.m_Y != inf)
-        ty1 = ((pB->m_Min.m_Y - pR->m_Pos.m_Y) * pR->m_InvDir.m_Y);
-    else
-    if ((pB->m_Min.m_Y - pR->m_Pos.m_Y) < 0.0f)
-        ty1 = -inf;
-    else
-        ty1 = inf;
-
-    // calculate farthest point where ray intersects box on y coordinate
-    if (pR->m_InvDir.m_Y != inf)
-        ty2 = ((pB->m_Max.m_Y - pR->m_Pos.m_Y) * pR->m_InvDir.m_Y);
-    else
-    if ((pB->m_Max.m_Y - pR->m_Pos.m_Y) < 0.0f)
-        ty2 = -inf;
-    else
-        ty2 = inf;
-
-    // calculate nearest point where ray intersects box on z coordinate
-    if (pR->m_InvDir.m_Z != inf)
-        tz1 = ((pB->m_Min.m_Z - pR->m_Pos.m_Z) * pR->m_InvDir.m_Z);
-    else
-    if ((pB->m_Min.m_Z - pR->m_Pos.m_Z) < 0.0f)
-        tz1 = -inf;
-    else
-        tz1 = inf;
-
-    // calculate farthest point where ray intersects box on z coordinate
-    if (pR->m_InvDir.m_Z != inf)
-        tz2 = ((pB->m_Max.m_Z - pR->m_Pos.m_Z) * pR->m_InvDir.m_Z);
-    else
-    if ((pB->m_Max.m_Z - pR->m_Pos.m_Z) < 0.0f)
-        tz2 = -inf;
-    else
-        tz2 = inf;
-
-    // calculate near/far intersection on each axis
-    csrMathMin(tx1, tx2, &txn);
-    csrMathMax(tx1, tx2, &txf);
-    csrMathMin(ty1, ty2, &tyn);
-    csrMathMax(ty1, ty2, &tyf);
-    csrMathMin(tz1, tz2, &tzn);
-    csrMathMax(tz1, tz2, &tzf);
-
-    // calculate final near/far intersection point
-    csrMathMax(tyn, tzn,   &tnear);
-    csrMathMax(txn, tnear, &tnear);
-    csrMathMin(tyf, tzf,  &tfar);
-    csrMathMin(txf, tfar, &tfar);
-
-    // check if ray intersects box
-    return (tfar >= tnear);
-}
-//---------------------------------------------------------------------------
-int csrIntersectBoxes(const CSR_Box* pB1, const CSR_Box* pB2)
-{
-    return !(pB1->m_Min.m_X <= pB2->m_Max.m_X &&
-             pB1->m_Max.m_X >= pB2->m_Min.m_X &&
-             pB1->m_Min.m_Y <= pB2->m_Max.m_Y &&
-             pB1->m_Max.m_Y >= pB2->m_Min.m_Y &&
-             pB1->m_Min.m_Z <= pB2->m_Max.m_Z &&
-             pB1->m_Max.m_Z >= pB2->m_Min.m_Z);
-}
-//---------------------------------------------------------------------------
-int csrIntersectSpherePolygon(const CSR_Sphere* pS, const CSR_Polygon3* pP, CSR_Plane* pR)
-{
-    float        testPoint1;
-    float        testPoint2;
-    CSR_Vector3  sphereNormal;
-    CSR_Vector3  pointOnSphere;
-    CSR_Vector3  pointOnPlane;
-    CSR_Vector3  pointOnTriangle;
-    CSR_Plane    polygonPlane;
-    CSR_Segment3 seg;
-
-    // create a plane using the 3 vertices of the polygon
-    csrPlaneFromPoints(&pP->m_Vertex[0], &pP->m_Vertex[1], &pP->m_Vertex[2], &polygonPlane);
-
-    // calculate the distance between the center of the sphere and the plane
-    csrPlaneDistanceTo(&pS->m_Center, &polygonPlane, &testPoint1);
-
-    // calculate the normal of the distance sphere-plane using the positive or negative value of the
-    // calculated distance between plane and position
-    if (testPoint1 < 0.0f)
-    {
-        sphereNormal.m_X = polygonPlane.m_A;
-        sphereNormal.m_Y = polygonPlane.m_B;
-        sphereNormal.m_Z = polygonPlane.m_C;
-    }
-    else
-    {
-        sphereNormal.m_X = -polygonPlane.m_A;
-        sphereNormal.m_Y = -polygonPlane.m_B;
-        sphereNormal.m_Z = -polygonPlane.m_C;
-    }
-
-    // calculate the point who the segment from center of sphere in the direction of the plane will
-    // cross the border of the sphere
-    pointOnSphere.m_X = pS->m_Center.m_X + (pS->m_Radius * sphereNormal.m_X);
-    pointOnSphere.m_Y = pS->m_Center.m_Y + (pS->m_Radius * sphereNormal.m_Y),
-    pointOnSphere.m_Z = pS->m_Center.m_Z + (pS->m_Radius * sphereNormal.m_Z);
-
-    // calculate the distance between the border of the sphere and the plane
-    csrPlaneDistanceTo(&pointOnSphere, &polygonPlane, &testPoint2);
-
-    // if the test points are on each side of the plane, then the sphere cross the plane. We assume
-    // that the segment from the center of the sphere to the direction of the plane can never be
-    // coplanar
-    if ((testPoint1 <= 0.0f && testPoint2 >= 0.0f) || (testPoint2 <= 0.0f && testPoint1 >= 0.0f))
-    {
-        // calculate who the segment cross the plane
-        if (!testPoint1)
-            // if testPoint1 is equal to 0, the center of the sphere cross the plane
-            pointOnPlane = pS->m_Center;
-        else
-        if (!testPoint2)
-            // if testPoint2 is equal to 0, the border of the sphere cross the plane
-            pointOnPlane = pointOnSphere;
-        else
         {
-            seg.m_Start = pS->m_Center;
-            seg.m_End   = pointOnSphere;
+            CSR_Vector3 point;
+            CSR_Vector3 dir;
+            CSR_Ray3    ray;
+            CSR_Figure3 rayFigure;
+
+            // get the segment to check
+            const CSR_Segment3* pSegment = (CSR_Segment3*)pFirst->m_pFigure;
+
+            // get the ray start position
+            ray.m_Pos = pSegment->m_Start;
+
+            // calculate the ray direction. NOTE the inverted direction can be omitted here because this
+            // value will not be used by the csrIntersectRayPlane() function
+            csrVec3Sub(&pSegment->m_End, &pSegment->m_Start, &dir);
+            csrVec3Normalize(&dir, &ray.m_Dir);
+
+            // build a figure for the plane
+            rayFigure.m_Type    = CSR_F3_Ray;
+            rayFigure.m_pFigure = &ray;
+
+            // check the intersection. NOTE the segment will only intersect the plane if the
+            // intersection point is inside the segment limits
+            if (csrIntersect3(&rayFigure, pSecond, &point, pR2, pR3))
+                if (csrVec3BetweenRange(&point, &pSegment->m_Start, &pSegment->m_End, M_CSR_Epsilon))
+                {
+                    if (pR1)
+                        *pR1 = point;
+
+                    return 1;
+                }
+
+            return 0;
+        }
+
+        // segment-polygon intersection
+        case 15:
+        {
+            CSR_Figure3 plane;
+            CSR_Plane   polygonPlane;
+            CSR_Vector3 pointOnPlane;
+            CSR_Vector3 point;
+
+            // get the figures to check
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
+
+            // create a plane using the 3 vertices of the polygon
+            csrPlaneFromPoints(&pPolygon->m_Vertex[0],
+                               &pPolygon->m_Vertex[1],
+                               &pPolygon->m_Vertex[2],
+                               &polygonPlane);
+
+            // build a figure for the plane
+            plane.m_Type    = CSR_F3_Plane;
+            plane.m_pFigure = &polygonPlane;
 
             // calculate the intersection point
-            csrIntersectSeg3Plane(&seg, &polygonPlane, &pointOnPlane);
-        }
+            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pR2, pR3))
+                return 0;
 
-        // check if calculated point is inside the polygon
-        if (csrInsidePolygon3(&pointOnPlane, pP))
-        {
-            // if yes, the sphere collide the polygon. In this case, we copy the plane and we
-            // returns 1
-            *pR = polygonPlane;
-            return 1;
-        }
-        else
-        {
-            // otherwise check if the sphere collide a polygon edge. First calculate the point to
-            // check on the polygon edge
-            csrPolygon3ClosestPoint(&pointOnPlane, pP, &pointOnTriangle);
-
-            // check if this point is inside the sphere
-            if (csrInsideSphere(&pointOnTriangle, pS))
+            // check if calculated point is inside the polygon
+            if (csrInsidePolygon3(&pointOnPlane, pPolygon))
             {
-                // if yes, the sphere collide the polygon. In this case the sliding plane is copied
-                // and the return value is 1
-                *pR = polygonPlane;
+                if (pR1)
+                    *pR1 = pointOnPlane;
+
                 return 1;
             }
+
+            return 0;
         }
+
+        // polygon-sphere intersection
+        case 24:
+        {
+            float        testPoint1;
+            float        testPoint2;
+            CSR_Vector3  sphereNormal;
+            CSR_Vector3  pointOnSphere;
+            CSR_Vector3  pointOnPlane;
+            CSR_Vector3  pointOnTriangle;
+            CSR_Plane    polygonPlane;
+            CSR_Segment3 seg;
+            CSR_Figure3  segment;
+            CSR_Figure3  plane;
+
+            // get the figures to check
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
+            const CSR_Sphere*   pSphere  = (CSR_Sphere*)pFirst->m_pFigure;
+
+            // create a plane using the 3 vertices of the polygon
+            csrPlaneFromPoints(&pPolygon->m_Vertex[0],
+                               &pPolygon->m_Vertex[1],
+                               &pPolygon->m_Vertex[2],
+                               &polygonPlane);
+
+            // calculate the distance between the center of the sphere and the plane
+            csrPlaneDistanceTo(&pSphere->m_Center, &polygonPlane, &testPoint1);
+
+            // calculate the normal of the distance sphere-plane using the positive or negative value of the
+            // calculated distance between plane and position
+            if (testPoint1 < 0.0f)
+            {
+                sphereNormal.m_X = polygonPlane.m_A;
+                sphereNormal.m_Y = polygonPlane.m_B;
+                sphereNormal.m_Z = polygonPlane.m_C;
+            }
+            else
+            {
+                sphereNormal.m_X = -polygonPlane.m_A;
+                sphereNormal.m_Y = -polygonPlane.m_B;
+                sphereNormal.m_Z = -polygonPlane.m_C;
+            }
+
+            // calculate the point who the segment from center of sphere in the direction of the plane will
+            // cross the border of the sphere
+            pointOnSphere.m_X = pSphere->m_Center.m_X + (pSphere->m_Radius * sphereNormal.m_X);
+            pointOnSphere.m_Y = pSphere->m_Center.m_Y + (pSphere->m_Radius * sphereNormal.m_Y),
+            pointOnSphere.m_Z = pSphere->m_Center.m_Z + (pSphere->m_Radius * sphereNormal.m_Z);
+
+            // calculate the distance between the border of the sphere and the plane
+            csrPlaneDistanceTo(&pointOnSphere, &polygonPlane, &testPoint2);
+
+            // if the test points are on each side of the plane, then the sphere cross the plane. We assume
+            // that the segment from the center of the sphere to the direction of the plane can never be
+            // coplanar
+            if ((testPoint1 <= 0.0f && testPoint2 >= 0.0f) || (testPoint2 <= 0.0f && testPoint1 >= 0.0f))
+            {
+                // calculate who the segment cross the plane
+                if (!testPoint1)
+                    // if testPoint1 is equal to 0, the center of the sphere cross the plane
+                    pointOnPlane = pSphere->m_Center;
+                else
+                if (!testPoint2)
+                    // if testPoint2 is equal to 0, the border of the sphere cross the plane
+                    pointOnPlane = pointOnSphere;
+                else
+                {
+                    seg.m_Start = pSphere->m_Center;
+                    seg.m_End   = pointOnSphere;
+
+                    // build a figure for the segment
+                    segment.m_Type    = CSR_F3_Segment;
+                    segment.m_pFigure = &polygonPlane;
+
+                    // build a figure for the plane
+                    plane.m_Type    = CSR_F3_Plane;
+                    plane.m_pFigure = &polygonPlane;
+
+                    // calculate the intersection point
+                    csrIntersect3(&segment, &plane, &pointOnPlane, pR2, pR3);
+                }
+
+                // check if calculated point is inside the polygon
+                if (csrInsidePolygon3(&pointOnPlane, pPolygon))
+                {
+                    // if yes, the sphere collide the polygon. In this case, we copy the plane and we
+                    // returns 1
+                    if (pR3)
+                        *pR3 = polygonPlane;
+
+                    return 1;
+                }
+                else
+                {
+                    // otherwise check if the sphere collide a polygon edge. First calculate the point to
+                    // check on the polygon edge
+                    csrPolygon3ClosestPoint(&pointOnPlane, pPolygon, &pointOnTriangle);
+
+                    // check if this point is inside the sphere
+                    if (csrInsideSphere(&pointOnTriangle, pSphere))
+                    {
+                        // if yes, the sphere collide the polygon. In this case the sliding plane is copied
+                        // and the return value is 1
+                        if (pR3)
+                            *pR3 = polygonPlane;
+
+                        return 1;
+                    }
+                }
+            }
+
+            // no collision was found
+            return 0;
+        }
+
+        // box-box intersection
+        case 25:
+        {
+            // get the figures to check
+            const CSR_Box* pBox1 = (CSR_Box*)pFirst->m_pFigure;
+            const CSR_Box* pBox2 = (CSR_Box*)pSecond->m_pFigure;
+
+            return !(pBox1->m_Min.m_X <= pBox2->m_Max.m_X &&
+                     pBox1->m_Max.m_X >= pBox2->m_Min.m_X &&
+                     pBox1->m_Min.m_Y <= pBox2->m_Max.m_Y &&
+                     pBox1->m_Max.m_Y >= pBox2->m_Min.m_Y &&
+                     pBox1->m_Min.m_Z <= pBox2->m_Max.m_Z &&
+                     pBox1->m_Max.m_Z >= pBox2->m_Min.m_Z);
+        }
+
+        // box-sphere intersection
+        case 26:
+        {
+            float d = 0.0f;
+
+            // get the figures to check
+            const CSR_Box*    pBox    = (CSR_Box*)pFirst->m_pFigure;
+            const CSR_Sphere* pSphere = (CSR_Sphere*)pSecond->m_pFigure;
+
+            // find the square of the distance from the sphere to the box on the x axis
+            if (pSphere->m_Center.m_X < pBox->m_Min.m_X)
+                d += pow(pSphere->m_Center.m_X - pBox->m_Min.m_X, 2.0f);
+            else
+            if (pSphere->m_Center.m_X > pBox->m_Max.m_X)
+                d += pow(pSphere->m_Center.m_X - pBox->m_Max.m_X, 2.0f);
+
+            // find the square of the distance from the sphere to the box on the y axis
+            if (pSphere->m_Center.m_Y < pBox->m_Min.m_Y)
+                d += pow(pSphere->m_Center.m_Y - pBox->m_Min.m_Y, 2.0f);
+            else
+            if (pSphere->m_Center.m_Y > pBox->m_Max.m_Y)
+                d += pow(pSphere->m_Center.m_Y - pBox->m_Max.m_Y, 2.0f);
+
+            // find the square of the distance from the sphere to the box on the z axis
+            if (pSphere->m_Center.m_Z < pBox->m_Min.m_Z)
+                d += pow(pSphere->m_Center.m_Z - pBox->m_Min.m_Z, 2.0f);
+            else
+            if (pSphere->m_Center.m_Z > pBox->m_Max.m_Z)
+                d += pow(pSphere->m_Center.m_Z - pBox->m_Max.m_Z, 2.0f);
+
+            return (d <= pow(pSphere->m_Radius, 2.0f));
+        }
+
+        // sphere-sphere intersection
+        case 27:
+        {
+            CSR_Vector3 dist;
+            float       length;
+
+            // get the figures to check
+            const CSR_Sphere* pSphere1 = (CSR_Sphere*)pSecond->m_pFigure;
+            const CSR_Sphere* pSphere2 = (CSR_Sphere*)pSecond->m_pFigure;
+
+            // calculate the distance between the both sphere centers
+            dist.m_X = fabs(pSphere1->m_Center.m_X - pSphere2->m_Center.m_X);
+            dist.m_Y = fabs(pSphere1->m_Center.m_Y - pSphere2->m_Center.m_Y);
+            dist.m_Z = fabs(pSphere1->m_Center.m_Z - pSphere2->m_Center.m_Z);
+
+            // calculate the length between the both sphere centers
+            csrVec3Length(&dist, &length);
+
+            // the spheres are in collision if the length between their centers is lower than or equal to
+            // the sum of the both sphere radius
+            return (length <= (pSphere1->m_Radius + pSphere2->m_Radius));
+        }
+
+        default:
+            // unknown or unsupported
+            return 0;
     }
-
-    // no collision was found
-    return 0;
 }
-//---------------------------------------------------------------------------
-int csrIntersectSphereBox(const CSR_Sphere* pS, const CSR_Box* pB)
-{
-    float d = 0.0f;
-
-    // find the square of the distance from the sphere to the box on the x axis
-    if (pS->m_Center.m_X < pB->m_Min.m_X)
-        d += pow(pS->m_Center.m_X - pB->m_Min.m_X, 2.0f);
-    else
-    if (pS->m_Center.m_X > pB->m_Max.m_X)
-        d += pow(pS->m_Center.m_X - pB->m_Max.m_X, 2.0f);
-
-    // find the square of the distance from the sphere to the box on the y axis
-    if (pS->m_Center.m_Y < pB->m_Min.m_Y)
-        d += pow(pS->m_Center.m_Y - pB->m_Min.m_Y, 2.0f);
-    else
-    if (pS->m_Center.m_Y > pB->m_Max.m_Y)
-        d += pow(pS->m_Center.m_Y - pB->m_Max.m_Y, 2.0f);
-
-    // find the square of the distance from the sphere to the box on the z axis
-    if (pS->m_Center.m_Z < pB->m_Min.m_Z)
-        d += pow(pS->m_Center.m_Z - pB->m_Min.m_Z, 2.0f);
-    else
-    if (pS->m_Center.m_Z > pB->m_Max.m_Z)
-        d += pow(pS->m_Center.m_Z - pB->m_Max.m_Z, 2.0f);
-
-    return (d <= pow(pS->m_Radius, 2.0f));
-}
-//---------------------------------------------------------------------------
-int csrIntersectSpheres(const CSR_Sphere* pS1, const CSR_Sphere* pS2)
-{
-    CSR_Vector3 dist;
-    float       length;
-
-    // calculate the distance between the both sphere centers
-    dist.m_X = fabs(pS1->m_Center.m_X - pS2->m_Center.m_X);
-    dist.m_Y = fabs(pS1->m_Center.m_Y - pS2->m_Center.m_Y);
-    dist.m_Z = fabs(pS1->m_Center.m_Z - pS2->m_Center.m_Z);
-
-    // calculate the length between the both sphere centers
-    csrVec3Length(&dist, &length);
-
-    // the spheres are in collision if the length between their centers is lower than or equal to
-    // the sum of the both sphere radius
-    return (length <= (pS1->m_Radius + pS2->m_Radius));
-}
-*/
 //---------------------------------------------------------------------------

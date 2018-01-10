@@ -422,7 +422,7 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 
     unsigned color;
 
-    if (csrIntersect3(&ray, &box, 0, 0))
+    if (csrIntersect3(&ray, &box, 0, 0, 0))
     {
         ++m_Stats.m_HitBoxCount;
         color = 0xFF0000;
