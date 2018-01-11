@@ -300,7 +300,7 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "csr_vColor");
 
     CSR_VertexFormat vf;
-    vf.m_Type = CSR_VT_TriangleStrip;
+    vf.m_Type        = CSR_VT_TriangleStrip;
     vf.m_UseNormals  = 0;
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
@@ -387,6 +387,8 @@ void TMainForm::DrawScene()
 
     csrSceneDrawMesh(m_pSphere, m_pShader);
 
+    ResolveTreeAndDrawPolygons();
+
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -399,6 +401,109 @@ void TMainForm::DrawScene()
     DrawTreeBoxes(m_pAABBTree);
 
     csrSceneEnd();
+}
+//---------------------------------------------------------------------------
+void TMainForm::ResolveTreeAndDrawPolygons()
+{
+    CSR_Polygon3Buffer polygonBuffer;
+    polygonBuffer.m_pPolygon = 0;
+    polygonBuffer.m_Count    = 0;
+
+    // resolve aligned-axis bounding box tree
+    csrAABBTreeResolve(&m_Ray, m_pAABBTree, &polygonBuffer);
+
+    CSR_Polygon3* pPolygonsToDraw     = NULL;
+    CSR_Polygon3* pNewPolygonsToDraw  = NULL;
+    unsigned      polygonsToDrawCount = 0;
+
+    CSR_Figure3 ray;
+    ray.m_Type    = CSR_F3_Ray;
+    ray.m_pFigure = &m_Ray;
+
+    // iterate through polygons to check
+    for (std::size_t i = 0; i < polygonBuffer.m_Count; ++i)
+    {
+        CSR_Figure3 polygon;
+        polygon.m_Type    = CSR_F3_Polygon;
+        polygon.m_pFigure = (CSR_Polygon3*)&polygonBuffer.m_pPolygon[i];
+
+        // is polygon intersecting ray?
+        if (csrIntersect3(&ray, &polygon, 0, 0, 0))
+        {
+            pNewPolygonsToDraw = (CSR_Polygon3*)csrMemoryAlloc(pPolygonsToDraw,
+                                                               sizeof(CSR_Polygon3),
+                                                               polygonsToDrawCount + 1);
+
+            if (!pNewPolygonsToDraw)
+                return;
+
+            pNewPolygonsToDraw[polygonsToDrawCount] = polygonBuffer.m_pPolygon[i];
+
+            pPolygonsToDraw = pNewPolygonsToDraw;
+            ++polygonsToDrawCount;
+        }
+    }
+
+    // delete found polygons (no more needed from now)
+    if (polygonBuffer.m_Count)
+        free(polygonBuffer.m_pPolygon);
+
+    glDisable(GL_CULL_FACE);
+
+    // found collide polygons to draw?
+    for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
+    {
+        // set vertex 1 in vertex buffer
+        m_PolygonArray[0]  = pPolygonsToDraw[i].m_Vertex[0].m_X;
+        m_PolygonArray[1]  = pPolygonsToDraw[i].m_Vertex[0].m_Y;
+        m_PolygonArray[2]  = pPolygonsToDraw[i].m_Vertex[0].m_Z;
+        m_PolygonArray[3]  = 1.0f;
+        m_PolygonArray[4]  = 0.0f;
+        m_PolygonArray[5]  = 0.0f;
+        m_PolygonArray[6]  = 1.0f;
+
+        // set vertex 2 in vertex buffer
+        m_PolygonArray[7]  = pPolygonsToDraw[i].m_Vertex[1].m_X;
+        m_PolygonArray[8]  = pPolygonsToDraw[i].m_Vertex[1].m_Y;
+        m_PolygonArray[9]  = pPolygonsToDraw[i].m_Vertex[1].m_Z;
+        m_PolygonArray[10] = 1.0f;
+        m_PolygonArray[11] = 0.0f;
+        m_PolygonArray[12] = 0.0f;
+        m_PolygonArray[13] = 1.0f;
+
+        // set vertex 3 in vertex buffer
+        m_PolygonArray[14] = pPolygonsToDraw[i].m_Vertex[2].m_X;
+        m_PolygonArray[15] = pPolygonsToDraw[i].m_Vertex[2].m_Y;
+        m_PolygonArray[16] = pPolygonsToDraw[i].m_Vertex[2].m_Z;
+        m_PolygonArray[17] = 1.0f;
+        m_PolygonArray[18] = 0.0f;
+        m_PolygonArray[19] = 0.0f;
+        m_PolygonArray[20] = 1.0f;
+
+        CSR_Mesh mesh;
+        mesh.m_Count                       = 1;
+        mesh.m_Texture.m_TextureID         = -1;
+        mesh.m_Texture.m_BumpMapID         = -1;
+        mesh.m_pVB                         = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type        = CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_UseNormals  = 0;
+        mesh.m_pVB->m_Format.m_UseColors   = 1;
+        mesh.m_pVB->m_Format.m_UseTextures = 0;
+        mesh.m_pVB->m_Format.m_Stride      = 7;
+        mesh.m_pVB->m_pData                = (float*)csrMemoryAlloc(0, sizeof(float) * 21, 1);
+        mesh.m_pVB->m_Count                = 21;
+
+        std::memcpy(mesh.m_pVB->m_pData, m_PolygonArray, sizeof(float) * 21);
+
+        // draw the polygon
+        csrSceneDrawMesh(&mesh, m_pShader);
+
+        free(mesh.m_pVB->m_pData);
+        free(mesh.m_pVB);
+    }
+
+    if (polygonsToDrawCount)
+        free(pPolygonsToDraw);
 }
 //---------------------------------------------------------------------------
 void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)

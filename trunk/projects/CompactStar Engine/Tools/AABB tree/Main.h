@@ -71,6 +71,7 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
         float            m_AngleY;
+        float            m_PolygonArray[21];
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
         TWndMethod       m_fViewWndProc_Backup;
@@ -121,6 +122,7 @@ class TMainForm : public TForm
         */
         void DrawScene();
 
+        void ResolveTreeAndDrawPolygons();
 
         void DrawTreeBoxes(const CSR_AABBNode* pTree);
 
