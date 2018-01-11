@@ -19,16 +19,21 @@ class TMainForm : public TForm
         TPanel *paView;
         TPanel *paControls;
         TSplitter *spMainView;
-        TLabel *laTreeOptionsCaption;
+        TLabel *laOptionsCaption;
         TCheckBox *ckWireFrame;
         TCheckBox *ckShowLeafOnly;
         TTrackBar *tbTransparency;
         TLabel *laTransparency;
         TButton *btLoadModel;
-        TBevel *blTreeControlSeparator;
+        TBevel *blOptionsSeparator;
         TBevel *blFilesSeparator;
         TLabel *laFilesCaption;
         TButton *btSaveTree;
+        TBevel *blStatsSeparator;
+        TLabel *laStatsCaption;
+        TCheckBox *ckShowCollidingBoxesOnly;
+        TCheckBox *ckShowBoxes;
+        TCheckBox *ckShowCollidingPolygons;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -67,7 +72,8 @@ class TMainForm : public TForm
         HGLRC            m_hRC;
         TCanvas*         m_pDocCanvas;
         ITreeStats       m_Stats;
-        CSR_Shader*      m_pShader;
+        CSR_Shader*      m_pShader_ColoredMesh;
+        CSR_Shader*      m_pShader_TexturedMesh;
         CSR_Mesh*        m_pSphere;
         CSR_AABBNode*    m_pAABBTree;
         CSR_Matrix4      m_ProjectionMatrix;
@@ -127,14 +133,33 @@ class TMainForm : public TForm
 
         void ResolveTreeAndDrawPolygons();
 
+        /**
+        * Draws the AABB tree boxes
+        *@param pTree - root tree node, or parent node from which the boxes should be drawn
+        */
         void DrawTreeBoxes(const CSR_AABBNode* pTree);
 
+        /**
+        * Creates a colored box mesh, which is on the physical position specified by min and max
+        *@param min - box min vertex
+        *@param max - box max vertex
+        *@param color - box color
+        *@return mesh
+        *@note The caller is responsible to delete the mesh whenever useless
+        */
         CSR_Mesh* CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const;
 
-        CSR_Vector3 MousePosToViewportPos(const TPoint&   mousePos,
-                                          const TRect&    clientRect,
-                                          const CSR_Rect& viewRect);
+        /**
+        * Converts a mouse position to a viewport coordinate
+        *@param mousePos - mouse position to convert
+        *@param viewRect - viewport rectangle
+        *@return the viewport coordinate (before the transformation to put it in the 3D world)
+        */
+        CSR_Vector3 MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect);
 
+        /**
+        * Calculates and updates the ray coordinate in the 3D viewport
+        */
         void CalculateMouseRay();
 
         /**
