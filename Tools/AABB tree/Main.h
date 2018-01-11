@@ -49,7 +49,10 @@ class TMainForm : public TForm
     private:
         struct ITreeStats
         {
+            std::size_t m_PolyToCheckCount;
+            std::size_t m_MaxPolyToCheckCount;
             std::size_t m_HitBoxCount;
+            std::size_t m_HitPolygonCount;
 
             ITreeStats();
             ~ITreeStats();
