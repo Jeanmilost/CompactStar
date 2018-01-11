@@ -50,7 +50,10 @@ const char* g_FragmentProgram =
 // TMainForm::ITreeStats
 //---------------------------------------------------------------------------
 TMainForm::ITreeStats::ITreeStats() :
-    m_HitBoxCount(0)
+    m_PolyToCheckCount(0),
+    m_MaxPolyToCheckCount(0),
+    m_HitBoxCount(0),
+    m_HitPolygonCount(0)
 {}
 //---------------------------------------------------------------------------
 TMainForm::ITreeStats::~ITreeStats()
@@ -58,7 +61,9 @@ TMainForm::ITreeStats::~ITreeStats()
 //---------------------------------------------------------------------------
 void TMainForm::ITreeStats::Clear()
 {
-    m_HitBoxCount = 0;
+    m_PolyToCheckCount = 0;
+    m_HitBoxCount      = 0;
+    m_HitPolygonCount  = 0;
 }
 //---------------------------------------------------------------------------
 // TMainForm
