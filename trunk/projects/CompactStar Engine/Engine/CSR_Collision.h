@@ -70,10 +70,12 @@ struct CSR_AABBNode
         *@param pRay - ray against which tree items will be tested
         *@param pNode - root or parent node to resolve
         *@param[out] pPolygons - polygons belonging to boxes hit by ray
+        *@param deep - tree deep level, used internally, should be set to 0
         *@return 1 on success, otherwise 0
         */
         int csrAABBTreeResolve(const CSR_Ray3*           pRay,
                                const CSR_AABBNode*       pNode,
+                                     size_t              deep,
                                      CSR_Polygon3Buffer* pPolygons);
 
         /**

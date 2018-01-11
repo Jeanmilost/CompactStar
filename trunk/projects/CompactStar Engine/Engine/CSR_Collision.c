@@ -292,6 +292,7 @@ CSR_AABBNode* csrAABBTreeFromMesh(const CSR_Mesh* pMesh)
 //---------------------------------------------------------------------------
 int csrAABBTreeResolve(const CSR_Ray3*           pRay,
                        const CSR_AABBNode*       pNode,
+                             size_t              deep,
                              CSR_Polygon3Buffer* pPolygons)
 {
     unsigned      i;
@@ -313,6 +314,14 @@ int csrAABBTreeResolve(const CSR_Ray3*           pRay,
     // no polygon buffer to contain the result?
     if (!pPolygons)
         return 0;
+
+    // is the first iteration?
+    if (!deep)
+    {
+        // ensure the polygon buffer is initialized, otherwise this may cause hard-to-debug bugs
+        pPolygons->m_pPolygon = 0;
+        pPolygons->m_Count    = 0;
+    }
 
     // is leaf?
     if (!pNode->m_pLeft && !pNode->m_pRight)
@@ -356,7 +365,7 @@ int csrAABBTreeResolve(const CSR_Ray3*           pRay,
         // check if ray intersects the left box
         if (csrIntersect3(&ray, &box, 0, 0, 0))
             // resolve left node
-            leftResolved = csrAABBTreeResolve(pRay, pNode->m_pLeft, pPolygons);
+            leftResolved = csrAABBTreeResolve(pRay, pNode->m_pLeft, deep + 1, pPolygons);
     }
 
     // node contains a right child?
@@ -369,7 +378,7 @@ int csrAABBTreeResolve(const CSR_Ray3*           pRay,
         // check if ray intersects the right box
         if (csrIntersect3(&ray, &box, 0, 0, 0))
             // resolve right node
-            rightResolved = csrAABBTreeResolve(pRay, pNode->m_pRight, pPolygons);
+            rightResolved = csrAABBTreeResolve(pRay, pNode->m_pRight, deep + 1, pPolygons);
     }
 
     return (leftResolved || rightResolved);

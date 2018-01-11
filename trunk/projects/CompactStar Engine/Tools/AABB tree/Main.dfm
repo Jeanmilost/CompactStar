@@ -49,36 +49,38 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     Constraints.MinWidth = 185
     TabOrder = 1
-    object laTreeOptionsCaption: TLabel
+    ExplicitLeft = 618
+    object laOptionsCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 3
+      Top = 30
       Width = 179
       Height = 19
       Align = alTop
-      Caption = 'Tree Options'
+      Caption = 'Options'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitWidth = 105
+      ExplicitWidth = 62
     end
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 78
+      Top = 174
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
+      ExplicitTop = 78
       ExplicitWidth = 66
     end
-    object blTreeControlSeparator: TBevel
+    object blOptionsSeparator: TBevel
       Left = 0
-      Top = 25
+      Top = 52
       Width = 185
       Height = 2
       Align = alTop
@@ -87,7 +89,7 @@ object MainForm: TMainForm
     end
     object blFilesSeparator: TBevel
       Left = 0
-      Top = 148
+      Top = 244
       Width = 185
       Height = 2
       Align = alTop
@@ -98,7 +100,7 @@ object MainForm: TMainForm
     object laFilesCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 126
+      Top = 222
       Width = 179
       Height = 19
       Margins.Top = 10
@@ -110,34 +112,64 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitTop = 126
       ExplicitWidth = 37
+    end
+    object blStatsSeparator: TBevel
+      Left = 0
+      Top = 25
+      Width = 185
+      Height = 2
+      Align = alTop
+      Shape = bsTopLine
+      ExplicitLeft = 3
+      ExplicitTop = 20
+    end
+    object laStatsCaption: TLabel
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 179
+      Height = 19
+      Align = alTop
+      Caption = 'Statistics'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitWidth = 75
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 30
+      Top = 149
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'Show WireFrame boxes'
+      Caption = 'WireFrame'
       Checked = True
       State = cbChecked
       TabOrder = 0
+      ExplicitLeft = 6
+      ExplicitTop = 170
     end
     object ckShowLeafOnly: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 53
+      Top = 126
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Show Leaf Only'
       TabOrder = 1
+      ExplicitTop = 53
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 94
+      Top = 190
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -147,26 +179,66 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 2
       TickStyle = tsNone
+      ExplicitTop = 94
     end
     object btLoadModel: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 153
+      Top = 249
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Load Model...'
       TabOrder = 3
+      ExplicitTop = 153
     end
     object btSaveTree: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 184
+      Top = 280
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Save Tree...'
       TabOrder = 4
+      ExplicitTop = 184
+    end
+    object ckShowCollidingBoxesOnly: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 103
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Show Colliding Boxes Only'
+      TabOrder = 5
+      ExplicitTop = 53
+    end
+    object ckShowBoxes: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 80
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Show Boxes'
+      Checked = True
+      State = cbChecked
+      TabOrder = 6
+      ExplicitTop = 30
+    end
+    object ckShowCollidingPolygons: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 57
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Show Colliding Polygons'
+      Checked = True
+      State = cbChecked
+      TabOrder = 7
+      ExplicitTop = 30
     end
   end
 end

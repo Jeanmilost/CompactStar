@@ -1338,12 +1338,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
                         CSR_Vector2* pP1,
                         CSR_Vector2* pP2)
 {
-    int                intersectionType;
-    const CSR_Figure2* pFirst;
-    const CSR_Figure2* pSecond;
+    int         intersectionType;
+    const void* pFirst;
+    const void* pSecond;
 
     // intersection calculation isn't possible if at least one of the figures is missing
-    if (!pFigure1 || !pFigure2)
+    if (!pFigure1 || !pFigure2 || !pFigure1->m_pFigure || !pFigure2->m_pFigure)
         return 0;
 
     // determine which intersection type should be applied
@@ -1352,12 +1352,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Line:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  0; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Ray:     intersectionType =  1; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Segment: intersectionType =  2; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  3; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  4; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  5; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  0; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  1; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  2; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  3; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  4; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  5; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1366,12 +1366,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Ray:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  1;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  6;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Segment: intersectionType =  7;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  8;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  9;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  10; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  1;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  6;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  7;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  8;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  9;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  10; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1380,12 +1380,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Segment:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  2;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  7;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Polygon: intersectionType =  12; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  13; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  14; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  2;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  7;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  12; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  13; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  14; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1394,12 +1394,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Polygon:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  3;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  8;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  12; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  15; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Rect:    intersectionType =  16; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  17; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  3;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  8;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  12; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  15; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  16; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  17; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1408,12 +1408,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Rect:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  4;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  9;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  16; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Rect:    intersectionType =  18; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F2_Circle:  intersectionType =  19; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  4;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  9;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  11; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  16; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  18; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  19; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1422,12 +1422,12 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case CSR_F2_Circle:
             switch (pFigure2->m_Type)
             {
-                case CSR_F2_Line:    intersectionType =  5;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Ray:     intersectionType =  10; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Segment: intersectionType =  14; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Polygon: intersectionType =  17; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Rect:    intersectionType =  19; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F2_Circle:  intersectionType =  20; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F2_Line:    intersectionType =  5;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Ray:     intersectionType =  10; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Segment: intersectionType =  14; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Polygon: intersectionType =  17; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Rect:    intersectionType =  19; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F2_Circle:  intersectionType =  20; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1449,8 +1449,8 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
         case 18:
         {
             // get the figures to check
-            const CSR_Rect* pRect1 = (CSR_Rect*)pFirst->m_pFigure;
-            const CSR_Rect* pRect2 = (CSR_Rect*)pSecond->m_pFigure;
+            const CSR_Rect* pRect1 = (CSR_Rect*)pFirst;
+            const CSR_Rect* pRect2 = (CSR_Rect*)pSecond;
 
             return !(pRect1->m_Min.m_X <= pRect2->m_Max.m_X && pRect1->m_Max.m_X >= pRect2->m_Min.m_X &&
                      pRect1->m_Min.m_Y <= pRect2->m_Max.m_Y && pRect1->m_Max.m_Y >= pRect2->m_Min.m_Y);
@@ -1463,8 +1463,8 @@ int csrIntersect2(const CSR_Figure2* pFigure1,
             float       length;
 
             // get the figures to check
-            const CSR_Circle* pCircle1 = (CSR_Circle*)pFirst->m_pFigure;
-            const CSR_Circle* pCircle2 = (CSR_Circle*)pSecond->m_pFigure;
+            const CSR_Circle* pCircle1 = (CSR_Circle*)pFirst;
+            const CSR_Circle* pCircle2 = (CSR_Circle*)pSecond;
 
             // calculate the distance between the both circle centers
             dist.m_X = fabs(pCircle1->m_Center.m_X - pCircle2->m_Center.m_X);
@@ -1490,12 +1490,12 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                         CSR_Vector3* pR2,
                         CSR_Plane*   pR3)
 {
-    int                intersectionType;
-    const CSR_Figure3* pFirst;
-    const CSR_Figure3* pSecond;
+    int         intersectionType;
+    const void* pFirst;
+    const void* pSecond;
 
     // intersection calculation isn't possible if at least one of the figures is missing
-    if (!pFigure1 || !pFigure2)
+    if (!pFigure1 || !pFigure2 || !pFigure1->m_pFigure || !pFigure2->m_pFigure)
         return 0;
 
     // determine which intersection type should be applied
@@ -1504,13 +1504,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Line:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  0; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Ray:     intersectionType =  1; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Segment: intersectionType =  2; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Plane:   intersectionType =  3; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Polygon: intersectionType =  4; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Box:     intersectionType =  5; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  6; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  0; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  1; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  2; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  3; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  4; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  5; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  6; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1519,13 +1519,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Ray:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  1;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  7;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Segment: intersectionType =  8;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Plane:   intersectionType =  9;  pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Polygon: intersectionType =  10; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Box:     intersectionType =  11; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  12; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  1;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  7;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  8;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  9;  pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  10; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  11; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  12; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1534,13 +1534,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Segment:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  2;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  8;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Segment: intersectionType =  13; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Plane:   intersectionType =  14; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Polygon: intersectionType =  15; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Box:     intersectionType =  16; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  17; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  2;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  8;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  13; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  14; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  15; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  16; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  17; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1549,13 +1549,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Plane:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  3;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  9;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Segment: intersectionType =  14; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Plane:   intersectionType =  18; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Polygon: intersectionType =  19; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Box:     intersectionType =  20; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  21; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  3;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  9;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  14; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  18; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  19; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  20; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  21; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1564,13 +1564,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Polygon:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  4;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  10; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Segment: intersectionType =  15; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Plane:   intersectionType =  19; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Polygon: intersectionType =  22; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Box:     intersectionType =  23; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  24; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  4;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  10; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  15; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  19; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  22; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  23; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  24; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1579,13 +1579,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Box:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  5;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  11; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Segment: intersectionType =  16; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Plane:   intersectionType =  20; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Polygon: intersectionType =  23; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Box:     intersectionType =  25; pFirst = pFigure1; pSecond = pFigure2; break;
-                case CSR_F3_Sphere:  intersectionType =  26; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  5;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  11; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  16; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  20; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  23; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  25; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  26; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1594,13 +1594,13 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case CSR_F3_Sphere:
             switch (pFigure2->m_Type)
             {
-                case CSR_F3_Line:    intersectionType =  6;  pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Ray:     intersectionType =  12; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Segment: intersectionType =  17; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Plane:   intersectionType =  21; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Polygon: intersectionType =  24; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Box:     intersectionType =  26; pFirst = pFigure2; pSecond = pFigure1; break;
-                case CSR_F3_Sphere:  intersectionType =  27; pFirst = pFigure1; pSecond = pFigure2; break;
+                case CSR_F3_Line:    intersectionType =  6;  pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Ray:     intersectionType =  12; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Segment: intersectionType =  17; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Plane:   intersectionType =  21; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Polygon: intersectionType =  24; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Box:     intersectionType =  26; pFirst = pFigure2->m_pFigure; pSecond = pFigure1->m_pFigure; break;
+                case CSR_F3_Sphere:  intersectionType =  27; pFirst = pFigure1->m_pFigure; pSecond = pFigure2->m_pFigure; break;
                 default:             intersectionType = -1;
             }
 
@@ -1627,8 +1627,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             float       temp;
 
             // get the figures to check
-            const CSR_Ray3*  pRay   = (CSR_Ray3*)pFirst->m_pFigure;
-            const CSR_Plane* pPlane = (CSR_Plane*)pSecond->m_pFigure;
+            const CSR_Ray3*  pRay   = (CSR_Ray3*)pFirst;
+            const CSR_Plane* pPlane = (CSR_Plane*)pSecond;
 
             // get the normal of the plane
             n.m_X = pPlane->m_A;
@@ -1667,7 +1667,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             CSR_Figure3   plane;
 
             // get the polygon to check
-            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond;
 
             // create a plane using the 3 vertices of the polygon
             csrPlaneFromPoints(&pPolygon->m_Vertex[0],
@@ -1680,7 +1680,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             plane.m_pFigure = &polygonPlane;
 
             // calculate the intersection point
-            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pR2, pR3))
+            if (!csrIntersect3(pFigure1, &plane, &pointOnPlane, pR2, pR3))
                 return 0;
 
             // check if calculated point is inside the polygon
@@ -1714,8 +1714,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             float tFar;
 
             // get the figures to check
-            const CSR_Ray3* pRay = (CSR_Ray3*)pFirst->m_pFigure;
-            const CSR_Box*  pBox = (CSR_Box*)pSecond->m_pFigure;
+            const CSR_Ray3* pRay = (CSR_Ray3*)pFirst;
+            const CSR_Box*  pBox = (CSR_Box*)pSecond;
 
             // get infinite value
             const float inf = 1.0f / 0.0f;
@@ -1801,7 +1801,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             CSR_Figure3 rayFigure;
 
             // get the segment to check
-            const CSR_Segment3* pSegment = (CSR_Segment3*)pFirst->m_pFigure;
+            const CSR_Segment3* pSegment = (CSR_Segment3*)pFirst;
 
             // get the ray start position
             ray.m_Pos = pSegment->m_Start;
@@ -1838,7 +1838,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             CSR_Vector3 point;
 
             // get the figures to check
-            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond;
 
             // create a plane using the 3 vertices of the polygon
             csrPlaneFromPoints(&pPolygon->m_Vertex[0],
@@ -1851,7 +1851,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             plane.m_pFigure = &polygonPlane;
 
             // calculate the intersection point
-            if (!csrIntersect3(pFirst, &plane, &pointOnPlane, pR2, pR3))
+            if (!csrIntersect3(pFigure1, &plane, &pointOnPlane, pR2, pR3))
                 return 0;
 
             // check if calculated point is inside the polygon
@@ -1881,8 +1881,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             CSR_Figure3  plane;
 
             // get the figures to check
-            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pSecond->m_pFigure;
-            const CSR_Sphere*   pSphere  = (CSR_Sphere*)pFirst->m_pFigure;
+            const CSR_Polygon3* pPolygon = (CSR_Polygon3*)pFirst;
+            const CSR_Sphere*   pSphere  = (CSR_Sphere*)pSecond;
 
             // create a plane using the 3 vertices of the polygon
             csrPlaneFromPoints(&pPolygon->m_Vertex[0],
@@ -1984,8 +1984,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
         case 25:
         {
             // get the figures to check
-            const CSR_Box* pBox1 = (CSR_Box*)pFirst->m_pFigure;
-            const CSR_Box* pBox2 = (CSR_Box*)pSecond->m_pFigure;
+            const CSR_Box* pBox1 = (CSR_Box*)pFirst;
+            const CSR_Box* pBox2 = (CSR_Box*)pSecond;
 
             return !(pBox1->m_Min.m_X <= pBox2->m_Max.m_X &&
                      pBox1->m_Max.m_X >= pBox2->m_Min.m_X &&
@@ -2001,8 +2001,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             float d = 0.0f;
 
             // get the figures to check
-            const CSR_Box*    pBox    = (CSR_Box*)pFirst->m_pFigure;
-            const CSR_Sphere* pSphere = (CSR_Sphere*)pSecond->m_pFigure;
+            const CSR_Box*    pBox    = (CSR_Box*)pFirst;
+            const CSR_Sphere* pSphere = (CSR_Sphere*)pSecond;
 
             // find the square of the distance from the sphere to the box on the x axis
             if (pSphere->m_Center.m_X < pBox->m_Min.m_X)
@@ -2035,8 +2035,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             float       length;
 
             // get the figures to check
-            const CSR_Sphere* pSphere1 = (CSR_Sphere*)pSecond->m_pFigure;
-            const CSR_Sphere* pSphere2 = (CSR_Sphere*)pSecond->m_pFigure;
+            const CSR_Sphere* pSphere1 = (CSR_Sphere*)pFirst;
+            const CSR_Sphere* pSphere2 = (CSR_Sphere*)pSecond;
 
             // calculate the distance between the both sphere centers
             dist.m_X = fabs(pSphere1->m_Center.m_X - pSphere2->m_Center.m_X);

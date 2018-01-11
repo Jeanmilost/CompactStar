@@ -23,7 +23,7 @@
 /**
 * Vertex shader program
 */
-const char* g_VertexProgram =
+const char* g_VertexProgram_ColoredMesh =
     "precision mediump float;"
     "attribute vec4 csr_vVertex;"
     "attribute vec4 csr_vColor;"
@@ -39,7 +39,7 @@ const char* g_VertexProgram =
 /**
 * Fragment shader program
 */
-const char* g_FragmentProgram =
+const char* g_FragmentProgram_ColoredMesh =
     "precision mediump float;"
     "varying lowp vec4 csr_fColor;"
     "void main(void)"
@@ -75,7 +75,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hDC(NULL),
     m_hRC(NULL),
     m_pDocCanvas(NULL),
-    m_pShader(NULL),
+    m_pShader_ColoredMesh(NULL),
+    m_pShader_TexturedMesh(NULL),
     m_pSphere(NULL),
     m_AngleY(0.0f),
     m_PreviousTime(0),
@@ -255,7 +256,7 @@ void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
 //------------------------------------------------------------------------------
 void TMainForm::CreateViewport(float w, float h)
 {
-    if (!m_pShader)
+    if (!m_pShader_ColoredMesh)
         return;
 
     // calculate matrix items
@@ -270,7 +271,7 @@ void TMainForm::CreateViewport(float w, float h)
     csrMat4Perspective(fov, aspect, zNear, zFar, &m_ProjectionMatrix);
 
     // connect projection matrix to shader
-    GLint projectionUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
+    GLint projectionUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 }
 //------------------------------------------------------------------------------
@@ -279,30 +280,30 @@ void TMainForm::InitScene(int w, int h)
     CSR_Buffer* pVS = csrBufferCreate();
     CSR_Buffer* pFS = csrBufferCreate();
 
-    std::string data = g_VertexProgram;
+    std::string data = g_VertexProgram_ColoredMesh;
 
     pVS->m_Length = data.length();
     pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
     std::memcpy(pVS->m_pData, data.c_str(), pVS->m_Length);
     pVS->m_pData[pVS->m_Length] = 0x0;
 
-    data = g_FragmentProgram;
+    data = g_FragmentProgram_ColoredMesh;
 
     pFS->m_Length = data.length();
     pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
     std::memcpy(pFS->m_pData, data.c_str(), pFS->m_Length);
     pFS->m_pData[pFS->m_Length] = 0x0;
 
-    m_pShader = csrShaderLoadFromBuffer(pVS, pFS);
+    m_pShader_ColoredMesh = csrShaderLoadFromBuffer(pVS, pFS);
 
     csrBufferRelease(pVS);
     csrBufferRelease(pFS);
 
-    csrShaderEnable(m_pShader);
+    csrShaderEnable(m_pShader_ColoredMesh);
 
     // get shader attributes
-    m_pShader->m_VertexSlot = glGetAttribLocation(m_pShader->m_ProgramID, "csr_vVertex");
-    m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "csr_vColor");
+    m_pShader_ColoredMesh->m_VertexSlot = glGetAttribLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_vVertex");
+    m_pShader_ColoredMesh->m_ColorSlot  = glGetAttribLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_vColor");
 
     CSR_VertexFormat vf;
     vf.m_Type        = CSR_VT_TriangleStrip;
@@ -331,21 +332,13 @@ void TMainForm::DeleteScene()
 {
     csrAABBTreeRelease(m_pAABBTree);
     csrMeshRelease(m_pSphere);
-    csrShaderRelease(m_pShader);
+    csrShaderRelease(m_pShader_TexturedMesh);
+    csrShaderRelease(m_pShader_ColoredMesh);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    m_AngleY += (elapsedTime * 0.5f);
-
-    while (m_AngleY > M_PI * 2.0f)
-        m_AngleY -= M_PI * 2.0f;
-}
-//------------------------------------------------------------------------------
-void TMainForm::DrawScene()
-{
     float       xAngle;
-    float       yAngle;
     CSR_Vector3 t;
     CSR_Vector3 r;
     CSR_Matrix4 translateMatrix;
@@ -353,13 +346,19 @@ void TMainForm::DrawScene()
     CSR_Matrix4 yRotateMatrix;
     CSR_Matrix4 rotateMatrix;
 
-    csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
+    // calculate the next angle
+    m_AngleY += (elapsedTime * 0.5f);
+
+    // avoid the angle to exceeds the bounds even if a huge time has elapsed since last update
+    while (m_AngleY > M_PI * 2.0f)
+        m_AngleY -= M_PI * 2.0f;
 
     // set translation
     t.m_X =  0.0f;
     t.m_Y =  0.0f;
     t.m_Z = -2.0f;
 
+    // build the translation matrix
     csrMat4Translate(&t, &translateMatrix);
 
     // set rotation on X axis
@@ -370,6 +369,7 @@ void TMainForm::DrawScene()
     // rotate 90 degrees
     xAngle = 1.57075f;
 
+    // build the X rotation matrix
     csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
 
     // set rotation on Y axis
@@ -377,45 +377,67 @@ void TMainForm::DrawScene()
     r.m_Y = 1.0f;
     r.m_Z = 0.0f;
 
+    // build the Y rotation matrix
     csrMat4Rotate(&m_AngleY, &r, &yRotateMatrix);
 
-    // build model view matrix
+    // build the model view matrix
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
     csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
-    // connect model view matrix to shader
-    GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModelview");
+    // connect the model view matrix to shader
+    GLint modelUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelview");
     glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
-    glDisable(GL_BLEND);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    csrSceneDrawMesh(m_pSphere, m_pShader);
-
-    ResolveTreeAndDrawPolygons();
-
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    if (ckWireFrame->Checked)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+    // calculate the ray from current mouse position
     CalculateMouseRay();
+}
+//------------------------------------------------------------------------------
+void TMainForm::DrawScene()
+{
+    try
+    {
+        // begin the scene
+        csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
 
-    DrawTreeBoxes(m_pAABBTree);
+        // restore normal drawing parameters
+        glDisable(GL_BLEND);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    csrSceneEnd();
+        csrSceneDrawMesh(m_pSphere, m_pShader_ColoredMesh);
+
+        // show the polygon intersections (with the mouse ray)
+        if (ckShowCollidingPolygons->Checked)
+            ResolveTreeAndDrawPolygons();
+
+        // do show the AABB boxes?
+        if (ckShowBoxes->Checked)
+        {
+            // enable alpha blending
+            glEnable(GL_BLEND);
+            glBlendEquation(GL_FUNC_ADD);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            // do show the boxes in wireframe mode?
+            if (ckWireFrame->Checked)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+            // draw the AABB tree boxes
+            DrawTreeBoxes(m_pAABBTree);
+        }
+    }
+    __finally
+    {
+        // end the scene
+        csrSceneEnd();
+    }
 }
 //---------------------------------------------------------------------------
 void TMainForm::ResolveTreeAndDrawPolygons()
 {
     CSR_Polygon3Buffer polygonBuffer;
-    polygonBuffer.m_pPolygon = 0;
-    polygonBuffer.m_Count    = 0;
 
     // resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&m_Ray, m_pAABBTree, &polygonBuffer);
+    csrAABBTreeResolve(&m_Ray, m_pAABBTree, 0, &polygonBuffer);
 
     CSR_Polygon3* pPolygonsToDraw     = NULL;
     CSR_Polygon3* pNewPolygonsToDraw  = NULL;
@@ -501,7 +523,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         std::memcpy(mesh.m_pVB->m_pData, m_PolygonArray, sizeof(float) * 21);
 
         // draw the polygon
-        csrSceneDrawMesh(&mesh, m_pShader);
+        csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh);
 
         free(mesh.m_pVB->m_pData);
         free(mesh.m_pVB);
@@ -513,114 +535,68 @@ void TMainForm::ResolveTreeAndDrawPolygons()
 //---------------------------------------------------------------------------
 void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 {
+    // node contains left children?
     if (pTree->m_pLeft)
         DrawTreeBoxes(pTree->m_pLeft);
 
+    // node contains right children?
     if (pTree->m_pRight)
         DrawTreeBoxes(pTree->m_pRight);
 
+    // do show boxes belonging to leaf only?
     if (ckShowLeafOnly->Checked && (pTree->m_pLeft || pTree->m_pRight))
         return;
 
+    // build a geometrical figure for the ray
     CSR_Figure3 ray;
     ray.m_Type    = CSR_F3_Ray;
     ray.m_pFigure = (void*)&m_Ray;
 
+    // build a geometrical figure for the box
     CSR_Figure3 box;
     box.m_Type    = CSR_F3_Box;
     box.m_pFigure = pTree->m_pBox;
 
     unsigned color;
 
+    // is ray intersecting box?
     if (csrIntersect3(&ray, &box, 0, 0, 0))
     {
+        // yes, count the hit and get the green color
         ++m_Stats.m_HitBoxCount;
         color = 0xFF0000;
     }
     else
+    {
+        // no, do nothing if only the colliding boxes should be drawn
+        if (ckShowCollidingBoxesOnly->Checked)
+            return;
+
+        // otherwise get the red color
         color = 0xFF000000;
+    }
 
     CSR_Mesh* pMesh = NULL;
 
     try
     {
+        // get the mesh for the box (this is weak for performances, and in a real productive code I
+        // would not do that this way, but thus the box is get to his final location directly, and
+        // this simplify the code, which is only used to visualize graphically the tree content)
         pMesh = CreateBox(pTree->m_pBox->m_Min,
                           pTree->m_pBox->m_Max,
                           color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max));
 
+        // draw the AABB box
         if (pMesh)
-            csrSceneDrawMesh(pMesh, m_pShader);
+            csrSceneDrawMesh(pMesh, m_pShader_ColoredMesh);
     }
     __finally
     {
+        // delete the mesh
         if (pMesh)
             csrMeshRelease(pMesh);
     }
-
-    /*
-    try
-    {
-        // get polygons to check for collision by resolving AABB tree
-        pAABBTree->Resolve(pRay.get(), polygons);
-
-        QR_PolygonsP pickedPolygons;
-        QR_SizeT     polygonCount = polygons.size();
-
-        #ifdef USE_DETECTION_COLLISION_DEBUG_TOOLS
-            #ifdef OS_WIN
-                #ifdef CP_EMBARCADERO
-                    polysCount = pAABBTree->GetPolygonCount();
-                    polysFound = polygonCount;
-                #endif
-            #endif
-        #endif
-
-        // iterate through polygons to check
-        if (polygonCount > 0)
-            for (QR_PolygonsP::const_iterator it = polygons.begin(); it != polygons.end(); ++it)
-                // is polygon intersecting ray?
-                if (QR_GeometryHelper::RayIntersectsPolygon(*(pRay.get()), *(*it)))
-                    // add polygon in collision to resulting list
-                    pickedPolygons.push_back(*it);
-
-        #ifdef USE_DETECTION_COLLISION_DEBUG_TOOLS
-            #ifdef OS_WIN
-                #ifdef CP_EMBARCADERO
-                    polysinCollision = pickedPolygons.size();
-                #endif
-            #endif
-        #endif
-
-        // found collision?
-        if (pickedPolygons.size())
-        {
-            // draw polygons in collision if required
-            if (m_ShowCollisionWithMouse)
-                DrawPolygons(pickedPolygons, modelMatrix);
-
-            // notify that a picked model was found
-            if (m_fOnModelPicked)
-                m_fOnModelPicked(pRenderer,
-                                 pSender,
-                                 id,
-                                 pModel,
-                                 pMesh,
-                                 pAABBTree,
-                                 pickedPolygons,
-                                 projectionMatrix,
-                                 viewMatrix,
-                                 modelMatrix,
-                                 m_MousePos);
-        }
-    }
-    catch (...)
-    {
-        QR_STDTools::DelAndClear(polygons);
-        throw;
-    }
-
-    QR_STDTools::DelAndClear(polygons);
-    */
 }
 //---------------------------------------------------------------------------
 CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const
@@ -730,14 +706,12 @@ CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, u
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint&   mousePos,
-                                             const TRect&    clientRect,
-                                             const CSR_Rect& viewRect)
+CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
 {
     CSR_Vector3 result;
 
     // invalid client width or height?
-    if (!ClientWidth || !ClientHeight)
+    if (!paView->ClientWidth || !paView->ClientHeight)
     {
         result.m_X = 0.0f;
         result.m_Y = 0.0f;
@@ -745,7 +719,7 @@ CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint&   mousePos,
         return result;
     }
 
-    // convert mouse position to scene position
+    // convert mouse position to viewport position
     result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / paView->ClientWidth);
     result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Min.m_Y - viewRect.m_Max.m_Y)) / paView->ClientHeight);
     result.m_Z = 0.0f;
@@ -757,10 +731,10 @@ void TMainForm::CalculateMouseRay()
     // clear the tree stats
     m_Stats.Clear();
 
-    // get the mouse position
+    // get the mouse position in screen coordinates
     TPoint mousePos = Mouse->CursorPos;
 
-    // convert to view position
+    // convert to view coordinates
     if (!::ScreenToClient(paView->Handle, &mousePos))
         return;
 
@@ -773,7 +747,7 @@ void TMainForm::CalculateMouseRay()
     viewRect.m_Max.m_Y = -1.0f;
 
     // get the ray in the Windows coordinate
-    m_Ray.m_Pos     =  MousePosToViewportPos(mousePos, paView->ClientRect, viewRect);
+    m_Ray.m_Pos     =  MousePosToViewportPos(mousePos, viewRect);
     m_Ray.m_Dir.m_X =  m_Ray.m_Pos.m_X;
     m_Ray.m_Dir.m_Y =  m_Ray.m_Pos.m_Y;
     m_Ray.m_Dir.m_Z = -1.0f;
