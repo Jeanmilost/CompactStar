@@ -53,7 +53,8 @@ TMainForm::ITreeStats::ITreeStats() :
     m_PolyToCheckCount(0),
     m_MaxPolyToCheckCount(0),
     m_HitBoxCount(0),
-    m_HitPolygonCount(0)
+    m_HitPolygonCount(0),
+    m_FPS(0)
 {}
 //---------------------------------------------------------------------------
 TMainForm::ITreeStats::~ITreeStats()
@@ -77,8 +78,10 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pDocCanvas(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
-    m_pSphere(NULL),
+    m_pModel(NULL),
     m_AngleY(0.0f),
+    m_FrameCount(0),
+    m_StartTime(0),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
@@ -129,6 +132,7 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     InitScene(paView->ClientWidth, paView->ClientHeight);
 
     // initialize the timer
+    m_StartTime    = ::GetTickCount();
     m_PreviousTime = ::GetTickCount();
 
     // listen the application idle
@@ -311,8 +315,8 @@ void TMainForm::InitScene(int w, int h)
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
-    m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
-    m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
+    m_pModel    = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
+    m_pAABBTree = csrAABBTreeFromMesh(m_pModel);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -331,7 +335,7 @@ void TMainForm::InitScene(int w, int h)
 void TMainForm::DeleteScene()
 {
     csrAABBTreeRelease(m_pAABBTree);
-    csrMeshRelease(m_pSphere);
+    csrMeshRelease(m_pModel);
     csrShaderRelease(m_pShader_TexturedMesh);
     csrShaderRelease(m_pShader_ColoredMesh);
 }
@@ -403,7 +407,7 @@ void TMainForm::DrawScene()
         glDisable(GL_BLEND);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        csrSceneDrawMesh(m_pSphere, m_pShader_ColoredMesh);
+        csrSceneDrawMesh(m_pModel, m_pShader_ColoredMesh);
 
         // show the polygon intersections (with the mouse ray)
         if (ckShowCollidingPolygons->Checked)
@@ -434,15 +438,26 @@ void TMainForm::DrawScene()
 //---------------------------------------------------------------------------
 void TMainForm::ResolveTreeAndDrawPolygons()
 {
+    // is the mouse ray not initialized?
+    if (!m_Ray.m_Pos.m_X    && !m_Ray.m_Pos.m_Y    && !m_Ray.m_Pos.m_Z &&
+        !m_Ray.m_Dir.m_X    && !m_Ray.m_Dir.m_Y    && !m_Ray.m_Dir.m_Z &&
+        !m_Ray.m_InvDir.m_X && !m_Ray.m_InvDir.m_Y && !m_Ray.m_InvDir.m_Z)
+        return;
+
     CSR_Polygon3Buffer polygonBuffer;
 
-    // resolve aligned-axis bounding box tree
+    // using the mouse ray, resolve aligned-axis bounding box tree
     csrAABBTreeResolve(&m_Ray, m_pAABBTree, 0, &polygonBuffer);
+
+    // update the stats
+    m_Stats.m_PolyToCheckCount    = polygonBuffer.m_Count;
+    m_Stats.m_MaxPolyToCheckCount = std::max(polygonBuffer.m_Count, m_Stats.m_MaxPolyToCheckCount);
 
     CSR_Polygon3* pPolygonsToDraw     = NULL;
     CSR_Polygon3* pNewPolygonsToDraw  = NULL;
-    unsigned      polygonsToDrawCount = 0;
+    std::size_t   polygonsToDrawCount = 0;
 
+    // create a figure for the ray
     CSR_Figure3 ray;
     ray.m_Type    = CSR_F3_Ray;
     ray.m_pFigure = &m_Ray;
@@ -457,80 +472,92 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         // is polygon intersecting ray?
         if (csrIntersect3(&ray, &polygon, 0, 0, 0))
         {
+            // reserve memory fort he new polygon to draw
             pNewPolygonsToDraw = (CSR_Polygon3*)csrMemoryAlloc(pPolygonsToDraw,
                                                                sizeof(CSR_Polygon3),
                                                                polygonsToDrawCount + 1);
 
+            // succeeded?
             if (!pNewPolygonsToDraw)
                 return;
 
+            // copy his content
             pNewPolygonsToDraw[polygonsToDrawCount] = polygonBuffer.m_pPolygon[i];
 
+            // update the polygon buffer to draw
             pPolygonsToDraw = pNewPolygonsToDraw;
             ++polygonsToDrawCount;
         }
     }
 
-    // delete found polygons (no more needed from now)
+    // delete found polygons (no longer needed from now)
     if (polygonBuffer.m_Count)
         free(polygonBuffer.m_pPolygon);
 
+    // disable the culling to show the polygons from any point of view
     glDisable(GL_CULL_FACE);
 
-    // found collide polygons to draw?
-    for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
+    // found polygons to draw?
+    if (polygonsToDrawCount)
     {
-        // set vertex 1 in vertex buffer
-        m_PolygonArray[0]  = pPolygonsToDraw[i].m_Vertex[0].m_X;
-        m_PolygonArray[1]  = pPolygonsToDraw[i].m_Vertex[0].m_Y;
-        m_PolygonArray[2]  = pPolygonsToDraw[i].m_Vertex[0].m_Z;
-        m_PolygonArray[3]  = 1.0f;
-        m_PolygonArray[4]  = 0.0f;
-        m_PolygonArray[5]  = 0.0f;
-        m_PolygonArray[6]  = 1.0f;
-
-        // set vertex 2 in vertex buffer
-        m_PolygonArray[7]  = pPolygonsToDraw[i].m_Vertex[1].m_X;
-        m_PolygonArray[8]  = pPolygonsToDraw[i].m_Vertex[1].m_Y;
-        m_PolygonArray[9]  = pPolygonsToDraw[i].m_Vertex[1].m_Z;
-        m_PolygonArray[10] = 1.0f;
-        m_PolygonArray[11] = 0.0f;
-        m_PolygonArray[12] = 0.0f;
-        m_PolygonArray[13] = 1.0f;
-
-        // set vertex 3 in vertex buffer
-        m_PolygonArray[14] = pPolygonsToDraw[i].m_Vertex[2].m_X;
-        m_PolygonArray[15] = pPolygonsToDraw[i].m_Vertex[2].m_Y;
-        m_PolygonArray[16] = pPolygonsToDraw[i].m_Vertex[2].m_Z;
-        m_PolygonArray[17] = 1.0f;
-        m_PolygonArray[18] = 0.0f;
-        m_PolygonArray[19] = 0.0f;
-        m_PolygonArray[20] = 1.0f;
-
         CSR_Mesh mesh;
-        mesh.m_Count                       = 1;
+
+        // create and configure a mesh for the polygons
+        mesh.m_Count                       =  1;
         mesh.m_Texture.m_TextureID         = -1;
         mesh.m_Texture.m_BumpMapID         = -1;
-        mesh.m_pVB                         = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type        = CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_UseNormals  = 0;
-        mesh.m_pVB->m_Format.m_UseColors   = 1;
-        mesh.m_pVB->m_Format.m_UseTextures = 0;
-        mesh.m_pVB->m_Format.m_Stride      = 7;
-        mesh.m_pVB->m_pData                = (float*)csrMemoryAlloc(0, sizeof(float) * 21, 1);
-        mesh.m_pVB->m_Count                = 21;
+        mesh.m_pVB                         =  (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type        =   CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_UseNormals  =  0;
+        mesh.m_pVB->m_Format.m_UseColors   =  1;
+        mesh.m_pVB->m_Format.m_UseTextures =  0;
+        mesh.m_pVB->m_Format.m_Stride      =  7;
+        mesh.m_pVB->m_pData                =  m_PolygonArray;
+        mesh.m_pVB->m_Count                =  21;
 
-        std::memcpy(mesh.m_pVB->m_pData, m_PolygonArray, sizeof(float) * 21);
+        // iterate through polygons to draw
+        for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
+        {
+            // set vertex 1 in vertex buffer
+            m_PolygonArray[0]  = pPolygonsToDraw[i].m_Vertex[0].m_X;
+            m_PolygonArray[1]  = pPolygonsToDraw[i].m_Vertex[0].m_Y;
+            m_PolygonArray[2]  = pPolygonsToDraw[i].m_Vertex[0].m_Z;
+            m_PolygonArray[3]  = 1.0f;
+            m_PolygonArray[4]  = 0.0f;
+            m_PolygonArray[5]  = 0.0f;
+            m_PolygonArray[6]  = 1.0f;
 
-        // draw the polygon
-        csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh);
+            // set vertex 2 in vertex buffer
+            m_PolygonArray[7]  = pPolygonsToDraw[i].m_Vertex[1].m_X;
+            m_PolygonArray[8]  = pPolygonsToDraw[i].m_Vertex[1].m_Y;
+            m_PolygonArray[9]  = pPolygonsToDraw[i].m_Vertex[1].m_Z;
+            m_PolygonArray[10] = 1.0f;
+            m_PolygonArray[11] = 0.0f;
+            m_PolygonArray[12] = 0.0f;
+            m_PolygonArray[13] = 1.0f;
 
-        free(mesh.m_pVB->m_pData);
+            // set vertex 3 in vertex buffer
+            m_PolygonArray[14] = pPolygonsToDraw[i].m_Vertex[2].m_X;
+            m_PolygonArray[15] = pPolygonsToDraw[i].m_Vertex[2].m_Y;
+            m_PolygonArray[16] = pPolygonsToDraw[i].m_Vertex[2].m_Z;
+            m_PolygonArray[17] = 1.0f;
+            m_PolygonArray[18] = 0.0f;
+            m_PolygonArray[19] = 0.0f;
+            m_PolygonArray[20] = 1.0f;
+
+            // draw the polygon
+            csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh);
+        }
+
         free(mesh.m_pVB);
     }
 
-    if (polygonsToDrawCount)
+    // delete the polygon list
+    if (pPolygonsToDraw)
         free(pPolygonsToDraw);
+
+    // update the stats
+    m_Stats.m_HitPolygonCount = polygonsToDrawCount;
 }
 //---------------------------------------------------------------------------
 void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
@@ -728,9 +755,6 @@ CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_R
 //---------------------------------------------------------------------------
 void TMainForm::CalculateMouseRay()
 {
-    // clear the tree stats
-    m_Stats.Clear();
-
     // get the mouse position in screen coordinates
     TPoint mousePos = Mouse->CursorPos;
 
@@ -775,6 +799,16 @@ void TMainForm::CalculateMouseRay()
     csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
 }
 //---------------------------------------------------------------------------
+void TMainForm::ShowStats() const
+{
+    laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(m_pModel && m_pModel->m_pVB ? m_pModel->m_pVB->m_Count : 0));
+    laPolygonsToCheck->Caption = L"Polygons To Check: "     + ::IntToStr(int(m_Stats.m_PolyToCheckCount));
+    laMaxPolyToCheck->Caption  = L"Max Polygons To Check: " + ::IntToStr(int(m_Stats.m_MaxPolyToCheckCount));
+    laHitPolygons->Caption     = L"Hit Polygons: "          + ::IntToStr(int(m_Stats.m_HitPolygonCount));
+    laHitBoxes->Caption        = L"Hit Boxes: "             + ::IntToStr(int(m_Stats.m_HitBoxCount));
+    laFPS->Caption             = L"FPS:"                    + ::IntToStr(int(m_Stats.m_FPS));
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     // calculate time interval
@@ -782,12 +816,34 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
     const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
                            m_PreviousTime =  now;
 
+    done = false;
+
+    if (!m_Initialized)
+        return;
+
+    // clear the tree stats
+    m_Stats.Clear();
+
+    ++m_FrameCount;
+
+    // calculate the FPS
+    if (m_FrameCount >= 100)
+    {
+        const double      smoothing = 0.1;
+        const std::size_t fpsTime   = now > m_StartTime ? now - m_StartTime : 1;
+        const std::size_t newFPS    = (m_FrameCount * 100) / fpsTime;
+        m_StartTime                 = ::GetTickCount();
+        m_FrameCount                = 0;
+        m_Stats.m_FPS               = (newFPS * smoothing) + (m_Stats.m_FPS * (1.0 - smoothing));
+    }
+
     // update and draw the scene
     UpdateScene(elapsedTime);
     DrawScene();
 
     ::SwapBuffers(m_hDC);
 
-    done = false;
+    // show the stats
+    ShowStats();
 }
 //---------------------------------------------------------------------------

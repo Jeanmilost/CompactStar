@@ -34,6 +34,12 @@ class TMainForm : public TForm
         TCheckBox *ckShowCollidingBoxesOnly;
         TCheckBox *ckShowBoxes;
         TCheckBox *ckShowCollidingPolygons;
+        TLabel *laHitBoxes;
+        TLabel *laHitPolygons;
+        TLabel *laPolygonsToCheck;
+        TLabel *laMaxPolyToCheck;
+        TLabel *laFPS;
+        TLabel *laPolygonCount;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -52,12 +58,16 @@ class TMainForm : public TForm
         void __fastcall ViewWndProc(TMessage& message);
 
     private:
+        /**
+        * Tree statistics
+        */
         struct ITreeStats
         {
             std::size_t m_PolyToCheckCount;
             std::size_t m_MaxPolyToCheckCount;
             std::size_t m_HitBoxCount;
             std::size_t m_HitPolygonCount;
+            std::size_t m_FPS;
 
             ITreeStats();
             ~ITreeStats();
@@ -74,13 +84,15 @@ class TMainForm : public TForm
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
-        CSR_Mesh*        m_pSphere;
+        CSR_Mesh*        m_pModel;
         CSR_AABBNode*    m_pAABBTree;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
         float            m_AngleY;
         float            m_PolygonArray[21];
+        std::size_t      m_FrameCount;
+        unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
         TWndMethod       m_fViewWndProc_Backup;
@@ -131,6 +143,9 @@ class TMainForm : public TForm
         */
         void DrawScene();
 
+        /**
+        * Resolves the AABB tree against the mouse ray and draw the polygons intersecting the ray
+        */
         void ResolveTreeAndDrawPolygons();
 
         /**
@@ -161,6 +176,11 @@ class TMainForm : public TForm
         * Calculates and updates the ray coordinate in the 3D viewport
         */
         void CalculateMouseRay();
+
+        /**
+        * Shows the stats
+        */
+        void ShowStats() const;
 
         /**
         * Called while application is idle
