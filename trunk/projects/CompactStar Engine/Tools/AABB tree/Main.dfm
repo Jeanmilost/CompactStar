@@ -49,11 +49,10 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     Constraints.MinWidth = 185
     TabOrder = 1
-    ExplicitLeft = 618
     object laOptionsCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 30
+      Top = 108
       Width = 179
       Height = 19
       Align = alTop
@@ -64,23 +63,24 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitTop = 30
       ExplicitWidth = 62
     end
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 174
+      Top = 252
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
-      ExplicitTop = 78
+      ExplicitTop = 174
       ExplicitWidth = 66
     end
     object blOptionsSeparator: TBevel
       Left = 0
-      Top = 52
+      Top = 130
       Width = 185
       Height = 2
       Align = alTop
@@ -89,7 +89,7 @@ object MainForm: TMainForm
     end
     object blFilesSeparator: TBevel
       Left = 0
-      Top = 244
+      Top = 322
       Width = 185
       Height = 2
       Align = alTop
@@ -100,7 +100,7 @@ object MainForm: TMainForm
     object laFilesCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 222
+      Top = 300
       Width = 179
       Height = 19
       Margins.Top = 10
@@ -112,7 +112,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 126
+      ExplicitTop = 222
       ExplicitWidth = 37
     end
     object blStatsSeparator: TBevel
@@ -122,8 +122,8 @@ object MainForm: TMainForm
       Height = 2
       Align = alTop
       Shape = bsTopLine
-      ExplicitLeft = 3
-      ExplicitTop = 20
+      ExplicitLeft = 6
+      ExplicitTop = 17
     end
     object laStatsCaption: TLabel
       AlignWithMargins = True
@@ -141,10 +141,69 @@ object MainForm: TMainForm
       ParentFont = False
       ExplicitWidth = 75
     end
+    object laHitBoxes: TLabel
+      Left = 0
+      Top = 79
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Hit Boxes:'
+      ExplicitLeft = 3
+      ExplicitTop = 59
+    end
+    object laHitPolygons: TLabel
+      Left = 0
+      Top = 66
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Hit Polygons:'
+      ExplicitLeft = 3
+      ExplicitTop = 33
+    end
+    object laPolygonsToCheck: TLabel
+      Left = 0
+      Top = 40
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Polygons To Check:'
+      ExplicitTop = 27
+      ExplicitWidth = 94
+    end
+    object laMaxPolyToCheck: TLabel
+      Left = 0
+      Top = 53
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Max Polygons To Check:'
+      ExplicitTop = 40
+      ExplicitWidth = 117
+    end
+    object laFPS: TLabel
+      Left = 0
+      Top = 92
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'FPS:'
+      ExplicitTop = 79
+      ExplicitWidth = 22
+    end
+    object laPolygonCount: TLabel
+      Left = 0
+      Top = 27
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Polygon Count:'
+      ExplicitWidth = 74
+    end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 149
+      Top = 227
       Width = 179
       Height = 17
       Align = alTop
@@ -152,24 +211,23 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitLeft = 6
-      ExplicitTop = 170
+      ExplicitTop = 149
     end
     object ckShowLeafOnly: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 126
+      Top = 204
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Show Leaf Only'
       TabOrder = 1
-      ExplicitTop = 53
+      ExplicitTop = 126
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 190
+      Top = 268
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -179,45 +237,45 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 2
       TickStyle = tsNone
-      ExplicitTop = 94
+      ExplicitTop = 190
     end
     object btLoadModel: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 249
+      Top = 327
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Load Model...'
       TabOrder = 3
-      ExplicitTop = 153
+      ExplicitTop = 249
     end
     object btSaveTree: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 280
+      Top = 358
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Save Tree...'
       TabOrder = 4
-      ExplicitTop = 184
+      ExplicitTop = 280
     end
     object ckShowCollidingBoxesOnly: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 103
+      Top = 181
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Show Colliding Boxes Only'
       TabOrder = 5
-      ExplicitTop = 53
+      ExplicitTop = 103
     end
     object ckShowBoxes: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 80
+      Top = 158
       Width = 179
       Height = 17
       Align = alTop
@@ -225,12 +283,12 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 6
-      ExplicitTop = 30
+      ExplicitTop = 80
     end
     object ckShowCollidingPolygons: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 57
+      Top = 135
       Width = 179
       Height = 17
       Align = alTop
@@ -238,7 +296,7 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 7
-      ExplicitTop = 30
+      ExplicitTop = 57
     end
   end
 end
