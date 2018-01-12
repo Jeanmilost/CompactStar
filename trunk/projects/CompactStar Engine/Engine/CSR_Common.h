@@ -89,7 +89,7 @@ typedef struct
         * Detects if the target system endianness is big or little
         *@return the target system endianness
         */
-        CSR_EEndianness csrMemoryEndianness();
+        CSR_EEndianness csrMemoryEndianness(void);
 
         /**
         * Swaps the content of a memory from big endian to little endian, or vice-versa
