@@ -64,7 +64,6 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 108
       ExplicitWidth = 62
     end
     object laTransparency: TLabel
@@ -76,7 +75,6 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
-      ExplicitTop = 252
       ExplicitWidth = 66
     end
     object blOptionsSeparator: TBevel
@@ -113,7 +111,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 365
+      ExplicitWidth = 37
     end
     object blStatsSeparator: TBevel
       Left = 0
@@ -204,7 +202,7 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Speed Velocity'
-      ExplicitTop = 295
+      ExplicitWidth = 70
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
@@ -217,7 +215,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 4
-      ExplicitTop = 227
     end
     object ckShowLeafOnly: TCheckBox
       AlignWithMargins = True
@@ -228,7 +225,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show Leaf Only'
       TabOrder = 3
-      ExplicitTop = 204
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
@@ -243,7 +239,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 5
       TickStyle = tsNone
-      ExplicitTop = 268
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -254,7 +249,6 @@ object MainForm: TMainForm
       Align = alBottom
       Caption = 'Load Model...'
       TabOrder = 7
-      ExplicitTop = 327
     end
     object btSaveTree: TButton
       AlignWithMargins = True
@@ -265,7 +259,6 @@ object MainForm: TMainForm
       Align = alBottom
       Caption = 'Save Tree...'
       TabOrder = 8
-      ExplicitTop = 358
     end
     object ckShowCollidingBoxesOnly: TCheckBox
       AlignWithMargins = True
@@ -276,7 +269,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show Colliding Boxes Only'
       TabOrder = 2
-      ExplicitTop = 181
     end
     object ckShowBoxes: TCheckBox
       AlignWithMargins = True
@@ -289,7 +281,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 1
-      ExplicitTop = 158
     end
     object ckShowCollidingPolygons: TCheckBox
       AlignWithMargins = True
@@ -302,7 +293,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitTop = 135
     end
     object tbSpeedVelocity: TTrackBar
       AlignWithMargins = True
@@ -317,7 +307,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 6
       TickStyle = tsNone
-      ExplicitTop = 340
     end
   end
 end

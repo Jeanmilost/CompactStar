@@ -47,6 +47,15 @@
 //---------------------------------------------------------------------------
 
 /**
+* Endianness type
+*/
+typedef enum
+{
+    CSR_E_LittleEndian,
+    CSR_E_BigEndian,
+} CSR_EEndianness;
+
+/**
 * Memory buffer
 */
 typedef struct
@@ -75,6 +84,19 @@ typedef struct
         *@note The new memory block should be freed with the free() function when becoming useless
         */
         void* csrMemoryAlloc(void* pMemory, size_t size, size_t count);
+
+        /**
+        * Detects if the target system endianness is big or little
+        *@return the target system endianness
+        */
+        CSR_EEndianness csrMemoryEndianness();
+
+        /**
+        * Swaps the content of a memory from big endian to little endian, or vice-versa
+        *@param[in, out] pMemory - memory to swap, swapped memory on function ends
+        *@param size - size of the memory to swap
+        */
+        void csrMemorySwap(void* pMemory, size_t size);
 
         //-------------------------------------------------------------------
         // Math functions

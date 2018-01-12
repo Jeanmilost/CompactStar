@@ -718,36 +718,75 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
 //---------------------------------------------------------------------------
 // MDL model functions
 //---------------------------------------------------------------------------
-void csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader)
+int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader)
 {
+    int success = 1;
+
     // read header from file
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_ID);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Version);
-    csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_Scale),       1, &pHeader->m_Scale);
-    csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_Translate),   1, &pHeader->m_Translate);
-    csrBufferRead(pBuffer, pOffset, sizeof(float),                  1, &pHeader->m_BoundingRadius);
-    csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_EyePosition), 1, &pHeader->m_EyePosition);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinCount);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinWidth);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinHeight);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_VertexCount);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_PolygonCount);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_FrameCount);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SyncType);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Flags);
-    csrBufferRead(pBuffer, pOffset, sizeof(float),                  1, &pHeader->m_Size);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_ID);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Version);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_Scale),       1, &pHeader->m_Scale);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_Translate),   1, &pHeader->m_Translate);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(float),                  1, &pHeader->m_BoundingRadius);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_EyePosition), 1, &pHeader->m_EyePosition);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinCount);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinWidth);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SkinHeight);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_VertexCount);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_PolygonCount);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_FrameCount);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_SyncType);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Flags);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(float),                  1, &pHeader->m_Size);
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+    {
+        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pHeader->m_ID,             sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_Version,        sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_Scale[0],       sizeof(float));
+        csrMemorySwap(&pHeader->m_Scale[1],       sizeof(float));
+        csrMemorySwap(&pHeader->m_Scale[2],       sizeof(float));
+        csrMemorySwap(&pHeader->m_Translate[0],   sizeof(float));
+        csrMemorySwap(&pHeader->m_Translate[1],   sizeof(float));
+        csrMemorySwap(&pHeader->m_Translate[2],   sizeof(float));
+        csrMemorySwap(&pHeader->m_BoundingRadius, sizeof(float));
+        csrMemorySwap(&pHeader->m_EyePosition[0], sizeof(float));
+        csrMemorySwap(&pHeader->m_EyePosition[1], sizeof(float));
+        csrMemorySwap(&pHeader->m_EyePosition[2], sizeof(float));
+        csrMemorySwap(&pHeader->m_SkinCount,      sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_SkinWidth,      sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_SkinHeight,     sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_VertexCount,    sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_PolygonCount,   sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_FrameCount,     sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_SyncType,       sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_Flags,          sizeof(unsigned));
+        csrMemorySwap(&pHeader->m_Size,           sizeof(float));
+    }
+
+    return success;
 }
 //---------------------------------------------------------------------------
-void csrMDLReadSkin(const CSR_Buffer*    pBuffer,
-                          size_t*        pOffset,
-                    const CSR_MDLHeader* pHeader,
-                          CSR_MDLSkin*   pSkin)
+int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
+                         size_t*        pOffset,
+                   const CSR_MDLHeader* pHeader,
+                         CSR_MDLSkin*   pSkin)
 {
+    size_t i;
+
     // calculate texture size
     pSkin->m_TexLen = pHeader->m_SkinWidth * pHeader->m_SkinHeight;
 
     // read the skin group flag
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pSkin->m_Group);
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pSkin->m_Group))
+        return 0;
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (csrMemoryEndianness() == CSR_E_BigEndian)
+        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pSkin->m_Group, sizeof(unsigned));
 
     pSkin->m_pTime = 0;
 
@@ -759,85 +798,142 @@ void csrMDLReadSkin(const CSR_Buffer*    pBuffer,
         // create memory for texture
         pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen);
 
-        // read texture from file
-        csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen, 1, pSkin->m_pData);
-
-        return;
+        // read texture from file. NOTE 8 bit array, should not be inverted if target endianness is big
+        return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen, 1, pSkin->m_pData);
     }
 
     // read the skin count
     csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pSkin->m_Count);
 
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (csrMemoryEndianness() == CSR_E_BigEndian)
+        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pSkin->m_Count, sizeof(unsigned));
+
     // no skin to read?
     if (!pSkin->m_Count)
-        return;
+        return 1;
 
     // create memory for time table
     pSkin->m_pTime = (float*)malloc(pSkin->m_Count * sizeof(float));
 
     // read time table from file
-    csrBufferRead(pBuffer, pOffset, pSkin->m_Count * sizeof(float), 1, pSkin->m_pTime);
+    if (!csrBufferRead(pBuffer, pOffset, pSkin->m_Count * sizeof(float), 1, pSkin->m_pTime))
+        return 0;
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (csrMemoryEndianness() == CSR_E_BigEndian)
+        // iterate through time values to swap
+        for (i = 0; i < pSkin->m_Count; ++i)
+            // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pSkin->m_pTime[i], sizeof(float));
 
     // create memory for texture
     pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen * pSkin->m_Count);
 
-    // read texture from file
-    csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen * pSkin->m_Count, 1, pSkin->m_pData);
+    // read texture from file. NOTE 8 bit array, should not be inverted if target endianness is big
+    return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen * pSkin->m_Count, 1, pSkin->m_pData);
 }
 //---------------------------------------------------------------------------
-void csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
-                                  size_t*              pOffset,
-                                  CSR_MDLTextureCoord* pTexCoord)
+int csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
+                                 size_t*              pOffset,
+                                 CSR_MDLTextureCoord* pTexCoord)
 {
+    int success = 1;
+
     // read texture coordinates from file
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_OnSeam);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_U);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_V);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_OnSeam);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_U);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_V);
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+    {
+        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pTexCoord->m_OnSeam, sizeof(unsigned));
+        csrMemorySwap(&pTexCoord->m_U,      sizeof(unsigned));
+        csrMemorySwap(&pTexCoord->m_V,      sizeof(unsigned));
+    }
+
+    return success;
 }
 //---------------------------------------------------------------------------
-void csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon* pPolygon)
+int csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon* pPolygon)
 {
+    int success = 1;
+
     // read polygon from file
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),                1, &pPolygon->m_FacesFront);
-    csrBufferRead(pBuffer, pOffset, sizeof(pPolygon->m_VertexIndex), 1, &pPolygon->m_VertexIndex);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),                1, &pPolygon->m_FacesFront);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(pPolygon->m_VertexIndex), 1, &pPolygon->m_VertexIndex);
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+    {
+        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pPolygon->m_FacesFront,     sizeof(unsigned));
+        csrMemorySwap(&pPolygon->m_VertexIndex[0], sizeof(unsigned));
+        csrMemorySwap(&pPolygon->m_VertexIndex[1], sizeof(unsigned));
+        csrMemorySwap(&pPolygon->m_VertexIndex[2], sizeof(unsigned));
+    }
+
+    return success;
 }
 //---------------------------------------------------------------------------
-void csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* pVertex)
+int csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* pVertex)
 {
-    // read vertex from file
-    csrBufferRead(pBuffer, pOffset, sizeof(pVertex->m_Vertex), 1, &pVertex->m_Vertex);
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned),          1, &pVertex->m_NormalIndex);
+    int success = 1;
+
+    // read vertex from file. NOTE 8 bit values, should not be inverted if target endianness is big
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(pVertex->m_Vertex), 1, &pVertex->m_Vertex);
+    success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned char),     1, &pVertex->m_NormalIndex);
+
+    return success;
 }
 //---------------------------------------------------------------------------
-void csrMDLReadFrame(const CSR_Buffer*    pBuffer,
-                           size_t*        pOffset,
-                     const CSR_MDLHeader* pHeader,
-                           CSR_MDLFrame*  pFrame)
+int csrMDLReadFrame(const CSR_Buffer*    pBuffer,
+                          size_t*        pOffset,
+                    const CSR_MDLHeader* pHeader,
+                          CSR_MDLFrame*  pFrame)
 {
     unsigned i;
+    int      success = 1;
 
     // read frame bounding box
-    csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_BoundingBoxMin);
-    csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_BoundingBoxMax);
+    success &= csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_BoundingBoxMin);
+    success &= csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_BoundingBoxMax);
 
-    // read frame name
-    csrBufferRead(pBuffer, pOffset, sizeof(char), 16, &pFrame->m_Name);
+    // succeeded?
+    if (!success)
+        return 0;
+
+    // read frame name. NOTE 8 bit array, should not be inverted if target endianness is big
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(char), 16, &pFrame->m_Name))
+        return 0;
 
     // create frame vertex buffer
     pFrame->m_pVertex = (CSR_MDLVertex*)malloc(sizeof(CSR_MDLVertex) * pHeader->m_VertexCount);
 
     // read frame vertices
     for (i = 0; i < pHeader->m_VertexCount; ++i)
-        csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_pVertex[i]);
+        if (!csrMDLReadVertex(pBuffer, pOffset, &pFrame->m_pVertex[i]))
+            return 0;
+
+    return 1;
 }
 //---------------------------------------------------------------------------
-void csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
-                                size_t*            pOffset,
-                          const CSR_MDLHeader*     pHeader,
-                                CSR_MDLFrameGroup* pFrameGroup)
+int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
+                               size_t*            pOffset,
+                         const CSR_MDLHeader*     pHeader,
+                               CSR_MDLFrameGroup* pFrameGroup)
 {
     // read the group type
-    csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Type);
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Type))
+        return 0;
+
+    // the read bytes are inverted and should be swapped if the target system is big endian
+    if (csrMemoryEndianness() == CSR_E_BigEndian)
+        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+        csrMemorySwap(&pFrameGroup->m_Type, sizeof(unsigned));
 
     // is a single frame or a group of frames?
     if (!pFrameGroup->m_Type)
@@ -847,32 +943,50 @@ void csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
         // create frame vertex buffer
         pFrameGroup->m_pFrame = (CSR_MDLFrame*)malloc(sizeof(CSR_MDLFrame) * pFrameGroup->m_Count);
 
-        csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[0]);
-        return;
+        // read the frame
+        return csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[0]);
     }
 
     // todo FIXME -cFeature -oJean: This code should be implemented
+    return 0;
 }
 //---------------------------------------------------------------------------
-void csrMDLUncompressTexture(const CSR_MDLSkin* pSkin, unsigned index, CSR_Texture* pTexture)
+CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
+                                         const unsigned char* pPalette,
+                                               size_t         index)
 {
-    unsigned offset;
-    unsigned i;
+    unsigned         offset;
+    unsigned         i;
+    CSR_PixelBuffer* pPB;
 
-    // calculate texture length and start offset
-    pTexture->m_Length = pSkin->m_TexLen;
-    offset             = pTexture->m_Length * index;
+    // create a new pixel buffer
+    pPB = csrPixelBufferCreate();
 
-    // allocate memory for the texture pixels
-    pTexture->m_pPixels = (unsigned char*)malloc(sizeof(unsigned char) * pTexture->m_Length * 3);
+    // succeeded?
+    if (!pPB)
+        return 0;
+
+    // populate the pixel buffer and calculate the start offset
+    pPB->m_PixelType  = CSR_PT_RGB;
+    pPB->m_DataLength = pSkin->m_TexLen;
+    offset            = pPB->m_DataLength * index;
+
+    // allocate memory for the pixels
+    pPB->m_pData = (unsigned char*)malloc(sizeof(unsigned char) * pPB->m_DataLength * 3);
+
+    // do use the default palette?
+    if (!pPalette)
+        pPalette = g_ColorTable;
 
     // convert indexed 8 bits texture to RGB 24 bits
-    for (i = 0; i < pTexture->m_Length; ++i)
+    for (i = 0; i < pPB->m_DataLength; ++i)
     {
-        pTexture->m_pPixels[(i * 3)]     = g_MDLColors[pSkin->m_pData[offset + i] * 3];
-        pTexture->m_pPixels[(i * 3) + 1] = g_MDLColors[pSkin->m_pData[offset + i] * 3 + 1];
-        pTexture->m_pPixels[(i * 3) + 2] = g_MDLColors[pSkin->m_pData[offset + i] * 3 + 2];
+        ((unsigned char*)pPB->m_pData)[(i * 3)]     = pPalette[pSkin->m_pData[offset + i] * 3];
+        ((unsigned char*)pPB->m_pData)[(i * 3) + 1] = pPalette[pSkin->m_pData[offset + i] * 3 + 1];
+        ((unsigned char*)pPB->m_pData)[(i * 3) + 2] = pPalette[pSkin->m_pData[offset + i] * 3 + 2];
     }
+
+    return pPB;
 }
 //---------------------------------------------------------------------------
 void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
@@ -893,6 +1007,7 @@ void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
     pResult->m_Z = vertex[2];
 }
 //---------------------------------------------------------------------------
+/*
 int miniCreateMDLMesh(MINI_MDLHeader*       pHeader,
                       MINI_MDLFrameGroup*   pFrameGroups,
                       MINI_MDLSkin*         pSkin,
@@ -1050,7 +1165,9 @@ int miniCreateMDLMesh(MINI_MDLHeader*       pHeader,
 
     return 1;
 }
+*/
 //---------------------------------------------------------------------------
+/*
 int miniLoadMDLModel(const unsigned char*     pName,
                            MINI_VertexFormat* pVertexFormat,
                            unsigned           color,
@@ -1175,7 +1292,9 @@ int miniLoadMDLModel(const unsigned char*     pName,
 
     return result;
 }
+*/
 //---------------------------------------------------------------------------
+/*
 void miniReleaseMDLModel(MINI_MDLModel* pMDLModel)
 {
     unsigned int i;
@@ -1210,4 +1329,5 @@ void miniReleaseMDLModel(MINI_MDLModel* pMDLModel)
 
     free(pMDLModel);
 }
+*/
 //---------------------------------------------------------------------------

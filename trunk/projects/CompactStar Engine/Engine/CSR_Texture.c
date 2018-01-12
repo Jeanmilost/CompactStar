@@ -33,6 +33,7 @@ CSR_PixelBuffer* csrPixelBufferCreate(void)
     pPB->m_Height       = 0;
     pPB->m_Stride       = 0;
     pPB->m_BytePerPixel = 0;
+    pPB->m_DataLength   = 0;
     pPB->m_pData        = 0;
 
     return pPB;
