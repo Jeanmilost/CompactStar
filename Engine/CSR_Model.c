@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+// this code is EXPERIMENTAL and should be STRONGLY TESTED on big endian machines before be activated
+#define CONVERT_ENDIANNESS
+
 //---------------------------------------------------------------------------
 // Tables
 //---------------------------------------------------------------------------
@@ -739,32 +742,34 @@ int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* 
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Flags);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(float),                  1, &pHeader->m_Size);
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
-    {
-        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pHeader->m_ID,             sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_Version,        sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_Scale[0],       sizeof(float));
-        csrMemorySwap(&pHeader->m_Scale[1],       sizeof(float));
-        csrMemorySwap(&pHeader->m_Scale[2],       sizeof(float));
-        csrMemorySwap(&pHeader->m_Translate[0],   sizeof(float));
-        csrMemorySwap(&pHeader->m_Translate[1],   sizeof(float));
-        csrMemorySwap(&pHeader->m_Translate[2],   sizeof(float));
-        csrMemorySwap(&pHeader->m_BoundingRadius, sizeof(float));
-        csrMemorySwap(&pHeader->m_EyePosition[0], sizeof(float));
-        csrMemorySwap(&pHeader->m_EyePosition[1], sizeof(float));
-        csrMemorySwap(&pHeader->m_EyePosition[2], sizeof(float));
-        csrMemorySwap(&pHeader->m_SkinCount,      sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_SkinWidth,      sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_SkinHeight,     sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_VertexCount,    sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_PolygonCount,   sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_FrameCount,     sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_SyncType,       sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_Flags,          sizeof(unsigned));
-        csrMemorySwap(&pHeader->m_Size,           sizeof(float));
-    }
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+        {
+            // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pHeader->m_ID,             sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_Version,        sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_Scale[0],       sizeof(float));
+            csrMemorySwap(&pHeader->m_Scale[1],       sizeof(float));
+            csrMemorySwap(&pHeader->m_Scale[2],       sizeof(float));
+            csrMemorySwap(&pHeader->m_Translate[0],   sizeof(float));
+            csrMemorySwap(&pHeader->m_Translate[1],   sizeof(float));
+            csrMemorySwap(&pHeader->m_Translate[2],   sizeof(float));
+            csrMemorySwap(&pHeader->m_BoundingRadius, sizeof(float));
+            csrMemorySwap(&pHeader->m_EyePosition[0], sizeof(float));
+            csrMemorySwap(&pHeader->m_EyePosition[1], sizeof(float));
+            csrMemorySwap(&pHeader->m_EyePosition[2], sizeof(float));
+            csrMemorySwap(&pHeader->m_SkinCount,      sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_SkinWidth,      sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_SkinHeight,     sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_VertexCount,    sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_PolygonCount,   sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_FrameCount,     sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_SyncType,       sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_Flags,          sizeof(unsigned));
+            csrMemorySwap(&pHeader->m_Size,           sizeof(float));
+        }
+    #endif
 
     return success;
 }
@@ -783,10 +788,12 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
     if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pSkin->m_Group))
         return 0;
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (csrMemoryEndianness() == CSR_E_BigEndian)
-        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pSkin->m_Group, sizeof(unsigned));
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pSkin->m_Group, sizeof(unsigned));
+    #endif
 
     pSkin->m_pTime = 0;
 
@@ -798,17 +805,19 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
         // create memory for texture
         pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen);
 
-        // read texture from file. NOTE 8 bit array, should not be inverted if target endianness is big
+        // read texture from file. NOTE 8 bit array, same in all endianness
         return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen, 1, pSkin->m_pData);
     }
 
     // read the skin count
     csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pSkin->m_Count);
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (csrMemoryEndianness() == CSR_E_BigEndian)
-        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pSkin->m_Count, sizeof(unsigned));
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pSkin->m_Count, sizeof(unsigned));
+    #endif
 
     // no skin to read?
     if (!pSkin->m_Count)
@@ -821,17 +830,19 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
     if (!csrBufferRead(pBuffer, pOffset, pSkin->m_Count * sizeof(float), 1, pSkin->m_pTime))
         return 0;
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (csrMemoryEndianness() == CSR_E_BigEndian)
-        // iterate through time values to swap
-        for (i = 0; i < pSkin->m_Count; ++i)
-            // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-            csrMemorySwap(&pSkin->m_pTime[i], sizeof(float));
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // iterate through time values to swap
+            for (i = 0; i < pSkin->m_Count; ++i)
+                // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+                csrMemorySwap(&pSkin->m_pTime[i], sizeof(float));
+    #endif
 
     // create memory for texture
     pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen * pSkin->m_Count);
 
-    // read texture from file. NOTE 8 bit array, should not be inverted if target endianness is big
+    // read texture from file. NOTE 8 bit array, same in all endianness
     return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen * pSkin->m_Count, 1, pSkin->m_pData);
 }
 //---------------------------------------------------------------------------
@@ -846,14 +857,16 @@ int csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_U);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_V);
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
-    {
-        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pTexCoord->m_OnSeam, sizeof(unsigned));
-        csrMemorySwap(&pTexCoord->m_U,      sizeof(unsigned));
-        csrMemorySwap(&pTexCoord->m_V,      sizeof(unsigned));
-    }
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+        {
+            // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pTexCoord->m_OnSeam, sizeof(unsigned));
+            csrMemorySwap(&pTexCoord->m_U,      sizeof(unsigned));
+            csrMemorySwap(&pTexCoord->m_V,      sizeof(unsigned));
+        }
+    #endif
 
     return success;
 }
@@ -866,15 +879,17 @@ int csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),                1, &pPolygon->m_FacesFront);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(pPolygon->m_VertexIndex), 1, &pPolygon->m_VertexIndex);
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (success && csrMemoryEndianness() == CSR_E_BigEndian)
-    {
-        // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pPolygon->m_FacesFront,     sizeof(unsigned));
-        csrMemorySwap(&pPolygon->m_VertexIndex[0], sizeof(unsigned));
-        csrMemorySwap(&pPolygon->m_VertexIndex[1], sizeof(unsigned));
-        csrMemorySwap(&pPolygon->m_VertexIndex[2], sizeof(unsigned));
-    }
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (success && csrMemoryEndianness() == CSR_E_BigEndian)
+        {
+            // swap the readed values in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pPolygon->m_FacesFront,     sizeof(unsigned));
+            csrMemorySwap(&pPolygon->m_VertexIndex[0], sizeof(unsigned));
+            csrMemorySwap(&pPolygon->m_VertexIndex[1], sizeof(unsigned));
+            csrMemorySwap(&pPolygon->m_VertexIndex[2], sizeof(unsigned));
+        }
+    #endif
 
     return success;
 }
@@ -883,7 +898,7 @@ int csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* 
 {
     int success = 1;
 
-    // read vertex from file. NOTE 8 bit values, should not be inverted if target endianness is big
+    // read vertex from file. NOTE 8 bit values, same in all endianness
     success &= csrBufferRead(pBuffer, pOffset, sizeof(pVertex->m_Vertex), 1, &pVertex->m_Vertex);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned char),     1, &pVertex->m_NormalIndex);
 
@@ -906,7 +921,7 @@ int csrMDLReadFrame(const CSR_Buffer*    pBuffer,
     if (!success)
         return 0;
 
-    // read frame name. NOTE 8 bit array, should not be inverted if target endianness is big
+    // read frame name. NOTE 8 bit array, same in all endianness
     if (!csrBufferRead(pBuffer, pOffset, sizeof(char), 16, &pFrame->m_Name))
         return 0;
 
@@ -930,10 +945,12 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
     if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Type))
         return 0;
 
-    // the read bytes are inverted and should be swapped if the target system is big endian
-    if (csrMemoryEndianness() == CSR_E_BigEndian)
-        // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-        csrMemorySwap(&pFrameGroup->m_Type, sizeof(unsigned));
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // swap the readed value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pFrameGroup->m_Type, sizeof(unsigned));
+    #endif
 
     // is a single frame or a group of frames?
     if (!pFrameGroup->m_Type)
