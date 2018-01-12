@@ -351,7 +351,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 rotateMatrix;
 
     // calculate the next angle
-    m_AngleY += (elapsedTime * 0.5f);
+    m_AngleY += (elapsedTime * (float(tbSpeedVelocity->Position) * 0.01f));
 
     // avoid the angle to exceeds the bounds even if a huge time has elapsed since last update
     while (m_AngleY > M_PI * 2.0f)

@@ -122,6 +122,45 @@ void csrBufferRelease(CSR_Buffer* pBuffer)
     free(pBuffer);
 }
 //---------------------------------------------------------------------------
+int csrBufferRead(const CSR_Buffer* pBuffer,
+                        size_t*     pOffset,
+                        size_t      length,
+                        size_t      count,
+                        void*       pData)
+{
+    size_t lengthToRead;
+
+    // no source buffer, offset or destination data?
+    if (!pBuffer || !pOffset || !pData)
+        return 0;
+
+    // offset exceeds the buffer?
+    if (*pOffset >= pBuffer->m_Length)
+        return 0;
+
+    // calculate the length to read
+    lengthToRead = length * count;
+
+    // too many bytes to read?
+    if (*pOffset + lengthToRead >= pBuffer->m_Length)
+    {
+        // correct it
+        lengthToRead = pBuffer->m_Length - *pOffset;
+
+        // something remains to be read?
+        if (!lengthToRead)
+            return 0;
+    }
+
+    // read the data
+    memcpy(pData, pBuffer->m_pData, lengthToRead);
+
+    // update the offset position
+    *pOffset += lengthToRead;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 // File functions
 //---------------------------------------------------------------------------
 size_t csrFileSize(const char* pFileName)

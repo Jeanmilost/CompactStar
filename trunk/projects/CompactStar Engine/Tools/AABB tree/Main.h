@@ -40,6 +40,8 @@ class TMainForm : public TForm
         TLabel *laMaxPolyToCheck;
         TLabel *laFPS;
         TLabel *laPolygonCount;
+        TLabel *laSpeedVelocityCaption;
+        TTrackBar *tbSpeedVelocity;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
