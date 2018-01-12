@@ -34,6 +34,34 @@ void* csrMemoryAlloc(void* pMemory, size_t size, size_t count)
     return realloc(pMemory, size * count);
 }
 //---------------------------------------------------------------------------
+CSR_EEndianness csrMemoryEndianness()
+{
+    int i = 1;
+
+    if (!*((char*)&i))
+        return CSR_E_BigEndian;
+
+    return CSR_E_LittleEndian;
+}
+//---------------------------------------------------------------------------
+void csrMemorySwap(void* pMemory, size_t size)
+{
+    unsigned char* pBytes   = (unsigned char*)pMemory;
+    size_t         halfSize = size >> 1;
+    size_t         lastIndex;
+    size_t         i;
+
+    // iterate through bytes to swap
+    for (i = 0; i < halfSize; ++i)
+    {
+        // swap the byte content (XOR method)
+        lastIndex         = (size - 1) - i;
+        pBytes[i]         = pBytes[i] ^ pBytes[lastIndex];
+        pBytes[lastIndex] = pBytes[i] ^ pBytes[lastIndex];
+        pBytes[i]         = pBytes[i] ^ pBytes[lastIndex];
+    }
+}
+//---------------------------------------------------------------------------
 // Math functions
 //---------------------------------------------------------------------------
 void csrMathMin(float a, float b, float* pR)
@@ -134,15 +162,15 @@ int csrBufferRead(const CSR_Buffer* pBuffer,
     if (!pBuffer || !pOffset || !pData)
         return 0;
 
-    // offset exceeds the buffer?
+    // offset exceeds the buffer length?
     if (*pOffset >= pBuffer->m_Length)
         return 0;
 
     // calculate the length to read
     lengthToRead = length * count;
 
-    // too many bytes to read?
-    if (*pOffset + lengthToRead >= pBuffer->m_Length)
+    // size to read exceeds the buffer length?
+    if (*pOffset + lengthToRead > pBuffer->m_Length)
     {
         // correct it
         lengthToRead = pBuffer->m_Length - *pOffset;

@@ -65,7 +65,7 @@ typedef struct
 */
 typedef struct
 {
-    CSR_Texture       m_Texture;
+    CSR_TextureShader m_TextureShader;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
 } CSR_Mesh;

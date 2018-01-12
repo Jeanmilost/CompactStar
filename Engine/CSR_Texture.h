@@ -46,17 +46,18 @@ typedef struct
     unsigned       m_Height;
     unsigned       m_Stride;
     unsigned       m_BytePerPixel;
+    size_t         m_DataLength;
     void*          m_pData;
 } CSR_PixelBuffer;
 
 /**
-* Texture
+* Texture shader
 */
 typedef struct
 {
     GLuint m_TextureID;
     GLuint m_BumpMapID;
-} CSR_Texture;
+} CSR_TextureShader;
 
 #ifdef __cplusplus
     extern "C"

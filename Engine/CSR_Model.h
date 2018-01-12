@@ -294,8 +294,9 @@ typedef struct
         *@param pBuffer - buffer containing the MDL data
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param[out] pHeader - MDL header structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader);
+        int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader);
 
         /**
         * Reads MDL skin
@@ -303,37 +304,41 @@ typedef struct
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param pHeader - MDL header structure
         *@param[out] pSkin - MDL skin structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadSkin(const CSR_Buffer*    pBuffer,
-                                  size_t*        pOffset,
-                            const CSR_MDLHeader* pHeader,
-                                  CSR_MDLSkin*   pSkin);
+        int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
+                                 size_t*        pOffset,
+                           const CSR_MDLHeader* pHeader,
+                                 CSR_MDLSkin*   pSkin);
 
         /**
         * Reads MDL texture coordinates
         *@param pBuffer - buffer containing the MDL data
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param[out] pTexCoord - MDL texture coordinates structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
-                                          size_t*              pOffset,
-                                          CSR_MDLTextureCoord* pTexCoord);
+        int csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
+                                         size_t*              pOffset,
+                                         CSR_MDLTextureCoord* pTexCoord);
 
         /**
         * Reads MDL polygon
         *@param pBuffer - buffer containing the MDL data
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param[out] pPolygon - MDL polygon structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon* pPolygon);
+        int csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon* pPolygon);
 
         /**
         * Reads MDL vertex
         *@param pBuffer - buffer containing the MDL data
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param[out] pVertex - MDL vertex structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* pVertex);
+        int csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* pVertex);
 
         /**
         * Reads MDL frame
@@ -341,11 +346,12 @@ typedef struct
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param pHeader - MDL header
         *@param[out] pFrame - MDL frame structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadFrame(const CSR_Buffer*    pBuffer,
-                                   size_t*        pOffset,
-                             const CSR_MDLHeader* pHeader,
-                                   CSR_MDLFrame*  pFrame);
+        int csrMDLReadFrame(const CSR_Buffer*    pBuffer,
+                                  size_t*        pOffset,
+                            const CSR_MDLHeader* pHeader,
+                                  CSR_MDLFrame*  pFrame);
 
         /**
         * Reads MDL frame group
@@ -353,22 +359,27 @@ typedef struct
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param pHeader - MDL header
         *@param[out] pFrameGroup - MDL frame group structure to populate
+        *@return 1 on success, otherwise 0
         */
-        void csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
-                                        size_t*            pOffset,
-                                  const CSR_MDLHeader*     pHeader,
-                                        CSR_MDLFrameGroup* pFrameGroup);
+        int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
+                                       size_t*            pOffset,
+                                 const CSR_MDLHeader*     pHeader,
+                                       CSR_MDLFrameGroup* pFrameGroup);
 
         /**
         * Uncompresses the MDL texture
         *@param pSkin - model skin
+        *@param pPalette - palette to use to uncompress the texture, if 0 the default palette will be used
         *@param index - texture index
-        *@param[out] pTexture - texture
+        *@return a pixel buffer containing the texture, 0 on error
+        *@note The pixel buffer must be released when no longer used, see csrPixelBufferRelease()
         */
-        void csrMDLUncompressTexture(const CSR_MDLSkin* pSkin, unsigned index, CSR_Texture* pTexture);
+        CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
+                                                 const unsigned char* pPalette,
+                                                       size_t         index);
 
         /**
-        * Uncompresses MDL vertex
+        * Uncompresses a MDL vertex
         *@param pHeader - MDL header
         *@param pVertex - MDL vertex
         *@param[out] pResult - resulting vector

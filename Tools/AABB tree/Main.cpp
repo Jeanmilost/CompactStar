@@ -504,8 +504,8 @@ void TMainForm::ResolveTreeAndDrawPolygons()
 
         // create and configure a mesh for the polygons
         mesh.m_Count                       =  1;
-        mesh.m_Texture.m_TextureID         = -1;
-        mesh.m_Texture.m_BumpMapID         = -1;
+        mesh.m_TextureShader.m_TextureID   = -1;
+        mesh.m_TextureShader.m_BumpMapID   = -1;
         mesh.m_pVB                         =  (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
         mesh.m_pVB->m_Format.m_Type        =   CSR_VT_Triangles;
         mesh.m_pVB->m_Format.m_UseNormals  =  0;
