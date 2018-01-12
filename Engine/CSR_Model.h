@@ -21,6 +21,115 @@
 #include "CSR_Geometry.h"
 #include "CSR_Vertex.h"
 
+//---------------------------------------------------------------------------
+// Global defines
+//---------------------------------------------------------------------------
+
+#define M_MDL_Mesh_File_Version 6
+#define M_MDL_ID                (('O' << 24) + ('P' << 16) + ('D' << 8) + 'I')
+
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
+
+/**
+* MDL header
+*/
+typedef struct
+{
+    unsigned m_ID;
+    unsigned m_Version;
+    float    m_Scale[3];
+    float    m_Translate[3];
+    float    m_BoundingRadius;
+    float    m_EyePosition[3];
+    unsigned m_SkinCount;
+    unsigned m_SkinWidth;
+    unsigned m_SkinHeight;
+    unsigned m_VertexCount;
+    unsigned m_PolygonCount;
+    unsigned m_FrameCount;
+    unsigned m_SyncType;
+    unsigned m_Flags;
+    float    m_Size;
+} CSR_MDLHeader;
+
+/**
+* MDL skin
+*/
+typedef struct
+{
+    unsigned       m_Group;
+    unsigned       m_Count;
+    unsigned       m_TexLen;
+    float*         m_pTime;
+    unsigned char* m_pData;
+} CSR_MDLSkin;
+
+/**
+* MDL texture coordinate
+*/
+typedef struct
+{
+    unsigned m_OnSeam;
+    unsigned m_U;
+    unsigned m_V;
+} CSR_MDLTextureCoord;
+
+/**
+* MDL polygon
+*/
+typedef struct
+{
+    unsigned m_FacesFront;
+    unsigned m_VertexIndex[3];
+} CSR_MDLPolygon;
+
+/**
+* MDL vertex
+*/
+typedef struct
+{
+    unsigned char m_Vertex[3];
+    unsigned char m_NormalIndex;
+} CSR_MDLVertex;
+
+/**
+* MDL frame
+*/
+typedef struct
+{
+    CSR_MDLVertex  m_BoundingBoxMin;
+    CSR_MDLVertex  m_BoundingBoxMax;
+    char           m_Name[16];
+    CSR_MDLVertex* m_pVertex;
+} CSR_MDLFrame;
+
+/**
+* MDL frame group
+*/
+typedef struct
+{
+    unsigned char m_Type;
+    unsigned char m_Count;
+    CSR_MDLVertex m_Min;
+    CSR_MDLVertex m_Max;
+    float*        m_pTime;
+    CSR_MDLFrame* m_pFrame;
+} CSR_MDLFrameGroup;
+
+/**
+* MDL model
+*/
+/*REM
+typedef struct
+{
+    CSR_VertexFormat* m_pVertexFormat;
+    CSR_Frame*        m_pFrame;
+    unsigned          m_FrameCount;
+} CSR_MDLModel;
+*/
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -175,6 +284,144 @@
 //                              unsigned*          pVertexCount,
 //                              MINI_Index**       pIndexes,
 //                              unsigned*          pIndexCount);
+
+        //-------------------------------------------------------------------
+        // MDL model functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Reads MDL header
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param[out] pHeader - MDL header structure to populate
+        */
+        void csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader);
+
+        /**
+        * Reads MDL skin
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param pHeader - MDL header structure
+        *@param[out] pSkin - MDL skin structure to populate
+        */
+        void csrMDLReadSkin(const CSR_Buffer*    pBuffer,
+                                  size_t*        pOffset,
+                            const CSR_MDLHeader* pHeader,
+                                  CSR_MDLSkin*   pSkin);
+
+        /**
+        * Reads MDL texture coordinates
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param[out] pTexCoord - MDL texture coordinates structure to populate
+        */
+        void csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
+                                          size_t*              pOffset,
+                                          CSR_MDLTextureCoord* pTexCoord);
+
+        /**
+        * Reads MDL polygon
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param[out] pPolygon - MDL polygon structure to populate
+        */
+        void csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon* pPolygon);
+
+        /**
+        * Reads MDL vertex
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param[out] pVertex - MDL vertex structure to populate
+        */
+        void csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* pVertex);
+
+        /**
+        * Reads MDL frame
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param pHeader - MDL header
+        *@param[out] pFrame - MDL frame structure to populate
+        */
+        void csrMDLReadFrame(const CSR_Buffer*    pBuffer,
+                                   size_t*        pOffset,
+                             const CSR_MDLHeader* pHeader,
+                                   CSR_MDLFrame*  pFrame);
+
+        /**
+        * Reads MDL frame group
+        *@param pBuffer - buffer containing the MDL data
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param pHeader - MDL header
+        *@param[out] pFrameGroup - MDL frame group structure to populate
+        */
+        void csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
+                                        size_t*            pOffset,
+                                  const CSR_MDLHeader*     pHeader,
+                                        CSR_MDLFrameGroup* pFrameGroup);
+
+        /**
+        * Uncompresses the MDL texture
+        *@param pSkin - model skin
+        *@param index - texture index
+        *@param[out] pTexture - texture
+        */
+        void csrMDLUncompressTexture(const CSR_MDLSkin* pSkin, unsigned index, CSR_Texture* pTexture);
+
+        /**
+        * Uncompresses MDL vertex
+        *@param pHeader - MDL header
+        *@param pVertex - MDL vertex
+        *@param[out] pResult - resulting vector
+        */
+        void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
+                                    const CSR_MDLVertex* pVertex,
+                                          CSR_Vector3*   pResult);
+
+        /**
+        * Creates MDL mesh
+        *@param pHeader - MDL header
+        *@param pFrameGroups - MDL frame groups
+        *@param pSkin - MDL skin
+        *@param pTexCoord - MDL texture coordinates
+        *@param pPolygon - MDL polygon
+        *@param pVertexFormat - vertex format to use
+        *@param color - color in RGBA format
+        *@param[out] pMDLModel - MDL model
+        *@return 1 on success, otherwise 0
+        */
+        /*REM
+        int csrMDLCreateMesh(CSR_MDLHeader*       pHeader,
+                             CSR_MDLFrameGroup*   pFrameGroups,
+                             CSR_MDLSkin*         pSkin,
+                             CSR_MDLTextureCoord* pTexCoord,
+                             CSR_MDLPolygon*      pPolygon,
+                             CSR_VertexFormat*    pVertexFormat,
+                             unsigned             color,
+                             CSR_MDLModel**       pMDLModel);
+        */
+
+        /**
+        * Loads MDL model
+        *@param pName - MDL file name
+        *@param pVertexFormat - vertex format to use
+        *@param color - color in RGBA format
+        *@param[out] pMDLModel - MDL model
+        *@param[out] pTexture - MDL texture
+        *@return 1 on success, otherwise 0
+        */
+        /*REM
+        int csrMDLLoad(const unsigned char*    pName,
+                             CSR_VertexFormat* pVertexFormat,
+                             unsigned          color,
+                             CSR_MDLModel**    pMDLModel,
+                             CSR_Texture*      pTexture);
+        */
+
+        /**
+        * Releases MDL model
+        *@param pMDLModel - MDL model to release
+        */
+        //REM void csrMDLRelease(CSR_MDLModel* pMDLModel);
 
 #ifdef __cplusplus
     }

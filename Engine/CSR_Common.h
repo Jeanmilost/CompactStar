@@ -138,6 +138,21 @@ typedef struct
         */
         void csrBufferRelease(CSR_Buffer* pBuffer);
 
+        /**
+        * Reads a data from a buffer
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param length - length of one data to read, in bytes
+        *@param count - number of data to read in the buffer, in bytes
+        *@param[out] pData - read data
+        *@return 1 on success, otherwise 0
+        */
+        int csrBufferRead(const CSR_Buffer* pBuffer,
+                                size_t*     pOffset,
+                                size_t      length,
+                                size_t      count,
+                                void*       pData);
+
         //-------------------------------------------------------------------
         // File functions
         //-------------------------------------------------------------------
