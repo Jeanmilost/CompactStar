@@ -112,8 +112,8 @@ typedef struct
 {
     unsigned char m_Type;
     unsigned char m_Count;
-    CSR_MDLVertex m_Min;
-    CSR_MDLVertex m_Max;
+    CSR_MDLVertex m_BoundingBoxMin;
+    CSR_MDLVertex m_BoundingBoxMax;
     float*        m_pTime;
     CSR_MDLFrame* m_pFrame;
 } CSR_MDLFrameGroup;
@@ -121,16 +121,14 @@ typedef struct
 /**
 * MDL model
 */
-/*REM
 typedef struct
 {
-    CSR_VertexFormat* m_pVertexFormat;
-    CSR_Frame*        m_pFrame;
-    unsigned          m_FrameCount;
+    CSR_Mesh*        m_pMesh;
+    CSR_PixelBuffer* m_pTexture;
+    size_t           m_TextureCount;
 } CSR_MDLModel;
-*/
 
-#ifdef __cplusplus
+#ifdef __cplusplus
     extern "C"
     {
 #endif
@@ -290,6 +288,19 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
+        * Creates a MDL model
+        *@return newly created MDL model, 0 on error
+        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
+        */
+        CSR_MDLModel* csrMDLModelCreate(void);
+
+        /**
+        * Releases a MDL model
+        *@param pModel - MDL model to release
+        */
+        void csrMDLModelRelease(CSR_MDLModel* pModel);
+
+        /**
         * Reads MDL header
         *@param pBuffer - buffer containing the MDL data
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
@@ -370,12 +381,16 @@ typedef struct
         * Uncompresses the MDL texture
         *@param pSkin - model skin
         *@param pPalette - palette to use to uncompress the texture, if 0 the default palette will be used
+        *@param width - texture width
+        *@param height - texture height
         *@param index - texture index
         *@return a pixel buffer containing the texture, 0 on error
         *@note The pixel buffer must be released when no longer used, see csrPixelBufferRelease()
         */
         CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
-                                                 const unsigned char* pPalette,
+                                                 const CSR_Buffer*    pPalette,
+                                                       size_t         width,
+                                                       size_t         height,
                                                        size_t         index);
 
         /**
@@ -397,42 +412,44 @@ typedef struct
         *@param pPolygon - MDL polygon
         *@param pVertexFormat - vertex format to use
         *@param color - color in RGBA format
-        *@param[out] pMDLModel - MDL model
-        *@return 1 on success, otherwise 0
+        *@return mesh containing the MDL model, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        /*REM
-        int csrMDLCreateMesh(CSR_MDLHeader*       pHeader,
-                             CSR_MDLFrameGroup*   pFrameGroups,
-                             CSR_MDLSkin*         pSkin,
-                             CSR_MDLTextureCoord* pTexCoord,
-                             CSR_MDLPolygon*      pPolygon,
-                             CSR_VertexFormat*    pVertexFormat,
-                             unsigned             color,
-                             CSR_MDLModel**       pMDLModel);
-        */
+        CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
+                                   const CSR_MDLFrameGroup*   pFrameGroups,
+                                   const CSR_MDLSkin*         pSkin,
+                                   const CSR_MDLTextureCoord* pTexCoord,
+                                   const CSR_MDLPolygon*      pPolygon,
+                                   const CSR_VertexFormat*    pVertexFormat,
+                                         unsigned             color);
 
         /**
-        * Loads MDL model
-        *@param pName - MDL file name
+        * Creates a MDL model from a buffer
+        *@param pBuffer - buffer containing the MDL data to read
+        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
         *@param pVertexFormat - vertex format to use
         *@param color - color in RGBA format
-        *@param[out] pMDLModel - MDL model
-        *@param[out] pTexture - MDL texture
-        *@return 1 on success, otherwise 0
+        *@return the newly created MDL model, 0 on error
+        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        /*REM
-        int csrMDLLoad(const unsigned char*    pName,
-                             CSR_VertexFormat* pVertexFormat,
-                             unsigned          color,
-                             CSR_MDLModel**    pMDLModel,
-                             CSR_Texture*      pTexture);
-        */
+        CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                                   const CSR_Buffer*       pPalette,
+                                         CSR_VertexFormat* pVertexFormat,
+                                         unsigned          color);
 
         /**
-        * Releases MDL model
-        *@param pMDLModel - MDL model to release
+        * Opens a MDL model from a file
+        *@param pFileName - MDL model file name
+        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
+        *@param pVertexFormat - vertex format to use
+        *@param color - color in RGBA format
+        *@return the newly created MDL model, 0 on error
+        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        //REM void csrMDLRelease(CSR_MDLModel* pMDLModel);
+        CSR_MDLModel* csrMDLOpen(const char*             pFileName,
+                                 const CSR_Buffer*       pPalette,
+                                       CSR_VertexFormat* pVertexFormat,
+                                       unsigned          color);
 
 #ifdef __cplusplus
     }

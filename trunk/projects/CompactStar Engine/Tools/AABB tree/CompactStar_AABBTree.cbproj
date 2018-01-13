@@ -39,9 +39,9 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
-        <IncludePath>..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\Engine\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\SDK\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\Engine\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_AABBTree</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -104,66 +104,65 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="..\..\Engine\CSR_Collision.c">
+        <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Collision.h">
+        <None Include="..\..\SDK\CSR_Collision.h">
             <BuildOrder>4</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Common.c">
+        <CppCompile Include="..\..\SDK\CSR_Common.c">
             <BuildOrder>5</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Common.h">
+        <None Include="..\..\SDK\CSR_Common.h">
             <BuildOrder>6</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Geometry.c">
+        <CppCompile Include="..\..\SDK\CSR_Geometry.c">
             <BuildOrder>7</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Geometry.h">
+        <None Include="..\..\SDK\CSR_Geometry.h">
             <BuildOrder>8</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Model.c">
+        <CppCompile Include="..\..\SDK\CSR_Model.c">
             <BuildOrder>9</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Model.h">
+        <None Include="..\..\SDK\CSR_Model.h">
             <BuildOrder>10</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Renderer.c">
+        <CppCompile Include="..\..\SDK\CSR_Renderer.c">
             <BuildOrder>11</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Renderer.h">
+        <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>12</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Shader.c">
+        <CppCompile Include="..\..\SDK\CSR_Shader.c">
             <BuildOrder>13</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Shader.h">
+        <None Include="..\..\SDK\CSR_Shader.h">
             <BuildOrder>14</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Sound.c">
+        <CppCompile Include="..\..\SDK\CSR_Sound.c">
             <BuildOrder>15</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Sound.h">
+        <None Include="..\..\SDK\CSR_Sound.h">
             <BuildOrder>16</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Engine\CSR_Texture.c">
-            <BuildOrder>20</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\Engine\CSR_Texture.h">
-            <BuildOrder>19</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\Engine\CSR_Vertex.c">
+        <CppCompile Include="..\..\SDK\CSR_Texture.c">
             <BuildOrder>17</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Engine\CSR_Vertex.h">
+        <None Include="..\..\SDK\CSR_Texture.h">
             <BuildOrder>18</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Vertex.c">
+            <BuildOrder>19</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Vertex.h">
+            <BuildOrder>20</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_AABBTree.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
         <PCHCompile Include="CompactStar_AABBTree_PCH.h">
             <BuildOrder>1</BuildOrder>
-            <PCH>true</PCH>
         </PCHCompile>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
@@ -218,12 +217,6 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="File1.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

@@ -23,7 +23,7 @@
 #define CONVERT_ENDIANNESS
 
 //---------------------------------------------------------------------------
-// Tables
+// Global values
 //---------------------------------------------------------------------------
 float g_NormalTable[] =
 {
@@ -721,11 +721,45 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
 //---------------------------------------------------------------------------
 // MDL model functions
 //---------------------------------------------------------------------------
+CSR_MDLModel* csrMDLModelCreate(void)
+{
+    // create a new MDL model
+    CSR_MDLModel* pModel = (CSR_MDLModel*)malloc(sizeof(CSR_MDLModel));
+
+    // succeeded?
+    if (!pModel)
+        return 0;
+
+    // initialize the pixel buffer content
+    pModel->m_pMesh    = 0;
+    pModel->m_pTexture = 0;
+
+    return pModel;
+}
+//---------------------------------------------------------------------------
+void csrMDLModelRelease(CSR_MDLModel* pModel)
+{
+    // no pixel buffer to release?
+    if (!pModel)
+        return;
+
+    // free the texture content
+    if (pModel->m_pTexture)
+        csrPixelBufferRelease(pModel->m_pTexture);
+
+    // free the mesh content
+    if (pModel->m_pMesh)
+        csrMeshRelease(pModel->m_pMesh);
+
+    // free the MDL model
+    free(pModel);
+}
+//---------------------------------------------------------------------------
 int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader)
 {
     int success = 1;
 
-    // read header from file
+    // read header from buffer
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_ID);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),               1, &pHeader->m_Version);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(pHeader->m_Scale),       1, &pHeader->m_Scale);
@@ -805,7 +839,7 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
         // create memory for texture
         pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen);
 
-        // read texture from file. NOTE 8 bit array, same in all endianness
+        // read texture from buffer. NOTE 8 bit array, same in all endianness
         return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen, 1, pSkin->m_pData);
     }
 
@@ -826,8 +860,8 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
     // create memory for time table
     pSkin->m_pTime = (float*)malloc(pSkin->m_Count * sizeof(float));
 
-    // read time table from file
-    if (!csrBufferRead(pBuffer, pOffset, pSkin->m_Count * sizeof(float), 1, pSkin->m_pTime))
+    // read time table from buffer
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(float), pSkin->m_Count, pSkin->m_pTime))
         return 0;
 
     #ifdef CONVERT_ENDIANNESS
@@ -842,8 +876,8 @@ int csrMDLReadSkin(const CSR_Buffer*    pBuffer,
     // create memory for texture
     pSkin->m_pData = (unsigned char*)malloc(pSkin->m_TexLen * pSkin->m_Count);
 
-    // read texture from file. NOTE 8 bit array, same in all endianness
-    return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen * pSkin->m_Count, 1, pSkin->m_pData);
+    // read texture from buffer. NOTE 8 bit array, same in all endianness
+    return csrBufferRead(pBuffer, pOffset, pSkin->m_TexLen , pSkin->m_Count, pSkin->m_pData);
 }
 //---------------------------------------------------------------------------
 int csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
@@ -852,7 +886,7 @@ int csrMDLReadTextureCoord(const CSR_Buffer*          pBuffer,
 {
     int success = 1;
 
-    // read texture coordinates from file
+    // read texture coordinates from buffer
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_OnSeam);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_U);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pTexCoord->m_V);
@@ -875,7 +909,7 @@ int csrMDLReadPolygon(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLPolygon
 {
     int success = 1;
 
-    // read polygon from file
+    // read polygon from buffer
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned),                1, &pPolygon->m_FacesFront);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(pPolygon->m_VertexIndex), 1, &pPolygon->m_VertexIndex);
 
@@ -898,7 +932,7 @@ int csrMDLReadVertex(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLVertex* 
 {
     int success = 1;
 
-    // read vertex from file. NOTE 8 bit values, same in all endianness
+    // read vertex from buffer. NOTE 8 bit values, same in all endianness
     success &= csrBufferRead(pBuffer, pOffset, sizeof(pVertex->m_Vertex), 1, &pVertex->m_Vertex);
     success &= csrBufferRead(pBuffer, pOffset, sizeof(unsigned char),     1, &pVertex->m_NormalIndex);
 
@@ -941,6 +975,8 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
                          const CSR_MDLHeader*     pHeader,
                                CSR_MDLFrameGroup* pFrameGroup)
 {
+    size_t i;
+
     // read the group type
     if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Type))
         return 0;
@@ -957,24 +993,85 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
     {
         pFrameGroup->m_Count = 1;
 
-        // create frame vertex buffer
+        // create frame and time buffers
         pFrameGroup->m_pFrame = (CSR_MDLFrame*)malloc(sizeof(CSR_MDLFrame) * pFrameGroup->m_Count);
+        pFrameGroup->m_pTime  = (float*)       malloc(sizeof(float)        * pFrameGroup->m_Count);
+
+        // succeeded?
+        if (!pFrameGroup->m_pFrame || !pFrameGroup->m_pTime)
+            return 0;
 
         // read the frame
-        return csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[0]);
+        if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[0]))
+            return 0;
+
+        // for 1 frame there is no time
+        pFrameGroup->m_pTime[0] = 0.0f;
+
+        // get the group bounding box (for 1 frame, the group has the same box as the frame)
+        pFrameGroup->m_BoundingBoxMin = pFrameGroup->m_pFrame[0].m_BoundingBoxMin;
+        pFrameGroup->m_BoundingBoxMax = pFrameGroup->m_pFrame[0].m_BoundingBoxMax;
+
+        return 1;
     }
 
-    // todo FIXME -cFeature -oJean: This code should be implemented
-    return 0;
+    // frame group count from buffer
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Count))
+        return 0;
+
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // iterate through time values to swap
+            for (i = 0; i < pFrameGroup->m_Count; ++i)
+                // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+                csrMemorySwap(&pFrameGroup->m_Count, sizeof(float));
+    #endif
+
+    // read the group bounding box min frame
+    if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_BoundingBoxMin))
+        return 0;
+
+    // read the group bounding box max frame
+    if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_BoundingBoxMax))
+        return 0;
+
+    // create frame and time buffers
+    pFrameGroup->m_pFrame = (CSR_MDLFrame*)malloc(sizeof(CSR_MDLFrame) * pFrameGroup->m_Count);
+    pFrameGroup->m_pTime  = (float*)       malloc(sizeof(float)        * pFrameGroup->m_Count);
+
+    // read the time table from buffer
+    if (!csrBufferRead(pBuffer, pOffset, sizeof(float), pFrameGroup->m_Count, pFrameGroup->m_pTime))
+        return 0;
+
+    #ifdef CONVERT_ENDIANNESS
+        // the read bytes are inverted and should be swapped if the target system is big endian
+        if (csrMemoryEndianness() == CSR_E_BigEndian)
+            // iterate through time values to swap
+            for (i = 0; i < pFrameGroup->m_Count; ++i)
+                // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+                csrMemorySwap(&pFrameGroup->m_pTime[i], sizeof(float));
+    #endif
+
+    // read the frames
+    for (i = 0; i < pFrameGroup->m_Count; ++i)
+        if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[i]))
+            return 0;
+
+    return 1;
 }
 //---------------------------------------------------------------------------
 CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
-                                         const unsigned char* pPalette,
+                                         const CSR_Buffer*    pPalette,
+                                               size_t         width,
+                                               size_t         height,
                                                size_t         index)
 {
-    unsigned         offset;
-    unsigned         i;
+    size_t           offset;
+    size_t           i;
     CSR_PixelBuffer* pPB;
+    unsigned char*   pTexPal;
+    unsigned         bpp = 3;
 
     // create a new pixel buffer
     pPB = csrPixelBufferCreate();
@@ -984,23 +1081,29 @@ CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
         return 0;
 
     // populate the pixel buffer and calculate the start offset
-    pPB->m_PixelType  = CSR_PT_RGB;
-    pPB->m_DataLength = pSkin->m_TexLen;
-    offset            = pPB->m_DataLength * index;
+    pPB->m_PixelType    = CSR_PT_RGB;
+    pPB->m_Width        = width;
+    pPB->m_Height       = height;
+    pPB->m_BytePerPixel = bpp;
+    pPB->m_Stride       = width * pPB->m_BytePerPixel;
+    pPB->m_DataLength   = pSkin->m_TexLen;
+    offset              = pPB->m_DataLength * index;
 
     // allocate memory for the pixels
     pPB->m_pData = (unsigned char*)malloc(sizeof(unsigned char) * pPB->m_DataLength * 3);
 
     // do use the default palette?
-    if (!pPalette)
-        pPalette = g_ColorTable;
+    if (!pPalette || pPalette->m_Length != sizeof(g_ColorTable))
+        pTexPal = g_ColorTable;
+    else
+        pTexPal = pPalette->m_pData;
 
     // convert indexed 8 bits texture to RGB 24 bits
     for (i = 0; i < pPB->m_DataLength; ++i)
     {
-        ((unsigned char*)pPB->m_pData)[(i * 3)]     = pPalette[pSkin->m_pData[offset + i] * 3];
-        ((unsigned char*)pPB->m_pData)[(i * 3) + 1] = pPalette[pSkin->m_pData[offset + i] * 3 + 1];
-        ((unsigned char*)pPB->m_pData)[(i * 3) + 2] = pPalette[pSkin->m_pData[offset + i] * 3 + 2];
+        ((unsigned char*)pPB->m_pData)[(i * bpp)]     = pTexPal[pSkin->m_pData[offset + i] * bpp];
+        ((unsigned char*)pPB->m_pData)[(i * bpp) + 1] = pTexPal[pSkin->m_pData[offset + i] * bpp + 1];
+        ((unsigned char*)pPB->m_pData)[(i * bpp) + 2] = pTexPal[pSkin->m_pData[offset + i] * bpp + 2];
     }
 
     return pPB;
@@ -1024,209 +1127,162 @@ void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
     pResult->m_Z = vertex[2];
 }
 //---------------------------------------------------------------------------
-/*
-int miniCreateMDLMesh(MINI_MDLHeader*       pHeader,
-                      MINI_MDLFrameGroup*   pFrameGroups,
-                      MINI_MDLSkin*         pSkin,
-                      MINI_MDLTextureCoord* pTexCoord,
-                      MINI_MDLPolygon*      pPolygon,
-                      MINI_VertexFormat*    pVertexFormat,
-                      unsigned              color,
-                      MINI_MDLModel**       pMDLModel)
+CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
+                           const CSR_MDLFrameGroup*   pFrameGroups,
+                           const CSR_MDLSkin*         pSkin,
+                           const CSR_MDLTextureCoord* pTexCoord,
+                           const CSR_MDLPolygon*      pPolygon,
+                           const CSR_VertexFormat*    pVertexFormat,
+                                 unsigned             color)
 {
-    unsigned int        index;
-    unsigned int        vertexIndex;
-    unsigned int        normalIndex;
-    unsigned int        offset;
-    unsigned int        vertexLength;
-    int                 i;
-    int                 j;
-    int                 k;
-    float               tu;
-    float               tv;
-    MINI_MDLFrameGroup* pSrcFrameGroup;
-    MINI_MDLVertex*     pSrcVertex;
-    MINI_Frame*         pMdlFrm;
-    MINI_Mesh*          pMdlMesh;
-    MINI_Vector3        vertex;
+    unsigned           index;
+    unsigned           normalIndex;
+    int                i;
+    size_t             j;
+    size_t             k;
+    float              tu;
+    float              tv;
+    CSR_Vector3        vertex;
+    CSR_Vector3        normal;
+    CSR_Vector2        uv;
+    CSR_MDLFrameGroup* pSrcFrameGroup;
+    CSR_MDLVertex*     pSrcVertex;
+    CSR_VertexBuffer*  pVB;
+    CSR_Mesh*          pMesh;
 
-    // create MDL model
-    *pMDLModel                    = (MINI_MDLModel*)    malloc(sizeof(MINI_MDLModel));
-    (*pMDLModel)->m_pVertexFormat = (MINI_VertexFormat*)malloc(sizeof(MINI_VertexFormat));
-    (*pMDLModel)->m_pFrame        = (MINI_Frame*)       malloc(sizeof(MINI_Frame) * pHeader->m_FrameCount);
-    (*pMDLModel)->m_FrameCount    = pHeader->m_FrameCount;
+    // are source data complete?
+    if (!pHeader || !pFrameGroups || !pSkin || !pTexCoord || !pPolygon || !pVertexFormat)
 
-    // calculate stride
-    miniCalculateStride(pVertexFormat);
+    // model contains no frame?
+    if (!pHeader->m_FrameCount)
+        return 0;
 
-    // copy vertex format
-    *((*pMDLModel)->m_pVertexFormat) = *pVertexFormat;
+    // create a new mesh to contain the model
+    pMesh = csrMeshCreate();
 
-    vertexLength = sizeof(float) * pVertexFormat->m_Stride;
+    // succeeded?
+    if (!pMesh)
+        return 0;
 
-    // iterate through frames to create
+    // create all the vertex buffers required to contain all the model frames
+    pMesh->m_pVB   = csrMemoryAlloc(pMesh->m_pVB, sizeof(CSR_VertexBuffer), pHeader->m_FrameCount);
+    pMesh->m_Count = pHeader->m_FrameCount;
+
+    // succeeded?
+    if (!pMesh->m_pVB)
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // iterate through frames to get
     for (index = 0; index < pHeader->m_FrameCount; ++index)
     {
         // get source frame group from which meshes should be extracted
         pSrcFrameGroup = &pFrameGroups[index];
 
-        // get current frame to populate
-        pMdlFrm              = &(*pMDLModel)->m_pFrame[index];
-        pMdlFrm->m_pMesh     = 0;
-        pMdlFrm->m_MeshCount = 0;
+        // prepare the next vertex buffer format
+        pMesh->m_pVB[index].m_Format        = *pVertexFormat;
+        pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_Triangles;
+        csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
 
         // iterate through meshes composing the frame
         for (i = 0; i < pSrcFrameGroup->m_Count; ++i)
-        {
-            // set mesh count
-            ++pMdlFrm->m_MeshCount;
-
-            // create new mesh
-            if (!pMdlFrm->m_pMesh)
-                pMdlFrm->m_pMesh = (MINI_Mesh*)malloc(sizeof(MINI_Mesh));
-            else
-                pMdlFrm->m_pMesh = (MINI_Mesh*)realloc(pMdlFrm->m_pMesh,
-                                                       sizeof(MINI_Mesh) * pMdlFrm->m_MeshCount);
-
-            // get current mesh to populate
-            pMdlMesh = &pMdlFrm->m_pMesh[i];
-
-            // populate newly created mesh
-            pMdlMesh->m_pVertexBuffer = 0;
-            pMdlMesh->m_VertexCount   = pHeader->m_PolygonCount * 3;
-
-            // add new vertex
-            if (!pMdlMesh->m_pVertexBuffer)
-                pMdlMesh->m_pVertexBuffer = (float*)malloc(pMdlMesh->m_VertexCount * vertexLength);
-            else
-                pMdlMesh->m_pVertexBuffer = (float*)realloc(pMdlMesh->m_pVertexBuffer,
-                                                            pMdlMesh->m_VertexCount * vertexLength);
-
-            pMdlMesh->m_IsTriangleStrip = 0;
-
-            vertexIndex = 0;
-
             // iterate through polygons to process
             for (j = 0; j < pHeader->m_PolygonCount; ++j)
+                // iterate through polygon vertices
                 for (k = 0; k < 3; ++k)
                 {
                     // get source vertex
-                    pSrcVertex =
-                            &pSrcFrameGroup->m_pFrame[i].m_pVertex[pPolygon[j].m_VertexIndex[k]];
+                    pSrcVertex = &pSrcFrameGroup->m_pFrame[i].m_pVertex[pPolygon[j].m_VertexIndex[k]];
 
                     // uncompress vertex
-                    miniUncompressMDLVertex(pHeader, pSrcVertex, &vertex);
+                    csrMDLUncompressVertex(pHeader, pSrcVertex, &vertex);
 
-                    offset = vertexIndex;
+                    // get normal
+                    normalIndex = pSrcVertex->m_NormalIndex;
+                    normal.m_X  = g_NormalTable[normalIndex];
+                    normal.m_Y  = g_NormalTable[normalIndex];
+                    normal.m_Z  = g_NormalTable[normalIndex];
 
-                    // populate vertex
-                    pMdlMesh->m_pVertexBuffer[offset]     = vertex.m_X;
-                    pMdlMesh->m_pVertexBuffer[offset + 1] = vertex.m_Y;
-                    pMdlMesh->m_pVertexBuffer[offset + 2] = vertex.m_Z;
+                    // get vertex texture coordinates
+                    uv.m_X = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_U;
+                    uv.m_Y = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_V;
 
-                    offset += 3;
+                    // is texture coordinate on the back face?
+                    if (!pPolygon[j].m_FacesFront && pTexCoord[pPolygon[j].m_VertexIndex[k]].m_OnSeam)
+                        // correct the texture coordinate to put it on the back face
+                        uv.m_X += pHeader->m_SkinWidth * 0.5f;
 
-                    // do include normals?
-                    if ((*pMDLModel)->m_pVertexFormat->m_UseNormals)
-                    {
-                        // calculate normal index in table
-                        normalIndex = pSrcVertex->m_NormalIndex;
+                    // scale s and t to range from 0.0 to 1.0
+                    uv.m_X = (uv.m_X + 0.5) / pHeader->m_SkinWidth;
+                    uv.m_Y = (uv.m_Y + 0.5) / pHeader->m_SkinHeight;
 
-                        // extract normal
-                        pMdlMesh->m_pVertexBuffer[offset]     = g_NormalTable[normalIndex];
-                        pMdlMesh->m_pVertexBuffer[offset + 1] = g_NormalTable[normalIndex + 1];
-                        pMdlMesh->m_pVertexBuffer[offset + 2] = g_NormalTable[normalIndex + 2];
-
-                        offset += 3;
-                    }
-
-                    // do include texture coordinates?
-                    if ((*pMDLModel)->m_pVertexFormat->m_UseTextures)
-                    {
-                        // get vertex texture coordinates. Be careful, here a pointer of
-                        // type float should be read from memory, for that the conversion
-                        // cannot be done from M_Precision
-                        tu = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_U;
-                        tv = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_V;
-
-                        // is texture coordinate on the back face?
-                        if (!pPolygon[j].m_FacesFront &&
-                                pTexCoord[pPolygon[j].m_VertexIndex[k]].m_OnSeam)
-                            // correct the texture coordinate to put it on the back face
-                            tu += pHeader->m_SkinWidth * 0.5f;
-
-                        // scale s and t to range from 0.0 to 1.0
-                        tu = (tu + 0.5) / pHeader->m_SkinWidth;
-                        tv = (tv + 0.5) / pHeader->m_SkinHeight;
-
-                        // copy texture coordinates from source
-                        pMdlMesh->m_pVertexBuffer[offset]     = tu;
-                        pMdlMesh->m_pVertexBuffer[offset + 1] = tv;
-
-                        offset += 2;
-                    }
-
-                    // do use colors?
-                    if ((*pMDLModel)->m_pVertexFormat->m_UseColors)
-                    {
-                        pMdlMesh->m_pVertexBuffer[offset]     = (float)((color >> 24) & 0xFF) / 255.0f;
-                        pMdlMesh->m_pVertexBuffer[offset + 1] = (float)((color >> 16) & 0xFF) / 255.0f;
-                        pMdlMesh->m_pVertexBuffer[offset + 2] = (float)((color >> 8)  & 0xFF) / 255.0f;
-                        pMdlMesh->m_pVertexBuffer[offset + 3] = (float)( color        & 0xFF) / 255.0f;
-                    }
-
-                    vertexIndex += pVertexFormat->m_Stride;
+                    // add vertex to frame buffer
+                    csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
                 }
-        }
     }
 
-    return 1;
+    return pMesh;
 }
-*/
 //---------------------------------------------------------------------------
-/*
-int miniLoadMDLModel(const unsigned char*     pName,
-                           MINI_VertexFormat* pVertexFormat,
-                           unsigned           color,
-                           MINI_MDLModel**    pMDLModel,
-                           MINI_Texture*      pTexture)
+CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                           const CSR_Buffer*       pPalette,
+                                 CSR_VertexFormat* pVertexFormat,
+                                 unsigned          color)
 {
-    FILE*                 pFile;
-    MINI_MDLHeader*       pHeader;
-    MINI_MDLSkin*         pSkin;
-    MINI_MDLTextureCoord* pTexCoord;
-    MINI_MDLPolygon*      pPolygon;
-    MINI_MDLFrameGroup*   pFrameGroup;
-    unsigned int          i;
-    int                   result = 0;
+    CSR_MDLHeader*       pHeader;
+    CSR_MDLSkin*         pSkin;
+    CSR_MDLTextureCoord* pTexCoord;
+    CSR_MDLPolygon*      pPolygon;
+    CSR_MDLFrameGroup*   pFrameGroup;
+    CSR_MDLModel*        pModel;
+    size_t               i;
+    size_t               offset = 0;
 
-    // open mdl file
-    pFile = M_MINI_FILE_OPEN((const char*)pName, "rb");
+    // no buffer to read from?
+    if (!pBuffer)
+        return 0;
+
+    // no vertex format?
+    if (!pVertexFormat)
+        return 0;
+
+    // create a new MDL model
+    pModel = csrMDLModelCreate();
 
     // succeeded?
-    if (!pFile)
+    if (!pModel)
         return 0;
 
     // create mdl header
-    pHeader = (MINI_MDLHeader*)malloc(sizeof(MINI_MDLHeader));
+    pHeader = (CSR_MDLHeader*)malloc(sizeof(CSR_MDLHeader));
+
+    // succeeded?
+    if (!pHeader)
+    {
+        csrMDLModelRelease(pModel);
+        return 0;
+    }
 
     // read file header
-    miniReadMDLHeader(pFile, pHeader);
+    csrMDLReadHeader(pBuffer, &offset, pHeader);
 
     // is mdl file and version correct?
     if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
     {
         free(pHeader);
+        csrMDLModelRelease(pModel);
         return 0;
     }
 
     // read skins
     if (pHeader->m_SkinCount)
     {
-        pSkin = (MINI_MDLSkin*)malloc(sizeof(MINI_MDLSkin) * pHeader->m_SkinCount);
+        pSkin = (CSR_MDLSkin*)malloc(sizeof(CSR_MDLSkin) * pHeader->m_SkinCount);
 
         for (i = 0; i < pHeader->m_SkinCount; ++i)
-            miniReadMDLSkin(pFile, pHeader, &pSkin[i]);
+            csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]);
     }
     else
         pSkin = 0;
@@ -1234,10 +1290,10 @@ int miniLoadMDLModel(const unsigned char*     pName,
     // read texture coordinates
     if (pHeader->m_VertexCount)
     {
-        pTexCoord = (MINI_MDLTextureCoord*)malloc(sizeof(MINI_MDLTextureCoord) * pHeader->m_VertexCount);
+        pTexCoord = (CSR_MDLTextureCoord*)malloc(sizeof(CSR_MDLTextureCoord) * pHeader->m_VertexCount);
 
         for (i = 0; i < pHeader->m_VertexCount; ++i)
-            miniReadMDLTextureCoord(pFile, &pTexCoord[i]);
+            csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]);
     }
     else
         pTexCoord = 0;
@@ -1245,10 +1301,10 @@ int miniLoadMDLModel(const unsigned char*     pName,
     // read polygons
     if (pHeader->m_PolygonCount)
     {
-        pPolygon = (MINI_MDLPolygon*)malloc(sizeof(MINI_MDLPolygon) * pHeader->m_PolygonCount);
+        pPolygon = (CSR_MDLPolygon*)malloc(sizeof(CSR_MDLPolygon) * pHeader->m_PolygonCount);
 
         for (i = 0; i < pHeader->m_PolygonCount; ++i)
-            miniReadMDLPolygon(pFile, &pPolygon[i]);
+            csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]);
     }
     else
         pPolygon = 0;
@@ -1256,33 +1312,32 @@ int miniLoadMDLModel(const unsigned char*     pName,
     // read frames
     if (pHeader->m_FrameCount)
     {
-        pFrameGroup = (MINI_MDLFrameGroup*)malloc(sizeof(MINI_MDLFrameGroup) * pHeader->m_FrameCount);
+        pFrameGroup = (CSR_MDLFrameGroup*)malloc(sizeof(CSR_MDLFrameGroup) * pHeader->m_FrameCount);
 
         for (i = 0; i < pHeader->m_FrameCount; ++i)
-            miniReadMDLFrameGroup(pFile, pHeader, &pFrameGroup[i]);
+            csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]);
     }
     else
         pFrameGroup = 0;
 
-    // close MD2 file
-    M_MINI_FILE_CLOSE(pFile);
-
     // create mesh from file content
-    result = miniCreateMDLMesh(pHeader,
-                               pFrameGroup,
-                               pSkin,
-                               pTexCoord,
-                               pPolygon,
-                               pVertexFormat,
-                               color,
-                               pMDLModel);
+    pModel->m_pMesh = csrMDLCreateMesh(pHeader,
+                                       pFrameGroup,
+                                       pSkin,
+                                       pTexCoord,
+                                       pPolygon,
+                                       pVertexFormat,
+                                       color);
 
+    // todo FIXME -cFeature -oJean: MDL may support several textures, and several pictures per
+    //                              texture. This hould be managed here
     // extract texture from model
-    miniUncompressMDLTexture(pSkin, 0, pTexture);
-
-    // set texture size
-    pTexture->m_Width  = pHeader->m_SkinWidth;
-    pTexture->m_Height = pHeader->m_SkinHeight;
+    pModel->m_pTexture     = csrMDLUncompressTexture(pSkin,
+                                                     pPalette,
+                                                     pHeader->m_SkinWidth,
+                                                     pHeader->m_SkinHeight,
+                                                     0);
+    pModel->m_TextureCount = 1;
 
     // delete frame vertices
     for (i = 0; i < pHeader->m_FrameCount; ++i)
@@ -1307,44 +1362,33 @@ int miniLoadMDLModel(const unsigned char*     pName,
     free(pPolygon);
     free(pFrameGroup);
 
-    return result;
+    return pModel;
 }
-*/
 //---------------------------------------------------------------------------
-/*
-void miniReleaseMDLModel(MINI_MDLModel* pMDLModel)
+CSR_MDLModel* csrMDLOpen(const char*             pFileName,
+                         const CSR_Buffer*       pPalette,
+                               CSR_VertexFormat* pVertexFormat,
+                               unsigned          color)
 {
-    unsigned int i;
-    unsigned int j;
+    CSR_Buffer*   pBuffer;
+    CSR_MDLModel* pModel;
 
-    // no model to delete?
-    if (!pMDLModel)
-        return;
+    // open the sound file
+    pBuffer = csrFileOpen(pFileName);
 
-    // iterate through meshes and delete each mesh
-    for (i = 0; i < pMDLModel->m_FrameCount; ++i)
+    // succeeded?
+    if (!pBuffer || !pBuffer->m_Length)
     {
-        if (!pMDLModel->m_pFrame[i].m_pMesh)
-            continue;
-
-        // iterate through mesh vertex buffers and delete each vertex buffer
-        for (j = 0; j < pMDLModel->m_pFrame[i].m_MeshCount; ++j)
-            if (pMDLModel->m_pFrame[i].m_pMesh[j].m_pVertexBuffer)
-                free(pMDLModel->m_pFrame[i].m_pMesh[j].m_pVertexBuffer);
-
-        // delete meshes, if exist
-        free(pMDLModel->m_pFrame[i].m_pMesh);
+        csrBufferRelease(pBuffer);
+        return 0;
     }
 
-    // delete frame list, if exists
-    if (pMDLModel->m_pFrame)
-        free(pMDLModel->m_pFrame);
+    // create the MDL model from the file content
+    pModel = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
 
-    // delete vertex format, if exists
-    if (pMDLModel->m_pVertexFormat)
-        free(pMDLModel->m_pVertexFormat);
+    // release the file buffer (no longer required)
+    csrBufferRelease(pBuffer);
 
-    free(pMDLModel);
+    return pModel;
 }
-*/
 //---------------------------------------------------------------------------
