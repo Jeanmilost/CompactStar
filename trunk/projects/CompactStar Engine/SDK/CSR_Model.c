@@ -1282,7 +1282,13 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         pSkin = (CSR_MDLSkin*)malloc(sizeof(CSR_MDLSkin) * pHeader->m_SkinCount);
 
         for (i = 0; i < pHeader->m_SkinCount; ++i)
-            csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]);
+            if (!csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]))
+            {
+                free(pHeader);
+                free(pSkin);
+                csrMDLModelRelease(pModel);
+                return 0;
+            }
     }
     else
         pSkin = 0;
@@ -1293,7 +1299,14 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         pTexCoord = (CSR_MDLTextureCoord*)malloc(sizeof(CSR_MDLTextureCoord) * pHeader->m_VertexCount);
 
         for (i = 0; i < pHeader->m_VertexCount; ++i)
-            csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]);
+            if (!csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]))
+            {
+                free(pHeader);
+                free(pSkin);
+                free(pTexCoord);
+                csrMDLModelRelease(pModel);
+                return 0;
+            }
     }
     else
         pTexCoord = 0;
@@ -1304,7 +1317,15 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         pPolygon = (CSR_MDLPolygon*)malloc(sizeof(CSR_MDLPolygon) * pHeader->m_PolygonCount);
 
         for (i = 0; i < pHeader->m_PolygonCount; ++i)
-            csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]);
+            if (!csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]))
+            {
+                free(pHeader);
+                free(pSkin);
+                free(pTexCoord);
+                free(pPolygon);
+                csrMDLModelRelease(pModel);
+                return 0;
+            }
     }
     else
         pPolygon = 0;
@@ -1315,7 +1336,16 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         pFrameGroup = (CSR_MDLFrameGroup*)malloc(sizeof(CSR_MDLFrameGroup) * pHeader->m_FrameCount);
 
         for (i = 0; i < pHeader->m_FrameCount; ++i)
-            csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]);
+            if (!csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]))
+            {
+                free(pHeader);
+                free(pSkin);
+                free(pTexCoord);
+                free(pPolygon);
+                free(pFrameGroup);
+                csrMDLModelRelease(pModel);
+                return 0;
+            }
     }
     else
         pFrameGroup = 0;

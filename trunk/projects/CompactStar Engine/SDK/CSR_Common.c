@@ -181,7 +181,7 @@ int csrBufferRead(const CSR_Buffer* pBuffer,
     }
 
     // read the data
-    memcpy(pData, pBuffer->m_pData, lengthToRead);
+    memcpy(pData, pBuffer->m_pData + *pOffset, lengthToRead);
 
     // update the offset position
     *pOffset += lengthToRead;

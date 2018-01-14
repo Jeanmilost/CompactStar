@@ -12,6 +12,9 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
+  PrintScale = poNone
+  Scaled = False
   OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
@@ -249,6 +252,7 @@ object MainForm: TMainForm
       Align = alBottom
       Caption = 'Load Model...'
       TabOrder = 7
+      OnClick = btLoadModelClick
     end
     object btSaveTree: TButton
       AlignWithMargins = True

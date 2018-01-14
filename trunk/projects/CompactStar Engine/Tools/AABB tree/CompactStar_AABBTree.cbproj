@@ -163,6 +163,7 @@
         </CppCompile>
         <PCHCompile Include="CompactStar_AABBTree_PCH.h">
             <BuildOrder>1</BuildOrder>
+            <PCH>true</PCH>
         </PCHCompile>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
@@ -170,7 +171,14 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="TModelSelection.cpp">
+            <Form>ModelSelection</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>TModelSelection.h</DependentOn>
+            <BuildOrder>21</BuildOrder>
+        </CppCompile>
         <FormResources Include="Main.dfm"/>
+        <FormResources Include="TModelSelection.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
