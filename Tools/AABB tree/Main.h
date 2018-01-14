@@ -1,6 +1,22 @@
+/****************************************************************************
+ * ==> AABB Tree tool main form --------------------------------------------*
+ ****************************************************************************
+ * Description : Aligned-Axis Bounding Box tool main form                   *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
+
 #ifndef MainH
 #define MainH
 
+// vcl
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
@@ -13,6 +29,10 @@
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
 
+/**
+* AABB Tree tool main form
+*@author Jean-Milost Reymond
+*/
 class TMainForm : public TForm
 {
     __published:
@@ -47,9 +67,18 @@ class TMainForm : public TForm
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
+        void __fastcall btLoadModelClick(TObject* pSender);
 
     public:
+        /**
+        * Constructor
+        *@param pOwner - form owner
+        */
         __fastcall TMainForm(TComponent* pOwner);
+
+        /**
+        * Destructor
+        */
         virtual __fastcall ~TMainForm();
 
     protected:

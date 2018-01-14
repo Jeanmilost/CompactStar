@@ -1,7 +1,24 @@
+/****************************************************************************
+ * ==> AABB Tree tool main form --------------------------------------------*
+ ****************************************************************************
+ * Description : Aligned-Axis Bounding Box tool main form                   *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
+
 #include <vcl.h>
 #pragma hdrstop
 #include "Main.h"
 
+// std
+#include <memory>
 #include <string>
 
 // compactStar engine
@@ -9,6 +26,9 @@
 #include "CSR_Geometry.h"
 #include "CSR_Renderer.h"
 #include "CSR_Sound.h"
+
+// interface
+#include "TModelSelection.h"
 
 #pragma package(smart_init)
 #ifdef __llvm__
@@ -149,6 +169,55 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
     // update the viewport
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
+{
+    // create the select model dialog box
+    std::auto_ptr<TModelSelection> pModelSelection(new TModelSelection(this));
+
+    // show the dialog box
+    if (pModelSelection->ShowModal() != mrOk)
+        return;
+
+    // get model file name
+    const std::wstring modelFileName = pModelSelection->GetModelFileName();
+
+    // do load a MDL model?
+    if (!modelFileName.empty())
+    {
+        CSR_MDLModel* pModel = NULL;
+
+        try
+        {
+            CSR_VertexFormat vertexFormat;
+            vertexFormat.m_UseNormals  = 0;
+            vertexFormat.m_UseTextures = 0;
+            vertexFormat.m_UseColors   = 1;
+
+            pModel = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
+                                           0,
+                                           &vertexFormat,
+                                           0xFFFFFFFF);
+
+            if (pModel)
+            {
+                csrAABBTreeRelease(m_pAABBTree);
+                csrMeshRelease(m_pModel);
+
+                m_pModel    = pModel->m_pMesh;
+                m_pAABBTree = csrAABBTreeFromMesh(m_pModel);
+
+                pModel->m_pMesh = 0;
+            }
+        }
+        __finally
+        {
+            csrMDLModelRelease(pModel);
+        }
+
+        return;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
