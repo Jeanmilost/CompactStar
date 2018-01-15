@@ -719,41 +719,62 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
     return pMesh;
 }
 //---------------------------------------------------------------------------
-// MDL model functions
+// Model functions
 //---------------------------------------------------------------------------
-CSR_MDLModel* csrMDLModelCreate(void)
+CSR_Model* csrModelCreate(void)
 {
-    // create a new MDL model
-    CSR_MDLModel* pModel = (CSR_MDLModel*)malloc(sizeof(CSR_MDLModel));
+    // create a new model
+    CSR_Model* pModel = (CSR_Model*)malloc(sizeof(CSR_Model));
 
     // succeeded?
     if (!pModel)
         return 0;
 
-    // initialize the pixel buffer content
-    pModel->m_pMesh    = 0;
-    pModel->m_pTexture = 0;
+    // initialize the model content
+    pModel->m_pMesh     = 0;
+    pModel->m_MeshCount = 0;
 
     return pModel;
 }
 //---------------------------------------------------------------------------
-void csrMDLModelRelease(CSR_MDLModel* pModel)
+void csrModelRelease(CSR_Model* pModel)
 {
-    // no pixel buffer to release?
+    size_t i;
+    size_t j;
+
+    // no model to release?
     if (!pModel)
         return;
 
-    // free the texture content
-    if (pModel->m_pTexture)
-        csrPixelBufferRelease(pModel->m_pTexture);
-
-    // free the mesh content
+    // free the meshes content
     if (pModel->m_pMesh)
-        csrMeshRelease(pModel->m_pMesh);
+    {
+        // iterate through meshes to free
+        for (i = 0; i < pModel->m_MeshCount; ++i)
+        {
+            // free the mesh content
+            if (pModel->m_pMesh[i].m_pVB)
+            {
+                // free the mesh vertex buffer content
+                for (j = 0; j < pModel->m_pMesh[i].m_Count; ++j)
+                    if (pModel->m_pMesh[i].m_pVB[j].m_pData)
+                        free(pModel->m_pMesh[i].m_pVB[j].m_pData);
 
-    // free the MDL model
+                // free the mesh vertex buffer
+                free(pModel->m_pMesh[i].m_pVB);
+            }
+
+        }
+
+        // free the meshes
+        free(pModel->m_pMesh);
+    }
+
+    // free the model
     free(pModel);
 }
+//---------------------------------------------------------------------------
+// MDL model functions
 //---------------------------------------------------------------------------
 int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader)
 {
@@ -975,7 +996,7 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
                          const CSR_MDLHeader*     pHeader,
                                CSR_MDLFrameGroup* pFrameGroup)
 {
-    size_t i;
+    int i;
 
     // read the group type
     if (!csrBufferRead(pBuffer, pOffset, sizeof(unsigned), 1, &pFrameGroup->m_Type))
@@ -1029,11 +1050,11 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
     #endif
 
     // read the group bounding box min frame
-    if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_BoundingBoxMin))
+    if (!csrMDLReadVertex(pBuffer, pOffset, &pFrameGroup->m_BoundingBoxMin))
         return 0;
 
     // read the group bounding box max frame
-    if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_BoundingBoxMax))
+    if (!csrMDLReadVertex(pBuffer, pOffset, &pFrameGroup->m_BoundingBoxMax))
         return 0;
 
     // create frame and time buffers
@@ -1127,19 +1148,19 @@ void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
     pResult->m_Z = vertex[2];
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
-                           const CSR_MDLFrameGroup*   pFrameGroups,
-                           const CSR_MDLSkin*         pSkin,
-                           const CSR_MDLTextureCoord* pTexCoord,
-                           const CSR_MDLPolygon*      pPolygon,
-                           const CSR_VertexFormat*    pVertexFormat,
-                                 unsigned             color)
+CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
+                             const CSR_MDLFrameGroup*   pFrameGroup,
+                             const CSR_MDLSkin*         pSkin,
+                             const CSR_MDLTextureCoord* pTexCoord,
+                             const CSR_MDLPolygon*      pPolygon,
+                             const CSR_VertexFormat*    pVertexFormat,
+                                   unsigned             color)
 {
-    unsigned           index;
     unsigned           normalIndex;
-    int                i;
-    size_t             j;
+    unsigned           i;
+    int                j;
     size_t             k;
+    size_t             l;
     float              tu;
     float              tv;
     CSR_Vector3        vertex;
@@ -1148,53 +1169,61 @@ CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
     CSR_MDLFrameGroup* pSrcFrameGroup;
     CSR_MDLVertex*     pSrcVertex;
     CSR_VertexBuffer*  pVB;
-    CSR_Mesh*          pMesh;
+    CSR_Model*         pModel;
+    CSR_Mesh*          pMeshes;
 
     // are source data complete?
-    if (!pHeader || !pFrameGroups || !pSkin || !pTexCoord || !pPolygon || !pVertexFormat)
+    if (!pHeader || !pFrameGroup || !pSkin || !pTexCoord || !pPolygon || !pVertexFormat)
+        return 0;
 
     // model contains no frame?
     if (!pHeader->m_FrameCount)
         return 0;
 
-    // create a new mesh to contain the model
-    pMesh = csrMeshCreate();
+    // create a new model to contain the MDL frames
+    pModel = csrModelCreate();
 
     // succeeded?
-    if (!pMesh)
+    if (!pModel)
         return 0;
 
-    // create all the vertex buffers required to contain all the model frames
-    pMesh->m_pVB   = csrMemoryAlloc(pMesh->m_pVB, sizeof(CSR_VertexBuffer), pHeader->m_FrameCount);
-    pMesh->m_Count = pHeader->m_FrameCount;
+    // create all the meshes required to contain the frames
+    pModel->m_MeshCount = pHeader->m_FrameCount;
+    pModel->m_pMesh     = (CSR_Mesh*)malloc(pModel->m_MeshCount * sizeof(CSR_Mesh));
 
     // succeeded?
-    if (!pMesh->m_pVB)
+    if (!pModel->m_pMesh)
     {
-        csrMeshRelease(pMesh);
+        csrModelRelease(pModel);
         return 0;
     }
 
     // iterate through frames to get
-    for (index = 0; index < pHeader->m_FrameCount; ++index)
+    for (i = 0; i < pHeader->m_FrameCount; ++i)
     {
         // get source frame group from which meshes should be extracted
-        pSrcFrameGroup = &pFrameGroups[index];
+        pSrcFrameGroup = (CSR_MDLFrameGroup*)&pFrameGroup[i];
 
-        // prepare the next vertex buffer format
-        pMesh->m_pVB[index].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_Triangles;
-        csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
+        // create the vertex buffers required for the sub-frames
+        pModel->m_pMesh[i].m_Count = pSrcFrameGroup->m_Count;
+        pModel->m_pMesh[i].m_pVB   =
+                (CSR_VertexBuffer*)malloc(pModel->m_pMesh[i].m_Count * sizeof(CSR_VertexBuffer));
 
-        // iterate through meshes composing the frame
-        for (i = 0; i < pSrcFrameGroup->m_Count; ++i)
+        // iterate through sub-frames contained in group
+        for (j = 0; j < pSrcFrameGroup->m_Count; ++j)
+        {
+            // prepare the next vertex buffer format
+            pModel->m_pMesh[i].m_pVB[j].m_Format        = *pVertexFormat;
+            pModel->m_pMesh[i].m_pVB[j].m_Format.m_Type = CSR_VT_Triangles;
+            csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB[j].m_Format);
+
             // iterate through polygons to process
-            for (j = 0; j < pHeader->m_PolygonCount; ++j)
+            for (k = 0; k < pHeader->m_PolygonCount; ++k)
                 // iterate through polygon vertices
-                for (k = 0; k < 3; ++k)
+                for (l = 0; l < 3; ++l)
                 {
                     // get source vertex
-                    pSrcVertex = &pSrcFrameGroup->m_pFrame[i].m_pVertex[pPolygon[j].m_VertexIndex[k]];
+                    pSrcVertex = &pSrcFrameGroup->m_pFrame[j].m_pVertex[pPolygon[k].m_VertexIndex[l]];
 
                     // uncompress vertex
                     csrMDLUncompressVertex(pHeader, pSrcVertex, &vertex);
@@ -1206,11 +1235,11 @@ CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
                     normal.m_Z  = g_NormalTable[normalIndex];
 
                     // get vertex texture coordinates
-                    uv.m_X = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_U;
-                    uv.m_Y = pTexCoord[pPolygon[j].m_VertexIndex[k]].m_V;
+                    uv.m_X = pTexCoord[pPolygon[k].m_VertexIndex[l]].m_U;
+                    uv.m_Y = pTexCoord[pPolygon[k].m_VertexIndex[l]].m_V;
 
                     // is texture coordinate on the back face?
-                    if (!pPolygon[j].m_FacesFront && pTexCoord[pPolygon[j].m_VertexIndex[k]].m_OnSeam)
+                    if (!pPolygon[k].m_FacesFront && pTexCoord[pPolygon[k].m_VertexIndex[l]].m_OnSeam)
                         // correct the texture coordinate to put it on the back face
                         uv.m_X += pHeader->m_SkinWidth * 0.5f;
 
@@ -1219,24 +1248,29 @@ CSR_Mesh* csrMDLCreateMesh(const CSR_MDLHeader*       pHeader,
                     uv.m_Y = (uv.m_Y + 0.5) / pHeader->m_SkinHeight;
 
                     // add vertex to frame buffer
-                    csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+                    if (!csrVertexBufferAdd(&vertex, &normal, &uv, color, &pModel->m_pMesh[i].m_pVB[j]))
+                    {
+                        csrModelRelease(pModel);
+                        return 0;
+                    }
                 }
+        }
     }
 
-    return pMesh;
+    return pModel;
 }
 //---------------------------------------------------------------------------
-CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                           const CSR_Buffer*       pPalette,
-                                 CSR_VertexFormat* pVertexFormat,
-                                 unsigned          color)
+CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                      const CSR_Buffer*       pPalette,
+                            CSR_VertexFormat* pVertexFormat,
+                            unsigned          color)
 {
     CSR_MDLHeader*       pHeader;
     CSR_MDLSkin*         pSkin;
     CSR_MDLTextureCoord* pTexCoord;
     CSR_MDLPolygon*      pPolygon;
     CSR_MDLFrameGroup*   pFrameGroup;
-    CSR_MDLModel*        pModel;
+    CSR_MDL*             pMDL;
     size_t               i;
     size_t               offset = 0;
 
@@ -1249,10 +1283,10 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         return 0;
 
     // create a new MDL model
-    pModel = csrMDLModelCreate();
+    pMDL = (CSR_MDL*)malloc(sizeof(CSR_MDL));
 
     // succeeded?
-    if (!pModel)
+    if (!pMDL)
         return 0;
 
     // create mdl header
@@ -1261,7 +1295,7 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
     // succeeded?
     if (!pHeader)
     {
-        csrMDLModelRelease(pModel);
+        csrMDLRelease(pMDL);
         return 0;
     }
 
@@ -1272,7 +1306,7 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
     if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
     {
         free(pHeader);
-        csrMDLModelRelease(pModel);
+        csrMDLRelease(pMDL);
         return 0;
     }
 
@@ -1284,9 +1318,9 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         for (i = 0; i < pHeader->m_SkinCount; ++i)
             if (!csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]))
             {
-                free(pHeader);
-                free(pSkin);
-                csrMDLModelRelease(pModel);
+                // release the used memory
+                csrReleaseMDLObjects(pHeader, 0, pSkin, 0, 0);
+                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1301,10 +1335,9 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         for (i = 0; i < pHeader->m_VertexCount; ++i)
             if (!csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]))
             {
-                free(pHeader);
-                free(pSkin);
-                free(pTexCoord);
-                csrMDLModelRelease(pModel);
+                // release the used memory
+                csrReleaseMDLObjects(pHeader, 0, pSkin, pTexCoord, 0);
+                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1319,11 +1352,9 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         for (i = 0; i < pHeader->m_PolygonCount; ++i)
             if (!csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]))
             {
-                free(pHeader);
-                free(pSkin);
-                free(pTexCoord);
-                free(pPolygon);
-                csrMDLModelRelease(pModel);
+                // release the used memory
+                csrReleaseMDLObjects(pHeader, 0, pSkin, pTexCoord, pPolygon);
+                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1338,20 +1369,17 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
         for (i = 0; i < pHeader->m_FrameCount; ++i)
             if (!csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]))
             {
-                free(pHeader);
-                free(pSkin);
-                free(pTexCoord);
-                free(pPolygon);
-                free(pFrameGroup);
-                csrMDLModelRelease(pModel);
+                // release the used memory
+                csrReleaseMDLObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+                csrMDLRelease(pMDL);
                 return 0;
             }
     }
     else
         pFrameGroup = 0;
 
-    // create mesh from file content
-    pModel->m_pMesh = csrMDLCreateMesh(pHeader,
+    // create model from file content
+    pMDL->m_pModel = csrMDLCreateModel(pHeader,
                                        pFrameGroup,
                                        pSkin,
                                        pTexCoord,
@@ -1362,46 +1390,26 @@ CSR_MDLModel* csrMDLCreate(const CSR_Buffer*       pBuffer,
     // todo FIXME -cFeature -oJean: MDL may support several textures, and several pictures per
     //                              texture. This hould be managed here
     // extract texture from model
-    pModel->m_pTexture     = csrMDLUncompressTexture(pSkin,
-                                                     pPalette,
-                                                     pHeader->m_SkinWidth,
-                                                     pHeader->m_SkinHeight,
-                                                     0);
-    pModel->m_TextureCount = 1;
+    pMDL->m_pTexture     = csrMDLUncompressTexture(pSkin,
+                                                   pPalette,
+                                                   pHeader->m_SkinWidth,
+                                                   pHeader->m_SkinHeight,
+                                                   0);
+    pMDL->m_TextureCount = 1;
 
-    // delete frame vertices
-    for (i = 0; i < pHeader->m_FrameCount; ++i)
-        if (pFrameGroup[i].m_pFrame)
-        {
-            free(pFrameGroup[i].m_pFrame->m_pVertex);
-            free(pFrameGroup[i].m_pFrame);
-        }
+    // release the MDL object used for the loading
+    csrReleaseMDLObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
 
-    // delete skin time table
-    if (pSkin->m_pTime)
-        free(pSkin->m_pTime);
-
-    // delete skin data
-    if (pSkin->m_pData)
-        free(pSkin->m_pData);
-
-    // delete MD2 structures
-    free(pHeader);
-    free(pSkin);
-    free(pTexCoord);
-    free(pPolygon);
-    free(pFrameGroup);
-
-    return pModel;
+    return pMDL;
 }
 //---------------------------------------------------------------------------
-CSR_MDLModel* csrMDLOpen(const char*             pFileName,
-                         const CSR_Buffer*       pPalette,
-                               CSR_VertexFormat* pVertexFormat,
-                               unsigned          color)
+CSR_MDL* csrMDLOpen(const char*             pFileName,
+                    const CSR_Buffer*       pPalette,
+                          CSR_VertexFormat* pVertexFormat,
+                          unsigned          color)
 {
-    CSR_Buffer*   pBuffer;
-    CSR_MDLModel* pModel;
+    CSR_Buffer* pBuffer;
+    CSR_MDL*    pMDL;
 
     // open the sound file
     pBuffer = csrFileOpen(pFileName);
@@ -1414,11 +1422,67 @@ CSR_MDLModel* csrMDLOpen(const char*             pFileName,
     }
 
     // create the MDL model from the file content
-    pModel = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
+    pMDL = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
 
     // release the file buffer (no longer required)
     csrBufferRelease(pBuffer);
 
-    return pModel;
+    return pMDL;
+}
+//---------------------------------------------------------------------------
+void csrReleaseMDLObjects(CSR_MDLHeader*       pHeader,
+                          CSR_MDLFrameGroup*   pFrameGroup,
+                          CSR_MDLSkin*         pSkin,
+                          CSR_MDLTextureCoord* pTexCoord,
+                          CSR_MDLPolygon*      pPolygon)
+{
+    size_t i;
+
+    // release frame group content
+    if (pHeader && pFrameGroup)
+        for (i = 0; i < pHeader->m_FrameCount; ++i)
+            if (pFrameGroup[i].m_pFrame)
+            {
+                free(pFrameGroup[i].m_pFrame->m_pVertex);
+                free(pFrameGroup[i].m_pFrame);
+                free(pFrameGroup[i].m_pTime);
+            }
+
+    // release skin content
+    if (pSkin)
+    {
+        // delete skin time table
+        if (pSkin->m_pTime)
+            free(pSkin->m_pTime);
+
+        // delete skin data
+        if (pSkin->m_pData)
+            free(pSkin->m_pData);
+    }
+
+    // delete MDL structures
+    free(pHeader);
+    free(pSkin);
+    free(pTexCoord);
+    free(pPolygon);
+    free(pFrameGroup);
+}
+//---------------------------------------------------------------------------
+void csrMDLRelease(CSR_MDL* pMDL)
+{
+    // no MDL model to release?
+    if (!pMDL)
+        return;
+
+    // free the texture content
+    if (pMDL->m_pTexture)
+        csrPixelBufferRelease(pMDL->m_pTexture);
+
+    // free the model content
+    if (pMDL->m_pModel)
+        csrModelRelease(pMDL->m_pModel);
+
+    // free the MDL model
+    free(pMDL);
 }
 //---------------------------------------------------------------------------

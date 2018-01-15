@@ -115,7 +115,8 @@ class TMainForm : public TForm
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
-        CSR_Mesh*        m_pModel;
+        CSR_Mesh*        m_pMesh;
+        CSR_Model*       m_pModel2;
         CSR_AABBNode*    m_pAABBTree;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
