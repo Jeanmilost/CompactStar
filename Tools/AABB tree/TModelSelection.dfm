@@ -140,7 +140,7 @@ object ModelSelection: TModelSelection
         Left = 13
         Top = 0
         Width = 26
-        Height = 20
+        Height = 13
         Margins.Left = 13
         Margins.Top = 0
         Margins.Right = 0
@@ -148,15 +148,13 @@ object ModelSelection: TModelSelection
         Align = alLeft
         Caption = 'Slices'
         Layout = tlCenter
-        ExplicitLeft = 0
-        ExplicitHeight = 13
       end
       object laStacks: TLabel
         AlignWithMargins = True
         Left = 129
         Top = 0
         Width = 31
-        Height = 20
+        Height = 13
         Margins.Left = 25
         Margins.Top = 0
         Margins.Right = 0
@@ -164,7 +162,6 @@ object ModelSelection: TModelSelection
         Align = alLeft
         Caption = 'Stacks'
         Layout = tlCenter
-        ExplicitLeft = 153
       end
       object edSlices: TEdit
         AlignWithMargins = True
@@ -239,12 +236,11 @@ object ModelSelection: TModelSelection
       Left = 3
       Top = 2
       Width = 92
-      Height = 20
+      Height = 13
       Margins.Top = 2
       Align = alLeft
       Caption = 'Select a MDL model'
       Layout = tlCenter
-      ExplicitTop = 5
     end
     object btOpenFile: TButton
       Left = 337

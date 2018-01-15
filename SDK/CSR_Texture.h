@@ -51,7 +51,7 @@ typedef struct
 } CSR_PixelBuffer;
 
 /**
-* Texture shader
+* Texture shader (i.e. the elements that should be connected to shader for this texture)
 */
 typedef struct
 {

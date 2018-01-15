@@ -25,6 +25,9 @@
 #include <Vcl.Dialogs.hpp>
 #include <Vcl.ComCtrls.hpp>
 
+// std
+#include <string>
+
 /**
 * AABB Tree tool model selection form
 *@author Jean-Milost Reymond

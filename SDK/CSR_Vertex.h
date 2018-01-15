@@ -61,11 +61,19 @@ typedef struct
 } CSR_VertexBuffer;
 
 /**
+* Mesh shader (i.e. the elements that should be connected to shader for this mesh)
+*/
+typedef struct
+{
+    CSR_TextureShader m_Texture;
+} CSR_MeshShader;
+
+/**
 * Mesh
 */
 typedef struct
 {
-    CSR_TextureShader m_TextureShader;
+    CSR_MeshShader    m_Shader;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
 } CSR_Mesh;

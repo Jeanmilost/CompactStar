@@ -98,7 +98,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pDocCanvas(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
-    m_pModel(NULL),
+    m_pMesh(NULL),
+    m_pModel2(NULL),
     m_AngleY(0.0f),
     m_FrameCount(0),
     m_StartTime(0),
@@ -186,7 +187,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // do load a MDL model?
     if (!modelFileName.empty())
     {
-        CSR_MDLModel* pModel = NULL;
+        CSR_MDL* pMDL = NULL;
 
         try
         {
@@ -195,25 +196,27 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             vertexFormat.m_UseTextures = 0;
             vertexFormat.m_UseColors   = 1;
 
-            pModel = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
-                                           0,
-                                           &vertexFormat,
-                                           0xFFFFFFFF);
+            pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
+                                         0,
+                                         &vertexFormat,
+                                         0xFFFFFFFF);
 
-            if (pModel)
+            if (pMDL)
             {
                 csrAABBTreeRelease(m_pAABBTree);
-                csrMeshRelease(m_pModel);
+                csrModelRelease(m_pModel2);
+                csrMeshRelease(m_pMesh);
 
-                m_pModel    = pModel->m_pMesh;
-                m_pAABBTree = csrAABBTreeFromMesh(m_pModel);
+                m_pMesh     = 0;
+                m_pModel2   = pMDL->m_pModel;
+                m_pAABBTree = csrAABBTreeFromMesh(&m_pModel2->m_pMesh[0]);
 
-                pModel->m_pMesh = 0;
+                pMDL->m_pModel = 0;
             }
         }
         __finally
         {
-            csrMDLModelRelease(pModel);
+            csrMDLRelease(pMDL);
         }
 
         return;
@@ -379,13 +382,12 @@ void TMainForm::InitScene(int w, int h)
     m_pShader_ColoredMesh->m_ColorSlot  = glGetAttribLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_vColor");
 
     CSR_VertexFormat vf;
-    vf.m_Type        = CSR_VT_TriangleStrip;
     vf.m_UseNormals  = 0;
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
-    m_pModel    = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
-    m_pAABBTree = csrAABBTreeFromMesh(m_pModel);
+    m_pMesh     = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
+    m_pAABBTree = csrAABBTreeFromMesh(m_pMesh);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -404,7 +406,8 @@ void TMainForm::InitScene(int w, int h)
 void TMainForm::DeleteScene()
 {
     csrAABBTreeRelease(m_pAABBTree);
-    csrMeshRelease(m_pModel);
+    csrModelRelease(m_pModel2);
+    csrMeshRelease(m_pMesh);
     csrShaderRelease(m_pShader_TexturedMesh);
     csrShaderRelease(m_pShader_ColoredMesh);
 }
@@ -429,7 +432,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     // set translation
     t.m_X =  0.0f;
     t.m_Y =  0.0f;
-    t.m_Z = -2.0f;
+    t.m_Z = -100.0;//2.0f;
 
     // build the translation matrix
     csrMat4Translate(&t, &translateMatrix);
@@ -476,7 +479,13 @@ void TMainForm::DrawScene()
         glDisable(GL_BLEND);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        csrSceneDrawMesh(m_pModel, m_pShader_ColoredMesh);
+        if (m_pMesh)
+            csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh);
+        else
+        if (m_pModel2)
+            csrSceneDrawMesh(&m_pModel2->m_pMesh[0], m_pShader_ColoredMesh);
+        else
+            return;
 
         // show the polygon intersections (with the mouse ray)
         if (ckShowCollidingPolygons->Checked)
@@ -572,17 +581,17 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         CSR_Mesh mesh;
 
         // create and configure a mesh for the polygons
-        mesh.m_Count                       =  1;
-        mesh.m_TextureShader.m_TextureID   = -1;
-        mesh.m_TextureShader.m_BumpMapID   = -1;
-        mesh.m_pVB                         =  (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type        =   CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_UseNormals  =  0;
-        mesh.m_pVB->m_Format.m_UseColors   =  1;
-        mesh.m_pVB->m_Format.m_UseTextures =  0;
-        mesh.m_pVB->m_Format.m_Stride      =  7;
-        mesh.m_pVB->m_pData                =  m_PolygonArray;
-        mesh.m_pVB->m_Count                =  21;
+        mesh.m_Count                        = 1;
+        mesh.m_Shader.m_Texture.m_TextureID = GL_INVALID_VALUE;
+        mesh.m_Shader.m_Texture.m_BumpMapID = GL_INVALID_VALUE;
+        mesh.m_pVB                          = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type         = CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_UseNormals   = 0;
+        mesh.m_pVB->m_Format.m_UseColors    = 1;
+        mesh.m_pVB->m_Format.m_UseTextures  = 0;
+        mesh.m_pVB->m_Format.m_Stride       = 7;
+        mesh.m_pVB->m_pData                 = m_PolygonArray;
+        mesh.m_pVB->m_Count                 = 21;
 
         // iterate through polygons to draw
         for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
@@ -870,7 +879,23 @@ void TMainForm::CalculateMouseRay()
 //---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
 {
-    laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(m_pModel && m_pModel->m_pVB ? m_pModel->m_pVB->m_Count : 0));
+    CSR_Mesh* pMesh;
+
+    if (m_pMesh)
+        pMesh = m_pMesh;
+    else
+    if (m_pModel2)
+        pMesh = &m_pModel2->m_pMesh[0];
+    else
+        pMesh = 0;
+
+    std::size_t polyCount = 0;
+
+    // calculate the polygons count
+    if (pMesh && pMesh->m_pVB->m_Format.m_Stride)
+        polyCount = pMesh->m_pVB ? ((pMesh->m_pVB->m_Count / pMesh->m_pVB->m_Format.m_Stride) / 3) : 0;
+
+    laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(polyCount));
     laPolygonsToCheck->Caption = L"Polygons To Check: "     + ::IntToStr(int(m_Stats.m_PolyToCheckCount));
     laMaxPolyToCheck->Caption  = L"Max Polygons To Check: " + ::IntToStr(int(m_Stats.m_MaxPolyToCheckCount));
     laHitPolygons->Caption     = L"Hit Polygons: "          + ::IntToStr(int(m_Stats.m_HitPolygonCount));
