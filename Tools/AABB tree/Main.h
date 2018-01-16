@@ -116,7 +116,7 @@ class TMainForm : public TForm
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
         CSR_Mesh*        m_pMesh;
-        CSR_Model*       m_pModel2;
+        CSR_Model*       m_pModel;
         CSR_AABBNode*    m_pAABBTree;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
@@ -145,6 +145,14 @@ class TMainForm : public TForm
         *@param hRC - OpenGL rendering context
         */
         void DisableOpenGL(HWND hWnd, HDC hDC, HGLRC hRC);
+
+        /**
+        * Loads a shader
+        *@param vertex - vertex program
+        *@param fragment - fragment program
+        *@param[out] pShader - loaded shader, NULL on error
+        */
+        void LoadShader(const std::string& vertex, const std::string& fragment, CSR_Shader*& pShader);
 
         /**
         * Creates the viewport
