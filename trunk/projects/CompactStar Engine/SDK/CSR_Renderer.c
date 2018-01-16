@@ -40,6 +40,32 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     // iterate through the vertex buffers composing the mesh to draw
     for (i = 0; i < pMesh->m_Count; ++i)
     {
+        // do use texture?
+        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+        {
+            // a texture is defined for this mesh?
+            if (pMesh->m_Shader.m_TextureID != GL_INVALID_VALUE)
+            {
+                // select the texture sampler to use (GL_TEXTURE0 for normal textures)
+                glActiveTexture(GL_TEXTURE0);
+                glUniform1i(pShader->m_TextureSlot, GL_TEXTURE0);
+
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_TextureID);
+            }
+
+            // a bump map is defined for this mesh?
+            if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+            {
+                // select the texture sampler to use (GL_TEXTURE1 for bump map textures)
+                glActiveTexture(GL_TEXTURE1);
+                glUniform1i(pShader->m_BumpMapSlot, GL_TEXTURE1);
+
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_BumpMapID);
+            }
+        }
+
         // check if vertex buffer is empty, skip to next if yes
         if (!pMesh->m_pVB[i].m_Count || !pMesh->m_pVB[i].m_Format.m_Stride)
             continue;

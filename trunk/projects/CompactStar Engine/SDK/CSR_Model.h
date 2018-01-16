@@ -119,24 +119,28 @@ typedef struct
 } CSR_MDLFrameGroup;
 
 /**
+* Model animation, it's a table indicating at which frame an animation begins, at which frame it ends,
+* and the animation speed
+*/
+typedef struct
+{
+    char   m_Name[16];
+    size_t m_Start;
+    size_t m_End;
+    double m_FPS;
+} CSR_ModelAnimation;
+
+/**
 * Model, it's a collection of meshes, each of them represent a frame. The model may be animated, by
 * showing each frame, one after the other
 */
 typedef struct
 {
-    CSR_Mesh*        m_pMesh;
-    size_t           m_MeshCount;
+    CSR_Mesh*           m_pMesh;
+    size_t              m_MeshCount;
+    CSR_ModelAnimation* m_pAnimation;
+    size_t              m_AnimationCount;
 } CSR_Model;
-
-/**
-* Quake I model (*.mdl files)
-*/
-typedef struct
-{
-    CSR_Model*       m_pModel;
-    CSR_PixelBuffer* m_pTexture;
-    size_t           m_TextureCount;
-} CSR_MDL;
 
 #ifdef __cplusplus
     extern "C"
@@ -446,10 +450,10 @@ typedef struct
         *@return the newly created MDL model, 0 on error
         *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                              const CSR_Buffer*       pPalette,
-                                    CSR_VertexFormat* pVertexFormat,
-                                    unsigned          color);
+        CSR_Model* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                                const CSR_Buffer*       pPalette,
+                                      CSR_VertexFormat* pVertexFormat,
+                                      unsigned          color);
 
         /**
         * Opens a MDL model from a file
@@ -460,10 +464,10 @@ typedef struct
         *@return the newly created MDL model, 0 on error
         *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        CSR_MDL* csrMDLOpen(const char*             pFileName,
-                            const CSR_Buffer*       pPalette,
-                                  CSR_VertexFormat* pVertexFormat,
-                                  unsigned          color);
+        CSR_Model* csrMDLOpen(const char*             pFileName,
+                              const CSR_Buffer*       pPalette,
+                                    CSR_VertexFormat* pVertexFormat,
+                                    unsigned          color);
 
         /**
         * Releases the MDL objects
@@ -478,12 +482,6 @@ typedef struct
                                   CSR_MDLSkin*         pSkin,
                                   CSR_MDLTextureCoord* pTexCoord,
                                   CSR_MDLPolygon*      pPolygon);
-
-        /**
-        * Releases a MDL model
-        *@param pMDL - MDL model to release
-        */
-        void csrMDLRelease(CSR_MDL* pMDL);
 
 #ifdef __cplusplus
     }

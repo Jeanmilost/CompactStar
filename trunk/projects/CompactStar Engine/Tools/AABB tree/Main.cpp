@@ -19,7 +19,7 @@
 
 // std
 #include <memory>
-#include <string>
+#include <sstream>
 
 // compactStar engine
 #include "CSR_Common.h"
@@ -91,12 +91,12 @@ const char* g_VertexProgram_TexturedMesh =
 */
 const char* g_FragmentProgram_TexturedMesh =
     "precision mediump float;"
-    "uniform sampler2D csr_sColorMap;"
+    "uniform sampler2D csr_sTexture;"
     "varying lowp vec4 csr_fColor;"
     "varying      vec2 csr_fTexCoord;"
     "void main(void)"
     "{"
-    "    gl_FragColor = csr_fColor * texture2D(csr_sColorMap, csr_fTexCoord);"
+    "    gl_FragColor = csr_fColor * texture2D(csr_sTexture, csr_fTexCoord);"
     "}";
 //---------------------------------------------------------------------------
 // TMainForm::ITreeStats
@@ -134,6 +134,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pModel(NULL),
     m_TranslateZ(0.0f),
     m_AngleY(0.0f),
+    m_AnimationIndex(-1),
     m_FrameCount(0),
     m_StartTime(0),
     m_PreviousTime(0),
@@ -214,13 +215,16 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     if (pModelSelection->ShowModal() != mrOk)
         return;
 
+    // clear all the previous models and meshes
+    ClearModelsAndMeshes();
+
     // get model file name
     const std::wstring modelFileName = pModelSelection->GetModelFileName();
 
     // do load a MDL model?
     if (!modelFileName.empty())
     {
-        CSR_MDL* pMDL = NULL;
+        CSR_Model* pModel = NULL;
 
         try
         {
@@ -233,59 +237,63 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             vertexFormat.m_UseColors   = 1;
 
             // load MDL model
-            pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
-                                         0,
-                                         &vertexFormat,
-                                         0xFFFFFFFF);
+            pModel = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
+                                           0,
+                                           &vertexFormat,
+                                           0xFFFFFFFF);
 
             // succeeded?
-            if (pMDL)
+            if (!pModel)
             {
-                // release the previous model texture
-                if (m_pModel && m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID != GL_INVALID_VALUE)
-                    glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+                // build the error message to show
+                std::wostringstream sstr;
+                sstr << L"Failed to load the model:\r\n" << modelFileName;
 
-                // release the previous model
-                csrAABBTreeRelease(m_pAABBTree);
-                csrModelRelease(m_pModel);
-                csrMeshRelease(m_pMesh);
+                // show the error message to the user
+                ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
 
-                m_pMesh     = 0;
-                m_pModel    = pMDL->m_pModel;
-                m_pAABBTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
-
-                m_TranslateZ = -100.0;
-
-                // create new OpenGL texture
-                glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
-                glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
-
-                // set texture filtering
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-                // set texture wrapping mode
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-                // generate texture from bitmap data
-                glTexImage2D(GL_TEXTURE_2D,
-                             0,
-                             GL_RGB,
-                             pMDL->m_pTexture[0].m_Width,
-                             pMDL->m_pTexture[0].m_Height,
-                             0,
-                             GL_RGB,
-                             GL_UNSIGNED_BYTE,
-                             pMDL->m_pTexture[0].m_pData);
-
-                // set this value to 0, otherwise the model will be deleted by csrMDLRelease()
-                pMDL->m_pModel = 0;
+                // clear the scene
+                ClearModelsAndMeshes();
+                return;
             }
+
+            // create the AABB trees for each frame
+            for (std::size_t i = 0; i < pModel->m_MeshCount; ++i)
+            {
+                // create the AABB tree for the next frame
+                CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pModel->m_pMesh[i]);
+
+                if (!pTree)
+                {
+                    // build the error message to show
+                    std::wostringstream sstr;
+                    sstr << L"Failed to load the model:\r\n\r\n"
+                         << modelFileName
+                         << L"\r\n\r\nAn error occurred while the AABB tree was created, at index: "
+                         << i;
+
+                    // show the error message to the user
+                    ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
+
+                    // clear the scene
+                    ClearModelsAndMeshes();
+                    return;
+                }
+
+                m_AABBTrees.push_back(pTree);
+            }
+
+            m_TranslateZ     = -100.0;
+            m_AnimationIndex = 0;
+
+            // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
+            // will be deleted while the csrModelRelease() function will be exectued
+            m_pModel = pModel;
+            pModel   = 0;
         }
         __finally
         {
-            csrMDLRelease(pMDL);
+            csrModelRelease(pModel);
         }
 
         return;
@@ -399,6 +407,29 @@ void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
     ReleaseDC(hwnd, hDC);
 }
 //------------------------------------------------------------------------------
+void TMainForm::ClearModelsAndMeshes()
+{
+    // release the AABB trees
+    for (std::size_t i = 0; i < m_AABBTrees.size(); ++i)
+        csrAABBTreeRelease(m_AABBTrees[i]);
+
+    m_AABBTrees.clear();
+
+    // release the scene objects
+    csrModelRelease(m_pModel);
+    csrMeshRelease(m_pMesh);
+
+    // reset the values
+    m_pModel         =  0;
+    m_pMesh          =  0;
+    m_AnimationIndex = -1;
+
+    // reset the stats
+    m_Stats.Clear();
+    m_Stats.m_MaxPolyToCheckCount = 0;
+    m_Stats.m_FPS                 = 0;
+}
+//------------------------------------------------------------------------------
 void TMainForm::LoadShader(const std::string& vertex, const std::string& fragment, CSR_Shader*& pShader)
 {
     CSR_Buffer* pVS = NULL;
@@ -485,6 +516,7 @@ void TMainForm::InitScene(int w, int h)
     m_pShader_TexturedMesh->m_VertexSlot   = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vVertex");
     m_pShader_TexturedMesh->m_ColorSlot    = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vColor");
     m_pShader_TexturedMesh->m_TexCoordSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vTexCoord");
+    m_pShader_TexturedMesh->m_TextureSlot  = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sTexture");
 
     // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
@@ -494,10 +526,18 @@ void TMainForm::InitScene(int w, int h)
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
-    m_pMesh     = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
-    m_pAABBTree = csrAABBTreeFromMesh(m_pMesh);
+    // create a default sphere
+    m_pMesh = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
 
-    m_TranslateZ = -2.0f;
+    // create the AABB tree for the sphere mesh
+    CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+    // succeeded?
+    if (pTree)
+        m_AABBTrees.push_back(pTree);
+
+    m_TranslateZ     = -2.0f;
+    m_AnimationIndex = 0;
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -515,14 +555,10 @@ void TMainForm::InitScene(int w, int h)
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
-    // release the model texture
-    if (m_pModel && m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID != GL_INVALID_VALUE)
-        glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+    // clear all the models and meshes composing the scene
+    ClearModelsAndMeshes();
 
-    // release the scene objects
-    csrAABBTreeRelease(m_pAABBTree);
-    csrModelRelease(m_pModel);
-    csrMeshRelease(m_pMesh);
+    // release the shaders
     csrShaderRelease(m_pShader_TexturedMesh);
     csrShaderRelease(m_pShader_ColoredMesh);
 }
@@ -615,17 +651,28 @@ void TMainForm::DrawScene()
         else
         if (m_pModel)
         {
-            // enable the textured program
-            csrShaderEnable(m_pShader_TexturedMesh);
+            // invalid animation index?
+            if (m_AnimationIndex < 0 || unsigned(m_AnimationIndex) >= m_pModel->m_MeshCount)
+                return;
 
-            GLint texSamplerSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sColorMap");
+            // model uses textures?
+            if (m_pModel->m_pMesh[m_AnimationIndex].m_Count &&
+                m_pModel->m_pMesh[m_AnimationIndex].m_pVB[0].m_Format.m_UseTextures)
+            {
+                // enable the textured program
+                csrShaderEnable(m_pShader_TexturedMesh);
 
-            // configure texture to draw
-            glActiveTexture(GL_TEXTURE0);
-            glUniform1i(texSamplerSlot, GL_TEXTURE0);
+                // draw the mesh
+                csrSceneDrawMesh(&m_pModel->m_pMesh[m_AnimationIndex], m_pShader_TexturedMesh);
+            }
+            else
+            {
+                // enable the colored program
+                csrShaderEnable(m_pShader_ColoredMesh);
 
-            // draw the mesh
-            csrSceneDrawMesh(&m_pModel->m_pMesh[0], m_pShader_TexturedMesh);
+                // draw the mesh
+                csrSceneDrawMesh(&m_pModel->m_pMesh[m_AnimationIndex], m_pShader_ColoredMesh);
+            }
         }
         else
             return;
@@ -650,7 +697,8 @@ void TMainForm::DrawScene()
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             // draw the AABB tree boxes
-            DrawTreeBoxes(m_pAABBTree);
+            if (m_AnimationIndex >= 0)
+                DrawTreeBoxes(m_AABBTrees[m_AnimationIndex]);
         }
     }
     __finally
@@ -662,6 +710,9 @@ void TMainForm::DrawScene()
 //---------------------------------------------------------------------------
 void TMainForm::ResolveTreeAndDrawPolygons()
 {
+    if (m_AnimationIndex < 0)
+        return;
+
     // is the mouse ray not initialized?
     if (!m_Ray.m_Pos.m_X    && !m_Ray.m_Pos.m_Y    && !m_Ray.m_Pos.m_Z &&
         !m_Ray.m_Dir.m_X    && !m_Ray.m_Dir.m_Y    && !m_Ray.m_Dir.m_Z &&
@@ -671,7 +722,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
     CSR_Polygon3Buffer polygonBuffer;
 
     // using the mouse ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&m_Ray, m_pAABBTree, 0, &polygonBuffer);
+    csrAABBTreeResolve(&m_Ray, m_AABBTrees[m_AnimationIndex], 0, &polygonBuffer);
 
     // update the stats
     m_Stats.m_PolyToCheckCount    = polygonBuffer.m_Count;
@@ -727,17 +778,17 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         CSR_Mesh mesh;
 
         // create and configure a mesh for the polygons
-        mesh.m_Count                        = 1;
-        mesh.m_Shader.m_Texture.m_TextureID = GL_INVALID_VALUE;
-        mesh.m_Shader.m_Texture.m_BumpMapID = GL_INVALID_VALUE;
-        mesh.m_pVB                          = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type         = CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_UseNormals   = 0;
-        mesh.m_pVB->m_Format.m_UseColors    = 1;
-        mesh.m_pVB->m_Format.m_UseTextures  = 0;
-        mesh.m_pVB->m_Format.m_Stride       = 7;
-        mesh.m_pVB->m_pData                 = m_PolygonArray;
-        mesh.m_pVB->m_Count                 = 21;
+        mesh.m_Count                       = 1;
+        mesh.m_Shader.m_TextureID          = GL_INVALID_VALUE;
+        mesh.m_Shader.m_BumpMapID          = GL_INVALID_VALUE;
+        mesh.m_pVB                         = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type        = CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_UseNormals  = 0;
+        mesh.m_pVB->m_Format.m_UseColors   = 1;
+        mesh.m_pVB->m_Format.m_UseTextures = 0;
+        mesh.m_pVB->m_Format.m_Stride      = 7;
+        mesh.m_pVB->m_pData                = m_PolygonArray;
+        mesh.m_pVB->m_Count                = 21;
 
         // iterate through polygons to draw
         for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
@@ -1031,7 +1082,7 @@ void TMainForm::ShowStats() const
         pMesh = m_pMesh;
     else
     if (m_pModel)
-        pMesh = &m_pModel->m_pMesh[0];
+        pMesh = &m_pModel->m_pMesh[m_AnimationIndex];
     else
         pMesh = 0;
 

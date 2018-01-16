@@ -24,6 +24,10 @@
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.ExtCtrls.hpp>
 
+// std
+#include <vector>
+#include <string>
+
 // compactStar engine
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
@@ -109,6 +113,8 @@ class TMainForm : public TForm
             void Clear();
         };
 
+        typedef std::vector<CSR_AABBNode*> IAABBTrees;
+
         HDC              m_hDC;
         HGLRC            m_hRC;
         TCanvas*         m_pDocCanvas;
@@ -117,13 +123,14 @@ class TMainForm : public TForm
         CSR_Shader*      m_pShader_TexturedMesh;
         CSR_Mesh*        m_pMesh;
         CSR_Model*       m_pModel;
-        CSR_AABBNode*    m_pAABBTree;
+        IAABBTrees       m_AABBTrees;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
         float            m_TranslateZ;
         float            m_AngleY;
         float            m_PolygonArray[21];
+        int              m_AnimationIndex;
         std::size_t      m_FrameCount;
         unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;
@@ -145,6 +152,11 @@ class TMainForm : public TForm
         *@param hRC - OpenGL rendering context
         */
         void DisableOpenGL(HWND hWnd, HDC hDC, HGLRC hRC);
+
+        /**
+        * Clears all the previous models and meshes
+        */
+        void ClearModelsAndMeshes();
 
         /**
         * Loads a shader

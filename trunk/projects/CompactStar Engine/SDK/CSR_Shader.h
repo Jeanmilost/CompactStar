@@ -34,6 +34,8 @@ typedef struct
     GLint  m_VertexSlot;
     GLint  m_NormalSlot;
     GLint  m_TexCoordSlot;
+    GLint  m_TextureSlot;
+    GLint  m_BumpMapSlot;
     GLint  m_ColorSlot;
     GLint  m_ModelSlot;
 } CSR_Shader;
