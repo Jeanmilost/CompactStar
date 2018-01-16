@@ -74,13 +74,16 @@ const char* g_VertexProgram_TexturedMesh =
     "precision mediump float;"
     "attribute vec4 csr_vVertex;"
     "attribute vec4 csr_vColor;"
+    "attribute vec2 csr_vTexCoord;"
     "uniform   mat4 csr_uProjection;"
     "uniform   mat4 csr_uModelview;"
     "varying   vec4 csr_fColor;"
+    "varying   vec2 csr_fTexCoord;"
     "void main(void)"
     "{"
-    "    csr_fColor   = csr_vColor;"
-    "    gl_Position  = csr_uProjection * csr_uModelview * csr_vVertex;"
+    "    csr_fColor    = csr_vColor;"
+    "    csr_fTexCoord = csr_vTexCoord;"
+    "    gl_Position   = csr_uProjection * csr_uModelview * csr_vVertex;"
     "}";
 //----------------------------------------------------------------------------
 /**
@@ -88,10 +91,12 @@ const char* g_VertexProgram_TexturedMesh =
 */
 const char* g_FragmentProgram_TexturedMesh =
     "precision mediump float;"
+    "uniform sampler2D csr_sColorMap;"
     "varying lowp vec4 csr_fColor;"
+    "varying      vec2 csr_fTexCoord;"
     "void main(void)"
     "{"
-    "    gl_FragColor = csr_fColor;"
+    "    gl_FragColor = csr_fColor * texture2D(csr_sColorMap, csr_fTexCoord);"
     "}";
 //---------------------------------------------------------------------------
 // TMainForm::ITreeStats
@@ -126,7 +131,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
-    m_pModel2(NULL),
+    m_pModel(NULL),
     m_TranslateZ(0.0f),
     m_AngleY(0.0f),
     m_FrameCount(0),
@@ -219,28 +224,62 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
         try
         {
+            // enable the textured program
+            csrShaderEnable(m_pShader_TexturedMesh);
+
             CSR_VertexFormat vertexFormat;
             vertexFormat.m_UseNormals  = 0;
-            vertexFormat.m_UseTextures = 0;
+            vertexFormat.m_UseTextures = 1;
             vertexFormat.m_UseColors   = 1;
 
+            // load MDL model
             pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
                                          0,
                                          &vertexFormat,
                                          0xFFFFFFFF);
 
+            // succeeded?
             if (pMDL)
             {
+                // release the previous model texture
+                if (m_pModel && m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID != GL_INVALID_VALUE)
+                    glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+
+                // release the previous model
                 csrAABBTreeRelease(m_pAABBTree);
-                csrModelRelease(m_pModel2);
+                csrModelRelease(m_pModel);
                 csrMeshRelease(m_pMesh);
 
                 m_pMesh     = 0;
-                m_pModel2   = pMDL->m_pModel;
-                m_pAABBTree = csrAABBTreeFromMesh(&m_pModel2->m_pMesh[0]);
+                m_pModel    = pMDL->m_pModel;
+                m_pAABBTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
 
                 m_TranslateZ = -100.0;
 
+                // create new OpenGL texture
+                glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+                glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+
+                // set texture filtering
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+                // set texture wrapping mode
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                // generate texture from bitmap data
+                glTexImage2D(GL_TEXTURE_2D,
+                             0,
+                             GL_RGB,
+                             pMDL->m_pTexture[0].m_Width,
+                             pMDL->m_pTexture[0].m_Height,
+                             0,
+                             GL_RGB,
+                             GL_UNSIGNED_BYTE,
+                             pMDL->m_pTexture[0].m_pData);
+
+                // set this value to 0, otherwise the model will be deleted by csrMDLRelease()
                 pMDL->m_pModel = 0;
             }
         }
@@ -360,6 +399,40 @@ void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
     ReleaseDC(hwnd, hDC);
 }
 //------------------------------------------------------------------------------
+void TMainForm::LoadShader(const std::string& vertex, const std::string& fragment, CSR_Shader*& pShader)
+{
+    CSR_Buffer* pVS = NULL;
+    CSR_Buffer* pFS = NULL;
+
+    try
+    {
+        // create buffers to contain vertex and fragment programs
+        pVS = csrBufferCreate();
+        pFS = csrBufferCreate();
+
+        // copy the vertex program to read
+        pVS->m_Length = vertex.length();
+        pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
+        std::memcpy(pVS->m_pData, vertex.c_str(), pVS->m_Length);
+        pVS->m_pData[pVS->m_Length] = 0x0;
+
+        // copy the fragment program to read
+        pFS->m_Length = fragment.length();
+        pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
+        std::memcpy(pFS->m_pData, fragment.c_str(), pFS->m_Length);
+        pFS->m_pData[pFS->m_Length] = 0x0;
+
+        // compile and build the shader
+        pShader = csrShaderLoadFromBuffer(pVS, pFS);
+    }
+    __finally
+    {
+        // release the buffers
+        csrBufferRelease(pVS);
+        csrBufferRelease(pFS);
+    }
+}
+//------------------------------------------------------------------------------
 void TMainForm::CreateViewport(float w, float h)
 {
     if (!m_pShader_ColoredMesh)
@@ -374,42 +447,47 @@ void TMainForm::CreateViewport(float w, float h)
     // create the OpenGL viewport
     glViewport(0, 0, w, h);
 
+    // create a perspective projection matrix
     csrMat4Perspective(fov, aspect, zNear, zFar, &m_ProjectionMatrix);
 
-    // connect projection matrix to shader
+    // enable the colored program
+    csrShaderEnable(m_pShader_ColoredMesh);
+
+    // connect projection matrix to colored shader
     GLint projectionUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uProjection");
+    glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
+
+    // enable the textured program
+    csrShaderEnable(m_pShader_TexturedMesh);
+
+    // connect projection matrix to textured shader
+    projectionUniform = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
-    CSR_Buffer* pVS = csrBufferCreate();
-    CSR_Buffer* pFS = csrBufferCreate();
+    // load the shaders
+    LoadShader(g_VertexProgram_ColoredMesh,  g_FragmentProgram_ColoredMesh,  m_pShader_ColoredMesh);
+    LoadShader(g_VertexProgram_TexturedMesh, g_FragmentProgram_TexturedMesh, m_pShader_TexturedMesh);
 
-    std::string data = g_VertexProgram_ColoredMesh;
-
-    pVS->m_Length = data.length();
-    pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
-    std::memcpy(pVS->m_pData, data.c_str(), pVS->m_Length);
-    pVS->m_pData[pVS->m_Length] = 0x0;
-
-    data = g_FragmentProgram_ColoredMesh;
-
-    pFS->m_Length = data.length();
-    pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
-    std::memcpy(pFS->m_pData, data.c_str(), pFS->m_Length);
-    pFS->m_pData[pFS->m_Length] = 0x0;
-
-    m_pShader_ColoredMesh = csrShaderLoadFromBuffer(pVS, pFS);
-
-    csrBufferRelease(pVS);
-    csrBufferRelease(pFS);
-
+    // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
 
     // get shader attributes
     m_pShader_ColoredMesh->m_VertexSlot = glGetAttribLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_vVertex");
     m_pShader_ColoredMesh->m_ColorSlot  = glGetAttribLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_vColor");
+
+    // enable the textured program
+    csrShaderEnable(m_pShader_TexturedMesh);
+
+    // get shader attributes
+    m_pShader_TexturedMesh->m_VertexSlot   = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vVertex");
+    m_pShader_TexturedMesh->m_ColorSlot    = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vColor");
+    m_pShader_TexturedMesh->m_TexCoordSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vTexCoord");
+
+    // enable the colored program
+    csrShaderEnable(m_pShader_ColoredMesh);
 
     CSR_VertexFormat vf;
     vf.m_UseNormals  = 0;
@@ -437,8 +515,13 @@ void TMainForm::InitScene(int w, int h)
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
+    // release the model texture
+    if (m_pModel && m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID != GL_INVALID_VALUE)
+        glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_Texture.m_TextureID);
+
+    // release the scene objects
     csrAABBTreeRelease(m_pAABBTree);
-    csrModelRelease(m_pModel2);
+    csrModelRelease(m_pModel);
     csrMeshRelease(m_pMesh);
     csrShaderRelease(m_pShader_TexturedMesh);
     csrShaderRelease(m_pShader_ColoredMesh);
@@ -492,8 +575,18 @@ void TMainForm::UpdateScene(float elapsedTime)
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
     csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
+    // enable the colored program
+    csrShaderEnable(m_pShader_ColoredMesh);
+
     // connect the model view matrix to shader
     GLint modelUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelview");
+    glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+
+    // enable the textured program
+    csrShaderEnable(m_pShader_TexturedMesh);
+
+    // connect the model view matrix to shader
+    modelUniform = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uModelview");
     glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
     // calculate the ray from current mouse position
@@ -512,12 +605,33 @@ void TMainForm::DrawScene()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         if (m_pMesh)
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // draw the mesh
             csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh);
+        }
         else
-        if (m_pModel2)
-            csrSceneDrawMesh(&m_pModel2->m_pMesh[0], m_pShader_ColoredMesh);
+        if (m_pModel)
+        {
+            // enable the textured program
+            csrShaderEnable(m_pShader_TexturedMesh);
+
+            GLint texSamplerSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sColorMap");
+
+            // configure texture to draw
+            glActiveTexture(GL_TEXTURE0);
+            glUniform1i(texSamplerSlot, GL_TEXTURE0);
+
+            // draw the mesh
+            csrSceneDrawMesh(&m_pModel->m_pMesh[0], m_pShader_TexturedMesh);
+        }
         else
             return;
+
+        // enable the colored program
+        csrShaderEnable(m_pShader_ColoredMesh);
 
         // show the polygon intersections (with the mouse ray)
         if (ckShowCollidingPolygons->Checked)
@@ -916,8 +1030,8 @@ void TMainForm::ShowStats() const
     if (m_pMesh)
         pMesh = m_pMesh;
     else
-    if (m_pModel2)
-        pMesh = &m_pModel2->m_pMesh[0];
+    if (m_pModel)
+        pMesh = &m_pModel->m_pMesh[0];
     else
         pMesh = 0;
 
