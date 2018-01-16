@@ -34,6 +34,8 @@ CSR_Shader* csrShaderCreate(void)
     pShader->m_VertexSlot   = -1;
     pShader->m_NormalSlot   = -1;
     pShader->m_TexCoordSlot = -1;
+    pShader->m_TextureSlot  = -1;
+    pShader->m_BumpMapSlot  = -1;
     pShader->m_ColorSlot    = -1;
     pShader->m_ModelSlot    = -1;
 

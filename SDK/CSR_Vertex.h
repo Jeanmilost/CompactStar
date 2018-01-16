@@ -65,7 +65,8 @@ typedef struct
 */
 typedef struct
 {
-    CSR_TextureShader m_Texture;
+    GLuint m_TextureID;
+    GLuint m_BumpMapID;
 } CSR_MeshShader;
 
 /**

@@ -189,10 +189,10 @@ CSR_Mesh* csrMeshCreate(void)
         return 0;
 
     // initialize the buffer content
-    pMesh->m_Shader.m_Texture.m_TextureID = GL_INVALID_VALUE;
-    pMesh->m_Shader.m_Texture.m_BumpMapID = GL_INVALID_VALUE;
-    pMesh->m_pVB                          = 0;
-    pMesh->m_Count                        = 0;
+    pMesh->m_Shader.m_TextureID = GL_INVALID_VALUE;
+    pMesh->m_Shader.m_BumpMapID = GL_INVALID_VALUE;
+    pMesh->m_pVB                = 0;
+    pMesh->m_Count              = 0;
 
     return pMesh;
 }
@@ -204,6 +204,14 @@ void csrMeshRelease(CSR_Mesh* pMesh)
     // no mesh to release?
     if (!pMesh)
         return;
+
+    // delete the texture
+    if (pMesh->m_Shader.m_TextureID != GL_INVALID_VALUE)
+        glDeleteTextures(1, &pMesh->m_Shader.m_TextureID);
+
+    // delete the bump map
+    if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+        glDeleteTextures(1, &pMesh->m_Shader.m_BumpMapID);
 
     // free the mesh content
     if (pMesh->m_pVB)

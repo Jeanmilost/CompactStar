@@ -731,8 +731,10 @@ CSR_Model* csrModelCreate(void)
         return 0;
 
     // initialize the model content
-    pModel->m_pMesh     = 0;
-    pModel->m_MeshCount = 0;
+    pModel->m_pMesh          = 0;
+    pModel->m_MeshCount      = 0;
+    pModel->m_pAnimation     = 0;
+    pModel->m_AnimationCount = 0;
 
     return pModel;
 }
@@ -746,13 +748,41 @@ void csrModelRelease(CSR_Model* pModel)
     if (!pModel)
         return;
 
-    // free the meshes content
+    // free the animation content
+    if (pModel->m_pAnimation)
+        free(pModel->m_pAnimation);
+
+    // do free the meshes content?
     if (pModel->m_pMesh)
     {
         // iterate through meshes to free
         for (i = 0; i < pModel->m_MeshCount; ++i)
         {
-            // free the mesh content
+            // delete the texture
+            if (pModel->m_pMesh[i].m_Shader.m_TextureID != GL_INVALID_VALUE)
+            {
+                // check if the same texture is assigned to several meshes
+                for (j = i + 1; j < pModel->m_MeshCount; ++j)
+                    if (pModel->m_pMesh[i].m_Shader.m_TextureID == pModel->m_pMesh[j].m_Shader.m_TextureID)
+                        // reset the identifier to avoid to delete it twice
+                        pModel->m_pMesh[j].m_Shader.m_TextureID = GL_INVALID_VALUE;
+
+                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_TextureID);
+            }
+
+            // delete the bump map
+            if (pModel->m_pMesh[i].m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+            {
+                // check if the same bump map is assigned to several meshes
+                for (j = i + 1; j < pModel->m_MeshCount; ++j)
+                    if (pModel->m_pMesh[i].m_Shader.m_BumpMapID == pModel->m_pMesh[j].m_Shader.m_BumpMapID)
+                        // reset the identifier to avoid to delete it twice
+                        pModel->m_pMesh[j].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
+
+                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_BumpMapID);
+            }
+
+            // do free the mesh vertex buffer?
             if (pModel->m_pMesh[i].m_pVB)
             {
                 // free the mesh vertex buffer content
@@ -1023,7 +1053,7 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
             return 0;
 
         // read the frame
-        if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, &pFrameGroup->m_pFrame[0]))
+        if (!csrMDLReadFrame(pBuffer, pOffset, pHeader, pFrameGroup->m_pFrame))
             return 0;
 
         // for 1 frame there is no time
@@ -1043,10 +1073,8 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
     #ifdef CONVERT_ENDIANNESS
         // the read bytes are inverted and should be swapped if the target system is big endian
         if (csrMemoryEndianness() == CSR_E_BigEndian)
-            // iterate through time values to swap
-            for (i = 0; i < pFrameGroup->m_Count; ++i)
-                // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
-                csrMemorySwap(&pFrameGroup->m_Count, sizeof(float));
+            // swap the value in the memory (thus 0xAABBCCDD will become 0xDDCCBBAA)
+            csrMemorySwap(&pFrameGroup->m_Count, sizeof(unsigned));
     #endif
 
     // read the group bounding box min frame
@@ -1156,21 +1184,27 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
                              const CSR_VertexFormat*    pVertexFormat,
                                    unsigned             color)
 {
-    unsigned           normalIndex;
-    unsigned           i;
-    int                j;
-    size_t             k;
-    size_t             l;
-    float              tu;
-    float              tv;
-    CSR_Vector3        vertex;
-    CSR_Vector3        normal;
-    CSR_Vector2        uv;
-    CSR_MDLFrameGroup* pSrcFrameGroup;
-    CSR_MDLVertex*     pSrcVertex;
-    CSR_VertexBuffer*  pVB;
-    CSR_Model*         pModel;
-    CSR_Mesh*          pMeshes;
+    unsigned            normalIndex;
+    unsigned            animationStartIndex;
+    unsigned            i;
+    int                 j;
+    size_t              k;
+    size_t              l;
+    float               tu;
+    float               tv;
+    CSR_Vector3         vertex;
+    CSR_Vector3         normal;
+    CSR_Vector2         uv;
+    CSR_MDLFrameGroup*  pSrcFrameGroup;
+    CSR_MDLVertex*      pSrcVertex;
+    CSR_VertexBuffer*   pVB;
+    CSR_Model*          pModel;
+    CSR_Mesh*           pMeshes;
+    CSR_ModelAnimation* pAnimation;
+    unsigned char       skinName[16];
+    unsigned char       prevSkinName[16];
+    unsigned            skinNameIndex;
+    const unsigned      skinNameLength = sizeof(skinName);
 
     // are source data complete?
     if (!pHeader || !pFrameGroup || !pSkin || !pTexCoord || !pPolygon || !pVertexFormat)
@@ -1187,9 +1221,11 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
     if (!pModel)
         return 0;
 
-    // create all the meshes required to contain the frames
-    pModel->m_MeshCount = pHeader->m_FrameCount;
-    pModel->m_pMesh     = (CSR_Mesh*)malloc(pModel->m_MeshCount * sizeof(CSR_Mesh));
+    // initialize the model and create all the meshes required to contain the frames
+    pModel->m_MeshCount      =  pHeader->m_FrameCount;
+    pModel->m_pMesh          = (CSR_Mesh*)malloc(pModel->m_MeshCount * sizeof(CSR_Mesh));
+    pModel->m_AnimationCount =  0;
+    pModel->m_pAnimation     =  0;
 
     // succeeded?
     if (!pModel->m_pMesh)
@@ -1198,11 +1234,80 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
         return 0;
     }
 
+    // initialize the previous skin name (needed to detect the animations)
+    memset(prevSkinName, 0x0, sizeof(prevSkinName));
+
+    // initialize the animation start index
+    animationStartIndex = 0;
+
     // iterate through frames to get
     for (i = 0; i < pHeader->m_FrameCount; ++i)
     {
         // get source frame group from which meshes should be extracted
         pSrcFrameGroup = (CSR_MDLFrameGroup*)&pFrameGroup[i];
+
+        // the frame group contains at least 1 sub-frame?
+        if (pSrcFrameGroup->m_Count > 0)
+        {
+            // get the skin name
+            memset(skinName, 0x0, skinNameLength);
+            strcpy(skinName, pSrcFrameGroup->m_pFrame[0].m_Name);
+
+            // revert iterate through the skin name and remove all the trailing numbers
+            for (k = 0; k < skinNameLength; ++k)
+            {
+                // calculate the skin name index
+                skinNameIndex = (skinNameLength - 1) - k;
+
+                // is char empty or is a number?
+                if (skinName[skinNameIndex] == 0x0 ||
+                   (skinName[skinNameIndex] >= '0' && skinName[skinNameIndex] <= '9'))
+                {
+                    // erase it
+                    skinName[skinNameIndex] = 0x0;
+                    continue;
+                }
+
+                break;
+            }
+
+            // is previous skin name already initialized?
+            if (prevSkinName[0] == 0x0)
+                // no, initialize it
+                memcpy(prevSkinName, skinName, skinNameLength);
+
+            // found another animation?
+            if (i == pHeader->m_FrameCount - 1 || memcmp(skinName, prevSkinName, skinNameLength) != 0)
+            {
+                // increase the memory to contain the new animation
+                pAnimation = (CSR_ModelAnimation*)csrMemoryAlloc(pModel->m_pAnimation,
+                                                                 sizeof(CSR_ModelAnimation),
+                                                                 pModel->m_AnimationCount + 1);
+
+                // succeeded?
+                if (!pAnimation)
+                {
+                    csrModelRelease(pModel);
+                    return 0;
+                }
+
+                // update the model
+                pModel->m_pAnimation = pAnimation;
+                ++pModel->m_AnimationCount;
+
+                // populate the animation. By default set the FPS to 10 (should be customized later)
+                memcpy(pModel->m_pAnimation[pModel->m_AnimationCount - 1].m_Name,
+                       prevSkinName,
+                       skinNameLength);
+                pModel->m_pAnimation[pModel->m_AnimationCount - 1].m_Start = animationStartIndex;
+                pModel->m_pAnimation[pModel->m_AnimationCount - 1].m_End   = i - 1;
+                pModel->m_pAnimation[pModel->m_AnimationCount - 1].m_FPS   = 10;
+
+                // prepare the values for the next animation
+                animationStartIndex = i;
+                memset(prevSkinName, 0x0, skinNameLength);
+            }
+        }
 
         // create the vertex buffers required for the sub-frames
         pModel->m_pMesh[i].m_Count = pSrcFrameGroup->m_Count;
@@ -1215,6 +1320,13 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
             // prepare the next vertex buffer format
             pModel->m_pMesh[i].m_pVB[j].m_Format        = *pVertexFormat;
             pModel->m_pMesh[i].m_pVB[j].m_Format.m_Type = CSR_VT_Triangles;
+
+            // disable the textures if the model does not contain any of them (seems that the MDL
+            // files contain at least a default full black 4x4 texture)
+            if (pSkin->m_TexLen <= 16)
+                pModel->m_pMesh[i].m_pVB[j].m_Format.m_UseTextures = 0;
+
+            // calculate the vertex stride
             csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB[j].m_Format);
 
             // initialize the vertex buffer data
@@ -1264,17 +1376,19 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
     return pModel;
 }
 //---------------------------------------------------------------------------
-CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                      const CSR_Buffer*       pPalette,
-                            CSR_VertexFormat* pVertexFormat,
-                            unsigned          color)
+CSR_Model* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                        const CSR_Buffer*       pPalette,
+                              CSR_VertexFormat* pVertexFormat,
+                              unsigned          color)
 {
     CSR_MDLHeader*       pHeader;
     CSR_MDLSkin*         pSkin;
     CSR_MDLTextureCoord* pTexCoord;
     CSR_MDLPolygon*      pPolygon;
     CSR_MDLFrameGroup*   pFrameGroup;
-    CSR_MDL*             pMDL;
+    CSR_Model*           pModel;
+    CSR_PixelBuffer*     pPixelBuffer;
+    GLuint               textureID;
     size_t               i;
     size_t               offset = 0;
 
@@ -1286,22 +1400,12 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
     if (!pVertexFormat)
         return 0;
 
-    // create a new MDL model
-    pMDL = (CSR_MDL*)malloc(sizeof(CSR_MDL));
-
-    // succeeded?
-    if (!pMDL)
-        return 0;
-
     // create mdl header
     pHeader = (CSR_MDLHeader*)malloc(sizeof(CSR_MDLHeader));
 
     // succeeded?
     if (!pHeader)
-    {
-        csrMDLRelease(pMDL);
         return 0;
-    }
 
     // read file header
     csrMDLReadHeader(pBuffer, &offset, pHeader);
@@ -1310,7 +1414,6 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
     if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
     {
         free(pHeader);
-        csrMDLRelease(pMDL);
         return 0;
     }
 
@@ -1324,7 +1427,6 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
             {
                 // release the used memory
                 csrReleaseMDLObjects(pHeader, 0, pSkin, 0, 0);
-                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1341,7 +1443,6 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
             {
                 // release the used memory
                 csrReleaseMDLObjects(pHeader, 0, pSkin, pTexCoord, 0);
-                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1358,7 +1459,6 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
             {
                 // release the used memory
                 csrReleaseMDLObjects(pHeader, 0, pSkin, pTexCoord, pPolygon);
-                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1375,7 +1475,6 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
             {
                 // release the used memory
                 csrReleaseMDLObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-                csrMDLRelease(pMDL);
                 return 0;
             }
     }
@@ -1383,37 +1482,80 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
         pFrameGroup = 0;
 
     // create model from file content
-    pMDL->m_pModel = csrMDLCreateModel(pHeader,
-                                       pFrameGroup,
-                                       pSkin,
-                                       pTexCoord,
-                                       pPolygon,
-                                       pVertexFormat,
-                                       color);
+    pModel = csrMDLCreateModel(pHeader,
+                               pFrameGroup,
+                               pSkin,
+                               pTexCoord,
+                               pPolygon,
+                               pVertexFormat,
+                               color);
 
-    // todo FIXME -cFeature -oJean: MDL may support several textures, and several pictures per
-    //                              texture. This hould be managed here
-    // extract texture from model
-    pMDL->m_pTexture     = csrMDLUncompressTexture(pSkin,
-                                                   pPalette,
-                                                   pHeader->m_SkinWidth,
-                                                   pHeader->m_SkinHeight,
-                                                   0);
-    pMDL->m_TextureCount = 1;
+    // are textures enabled?
+    if (pVertexFormat->m_UseTextures)
+    {
+        // extract texture from model
+        pPixelBuffer = csrMDLUncompressTexture(pSkin,
+                                               pPalette,
+                                               pHeader->m_SkinWidth,
+                                               pHeader->m_SkinHeight,
+                                               0);
+
+        // succeeded?
+        if (!pPixelBuffer)
+        {
+            // release the MDL object used for the loading
+            csrReleaseMDLObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+            // release the model
+            csrModelRelease(pModel);
+
+            return 0;
+        }
+
+        // create new OpenGL texture
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        // set texture filtering
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // set texture wrapping mode
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // generate texture from bitmap data. NOTE MDL textures are always provided in 24 bit RGB
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGB,
+                     pPixelBuffer->m_Width,
+                     pPixelBuffer->m_Height,
+                     0,
+                     GL_RGB,
+                     GL_UNSIGNED_BYTE,
+                     pPixelBuffer->m_pData);
+
+        // assign the model texture to each frames
+        for (i = 0; i < pHeader->m_FrameCount; ++i)
+            pModel->m_pMesh[i].m_Shader.m_TextureID = textureID;
+
+        // release the pixel buffer
+        csrPixelBufferRelease(pPixelBuffer);
+    }
 
     // release the MDL object used for the loading
     csrReleaseMDLObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
 
-    return pMDL;
+    return pModel;
 }
 //---------------------------------------------------------------------------
-CSR_MDL* csrMDLOpen(const char*             pFileName,
-                    const CSR_Buffer*       pPalette,
-                          CSR_VertexFormat* pVertexFormat,
-                          unsigned          color)
+CSR_Model* csrMDLOpen(const char*             pFileName,
+                      const CSR_Buffer*       pPalette,
+                            CSR_VertexFormat* pVertexFormat,
+                            unsigned          color)
 {
     CSR_Buffer* pBuffer;
-    CSR_MDL*    pMDL;
+    CSR_Model*  pModel;
 
     // open the sound file
     pBuffer = csrFileOpen(pFileName);
@@ -1426,12 +1568,12 @@ CSR_MDL* csrMDLOpen(const char*             pFileName,
     }
 
     // create the MDL model from the file content
-    pMDL = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
+    pModel = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
 
     // release the file buffer (no longer required)
     csrBufferRelease(pBuffer);
 
-    return pMDL;
+    return pModel;
 }
 //---------------------------------------------------------------------------
 void csrReleaseMDLObjects(CSR_MDLHeader*       pHeader,
@@ -1441,16 +1583,28 @@ void csrReleaseMDLObjects(CSR_MDLHeader*       pHeader,
                           CSR_MDLPolygon*      pPolygon)
 {
     size_t i;
+    int    j;
 
     // release frame group content
     if (pHeader && pFrameGroup)
+        // iterate through frame groups for which the content should be released
         for (i = 0; i < pHeader->m_FrameCount; ++i)
+        {
+            // frame group contains frame to release?
             if (pFrameGroup[i].m_pFrame)
             {
-                free(pFrameGroup[i].m_pFrame->m_pVertex);
+                // release frame vertices
+                for (j = 0; j < pFrameGroup[i].m_Count; ++j)
+                    free(pFrameGroup[i].m_pFrame[j].m_pVertex);
+
+                // release frame
                 free(pFrameGroup[i].m_pFrame);
-                free(pFrameGroup[i].m_pTime);
             }
+
+            // release time table
+            if (pFrameGroup[i].m_pTime)
+                free(pFrameGroup[i].m_pTime);
+        }
 
     // release skin content
     if (pSkin)
@@ -1470,23 +1624,5 @@ void csrReleaseMDLObjects(CSR_MDLHeader*       pHeader,
     free(pTexCoord);
     free(pPolygon);
     free(pFrameGroup);
-}
-//---------------------------------------------------------------------------
-void csrMDLRelease(CSR_MDL* pMDL)
-{
-    // no MDL model to release?
-    if (!pMDL)
-        return;
-
-    // free the texture content
-    if (pMDL->m_pTexture)
-        csrPixelBufferRelease(pMDL->m_pTexture);
-
-    // free the model content
-    if (pMDL->m_pModel)
-        csrModelRelease(pMDL->m_pModel);
-
-    // free the MDL model
-    free(pMDL);
 }
 //---------------------------------------------------------------------------

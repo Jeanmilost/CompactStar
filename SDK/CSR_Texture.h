@@ -50,15 +50,6 @@ typedef struct
     void*          m_pData;
 } CSR_PixelBuffer;
 
-/**
-* Texture shader (i.e. the elements that should be connected to shader for this texture)
-*/
-typedef struct
-{
-    GLuint m_TextureID;
-    GLuint m_BumpMapID;
-} CSR_TextureShader;
-
 #ifdef __cplusplus
     extern "C"
     {
