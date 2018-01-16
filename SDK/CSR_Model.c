@@ -1217,6 +1217,10 @@ CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
             pModel->m_pMesh[i].m_pVB[j].m_Format.m_Type = CSR_VT_Triangles;
             csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB[j].m_Format);
 
+            // initialize the vertex buffer data
+            pModel->m_pMesh[i].m_pVB[j].m_pData = 0;
+            pModel->m_pMesh[i].m_pVB[j].m_Count = 0;
+
             // iterate through polygons to process
             for (k = 0; k < pHeader->m_PolygonCount; ++k)
                 // iterate through polygon vertices
