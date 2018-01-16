@@ -121,6 +121,7 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
+        float            m_TranslateZ;
         float            m_AngleY;
         float            m_PolygonArray[21];
         std::size_t      m_FrameCount;

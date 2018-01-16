@@ -41,7 +41,7 @@
 
 //----------------------------------------------------------------------------
 /**
-* Vertex shader program
+* Vertex shader program to show a colored mesh
 */
 const char* g_VertexProgram_ColoredMesh =
     "precision mediump float;"
@@ -57,9 +57,36 @@ const char* g_VertexProgram_ColoredMesh =
     "}";
 //----------------------------------------------------------------------------
 /**
-* Fragment shader program
+* Fragment shader program to show a colored mesh
 */
 const char* g_FragmentProgram_ColoredMesh =
+    "precision mediump float;"
+    "varying lowp vec4 csr_fColor;"
+    "void main(void)"
+    "{"
+    "    gl_FragColor = csr_fColor;"
+    "}";
+//----------------------------------------------------------------------------
+/**
+* Vertex shader program to show a textured mesh
+*/
+const char* g_VertexProgram_TexturedMesh =
+    "precision mediump float;"
+    "attribute vec4 csr_vVertex;"
+    "attribute vec4 csr_vColor;"
+    "uniform   mat4 csr_uProjection;"
+    "uniform   mat4 csr_uModelview;"
+    "varying   vec4 csr_fColor;"
+    "void main(void)"
+    "{"
+    "    csr_fColor   = csr_vColor;"
+    "    gl_Position  = csr_uProjection * csr_uModelview * csr_vVertex;"
+    "}";
+//----------------------------------------------------------------------------
+/**
+* Fragment shader program to show a textured mesh
+*/
+const char* g_FragmentProgram_TexturedMesh =
     "precision mediump float;"
     "varying lowp vec4 csr_fColor;"
     "void main(void)"
@@ -100,6 +127,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
     m_pModel2(NULL),
+    m_TranslateZ(0.0f),
     m_AngleY(0.0f),
     m_FrameCount(0),
     m_StartTime(0),
@@ -210,6 +238,8 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_pMesh     = 0;
                 m_pModel2   = pMDL->m_pModel;
                 m_pAABBTree = csrAABBTreeFromMesh(&m_pModel2->m_pMesh[0]);
+
+                m_TranslateZ = -100.0;
 
                 pMDL->m_pModel = 0;
             }
@@ -389,6 +419,8 @@ void TMainForm::InitScene(int w, int h)
     m_pMesh     = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
     m_pAABBTree = csrAABBTreeFromMesh(m_pMesh);
 
+    m_TranslateZ = -2.0f;
+
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
@@ -430,9 +462,9 @@ void TMainForm::UpdateScene(float elapsedTime)
         m_AngleY -= M_PI * 2.0f;
 
     // set translation
-    t.m_X =  0.0f;
-    t.m_Y =  0.0f;
-    t.m_Z = -100.0;//2.0f;
+    t.m_X = 0.0f;
+    t.m_Y = 0.0f;
+    t.m_Z = m_TranslateZ;
 
     // build the translation matrix
     csrMat4Translate(&t, &translateMatrix);
@@ -443,7 +475,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     r.m_Z = 0.0f;
 
     // rotate 90 degrees
-    xAngle = 1.57075f;
+    xAngle = -M_PI / 2.0f;
 
     // build the X rotation matrix
     csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
