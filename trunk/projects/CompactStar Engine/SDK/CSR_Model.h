@@ -119,28 +119,47 @@ typedef struct
 } CSR_MDLFrameGroup;
 
 /**
-* Model animation, it's a table indicating at which frame an animation begins, at which frame it ends,
-* and the animation speed
+* Model, it's a collection of meshes, each of them represent a frame. The model may be animated, by
+* showing each frame, one after the other
+*/
+typedef struct
+{
+    CSR_Mesh* m_pMesh;
+    size_t    m_MeshCount;
+    double    m_Time;
+} CSR_Model;
+
+/**
+* Model animation (based on frames)
 */
 typedef struct
 {
     char   m_Name[16];
     size_t m_Start;
     size_t m_End;
-    double m_FPS;
 } CSR_ModelAnimation;
 
 /**
-* Model, it's a collection of meshes, each of them represent a frame. The model may be animated, by
-* showing each frame, one after the other
+* Model texture
 */
 typedef struct
 {
-    CSR_Mesh*           m_pMesh;
-    size_t              m_MeshCount;
+    GLuint m_TextureID;
+    double m_Time;
+} CSR_ModelTexture;
+
+/**
+* Quake I (.mdl) model
+*/
+typedef struct
+{
+    CSR_Model*          m_pModel;
+    size_t              m_ModelCount;
     CSR_ModelAnimation* m_pAnimation;
     size_t              m_AnimationCount;
-} CSR_Model;
+    CSR_ModelTexture*   m_pTexture;
+    size_t              m_TextureCount;
+} CSR_MDL;
 
 #ifdef __cplusplus
     extern "C"
@@ -422,24 +441,23 @@ typedef struct
                                           CSR_Vector3*   pResult);
 
         /**
-        * Creates MDL model
+        * Populates a model from MDL data
         *@param pHeader - MDL header
         *@param pFrameGroup - MDL frame group
-        *@param pSkin - MDL skin
-        *@param pTexCoord - MDL texture coordinates
         *@param pPolygon - MDL polygon
+        *@param pTexCoord - MDL texture coordinates
         *@param pVertexFormat - vertex format to use
         *@param color - color in RGBA format
-        *@return mesh containing the MDL model, 0 on error
-        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        *@param textureID - texture identifier
+        *@param[out] pModel - model to populate (a blank model should be propvided)
         */
-        CSR_Model* csrMDLCreateModel(const CSR_MDLHeader*       pHeader,
-                                     const CSR_MDLFrameGroup*   pFrameGroup,
-                                     const CSR_MDLSkin*         pSkin,
-                                     const CSR_MDLTextureCoord* pTexCoord,
-                                     const CSR_MDLPolygon*      pPolygon,
-                                     const CSR_VertexFormat*    pVertexFormat,
-                                           unsigned             color);
+        void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
+                                 const CSR_MDLFrameGroup*   pFrameGroup,
+                                 const CSR_MDLPolygon*      pPolygon,
+                                 const CSR_MDLTextureCoord* pTexCoord,
+                                 const CSR_VertexFormat*    pVertexFormat,
+                                       unsigned             color,
+                                       CSR_Model*           pModel);
 
         /**
         * Creates a MDL model from a buffer
@@ -450,10 +468,10 @@ typedef struct
         *@return the newly created MDL model, 0 on error
         *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        CSR_Model* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                                const CSR_Buffer*       pPalette,
-                                      CSR_VertexFormat* pVertexFormat,
-                                      unsigned          color);
+        CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
+                              const CSR_Buffer*       pPalette,
+                                    CSR_VertexFormat* pVertexFormat,
+                                    unsigned          color);
 
         /**
         * Opens a MDL model from a file
@@ -464,24 +482,30 @@ typedef struct
         *@return the newly created MDL model, 0 on error
         *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
-        CSR_Model* csrMDLOpen(const char*             pFileName,
-                              const CSR_Buffer*       pPalette,
-                                    CSR_VertexFormat* pVertexFormat,
-                                    unsigned          color);
+        CSR_MDL* csrMDLOpen(const char*             pFileName,
+                            const CSR_Buffer*       pPalette,
+                                  CSR_VertexFormat* pVertexFormat,
+                                  unsigned          color);
 
         /**
-        * Releases the MDL objects
+        * Releases the MDL objects used during the opening
         *@param pHeader - MDL header
         *@param pFrameGroup - MDL frame group
         *@param pSkin - MDL skin
         *@param pTexCoord - MDL texture coordinates
         *@param pPolygon - MDL polygon
         */
-        void csrReleaseMDLObjects(CSR_MDLHeader*       pHeader,
+        void csrMDLReleaseObjects(CSR_MDLHeader*       pHeader,
                                   CSR_MDLFrameGroup*   pFrameGroup,
                                   CSR_MDLSkin*         pSkin,
                                   CSR_MDLTextureCoord* pTexCoord,
                                   CSR_MDLPolygon*      pPolygon);
+
+        /**
+        * Releases a MDL model
+        *@param pMDL - MDL model to release
+        */
+        void csrMDLRelease(CSR_MDL* pMDL);
 
 #ifdef __cplusplus
     }

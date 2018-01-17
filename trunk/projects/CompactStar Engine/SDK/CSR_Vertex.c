@@ -58,6 +58,7 @@ CSR_VertexBuffer* csrVertexBufferCreate(void)
     pVB->m_Format.m_Stride      = 0;
     pVB->m_pData                = 0;
     pVB->m_Count                = 0;
+    pVB->m_Time                 = 0.0;
 
     return pVB;
 }
@@ -193,6 +194,7 @@ CSR_Mesh* csrMeshCreate(void)
     pMesh->m_Shader.m_BumpMapID = GL_INVALID_VALUE;
     pMesh->m_pVB                = 0;
     pMesh->m_Count              = 0;
+    pMesh->m_Time               = 0.0;
 
     return pMesh;
 }

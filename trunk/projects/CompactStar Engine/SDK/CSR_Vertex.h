@@ -58,6 +58,7 @@ typedef struct
     CSR_VertexFormat m_Format;
     float*           m_pData;
     size_t           m_Count;
+    double           m_Time;
 } CSR_VertexBuffer;
 
 /**
@@ -77,6 +78,7 @@ typedef struct
     CSR_MeshShader    m_Shader;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
+    double            m_Time;
 } CSR_Mesh;
 
 /**
