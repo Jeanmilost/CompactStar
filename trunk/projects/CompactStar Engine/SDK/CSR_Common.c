@@ -86,6 +86,12 @@ void csrMathMax(float a, float b, float* pR)
     *pR = b;
 }
 //---------------------------------------------------------------------------
+void csrMathClamp(float value, float minVal, float maxVal, float* pR)
+{
+    csrMathMax(value, minVal, pR);
+    csrMathMin(*pR,   maxVal, pR);
+}
+//---------------------------------------------------------------------------
 int csrMathBetween(float value, float rangeStart, float rangeEnd, float tolerance)
 {
     float minVal;

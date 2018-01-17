@@ -134,6 +134,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pModel(NULL),
     m_TranslateZ(0.0f),
     m_AngleY(0.0f),
+    m_AnimationOffset(0.0),
     m_AnimationIndex(-1),
     m_FrameCount(0),
     m_StartTime(0),
@@ -283,8 +284,14 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
             }
 
+            // initialize values
             m_TranslateZ     = -100.0;
-            m_AnimationIndex = 0;
+            m_AnimationIndex =  0;
+
+            // update the interface
+            tbAnimationSpeed->Enabled = true;
+            tbAnimationNb->Enabled    = true;
+            tbAnimationNb->Max        = pModel->m_AnimationCount - 1;
 
             // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
             // will be deleted while the csrModelRelease() function will be exectued
@@ -574,11 +581,34 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 rotateMatrix;
 
     // calculate the next angle
-    m_AngleY += (elapsedTime * (float(tbSpeedVelocity->Position) * 0.01f));
+    m_AngleY += (elapsedTime * (float(tbRotationSpeed->Position) * 0.01f));
 
     // avoid the angle to exceeds the bounds even if a huge time has elapsed since last update
     while (m_AngleY > M_PI * 2.0f)
         m_AngleY -= M_PI * 2.0f;
+
+    if (!ckStopModelAnimation->Checked && m_pModel)
+    {
+        // increase the animation offset
+        m_AnimationOffset += ((elapsedTime + 0.1f) * double(tbAnimationSpeed->Position));
+
+              unsigned frameCount = 0;
+        const unsigned animIndex  = tbAnimationNb->Position;
+        const unsigned animStart  = m_pModel->m_pAnimation[animIndex].m_Start;
+        const unsigned animEnd    = m_pModel->m_pAnimation[animIndex].m_End;
+        const unsigned animLength = animEnd - animStart;
+
+        // count the frames
+        while (m_AnimationOffset >= 1.0)
+        {
+            m_AnimationOffset -= 1.0;
+            ++frameCount;
+        }
+
+        m_AnimationIndex = animStart + ((m_AnimationIndex + frameCount) % animLength);
+    }
+    else
+        m_AnimationIndex = 0;
 
     // set translation
     t.m_X = 0.0f;
@@ -1076,22 +1106,38 @@ void TMainForm::CalculateMouseRay()
 //---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
 {
-    CSR_Mesh* pMesh;
+    unsigned vertexCount = 0;
+    unsigned stride      = 0;
 
     if (m_pMesh)
-        pMesh = m_pMesh;
+    {
+        stride = m_pMesh->m_pVB ? m_pMesh->m_pVB->m_Format.m_Stride : 0;
+
+        for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
+            vertexCount += m_pMesh->m_pVB[i].m_Count;
+    }
     else
     if (m_pModel)
-        pMesh = &m_pModel->m_pMesh[m_AnimationIndex];
+    {
+        // invalid animation index?
+        if (m_AnimationIndex < 0 || unsigned(m_AnimationIndex) >= m_pModel->m_MeshCount)
+            return;
+
+        stride = m_pModel->m_pMesh[m_AnimationIndex].m_pVB ?
+                m_pModel->m_pMesh[m_AnimationIndex].m_pVB->m_Format.m_Stride : 0;
+
+        for (std::size_t i = 0; i < m_pModel->m_pMesh[m_AnimationIndex].m_Count; ++i)
+            vertexCount += m_pModel->m_pMesh[m_AnimationIndex].m_pVB[i].m_Count;
+    }
     else
-        pMesh = 0;
+        return;
 
     std::size_t polyCount = 0;
 
     // calculate the polygons count
-    if (pMesh && pMesh->m_pVB->m_Format.m_Stride)
-        polyCount = pMesh->m_pVB ? ((pMesh->m_pVB->m_Count / pMesh->m_pVB->m_Format.m_Stride) / 3) : 0;
+    polyCount = stride ? ((vertexCount / stride) / 3) : 0;
 
+    // show the stats
     laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(polyCount));
     laPolygonsToCheck->Caption = L"Polygons To Check: "     + ::IntToStr(int(m_Stats.m_PolyToCheckCount));
     laMaxPolyToCheck->Caption  = L"Max Polygons To Check: " + ::IntToStr(int(m_Stats.m_MaxPolyToCheckCount));

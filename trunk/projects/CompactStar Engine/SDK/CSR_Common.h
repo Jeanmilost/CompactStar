@@ -119,6 +119,15 @@ typedef struct
         void csrMathMax(float a, float b, float* pR);
 
         /**
+        * Clamps a value between a range
+        *@param value - value to clamp
+        *@param minVal - min range to clamp
+        *@param maxVal - max range to clamp
+        *@param[out] pR - the found maximum value
+        */
+        void csrMathClamp(float value, float minVal, float maxVal, float* pR);
+
+        /**
         * Checks if a value is between a range
         *@param value - value to check
         *@param rangeStart - range start value

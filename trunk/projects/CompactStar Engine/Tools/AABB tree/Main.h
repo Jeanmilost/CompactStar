@@ -64,8 +64,13 @@ class TMainForm : public TForm
         TLabel *laMaxPolyToCheck;
         TLabel *laFPS;
         TLabel *laPolygonCount;
-        TLabel *laSpeedVelocityCaption;
-        TTrackBar *tbSpeedVelocity;
+        TLabel *laRotationSpeedCaption;
+        TTrackBar *tbRotationSpeed;
+        TLabel *laAnimationSpeedCaption;
+        TTrackBar *tbAnimationSpeed;
+        TCheckBox *ckStopModelAnimation;
+        TLabel *laAnimationNbCaption;
+        TTrackBar *tbAnimationNb;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -130,6 +135,7 @@ class TMainForm : public TForm
         float            m_TranslateZ;
         float            m_AngleY;
         float            m_PolygonArray[21];
+        double           m_AnimationOffset;
         int              m_AnimationIndex;
         std::size_t      m_FrameCount;
         unsigned __int64 m_StartTime;
