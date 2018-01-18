@@ -609,15 +609,16 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     // calculate the next indexes to use for the MDL model
     if (!ckStopModelAnimation->Checked && m_pMDL)
-        csrMDLCalculateIndexes(m_pMDL,
-                               10,
-                              &m_TextureIndex,
-                              &m_ModelIndex,
-                              &m_MeshIndex,
-                              &m_pTextureLastTime,
-                              &m_pModelLastTime,
-                              &m_pMeshLastTime,
-                               elapsedTime);
+        csrMDLUpdateIndex(m_pMDL,
+                          10,
+                          0,
+                         &m_TextureIndex,
+                         &m_ModelIndex,
+                         &m_MeshIndex,
+                         &m_pTextureLastTime,
+                         &m_pModelLastTime,
+                         &m_pMeshLastTime,
+                          elapsedTime);
 
     // set translation
     t.m_X = 0.0f;

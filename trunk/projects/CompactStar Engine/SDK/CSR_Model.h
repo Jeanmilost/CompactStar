@@ -502,9 +502,10 @@ typedef struct
                                   CSR_MDLPolygon*      pPolygon);
 
         /**
-        * Calculates the next indexes for the MDL model
+        * Updates the MDL model indexes (e.g. before getting the next mesh to show)
         *@param pMDL - MDL model
         *@param fps - frame per seconds to apply
+        *@aram animationIndex - animation index
         *@param[in, out] pTextureIndex - texture index, new texture index on function ends
         *@param[in, out] pModelIndex - model index, new model index on function ends
         *@param[in, out] pMeshIndex - mesh index, new mesh index on function ends
@@ -513,21 +514,22 @@ typedef struct
         *@param[in, out] pMeshLastTime - mesh last known time
         *@param elapsedTime - elapsed time since last calculation
         */
-        void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
-                                          size_t   fps,
-                                          size_t*  pTextureIndex,
-                                          size_t*  pModelIndex,
-                                          size_t*  pMeshIndex,
-                                          double*  pTextureLastTime,
-                                          double*  pModelLastTime,
-                                          double*  pMeshLastTime,
-                                          double   elapsedTime);
+        void csrMDLUpdateIndex(const CSR_MDL* pMDL,
+                                     size_t   fps,
+                                     size_t   animationIndex,
+                                     size_t*  pTextureIndex,
+                                     size_t*  pModelIndex,
+                                     size_t*  pMeshIndex,
+                                     double*  pTextureLastTime,
+                                     double*  pModelLastTime,
+                                     double*  pMeshLastTime,
+                                     double   elapsedTime);
 
         /**
-        * Get the current mesh, e.g. to draw it, from a MDL model
+        * Get the current mesh from a MDL model (e.g. to draw it)
         *@param pMDL - MDL model to get from
-        *@param modelIndex - model index (csrMDLCalculateIndexes() may be called first)
-        *@param meshIndex - mesh index (csrMDLCalculateIndexes() may be called first)
+        *@param modelIndex - model index, 0 if unknown (csrMDLUpdateIndex() may be called first)
+        *@param meshIndex - mesh index, 0 if unknown (csrMDLUpdateIndex() may be called first)
         *@return current mesh from MDL model, 0 on error or if not found
         *@note The returned mesh will be valid as long as his owner model is
         */
