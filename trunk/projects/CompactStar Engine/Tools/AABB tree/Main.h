@@ -241,6 +241,12 @@ class TMainForm : public TForm
         void CalculateMouseRay();
 
         /**
+        * Get AABB tree index to use
+        *@return AABB tree index
+        */
+        std::size_t GetAABBTreeIndex() const;
+
+        /**
         * Shows the stats
         */
         void ShowStats() const;

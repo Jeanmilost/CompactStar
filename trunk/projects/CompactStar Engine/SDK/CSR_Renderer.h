@@ -55,13 +55,13 @@
         *@param pShader - shader to use to draw the model
         *@param textureIndex - texture index
         *@param modelIndex - model index
-        *@param meshindex - mesh index
+        *@param meshIndex - mesh index
         */
         void csrSceneDrawMDL(const CSR_MDL*    pMDL,
                                    CSR_Shader* pShader,
                                    size_t      textureIndex,
                                    size_t      modelIndex,
-                                   size_t      meshindex);
+                                   size_t      meshIndex);
 
 #ifdef __cplusplus
     }

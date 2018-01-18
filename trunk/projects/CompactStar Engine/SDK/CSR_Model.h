@@ -524,6 +524,16 @@ typedef struct
                                           double   elapsedTime);
 
         /**
+        * Get the current mesh, e.g. to draw it, from a MDL model
+        *@param pMDL - MDL model to get from
+        *@param modelIndex - model index (csrMDLCalculateIndexes() may be called first)
+        *@param meshIndex - mesh index (csrMDLCalculateIndexes() may be called first)
+        *@return current mesh from MDL model, 0 on error or if not found
+        *@note The returned mesh will be valid as long as his owner model is
+        */
+        CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex);
+
+        /**
         * Releases a MDL model
         *@param pMDL - MDL model to release
         */

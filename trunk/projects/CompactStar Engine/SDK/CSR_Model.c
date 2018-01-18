@@ -1742,6 +1742,33 @@ void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
     }
 }
 //---------------------------------------------------------------------------
+CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex)
+{
+    // no MDL model?
+    if (!pMDL)
+        return 0;
+
+    // is model index valid?
+    if (modelIndex >= pMDL->m_ModelCount)
+        return 0;
+
+    // determine how many meshes the model contains
+    if (!pMDL->m_pModel[modelIndex].m_MeshCount)
+        // no mesh, nothing to do
+        return 0;
+    else
+    if (pMDL->m_pModel[modelIndex].m_MeshCount == 1)
+        // one mesh, return it
+        return pMDL->m_pModel[modelIndex].m_pMesh;
+
+    // several meshes (i.e. meshes are animated), check if mesh index is out of bounds
+    if (meshIndex >= pMDL->m_pModel[modelIndex].m_MeshCount)
+        return 0;
+
+    // draw the model mesh
+    return &pMDL->m_pModel[modelIndex].m_pMesh[meshIndex];
+}
+//---------------------------------------------------------------------------
 void csrMDLRelease(CSR_MDL* pMDL)
 {
     size_t i;
