@@ -78,7 +78,6 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
-      ExplicitTop = 259
       ExplicitWidth = 66
     end
     object blOptionsSeparator: TBevel
@@ -206,7 +205,6 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Rotation Speed'
-      ExplicitTop = 302
       ExplicitWidth = 74
     end
     object laAnimationSpeedCaption: TLabel
@@ -218,7 +216,6 @@ object MainForm: TMainForm
       Margins.Top = 5
       Align = alTop
       Caption = 'Animation Speed'
-      ExplicitTop = 345
       ExplicitWidth = 80
     end
     object laAnimationNbCaption: TLabel
@@ -267,7 +264,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 6
       TickStyle = tsNone
-      ExplicitTop = 275
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -337,7 +333,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 7
       TickStyle = tsNone
-      ExplicitTop = 318
     end
     object tbAnimationSpeed: TTrackBar
       AlignWithMargins = True
@@ -353,7 +348,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 8
       TickStyle = tsNone
-      ExplicitTop = 393
     end
     object ckStopModelAnimation: TCheckBox
       AlignWithMargins = True
@@ -364,7 +358,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Stop the model animation'
       TabOrder = 5
-      ExplicitTop = 278
     end
     object tbAnimationNb: TTrackBar
       AlignWithMargins = True
@@ -379,7 +372,6 @@ object MainForm: TMainForm
       ShowSelRange = False
       TabOrder = 11
       TickStyle = tsNone
-      ExplicitTop = 449
     end
   end
 end
