@@ -1225,6 +1225,9 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
         pModel->m_pMesh[i].m_pVB->m_pData = 0;
         pModel->m_pMesh[i].m_pVB->m_Count = 0;
 
+        //initialize the vertex buffer time
+        pModel->m_pMesh[i].m_pVB->m_Time = 0.0;
+
         // configure the model texture
         pModel->m_pMesh[i].m_Shader.m_TextureID = GL_INVALID_VALUE;
         pModel->m_pMesh[i].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
@@ -1448,6 +1451,40 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
                 return 0;
             }
 
+            // is a default texture?
+            if (pPixelBuffer->m_DataLength <= 16)
+            {
+                free(pPixelBuffer->m_pData);
+
+                // recreate a 4 * 4 * 3 pixel buffer
+                pPixelBuffer->m_DataLength = 48;
+                pPixelBuffer->m_pData      = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
+
+                // succeeded?
+                if (!pPixelBuffer->m_pData)
+                {
+                    // release the MDL object used for the loading
+                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+                    // release the model
+                    csrMDLRelease(pMDL);
+
+                    return 0;
+                }
+
+                // initialize the buffer
+                for (j = 0; j < 16; ++j)
+                {
+                    // set color data
+                    ((unsigned char*)pPixelBuffer->m_pData)[ j * 3]      = ((color >> 24) & 0xFF);
+                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 1] = ((color >> 16) & 0xFF);
+                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 2] = ((color >> 8)  & 0xFF);
+                }
+
+                // force the color to be white
+                color = 0xFFFFFFFF;
+            }
+
             // create new OpenGL texture
             glGenTextures(1, &pMDL->m_pTexture[i].m_TextureID);
             glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[i].m_TextureID);
@@ -1667,10 +1704,49 @@ void csrMDLReleaseObjects(CSR_MDLHeader*       pHeader,
     free(pFrameGroup);
 }
 //---------------------------------------------------------------------------
+void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
+                                  size_t   fps,
+                                  size_t*  pTextureIndex,
+                                  size_t*  pModelIndex,
+                                  size_t*  pMeshIndex,
+                                  double*  pTextureLastTime,
+                                  double*  pModelLastTime,
+                                  double*  pMeshLastTime,
+                                  double   elapsedTime)
+{
+    // no MDL model to calculate from?
+    if (!pMDL)
+        return;
+
+    *pModelLastTime   += elapsedTime;
+    *pMeshLastTime    += elapsedTime;
+
+    // are textures animated?
+    if (pMDL->m_TextureCount > 1)
+    {
+        // apply the elapsed time
+        *pTextureLastTime += elapsedTime;
+
+        // certify that the texture index is inside the limits
+        *pTextureIndex = (*pTextureIndex % pMDL->m_TextureCount);
+
+        // do change the texture? (NOTE the texture time is expressed in seconds)
+        while (*pTextureLastTime >= (pMDL->m_pTexture[*pTextureIndex].m_Time * 1000.0))
+        {
+            // decrease the counted time
+            *pTextureLastTime -= pMDL->m_pTexture[*pTextureIndex].m_Time;
+
+            // go to next index
+            *pTextureIndex = ((*pTextureIndex + 1) % pMDL->m_TextureCount);
+        }
+    }
+}
+//---------------------------------------------------------------------------
 void csrMDLRelease(CSR_MDL* pMDL)
 {
     size_t i;
     size_t j;
+    size_t k;
 
     // no MDL model to release?
     if (!pMDL)
@@ -1679,58 +1755,50 @@ void csrMDLRelease(CSR_MDL* pMDL)
     // do free the textures?
     if (pMDL->m_pTexture)
     {
-        for (i = 0; i <
+        // delete each texture
+        for (i = 0; i < pMDL->m_TextureCount; ++i)
+            if (pMDL->m_pTexture[i].m_TextureID != GL_INVALID_VALUE)
+                glDeleteTextures(1, &pMDL->m_pTexture[i].m_TextureID);
+
+        // free the textures
+        free(pMDL->m_pTexture);
     }
 
-    // do free the meshes content?
-    if (pModel->m_pMesh)
+    // delete the animations
+    if (pMDL->m_pAnimation)
+        free(pMDL->m_pAnimation);
+
+    // do free the models content?
+    if (pMDL->m_pModel)
     {
-        // iterate through meshes to free
-        for (i = 0; i < pModel->m_MeshCount; ++i)
-        {
-            // delete the texture
-            if (pModel->m_pMesh[i].m_Shader.m_TextureID != GL_INVALID_VALUE)
+        // iterate through models to free
+        for (i = 0; i < pMDL->m_ModelCount; ++i)
+            // do free the model content?
+            if (pMDL->m_pModel[i].m_pMesh)
             {
-                // check if the same texture is assigned to several meshes
-                for (j = i + 1; j < pModel->m_MeshCount; ++j)
-                    if (pModel->m_pMesh[i].m_Shader.m_TextureID == pModel->m_pMesh[j].m_Shader.m_TextureID)
-                        // reset the identifier to avoid to delete it twice
-                        pModel->m_pMesh[j].m_Shader.m_TextureID = GL_INVALID_VALUE;
+                // iterate through meshes to free
+                for (j = 0; j < pMDL->m_pModel[i].m_MeshCount; ++j)
+                    // do free the mesh vertex buffer?
+                    if (pMDL->m_pModel[i].m_pMesh[j].m_pVB)
+                    {
+                        // free the mesh vertex buffer content
+                        for (k = 0; k < pMDL->m_pModel[i].m_pMesh[j].m_Count; ++k)
+                            if (pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData)
+                                free(pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData);
 
-                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_TextureID);
-            }
-
-            // delete the bump map
-            if (pModel->m_pMesh[i].m_Shader.m_BumpMapID != GL_INVALID_VALUE)
-            {
-                // check if the same bump map is assigned to several meshes
-                for (j = i + 1; j < pModel->m_MeshCount; ++j)
-                    if (pModel->m_pMesh[i].m_Shader.m_BumpMapID == pModel->m_pMesh[j].m_Shader.m_BumpMapID)
-                        // reset the identifier to avoid to delete it twice
-                        pModel->m_pMesh[j].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
+                        // free the mesh vertex buffer
+                        free(pMDL->m_pModel[i].m_pMesh[j].m_pVB);
+                    }
 
-                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_BumpMapID);
-            }
-
-            // do free the mesh vertex buffer?
-            if (pModel->m_pMesh[i].m_pVB)
-            {
-                // free the mesh vertex buffer content
-                for (j = 0; j < pModel->m_pMesh[i].m_Count; ++j)
-                    if (pModel->m_pMesh[i].m_pVB[j].m_pData)
-                        free(pModel->m_pMesh[i].m_pVB[j].m_pData);
-
-                // free the mesh vertex buffer
-                free(pModel->m_pMesh[i].m_pVB);
+                // free the mesh
+                free(pMDL->m_pModel[i].m_pMesh);
             }
 
-        }
-
-        // free the meshes
-        free(pModel->m_pMesh);
+        // free the models
+        free(pMDL->m_pModel);
     }
 
-    // free the model
-    free(pModel);
+    // free the MDL model
+    free(pMDL);
 }
 //---------------------------------------------------------------------------

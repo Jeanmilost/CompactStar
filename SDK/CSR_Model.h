@@ -502,6 +502,28 @@ typedef struct
                                   CSR_MDLPolygon*      pPolygon);
 
         /**
+        * Calculates the next indexes for the MDL model
+        *@param pMDL - MDL model
+        *@param fps - frame per seconds to apply
+        *@param[in, out] pTextureIndex - texture index, new texture index on function ends
+        *@param[in, out] pModelIndex - model index, new model index on function ends
+        *@param[in, out] pMeshIndex - mesh index, new mesh index on function ends
+        *@param[in, out] pTextureLastTime - texture last known time
+        *@param[in, out] pModelLastTime - model last known time
+        *@param[in, out] pMeshLastTime - mesh last known time
+        *@param elapsedTime - elapsed time since last calculation
+        */
+        void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
+                                          size_t   fps,
+                                          size_t*  pTextureIndex,
+                                          size_t*  pModelIndex,
+                                          size_t*  pMeshIndex,
+                                          double*  pTextureLastTime,
+                                          double*  pModelLastTime,
+                                          double*  pMeshLastTime,
+                                          double   elapsedTime);
+
+        /**
         * Releases a MDL model
         *@param pMDL - MDL model to release
         */

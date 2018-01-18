@@ -127,7 +127,7 @@ class TMainForm : public TForm
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
         CSR_Mesh*        m_pMesh;
-        CSR_Model*       m_pModel;
+        CSR_MDL*         m_pMDL;
         IAABBTrees       m_AABBTrees;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
@@ -135,8 +135,12 @@ class TMainForm : public TForm
         float            m_TranslateZ;
         float            m_AngleY;
         float            m_PolygonArray[21];
-        double           m_AnimationOffset;
-        int              m_AnimationIndex;
+        double           m_pTextureLastTime;
+        double           m_pModelLastTime;
+        double           m_pMeshLastTime;
+        std::size_t      m_TextureIndex;
+        std::size_t      m_ModelIndex;
+        std::size_t      m_MeshIndex;
         std::size_t      m_FrameCount;
         unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;

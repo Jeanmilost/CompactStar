@@ -169,3 +169,59 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     }
 }
 //---------------------------------------------------------------------------
+void csrSceneDrawMDL(const CSR_MDL*    pMDL,
+                           CSR_Shader* pShader,
+                           size_t      textureIndex,
+                           size_t      modelIndex,
+                           size_t      meshindex)
+{
+    // is model animation index valid?
+    if (modelIndex >= pMDL->m_ModelCount)
+        return;
+
+    // model contains only one mesh? (i.e. the model isn't animated)
+    if (pMDL->m_pModel[modelIndex].m_MeshCount == 1)
+    {
+        // do use texture?
+        if (pMDL->m_pModel[modelIndex].m_pMesh->m_pVB->m_Format.m_UseTextures)
+            // is texture index valid and texture is defined?
+            if (textureIndex < pMDL->m_TextureCount &&
+                pMDL->m_pTexture[textureIndex].m_TextureID != GL_INVALID_VALUE)
+            {
+                // select the texture sampler to use (GL_TEXTURE0 for normal textures)
+                glActiveTexture(GL_TEXTURE0);
+                glUniform1i(pShader->m_TextureSlot, GL_TEXTURE0);
+
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[textureIndex].m_TextureID);
+            }
+
+        // draw the model mesh
+        csrSceneDrawMesh(pMDL->m_pModel[modelIndex].m_pMesh, pShader);
+    }
+    else
+    if (pMDL->m_pModel[modelIndex].m_MeshCount > 1)
+    {
+        // is mesh index out of bounds?
+        if (meshindex >= pMDL->m_pModel[modelIndex].m_MeshCount)
+            return;
+
+        // do use texture?
+        if (pMDL->m_pModel[modelIndex].m_pMesh[meshindex].m_pVB->m_Format.m_UseTextures)
+            // is texture index valid and texture is defined?
+            if (textureIndex < pMDL->m_TextureCount &&
+                pMDL->m_pTexture[textureIndex].m_TextureID != GL_INVALID_VALUE)
+            {
+                // select the texture sampler to use (GL_TEXTURE0 for normal textures)
+                glActiveTexture(GL_TEXTURE0);
+                glUniform1i(pShader->m_TextureSlot, GL_TEXTURE0);
+
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[textureIndex].m_TextureID);
+            }
+
+        // draw the model mesh
+        csrSceneDrawMesh(&pMDL->m_pModel[modelIndex].m_pMesh[meshindex], pShader);
+    }
+}
+//---------------------------------------------------------------------------

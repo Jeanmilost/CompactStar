@@ -131,11 +131,15 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
-    m_pModel(NULL),
+    m_pMDL(NULL),
     m_TranslateZ(0.0f),
     m_AngleY(0.0f),
-    m_AnimationOffset(0.0),
-    m_AnimationIndex(-1),
+    m_pTextureLastTime(0.0),
+    m_pModelLastTime(0.0),
+    m_pMeshLastTime(0.0),
+    m_TextureIndex(0),
+    m_ModelIndex(0),
+    m_MeshIndex(0),
     m_FrameCount(0),
     m_StartTime(0),
     m_PreviousTime(0),
@@ -225,7 +229,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // do load a MDL model?
     if (!modelFileName.empty())
     {
-        CSR_Model* pModel = NULL;
+        CSR_MDL* pMDL = NULL;
 
         try
         {
@@ -238,13 +242,13 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             vertexFormat.m_UseColors   = 1;
 
             // load MDL model
-            pModel = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
-                                           0,
-                                           &vertexFormat,
-                                           0xFFFFFFFF);
+            pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
+                                         0,
+                                         &vertexFormat,
+                                         0xFFFFFFFF);
 
             // succeeded?
-            if (!pModel)
+            if (!pMDL)
             {
                 // build the error message to show
                 std::wostringstream sstr;
@@ -259,48 +263,54 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             }
 
             // create the AABB trees for each frame
-            for (std::size_t i = 0; i < pModel->m_MeshCount; ++i)
-            {
-                // create the AABB tree for the next frame
-                CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pModel->m_pMesh[i]);
-
-                if (!pTree)
+            for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
+                for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
                 {
-                    // build the error message to show
-                    std::wostringstream sstr;
-                    sstr << L"Failed to load the model:\r\n\r\n"
-                         << modelFileName
-                         << L"\r\n\r\nAn error occurred while the AABB tree was created, at index: "
-                         << i;
+                    // create the AABB tree for the next frame
+                    CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
 
-                    // show the error message to the user
-                    ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
+                    if (!pTree)
+                    {
+                        // build the error message to show
+                        std::wostringstream sstr;
+                        sstr << L"Failed to load the model:\r\n\r\n"
+                             << modelFileName << L"\r\n\r\n"
+                             << L"An error occurred while the AABB trees vere created."
+                             << L"Model index = " << i << L", mesh index = " << j;
 
-                    // clear the scene
-                    ClearModelsAndMeshes();
-                    return;
+                        // show the error message to the user
+                        ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
+
+                        // clear the scene
+                        ClearModelsAndMeshes();
+                        return;
+                    }
+
+                    m_AABBTrees.push_back(pTree);
                 }
 
-                m_AABBTrees.push_back(pTree);
-            }
-
             // initialize values
-            m_TranslateZ     = -100.0;
-            m_AnimationIndex =  0;
+            m_TranslateZ       = -100.0;
+            m_pTextureLastTime =  0.0;
+            m_pModelLastTime   =  0.0;
+            m_pMeshLastTime    =  0.0;
+            m_TextureIndex     =  0;
+            m_ModelIndex       =  0;
+            m_MeshIndex        =  0;
 
             // update the interface
             tbAnimationSpeed->Enabled = true;
             tbAnimationNb->Enabled    = true;
-            tbAnimationNb->Max        = pModel->m_AnimationCount - 1;
+            tbAnimationNb->Max        = pMDL->m_AnimationCount - 1;
 
             // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
             // will be deleted while the csrModelRelease() function will be exectued
-            m_pModel = pModel;
-            pModel   = 0;
+            m_pMDL = pMDL;
+            pMDL   = 0;
         }
         __finally
         {
-            csrModelRelease(pModel);
+            csrMDLRelease(pMDL);
         }
 
         return;
@@ -423,13 +433,18 @@ void TMainForm::ClearModelsAndMeshes()
     m_AABBTrees.clear();
 
     // release the scene objects
-    csrModelRelease(m_pModel);
+    csrMDLRelease(m_pMDL);
     csrMeshRelease(m_pMesh);
 
     // reset the values
-    m_pModel         =  0;
-    m_pMesh          =  0;
-    m_AnimationIndex = -1;
+    m_pMDL             =  0;
+    m_pMesh            =  0;
+    m_pTextureLastTime =  0.0;
+    m_pModelLastTime   =  0.0;
+    m_pMeshLastTime    =  0.0;
+    m_TextureIndex     =  0;
+    m_ModelIndex       =  0;
+    m_MeshIndex        =  0;
 
     // reset the stats
     m_Stats.Clear();
@@ -543,8 +558,13 @@ void TMainForm::InitScene(int w, int h)
     if (pTree)
         m_AABBTrees.push_back(pTree);
 
-    m_TranslateZ     = -2.0f;
-    m_AnimationIndex = 0;
+    m_TranslateZ       = -2.0f;
+    m_pTextureLastTime =  0.0;
+    m_pModelLastTime   =  0.0;
+    m_pMeshLastTime    =  0.0;
+    m_TextureIndex     =  0;
+    m_ModelIndex       =  0;
+    m_MeshIndex        =  0;
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -587,28 +607,17 @@ void TMainForm::UpdateScene(float elapsedTime)
     while (m_AngleY > M_PI * 2.0f)
         m_AngleY -= M_PI * 2.0f;
 
-    if (!ckStopModelAnimation->Checked && m_pModel)
-    {
-        // increase the animation offset
-        m_AnimationOffset += ((elapsedTime + 0.1f) * double(tbAnimationSpeed->Position));
-
-              unsigned frameCount = 0;
-        const unsigned animIndex  = tbAnimationNb->Position;
-        const unsigned animStart  = m_pModel->m_pAnimation[animIndex].m_Start;
-        const unsigned animEnd    = m_pModel->m_pAnimation[animIndex].m_End;
-        const unsigned animLength = animEnd - animStart;
-
-        // count the frames
-        while (m_AnimationOffset >= 1.0)
-        {
-            m_AnimationOffset -= 1.0;
-            ++frameCount;
-        }
-
-        m_AnimationIndex = animStart + ((m_AnimationIndex + frameCount) % animLength);
-    }
-    else
-        m_AnimationIndex = 0;
+    // calculate the next indexes to use for the MDL model
+    if (!ckStopModelAnimation->Checked && m_pMDL)
+        csrMDLCalculateIndexes(m_pMDL,
+                               10,
+                              &m_TextureIndex,
+                              &m_ModelIndex,
+                              &m_MeshIndex,
+                              &m_pTextureLastTime,
+                              &m_pModelLastTime,
+                              &m_pMeshLastTime,
+                               elapsedTime);
 
     // set translation
     t.m_X = 0.0f;
@@ -679,30 +688,17 @@ void TMainForm::DrawScene()
             csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh);
         }
         else
-        if (m_pModel)
+        if (m_pMDL)
         {
-            // invalid animation index?
-            if (m_AnimationIndex < 0 || unsigned(m_AnimationIndex) >= m_pModel->m_MeshCount)
-                return;
+            // enable the textured program
+            csrShaderEnable(m_pShader_TexturedMesh);
 
-            // model uses textures?
-            if (m_pModel->m_pMesh[m_AnimationIndex].m_Count &&
-                m_pModel->m_pMesh[m_AnimationIndex].m_pVB[0].m_Format.m_UseTextures)
-            {
-                // enable the textured program
-                csrShaderEnable(m_pShader_TexturedMesh);
-
-                // draw the mesh
-                csrSceneDrawMesh(&m_pModel->m_pMesh[m_AnimationIndex], m_pShader_TexturedMesh);
-            }
-            else
-            {
-                // enable the colored program
-                csrShaderEnable(m_pShader_ColoredMesh);
-
-                // draw the mesh
-                csrSceneDrawMesh(&m_pModel->m_pMesh[m_AnimationIndex], m_pShader_ColoredMesh);
-            }
+            // draw the MDL model
+            csrSceneDrawMDL(m_pMDL,
+                            m_pShader_TexturedMesh,
+                            m_TextureIndex,
+                            m_ModelIndex,
+                            m_MeshIndex);
         }
         else
             return;
@@ -726,9 +722,19 @@ void TMainForm::DrawScene()
             if (ckWireFrame->Checked)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+            size_t animationIndex;
+
+            // select the index of the AABB tree to draw
+            if (m_pMDL                    &&
+                m_pMDL->m_ModelCount == 1 &&
+                m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
+                animationIndex = m_MeshIndex;
+            else
+            if (m_ModelIndex >= 0)
+                animationIndex = m_ModelIndex;
+
             // draw the AABB tree boxes
-            if (m_AnimationIndex >= 0)
-                DrawTreeBoxes(m_AABBTrees[m_AnimationIndex]);
+            DrawTreeBoxes(m_AABBTrees[animationIndex]);
         }
     }
     __finally
@@ -740,7 +746,18 @@ void TMainForm::DrawScene()
 //---------------------------------------------------------------------------
 void TMainForm::ResolveTreeAndDrawPolygons()
 {
-    if (m_AnimationIndex < 0)
+    size_t animationIndex;
+
+    // select the index of the AABB tree to draw
+    if (m_pMDL                    &&
+        m_pMDL->m_ModelCount == 1 &&
+        m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
+        animationIndex = m_MeshIndex;
+    else
+    if (m_ModelIndex >= 0)
+        animationIndex = m_ModelIndex;
+
+    if (animationIndex < 0)
         return;
 
     // is the mouse ray not initialized?
@@ -752,7 +769,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
     CSR_Polygon3Buffer polygonBuffer;
 
     // using the mouse ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&m_Ray, m_AABBTrees[m_AnimationIndex], 0, &polygonBuffer);
+    csrAABBTreeResolve(&m_Ray, m_AABBTrees[animationIndex], 0, &polygonBuffer);
 
     // update the stats
     m_Stats.m_PolyToCheckCount    = polygonBuffer.m_Count;
@@ -1117,17 +1134,19 @@ void TMainForm::ShowStats() const
             vertexCount += m_pMesh->m_pVB[i].m_Count;
     }
     else
-    if (m_pModel)
+    if (m_pMDL)
     {
+    /*FIXME
         // invalid animation index?
-        if (m_AnimationIndex < 0 || unsigned(m_AnimationIndex) >= m_pModel->m_MeshCount)
+        if (animationIndex < 0 || unsigned(animationIndex) >= m_pModel->m_MeshCount)
             return;
 
-        stride = m_pModel->m_pMesh[m_AnimationIndex].m_pVB ?
-                m_pModel->m_pMesh[m_AnimationIndex].m_pVB->m_Format.m_Stride : 0;
+        stride = m_pModel->m_pMesh[animationIndex].m_pVB ?
+                m_pModel->m_pMesh[animationIndex].m_pVB->m_Format.m_Stride : 0;
 
-        for (std::size_t i = 0; i < m_pModel->m_pMesh[m_AnimationIndex].m_Count; ++i)
-            vertexCount += m_pModel->m_pMesh[m_AnimationIndex].m_pVB[i].m_Count;
+        for (std::size_t i = 0; i < m_pModel->m_pMesh[animationIndex].m_Count; ++i)
+            vertexCount += m_pModel->m_pMesh[animationIndex].m_pVB[i].m_Count;
+    */
     }
     else
         return;
