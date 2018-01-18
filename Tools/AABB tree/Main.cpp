@@ -722,19 +722,13 @@ void TMainForm::DrawScene()
             if (ckWireFrame->Checked)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-            size_t animationIndex;
+            // get the AABB tree index
+            const std::size_t treeIndex = GetAABBTreeIndex();
 
-            // select the index of the AABB tree to draw
-            if (m_pMDL                    &&
-                m_pMDL->m_ModelCount == 1 &&
-                m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
-                animationIndex = m_MeshIndex;
-            else
-            if (m_ModelIndex >= 0)
-                animationIndex = m_ModelIndex;
-
-            // draw the AABB tree boxes
-            DrawTreeBoxes(m_AABBTrees[animationIndex]);
+            // is index out of bounds?
+            if (treeIndex < m_AABBTrees.size())
+                // draw the AABB tree boxes
+                DrawTreeBoxes(m_AABBTrees[treeIndex]);
         }
     }
     __finally
@@ -746,18 +740,11 @@ void TMainForm::DrawScene()
 //---------------------------------------------------------------------------
 void TMainForm::ResolveTreeAndDrawPolygons()
 {
-    size_t animationIndex;
+    // get the AABB tree index
+    const std::size_t treeIndex = GetAABBTreeIndex();
 
-    // select the index of the AABB tree to draw
-    if (m_pMDL                    &&
-        m_pMDL->m_ModelCount == 1 &&
-        m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
-        animationIndex = m_MeshIndex;
-    else
-    if (m_ModelIndex >= 0)
-        animationIndex = m_ModelIndex;
-
-    if (animationIndex < 0)
+    // is index out of bounds?
+    if (treeIndex >= m_AABBTrees.size())
         return;
 
     // is the mouse ray not initialized?
@@ -769,7 +756,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
     CSR_Polygon3Buffer polygonBuffer;
 
     // using the mouse ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&m_Ray, m_AABBTrees[animationIndex], 0, &polygonBuffer);
+    csrAABBTreeResolve(&m_Ray, m_AABBTrees[treeIndex], 0, &polygonBuffer);
 
     // update the stats
     m_Stats.m_PolyToCheckCount    = polygonBuffer.m_Count;
@@ -1121,6 +1108,15 @@ void TMainForm::CalculateMouseRay()
     csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
 }
 //---------------------------------------------------------------------------
+std::size_t TMainForm::GetAABBTreeIndex() const
+{
+    // select the index of the AABB tree to draw
+    if (m_pMDL && m_pMDL->m_ModelCount == 1 && m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
+        return m_MeshIndex;
+
+    return m_ModelIndex;
+}
+//---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
 {
     unsigned vertexCount = 0;
@@ -1128,25 +1124,29 @@ void TMainForm::ShowStats() const
 
     if (m_pMesh)
     {
+        // get the mesh stride
         stride = m_pMesh->m_pVB ? m_pMesh->m_pVB->m_Format.m_Stride : 0;
 
+        // count all vertices contained in the mesh
         for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
             vertexCount += m_pMesh->m_pVB[i].m_Count;
     }
     else
     if (m_pMDL)
     {
-    /*FIXME
-        // invalid animation index?
-        if (animationIndex < 0 || unsigned(animationIndex) >= m_pModel->m_MeshCount)
+        // get the current model mesh to draw
+        const CSR_Mesh* pMesh = csrMDLGetMesh(m_pMDL, m_ModelIndex, m_MeshIndex);
+
+        // found it?
+        if (!pMesh)
             return;
 
-        stride = m_pModel->m_pMesh[animationIndex].m_pVB ?
-                m_pModel->m_pMesh[animationIndex].m_pVB->m_Format.m_Stride : 0;
+        // get the mesh stride
+        stride = pMesh->m_pVB ? pMesh->m_pVB->m_Format.m_Stride : 0;
 
-        for (std::size_t i = 0; i < m_pModel->m_pMesh[animationIndex].m_Count; ++i)
-            vertexCount += m_pModel->m_pMesh[animationIndex].m_pVB[i].m_Count;
-    */
+        // count all vertices contained in the mesh
+        for (std::size_t i = 0; i < pMesh->m_Count; ++i)
+            vertexCount += pMesh->m_pVB[i].m_Count;
     }
     else
         return;
