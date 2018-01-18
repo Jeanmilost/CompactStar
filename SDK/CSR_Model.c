@@ -1185,6 +1185,7 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
     CSR_Vector3    normal;
     CSR_Vector2    uv;
     CSR_MDLVertex* pSrcVertex;
+    double         lastKnownTime = 0.0;
 
     // any MDL source is missing?
     if (!pHeader || !pFrameGroup || !pPolygon || !pTexCoord || !pVertexFormat)
@@ -1234,7 +1235,10 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
 
         // configure the frame time
         if (pFrameGroup->m_pTime)
-            pModel->m_pMesh[i].m_Time = pFrameGroup->m_pTime[i];
+        {
+            pModel->m_pMesh[i].m_Time = pFrameGroup->m_pTime[i] - lastKnownTime;
+            lastKnownTime             = pFrameGroup->m_pTime[i];
+        }
         else
             pModel->m_pMesh[i].m_Time = 0.0;
 
@@ -1296,7 +1300,8 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
     GLuint               textureID;
     size_t               i;
     size_t               j;
-    size_t               offset = 0;
+    size_t               offset        = 0;
+    double               lastKnownTime = 0.0;
 
     // no buffer to read from?
     if (!pBuffer)
@@ -1513,7 +1518,10 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
 
             // also get the animation time
             if (pSkin->m_pTime)
-                pMDL->m_pTexture[i].m_Time = pSkin->m_pTime[i];
+            {
+                pMDL->m_pTexture[i].m_Time = pSkin->m_pTime[i] - lastKnownTime;
+                lastKnownTime              = pSkin->m_pTime[i];
+            }
             else
                 pMDL->m_pTexture[i].m_Time = 0.0;
         }
@@ -1592,7 +1600,7 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
                        skinNameLength);
 
                 // only one frame?
-                if (pFrameGroup[i].m_Count == 1)
+                if (pHeader->m_FrameCount == 1)
                 {
                     // populate the animation
                     pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Start = 0;
@@ -1613,12 +1621,12 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
 
         // extract model from file content
         csrMDLPopulateModel(pHeader,
-                            pFrameGroup,
+                           &pFrameGroup[i],
                             pPolygon,
                             pTexCoord,
                             pVertexFormat,
                             color,
-                            &pMDL->m_pModel[i]);
+                           &pMDL->m_pModel[i]);
     }
 
     // release the MDL object used for the loading
@@ -1704,22 +1712,34 @@ void csrMDLReleaseObjects(CSR_MDLHeader*       pHeader,
     free(pFrameGroup);
 }
 //---------------------------------------------------------------------------
-void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
-                                  size_t   fps,
-                                  size_t*  pTextureIndex,
-                                  size_t*  pModelIndex,
-                                  size_t*  pMeshIndex,
-                                  double*  pTextureLastTime,
-                                  double*  pModelLastTime,
-                                  double*  pMeshLastTime,
-                                  double   elapsedTime)
+void csrMDLUpdateIndex(const CSR_MDL* pMDL,
+                             size_t   fps,
+                             size_t   animationIndex,
+                             size_t*  pTextureIndex,
+                             size_t*  pModelIndex,
+                             size_t*  pMeshIndex,
+                             double*  pTextureLastTime,
+                             double*  pModelLastTime,
+                             double*  pMeshLastTime,
+                             double   elapsedTime)
 {
+    size_t    animLength;
+    size_t    animIndex;
+    double    interval;
+    CSR_Mesh* pMesh;
+
     // no MDL model to calculate from?
     if (!pMDL)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
         return;
-
-    *pModelLastTime   += elapsedTime;
-    *pMeshLastTime    += elapsedTime;
+    }
 
     // are textures animated?
     if (pMDL->m_TextureCount > 1)
@@ -1730,8 +1750,8 @@ void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
         // certify that the texture index is inside the limits
         *pTextureIndex = (*pTextureIndex % pMDL->m_TextureCount);
 
-        // do change the texture? (NOTE the texture time is expressed in seconds)
-        while (*pTextureLastTime >= (pMDL->m_pTexture[*pTextureIndex].m_Time * 1000.0))
+        // do get the next texture?
+        while (*pTextureLastTime >= (pMDL->m_pTexture[*pTextureIndex].m_Time))
         {
             // decrease the counted time
             *pTextureLastTime -= pMDL->m_pTexture[*pTextureIndex].m_Time;
@@ -1740,6 +1760,108 @@ void csrMDLCalculateIndexes(const CSR_MDL* pMDL,
             *pTextureIndex = ((*pTextureIndex + 1) % pMDL->m_TextureCount);
         }
     }
+
+    // get the current model mesh for which the index should be updated
+    pMesh = csrMDLGetMesh(pMDL, *pModelIndex, *pMeshIndex);
+
+    // found it?
+    if (!pMesh)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // do animate current model frames? (NOTE the modelIndex value was indirectly validated while
+    // csrMDLGetMesh() was executed)
+    if (pMDL->m_pModel[*pModelIndex].m_MeshCount > 1 && pMesh->m_Time)
+    {
+        // apply the elapsed time
+        *pMeshLastTime += elapsedTime;
+
+        // certify that the mesh index is inside the limits
+        *pMeshIndex = (*pMeshIndex % pMDL->m_pModel[*pModelIndex].m_MeshCount);
+
+        // do get the next mesh?
+        while (*pMeshLastTime >= pMesh->m_Time)
+        {
+            // decrease the counted time
+            *pMeshLastTime -= pMesh->m_Time;
+
+            // go to next index
+            *pMeshIndex = ((*pMeshIndex + 1) % pMDL->m_pModel[*pModelIndex].m_MeshCount);
+        }
+
+        return;
+    }
+
+    // is animation index out of bounds?
+    if (animationIndex >= pMDL->m_AnimationCount)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // no fps?
+    if (!fps)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // calculate the running animation length
+    animLength = pMDL->m_pAnimation[animationIndex].m_End - pMDL->m_pAnimation[animationIndex].m_Start;
+
+    // is animation empty?
+    if (!animLength)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // apply the elapsed time
+    *pModelLastTime += elapsedTime;
+
+    // calculate the frame interval
+    interval = 1.0 / fps;
+
+    // calculate the model animation index, and certify that is it inside the limits
+    animIndex = ((*pModelIndex - pMDL->m_pAnimation[animationIndex].m_Start) % animLength);
+
+    // do get the next model?
+    while (*pModelLastTime >= interval)
+    {
+        // decrease the counted time
+        *pModelLastTime -= interval;
+
+        // go to next index
+        animIndex = ((animIndex + 1) % animLength);
+    }
+
+    *pModelIndex = pMDL->m_pAnimation[animationIndex].m_Start + animIndex;
 }
 //---------------------------------------------------------------------------
 CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex)
