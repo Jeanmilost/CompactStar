@@ -72,12 +72,13 @@ object MainForm: TMainForm
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 282
+      Top = 325
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Transparency'
+      ExplicitTop = 282
       ExplicitWidth = 66
     end
     object blOptionsSeparator: TBevel
@@ -199,24 +200,25 @@ object MainForm: TMainForm
     object laRotationSpeedCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 325
-      Width = 179
-      Height = 13
-      Margins.Top = 5
-      Align = alTop
-      Caption = 'Rotation Speed'
-      ExplicitWidth = 74
-    end
-    object laAnimationSpeedCaption: TLabel
-      AlignWithMargins = True
-      Left = 3
       Top = 368
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
+      Caption = 'Rotation Speed'
+      ExplicitTop = 325
+      ExplicitWidth = 74
+    end
+    object laAnimationSpeedCaption: TLabel
+      AlignWithMargins = True
+      Left = 3
+      Top = 454
+      Width = 179
+      Height = 13
+      Margins.Top = 5
+      Align = alTop
       Caption = 'Animation Speed'
-      ExplicitWidth = 80
+      ExplicitLeft = 6
     end
     object laAnimationNbCaption: TLabel
       AlignWithMargins = True
@@ -226,8 +228,19 @@ object MainForm: TMainForm
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Animation Number'
-      ExplicitWidth = 87
+      Caption = 'Animation Nb.'
+      ExplicitWidth = 67
+    end
+    object laModelDistance: TLabel
+      AlignWithMargins = True
+      Left = 3
+      Top = 282
+      Width = 179
+      Height = 13
+      Margins.Top = 5
+      Align = alTop
+      Caption = 'Model distance'
+      ExplicitWidth = 71
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
@@ -254,7 +267,7 @@ object MainForm: TMainForm
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 298
+      Top = 341
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -262,8 +275,9 @@ object MainForm: TMainForm
       Max = 100
       Position = 80
       ShowSelRange = False
-      TabOrder = 6
+      TabOrder = 7
       TickStyle = tsNone
+      ExplicitTop = 298
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -273,7 +287,7 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Load Model...'
-      TabOrder = 9
+      TabOrder = 11
       OnClick = btLoadModelClick
     end
     object btSaveTree: TButton
@@ -284,7 +298,7 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Save Tree...'
-      TabOrder = 10
+      TabOrder = 12
     end
     object ckShowCollidingBoxesOnly: TCheckBox
       AlignWithMargins = True
@@ -323,7 +337,7 @@ object MainForm: TMainForm
     object tbRotationSpeed: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 341
+      Top = 384
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -331,32 +345,38 @@ object MainForm: TMainForm
       Max = 200
       Position = 50
       ShowSelRange = False
-      TabOrder = 7
+      TabOrder = 8
       TickStyle = tsNone
+      ExplicitTop = 341
     end
     object tbAnimationSpeed: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 384
+      Top = 470
       Width = 179
       Height = 19
       Margins.Top = 0
       Align = alTop
       Enabled = False
       Max = 50
+      Min = 1
       Position = 10
       ShowSelRange = False
-      TabOrder = 8
+      TabOrder = 10
       TickStyle = tsNone
+      ExplicitLeft = 6
+      ExplicitTop = 467
     end
-    object ckStopModelAnimation: TCheckBox
+    object ckPauseModelAnimation: TCheckBox
       AlignWithMargins = True
       Left = 3
       Top = 257
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'Stop the model animation'
+      Caption = 'Pause the model animation'
+      Checked = True
+      State = cbChecked
       TabOrder = 5
     end
     object tbAnimationNb: TTrackBar
@@ -370,8 +390,25 @@ object MainForm: TMainForm
       Enabled = False
       Max = 50
       ShowSelRange = False
-      TabOrder = 11
+      TabOrder = 9
       TickStyle = tsNone
+    end
+    object tbModelDistance: TTrackBar
+      AlignWithMargins = True
+      Left = 3
+      Top = 298
+      Width = 179
+      Height = 19
+      Margins.Top = 0
+      Align = alTop
+      Max = 150
+      Min = 1
+      Position = 2
+      ShowSelRange = False
+      TabOrder = 6
+      TickStyle = tsNone
+      ExplicitLeft = 35
+      ExplicitTop = 312
     end
   end
 end

@@ -68,9 +68,11 @@ class TMainForm : public TForm
         TTrackBar *tbRotationSpeed;
         TLabel *laAnimationSpeedCaption;
         TTrackBar *tbAnimationSpeed;
-        TCheckBox *ckStopModelAnimation;
+        TCheckBox *ckPauseModelAnimation;
         TLabel *laAnimationNbCaption;
         TTrackBar *tbAnimationNb;
+        TLabel *laModelDistance;
+        TTrackBar *tbModelDistance;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -132,7 +134,6 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
-        float            m_TranslateZ;
         float            m_AngleY;
         float            m_PolygonArray[21];
         double           m_pTextureLastTime;
