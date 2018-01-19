@@ -216,26 +216,21 @@ typedef struct
                                              int               slices,
                                              int               stacks,
                                              unsigned          color);
-;
 
-//        /**
-//        * Creates a cylinder
-//        *@param pRadius - cylinder radius
-//        *@param pHeight - cylinder height
-//        *@param faces - number of faces composing the cylinder
-//        *@param color - color in RGBA format
-//        *@param[in, out] pVertexFormat - vertex format to use
-//        *@param[out] pVertices - resulting vertex buffer
-//        *@param[out] pVertexCount - vertex count in buffer
-//        */
-//        void miniCreateCylinder(const float*             pRadius,
-//                                const float*             pHeight,
-//                                      int                faces,
-//                                      unsigned           color,
-//                                      MINI_VertexFormat* pVertexFormat,
-//                                      float**            pVertices,
-//                                      unsigned*          pVertexCount);
-//
+        /**
+        * Creates a cylinder
+        *@param pVertexFormat - vertex format to use
+        *@param radius - cylinder radius
+        *@param height - cylinder height
+        *@param faces - number of faces composing the cylinder
+        *@param color - color in RGBA format
+        */
+        CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
+                                               float             radius,
+                                               float             height,
+                                               int               faces,
+                                               unsigned          color);
+
 //        /**
 //        * Creates a disk
 //        *@param centerX - the disk center on the x axis

@@ -644,7 +644,7 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
         pMesh->m_pVB = pVB;
         ++pMesh->m_Count;
 
-        // initialiye the newlz created vertex buffer
+        // initialize the newly created vertex buffer
         pMesh->m_pVB[index].m_Format        = *pVertexFormat;
         pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
         pMesh->m_pVB[index].m_pData         = 0;
@@ -714,6 +714,111 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
             // add the vertex to the buffer
             csrVertexBufferAdd(&vertex, &normal, &uv, color, &pMesh->m_pVB[index]);
         }
+    }
+
+    return pMesh;
+}
+//---------------------------------------------------------------------------
+CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
+                                       float             radius,
+                                       float             height,
+                                       int               faces,
+                                       unsigned          color)
+{
+    int         i;
+    float       angle;
+    float       step;
+    CSR_Vector3 vertex;
+    CSR_Vector3 normal;
+    CSR_Vector2 uv;
+    CSR_Mesh*   pMesh;
+
+    // no vertex format?
+    if (!pVertexFormat)
+        return 0;
+
+    // create a mesh to contain the shape
+    pMesh = csrMeshCreate();
+
+    // succeeded?
+    if (!pMesh)
+        return 0;
+
+    // create a new vertex buffer to contain the cylinder
+    pMesh->m_Count = 1;
+    pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+
+    // succeeded?
+    if (!pMesh->m_pVB)
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // initialize the newly created vertex buffer
+    pMesh->m_pVB->m_Format        = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_pData         =  0;
+    pMesh->m_pVB->m_Count         =  0;
+
+    // calculate step to apply between faces
+    step = (2.0f * M_PI) / (float)faces;
+
+    // iterate through vertices to create
+    for (i = 0; i < faces + 1; ++i)
+    {
+        // calculate angle
+        angle = step * i;
+
+        // set vertex data
+        vertex.m_X =   radius * cosf(angle);
+        vertex.m_Y = -(height / 2.0f);
+        vertex.m_Z =   radius * sinf(angle);
+
+        // do generate normals?
+        if (pVertexFormat->m_UseNormals)
+        {
+            // set normals
+            normal.m_X = cosf(angle);
+            normal.m_Y = 0.0f;
+            normal.m_Z = sinf(angle);
+        }
+
+        // do generate texture coordinates?
+        if (pVertexFormat->m_UseTextures)
+        {
+            // add texture coordinates data to buffer
+            uv.m_X = 1.0f / i;
+            uv.m_Y = 0.0f;
+        }
+
+        // add the vertex to the buffer
+        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+
+        // set vertex data
+        vertex.m_X =  radius * cosf(angle);
+        vertex.m_Y = (height / 2.0f);
+        vertex.m_Z =  radius * sinf(angle);
+
+        // do generate normals?
+        if (pVertexFormat->m_UseNormals)
+        {
+            // set normals
+            normal.m_X = cosf(angle);
+            normal.m_Y = 0.0f;
+            normal.m_Z = sinf(angle);
+        }
+
+        // do generate texture coordinates?
+        if (pVertexFormat->m_UseTextures)
+        {
+            // add texture coordinates data to buffer
+            uv.m_X = 1.0f / i;
+            uv.m_Y = 1.0f;
+        }
+
+        // add the vertex to the buffer
+        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
     }
 
     return pMesh;
