@@ -224,6 +224,8 @@ typedef struct
         *@param height - cylinder height
         *@param faces - number of faces composing the cylinder
         *@param color - color in RGBA format
+        *@return mesh containing the cylinder, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
         CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
                                                float             radius,
@@ -231,85 +233,75 @@ typedef struct
                                                int               faces,
                                                unsigned          color);
 
-//        /**
-//        * Creates a disk
-//        *@param centerX - the disk center on the x axis
-//        *@param centerY - the disk center on the y axis
-//        *@param radius - disk radius
-//        *@param sliceCount - disk slice count
-//        *@param color - disk color
-//        *@param pVertexFormat - vertex format to apply
-//        *@param[out] pVertices - resulting vertex buffer
-//        *@param[out] pVertexCount - vertex count in buffer
-//        */
-//        void miniCreateDisk(float              centerX,
-//                            float              centerY,
-//                            float              radius,
-//                            unsigned           sliceCount,
-//                            unsigned           color,
-//                            MINI_VertexFormat* pVertexFormat,
-//                            float**            pVertices,
-//                            unsigned*          pVertexCount);
-//
-//        /**
-//        * Creates a ring
-//        *@param centerX - the ring center on the x axis
-//        *@param centerY - the ring center on the y axis
-//        *@param minRadius - internal radius
-//        *@param maxRadius - external radius
-//        *@param sliceCount - slice count
-//        *@param minColor - internal edge color
-//        *@param maxColor - external edge color
-//        *@param pVertexFormat - vertex format to apply
-//        *@param[out] pVertices - resulting vertex buffer
-//        *@param[out] pVertexCount - vertex count in buffer
-//        */
-//        void miniCreateRing(float              centerX,
-//                            float              centerY,
-//                            float              minRadius,
-//                            float              maxRadius,
-//                            unsigned           sliceCount,
-//                            unsigned           minColor,
-//                            unsigned           maxColor,
-//                            MINI_VertexFormat* pVertexFormat,
-//                            float**            pVertices,
-//                            unsigned*          pVertexCount);
-//
-//        /**
-//        * Creates a spiral
-//        *@param centerX - the spiral center on the x axis
-//        *@param centerY - the spiral center on the y axis
-//        *@param minRadius - internal radius
-//        *@param maxRadius - external radius
-//        *@param deltaMin - delta to apply to the min radius
-//        *@param deltaMax - delta to apply to the max radius
-//        *@param deltaZ - delta to apply to the z radius
-//        *@param stackCount - stack count
-//        *@param sliceCount - slice count
-//        *@param minColor - internal edge color
-//        *@param maxColor - external edge color
-//        *@param pVertexFormat - vertex format to apply
-//        *@param[out] pVertices - resulting vertex buffer
-//        *@param[out] pVertexCount - vertex count in buffer
-//        *@param[out] pIndexes - resulting index buffer
-//        *@param[out] pIndexCount - index count in buffer
-//        */
-//        void miniCreateSpiral(float              centerX,
-//                              float              centerY,
-//                              float              minRadius,
-//                              float              maxRadius,
-//                              float              deltaMin,
-//                              float              deltaMax,
-//                              float              deltaZ,
-//                              unsigned           stackCount,
-//                              unsigned           sliceCount,
-//                              unsigned           minColor,
-//                              unsigned           maxColor,
-//                              MINI_VertexFormat* pVertexFormat,
-//                              float**            pVertices,
-//                              unsigned*          pVertexCount,
-//                              MINI_Index**       pIndexes,
-//                              unsigned*          pIndexCount);
+        /**
+        * Creates a disk
+        *@param pVertexFormat - vertex format to use
+        *@param centerX - the disk center on the x axis
+        *@param centerY - the disk center on the y axis
+        *@param radius - disk radius
+        *@param sliceCount - disk slice count
+        *@param color - disk color
+        *@return mesh containing the disk, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
+                                           float             centerX,
+                                           float             centerY,
+                                           float             radius,
+                                           unsigned          sliceCount,
+                                           unsigned          color);
+
+        /**
+        * Creates a ring
+        *@param pVertexFormat - vertex format to use
+        *@param centerX - the ring center on the x axis
+        *@param centerY - the ring center on the y axis
+        *@param minRadius - internal radius
+        *@param maxRadius - external radius
+        *@param sliceCount - slice count
+        *@param minColor - internal edge color
+        *@param maxColor - external edge color
+        *@return mesh containing the ring, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
+                                           float             centerX,
+                                           float             centerY,
+                                           float             minRadius,
+                                           float             maxRadius,
+                                           unsigned          sliceCount,
+                                           unsigned          minColor,
+                                           unsigned          maxColor);
+
+        /**
+        * Creates a spiral
+        *@param pVertexFormat - vertex format to use
+        *@param centerX - the spiral center on the x axis
+        *@param centerY - the spiral center on the y axis
+        *@param minRadius - internal radius
+        *@param maxRadius - external radius
+        *@param deltaMin - delta to apply to the min radius
+        *@param deltaMax - delta to apply to the max radius
+        *@param deltaZ - delta to apply to the z radius
+        *@param stackCount - stack count
+        *@param sliceCount - slice count
+        *@param minColor - internal edge color
+        *@param maxColor - external edge color
+        *@return mesh containing the spiral, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
+                                             float             centerX,
+                                             float             centerY,
+                                             float             minRadius,
+                                             float             maxRadius,
+                                             float             deltaMin,
+                                             float             deltaMax,
+                                             float             deltaZ,
+                                             unsigned          stackCount,
+                                             unsigned          sliceCount,
+                                             unsigned          minColor,
+                                             unsigned          maxColor);
 
         //-------------------------------------------------------------------
         // Model functions
