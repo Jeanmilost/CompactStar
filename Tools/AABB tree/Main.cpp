@@ -132,7 +132,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
-    m_TranslateZ(0.0f),
     m_AngleY(0.0f),
     m_pTextureLastTime(0.0),
     m_pModelLastTime(0.0),
@@ -290,18 +289,22 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 }
 
             // initialize values
-            m_TranslateZ       = -100.0;
-            m_pTextureLastTime =  0.0;
-            m_pModelLastTime   =  0.0;
-            m_pMeshLastTime    =  0.0;
-            m_TextureIndex     =  0;
-            m_ModelIndex       =  0;
-            m_MeshIndex        =  0;
+            m_pTextureLastTime = 0.0;
+            m_pModelLastTime   = 0.0;
+            m_pMeshLastTime    = 0.0;
+            m_TextureIndex     = 0;
+            m_ModelIndex       = 0;
+            m_MeshIndex        = 0;
+
+            // get the animation count
+            const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
 
             // update the interface
-            tbAnimationSpeed->Enabled = true;
-            tbAnimationNb->Enabled    = true;
-            tbAnimationNb->Max        = pMDL->m_AnimationCount - 1;
+            tbModelDistance->Position  = 100;
+            tbAnimationNb->Max         = animCount;
+            tbAnimationNb->Enabled     = animCount;
+            tbAnimationSpeed->Position = 10;
+            tbAnimationSpeed->Enabled  = tbAnimationNb->Enabled;
 
             // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
             // will be deleted while the csrModelRelease() function will be exectued
@@ -437,14 +440,14 @@ void TMainForm::ClearModelsAndMeshes()
     csrMeshRelease(m_pMesh);
 
     // reset the values
-    m_pMDL             =  0;
-    m_pMesh            =  0;
-    m_pTextureLastTime =  0.0;
-    m_pModelLastTime   =  0.0;
-    m_pMeshLastTime    =  0.0;
-    m_TextureIndex     =  0;
-    m_ModelIndex       =  0;
-    m_MeshIndex        =  0;
+    m_pMDL             = 0;
+    m_pMesh            = 0;
+    m_pTextureLastTime = 0.0;
+    m_pModelLastTime   = 0.0;
+    m_pMeshLastTime    = 0.0;
+    m_TextureIndex     = 0;
+    m_ModelIndex       = 0;
+    m_MeshIndex        = 0;
 
     // reset the stats
     m_Stats.Clear();
@@ -558,13 +561,13 @@ void TMainForm::InitScene(int w, int h)
     if (pTree)
         m_AABBTrees.push_back(pTree);
 
-    m_TranslateZ       = -2.0f;
-    m_pTextureLastTime =  0.0;
-    m_pModelLastTime   =  0.0;
-    m_pMeshLastTime    =  0.0;
-    m_TextureIndex     =  0;
-    m_ModelIndex       =  0;
-    m_MeshIndex        =  0;
+    // set the initial values
+    m_pTextureLastTime = 0.0;
+    m_pModelLastTime   = 0.0;
+    m_pMeshLastTime    = 0.0;
+    m_TextureIndex     = 0;
+    m_ModelIndex       = 0;
+    m_MeshIndex        = 0;
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -608,10 +611,10 @@ void TMainForm::UpdateScene(float elapsedTime)
         m_AngleY -= M_PI * 2.0f;
 
     // calculate the next indexes to use for the MDL model
-    if (!ckStopModelAnimation->Checked && m_pMDL)
+    if (!ckPauseModelAnimation->Checked && m_pMDL)
         csrMDLUpdateIndex(m_pMDL,
-                          10,
-                          0,
+                          tbAnimationSpeed->Position,
+                          tbAnimationNb->Position,
                          &m_TextureIndex,
                          &m_ModelIndex,
                          &m_MeshIndex,
@@ -621,9 +624,9 @@ void TMainForm::UpdateScene(float elapsedTime)
                           elapsedTime);
 
     // set translation
-    t.m_X = 0.0f;
-    t.m_Y = 0.0f;
-    t.m_Z = m_TranslateZ;
+    t.m_X =  0.0f;
+    t.m_Y =  0.0f;
+    t.m_Z = -float(tbModelDistance->Position);
 
     // build the translation matrix
     csrMat4Translate(&t, &translateMatrix);
