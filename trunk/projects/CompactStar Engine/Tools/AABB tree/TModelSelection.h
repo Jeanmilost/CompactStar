@@ -12,7 +12,8 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
+
 #ifndef TModelSelectionH
 #define TModelSelectionH
 
@@ -56,6 +57,8 @@ class TModelSelection : public TForm
         TEdit *edStacks;
         TUpDown *udSlices;
         TUpDown *udStacks;
+        TPanel *paRadioButton;
+        TPanel *paRadioButtonRight;
 
         void __fastcall btSelectClick(TObject* pSender);
         void __fastcall btOpenFileClick(TObject* pSender);
