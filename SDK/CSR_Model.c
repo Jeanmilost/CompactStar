@@ -325,9 +325,12 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
         return 0;
     }
 
-    // configure the vertex format
-    pMesh->m_pVB[0].m_Format = *pVertexFormat;
-    csrVertexFormatCalculateStride(&pMesh->m_pVB[0].m_Format);
+    // initialize the newly created vertex buffer
+    pMesh->m_pVB->m_Format        = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Time          =  0.0;
+    pMesh->m_pVB->m_pData         =  0;
+    pMesh->m_pVB->m_Count         =  0;
 
     // iterate through vertex to create
     for (i = 0; i < 4; ++i)
@@ -424,7 +427,8 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
     {
         // set vertex format and calculate the stride
         pMesh->m_pVB[i].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[i].m_Format.m_Type = CSR_VT_TriangleStrip;
+        pMesh->m_pVB[i].m_Format.m_Type =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[i].m_Time          =  0.0;
         csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
 
         // initialize the vertex buffer data
@@ -646,9 +650,10 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
 
         // initialize the newly created vertex buffer
         pMesh->m_pVB[index].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
-        pMesh->m_pVB[index].m_pData         = 0;
-        pMesh->m_pVB[index].m_Count         = 0;
+        pMesh->m_pVB[index].m_Format.m_Type =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[index].m_Time          =  0.0;
+        pMesh->m_pVB[index].m_pData         =  0;
+        pMesh->m_pVB[index].m_Count         =  0;
 
         // calculate the stride
         csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
@@ -758,8 +763,12 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
     // initialize the newly created vertex buffer
     pMesh->m_pVB->m_Format        = *pVertexFormat;
     pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Time          =  0.0;
     pMesh->m_pVB->m_pData         =  0;
     pMesh->m_pVB->m_Count         =  0;
+
+    // calculate the stride
+    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // calculate step to apply between faces
     step = (2.0f * M_PI) / (float)faces;
@@ -831,21 +840,50 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
                                    unsigned          sliceCount,
                                    unsigned          color)
 {
-    int   i;
-    int   index;
-    float x;
-    float y;
-    float angle;
+    unsigned    i;
+    float       x;
+    float       y;
+    float       step;
+    float       angle;
+    CSR_Vector3 vertex;
+    CSR_Vector3 normal;
+    CSR_Vector2 uv;
+    CSR_Mesh*   pMesh;
+
+    // no vertex format?
+    if (!pVertexFormat)
+        return 0;
+
+    // create a mesh to contain the shape
+    pMesh = csrMeshCreate();
+
+    // succeeded?
+    if (!pMesh)
+        return 0;
+
+    // create a new vertex buffer to contain the disk
+    pMesh->m_Count = 1;
+    pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+
+    // succeeded?
+    if (!pMesh->m_pVB)
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // initialize the newly created vertex buffer
+    pMesh->m_pVB->m_Format        = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Time          =  0.0;
+    pMesh->m_pVB->m_pData         =  0;
+    pMesh->m_pVB->m_Count         =  0;
+
+    // calculate the stride
+    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // calculate the slice step
-    const float step  = (2.0f * M_PI) / (float)sliceCount;
-
-    miniCalculateStride(pVertexFormat);
-
-    *pVertices    = 0;
-    *pVertexCount = 0;
-
-    index  = 0;
+    step = (2.0f * M_PI) / (float)sliceCount;
 
     // iterate through disk slices to create
     for (i = 0; i <= sliceCount + 1; ++i)
@@ -867,63 +905,39 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
             y = centerY + radius * sin(angle);
         }
 
-        // count the vertices
-        ++(*pVertexCount);
-
-        // add vertices to the buffer
-        if (!(*pVertices))
-            *pVertices = (float*)malloc(*pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-        else
-            *pVertices = (float*)realloc(*pVertices, *pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-
         // add min point in buffer
-        (*pVertices)[index]     = x;
-        (*pVertices)[index + 1] = y;
-        (*pVertices)[index + 2] = 0.0f;
-
-        index += 3;
+        vertex.m_X = x;
+        vertex.m_Y = y;
+        vertex.m_Z = 0.0f;
 
         // do use normals?
         if (pVertexFormat->m_UseNormals)
         {
             // set normal data
-            (*pVertices)[index]     = 0.0f;
-            (*pVertices)[index + 1] = 0.0f;
-            (*pVertices)[index + 2] = 1.0f;
-
-            index += 3;
+            normal.m_X = 0.0f;
+            normal.m_Y = 0.0f;
+            normal.m_Z = 1.0f;
         }
 
         // do use textures?
         if (pVertexFormat->m_UseTextures)
-        {
             // set texture data
             if (!i)
             {
-                (*pVertices)[index]     = 0.5f;
-                (*pVertices)[index + 1] = 0.5f;
+                uv.m_X = 0.5f;
+                uv.m_Y = 0.5f;
             }
             else
             {
-                (*pVertices)[index]     = 0.5f + (cos(angle) * 0.5f);
-                (*pVertices)[index + 1] = 0.5f + (sin(angle) * 0.5f);
+                uv.m_X = 0.5f + (cos(angle) * 0.5f);
+                uv.m_Y = 0.5f + (sin(angle) * 0.5f);
             }
 
-            index += 2;
-        }
-
-        // do use colors?
-        if (pVertexFormat->m_UseColors)
-        {
-            // set color data
-            (*pVertices)[index]     = (float)((color >> 24) & 0xFF) / 255.0f;
-            (*pVertices)[index + 1] = (float)((color >> 16) & 0xFF) / 255.0f;
-            (*pVertices)[index + 2] = (float)((color >> 8)  & 0xFF) / 255.0f;
-            (*pVertices)[index + 3] = (float) (color        & 0xFF) / 255.0f;
-
-            index += 4;
-        }
+        // add the vertex to the buffer
+        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
     }
+
+    return pMesh;
 }
 //---------------------------------------------------------------------------
 CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
@@ -935,24 +949,53 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
                                    unsigned          minColor,
                                    unsigned          maxColor)
 {
-    int   i;
-    int   index;
-    float xA;
-    float yA;
-    float xB;
-    float yB;
-    float angle;
-    float texU;
+    unsigned    i;
+    float       xA;
+    float       yA;
+    float       xB;
+    float       yB;
+    float       step;
+    float       angle;
+    float       texU;
+    CSR_Vector3 vertex;
+    CSR_Vector3 normal;
+    CSR_Vector2 uv;
+    CSR_Mesh*   pMesh;
+
+    // no vertex format?
+    if (!pVertexFormat)
+        return 0;
+
+    // create a mesh to contain the shape
+    pMesh = csrMeshCreate();
+
+    // succeeded?
+    if (!pMesh)
+        return 0;
+
+    // create a new vertex buffer to contain the ring
+    pMesh->m_Count = 1;
+    pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+
+    // succeeded?
+    if (!pMesh->m_pVB)
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // initialize the newly created vertex buffer
+    pMesh->m_pVB->m_Format        = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Time          =  0.0;
+    pMesh->m_pVB->m_pData         =  0;
+    pMesh->m_pVB->m_Count         =  0;
+
+    // calculate the stride
+    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // calculate the slice step
-    const float step = (2.0f * M_PI) / (float)sliceCount;
-
-    index = 0;
-
-    miniCalculateStride(pVertexFormat);
-
-    *pVertices    = 0;
-    *pVertexCount = 0;
+    step = (2.0f * M_PI) / (float)sliceCount;
 
     // iterate through ring slices to create
     for (i = 0; i <= sliceCount; ++i)
@@ -977,95 +1020,58 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
         else
             texU = (float)i / (float)sliceCount;
 
-        // count 2 vertices
-        *pVertexCount += 2;
-
-        // add vertices to the buffer
-        if (!(*pVertices))
-            *pVertices = (float*)malloc(*pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-        else
-            *pVertices = (float*)realloc(*pVertices, *pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-
         // add min point in buffer
-        (*pVertices)[index]     = xA;
-        (*pVertices)[index + 1] = yA;
-        (*pVertices)[index + 2] = 0.0f;
-
-        index += 3;
+        vertex.m_X = xA;
+        vertex.m_Y = yA;
+        vertex.m_Z = 0.0f;
 
         // do use normals?
         if (pVertexFormat->m_UseNormals)
         {
             // set normal data
-            (*pVertices)[index]     = 0.0f;
-            (*pVertices)[index + 1] = 0.0f;
-            (*pVertices)[index + 2] = 1.0f;
-
-            index += 3;
+            normal.m_X = 0.0f;
+            normal.m_Y = 0.0f;
+            normal.m_Z = 1.0f;
         }
 
         // do use textures?
         if (pVertexFormat->m_UseTextures)
         {
             // set texture data
-            (*pVertices)[index]     = texU;
-            (*pVertices)[index + 1] = 0.0f;
-
-            index += 2;
+            uv.m_X = texU;
+            uv.m_Y = 0.0f;
         }
 
-        // do use colors?
-        if (pVertexFormat->m_UseColors)
-        {
-            // set color data
-            (*pVertices)[index]     = (float)((minColor >> 24) & 0xFF) / 255.0f;
-            (*pVertices)[index + 1] = (float)((minColor >> 16) & 0xFF) / 255.0f;
-            (*pVertices)[index + 2] = (float)((minColor >> 8)  & 0xFF) / 255.0f;
-            (*pVertices)[index + 3] = (float) (minColor        & 0xFF) / 255.0f;
-
-            index += 4;
-        }
+        // add the vertex to the buffer
+        csrVertexBufferAdd(&vertex, &normal, &uv, minColor, pMesh->m_pVB);
 
         // add max point in the buffer
-        (*pVertices)[index]     = xB;
-        (*pVertices)[index + 1] = yB;
-        (*pVertices)[index + 2] = 0.0f;
-
-        index += 3;
+        vertex.m_X = xB;
+        vertex.m_Y = yB;
+        vertex.m_Z = 0.0f;
 
         // do use normals?
         if (pVertexFormat->m_UseNormals)
         {
             // set normal data
-            (*pVertices)[index]     = 0.0f;
-            (*pVertices)[index + 1] = 0.0f;
-            (*pVertices)[index + 2] = 1.0f;
-
-            index += 3;
+            normal.m_X = 0.0f;
+            normal.m_Y = 0.0f;
+            normal.m_Z = 1.0f;
         }
 
         // do use textures?
         if (pVertexFormat->m_UseTextures)
         {
             // set texture data
-            (*pVertices)[index]     = texU;
-            (*pVertices)[index + 1] = 1.0f;
-
-            index += 2;
+            uv.m_X = texU;
+            uv.m_Y = 1.0f;
         }
 
-        // do use colors?
-        if (pVertexFormat->m_UseColors)
-        {
-            // set color data
-            (*pVertices)[index]     = (float)((maxColor >> 24) & 0xFF) / 255.0f;
-            (*pVertices)[index + 1] = (float)((maxColor >> 16) & 0xFF) / 255.0f;
-            (*pVertices)[index + 2] = (float)((maxColor >> 8)  & 0xFF) / 255.0f;
-            (*pVertices)[index + 3] = (float) (maxColor        & 0xFF) / 255.0f;
-
-            index += 4;
-        }
+        // add the vertex to the buffer
+        csrVertexBufferAdd(&vertex, &normal, &uv, maxColor, pMesh->m_pVB);
     }
+
+    return pMesh;
 }
 //---------------------------------------------------------------------------
 CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
@@ -1081,43 +1087,65 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
                                      unsigned          minColor,
                                      unsigned          maxColor)
 {
-    int   i;
-    int   j;
-    int   index;
-    float xA;
-    float yA;
-    float xB;
-    float yB;
-    float angle;
-    float z;
-    float texU;
+    unsigned          i;
+    unsigned          j;
+    float             xA;
+    float             yA;
+    float             xB;
+    float             yB;
+    float             step;
+    float             angle;
+    float             z;
+    float             texU;
+    CSR_Vector3       vertex;
+    CSR_Vector3       normal;
+    CSR_Vector2       uv;
+    CSR_Mesh*         pMesh;
+    CSR_VertexBuffer* pVB;
+
+    // no vertex format?
+    if (!pVertexFormat)
+        return 0;
+
+    // create a mesh to contain the shape
+    pMesh = csrMeshCreate();
+
+    // succeeded?
+    if (!pMesh)
+        return 0;
 
     // calculate the slice step
-    const float step  = (2.0f * M_PI) / (float)sliceCount;
-
-    miniCalculateStride(pVertexFormat);
-
-    z     = 0.0f;
-    index = 0;
-
-    *pVertices    = 0;
-    *pVertexCount = 0;
+    step = (2.0f * M_PI) / (float)sliceCount;
+    z    =  0.0f;
 
     // iterate through spiral stacks to create
     for (i = 0; i < stackCount; ++i)
     {
-        *pIndexCount += 1;
+        // create a new vertex buffer to contain the next slice
+        pVB = (CSR_VertexBuffer*)csrMemoryAlloc(pMesh->m_pVB,
+                                                sizeof(CSR_VertexBuffer),
+                                                pMesh->m_Count + 1);
 
-        // add vertices to the buffer
-        if (!(*pIndexes))
-            *pIndexes = (MINI_Index*)malloc(*pIndexCount * sizeof(MINI_Index));
-        else
-            *pIndexes = (MINI_Index*)realloc(*pIndexes, *pIndexCount * sizeof(MINI_Index));
+        // succeeded?
+        if (!pVB)
+        {
+            csrMeshRelease(pMesh);
+            return 0;
+        }
 
-        // populate the next indice
-        (*pIndexes)[i].m_Start  = index;
-        (*pIndexes)[i].m_Length = (sliceCount + 1) * 2;
-        (*pIndexes)[i].m_GlCmd  = E_TriangleStrip;
+        // update the mesh
+        pMesh->m_pVB = pVB;
+        ++pMesh->m_Count;
+
+        // initialize the newly created vertex buffer
+        pMesh->m_pVB->m_Format        = *pVertexFormat;
+        pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB->m_Time          =  0.0;
+        pMesh->m_pVB->m_pData         =  0;
+        pMesh->m_pVB->m_Count         =  0;
+
+        // calculate the stride
+        csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
         // iterate through spiral slices to create
         for (j = 0; j <= sliceCount; ++j)
@@ -1149,94 +1177,55 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
             else
                 texU = (float)j / (float)sliceCount;
 
-            // count 2 vertices
-            *pVertexCount += 2;
-
-            // add vertices to the buffer
-            if (!(*pVertices))
-                *pVertices = (float*)malloc(*pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-            else
-                *pVertices = (float*)realloc(*pVertices, *pVertexCount * pVertexFormat->m_Stride * sizeof(float));
-
             // add min point in buffer
-            (*pVertices)[index]     = xA;
-            (*pVertices)[index + 1] = yA;
-            (*pVertices)[index + 2] = z;
-
-            index += 3;
+            vertex.m_X = xA;
+            vertex.m_Y = yA;
+            vertex.m_Z = z;
 
             // do use normals?
             if (pVertexFormat->m_UseNormals)
             {
                 // set normal data
-                (*pVertices)[index]     = 0.0f;
-                (*pVertices)[index + 1] = 0.0f;
-                (*pVertices)[index + 2] = 1.0f;
-
-                index += 3;
+                normal.m_X = 0.0f;
+                normal.m_Y = 0.0f;
+                normal.m_Z = 1.0f;
             }
 
             // do use textures?
             if (pVertexFormat->m_UseTextures)
             {
                 // set texture data
-                (*pVertices)[index]     = texU;
-                (*pVertices)[index + 1] = 0.0f;
-
-                index += 2;
+                uv.m_X = texU;
+                uv.m_Y = 0.0f;
             }
 
-            // do use colors?
-            if (pVertexFormat->m_UseColors)
-            {
-                // set color data
-                (*pVertices)[index]     = (float)((minColor >> 24) & 0xFF) / 255.0f;
-                (*pVertices)[index + 1] = (float)((minColor >> 16) & 0xFF) / 255.0f;
-                (*pVertices)[index + 2] = (float)((minColor >> 8)  & 0xFF) / 255.0f;
-                (*pVertices)[index + 3] = (float) (minColor        & 0xFF) / 255.0f;
-
-                index += 4;
-            }
+            // add the vertex to the buffer
+            csrVertexBufferAdd(&vertex, &normal, &uv, minColor, &pMesh->m_pVB[pMesh->m_Count - 1]);
 
             // add max point in the buffer
-            (*pVertices)[index]     = xB;
-            (*pVertices)[index + 1] = yB;
-            (*pVertices)[index + 2] = z;
-
-            index += 3;
+            vertex.m_X = xB;
+            vertex.m_Y = yB;
+            vertex.m_Z = z;
 
             // do use normals?
             if (pVertexFormat->m_UseNormals)
             {
                 // set normal data
-                (*pVertices)[index]     = 0.0f;
-                (*pVertices)[index + 1] = 0.0f;
-                (*pVertices)[index + 2] = 1.0f;
-
-                index += 3;
+                normal.m_X = 0.0f;
+                normal.m_Y = 0.0f;
+                normal.m_Z = 1.0f;
             }
 
             // do use textures?
             if (pVertexFormat->m_UseTextures)
             {
                 // set texture data
-                (*pVertices)[index]     = texU;
-                (*pVertices)[index + 1] = 1.0f;
-
-                index += 2;
+                uv.m_X = texU;
+                uv.m_Y = 1.0f;
             }
 
-            // do use colors?
-            if (pVertexFormat->m_UseColors)
-            {
-                // set color data
-                (*pVertices)[index]     = (float)((maxColor >> 24) & 0xFF) / 255.0f;
-                (*pVertices)[index + 1] = (float)((maxColor >> 16) & 0xFF) / 255.0f;
-                (*pVertices)[index + 2] = (float)((maxColor >> 8)  & 0xFF) / 255.0f;
-                (*pVertices)[index + 3] = (float) (maxColor        & 0xFF) / 255.0f;
-
-                index += 4;
-            }
+            // add the vertex to the buffer
+            csrVertexBufferAdd(&vertex, &normal, &uv, maxColor, &pMesh->m_pVB[pMesh->m_Count - 1]);
         }
 
         // correct the last values otherwise the spiral will appears broken
@@ -1244,6 +1233,8 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         maxRadius -= deltaMax;
         z         += deltaZ;
     }
+
+    return pMesh;
 }
 //---------------------------------------------------------------------------
 // Model functions
