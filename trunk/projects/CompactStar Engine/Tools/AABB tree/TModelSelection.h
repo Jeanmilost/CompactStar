@@ -13,7 +13,6 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-
 #ifndef TModelSelectionH
 #define TModelSelectionH
 
@@ -36,34 +35,31 @@
 class TModelSelection : public TForm
 {
     __published:
-        TGroupBox *gbShape;
         TPanel *paMDLModel;
         TButton *btOpenFile;
         TButton *btSelect;
         TLabel *laSelectMDLModel;
         TEdit *edMDLFilelName;
         TOpenDialog *odOpen;
-        TRadioButton *rbSphere;
-        TRadioButton *rbCylinder;
-        TRadioButton *rbDisk;
-        TRadioButton *rbRing;
-        TRadioButton *rbSpiral;
-        TRadioButton *rbSurface;
-        TRadioButton *rbBox;
-        TPanel *paShapeConfig;
+        TPanel *paShape;
+        TRadioGroup *rgShapes;
+        TPanel *paSlices;
         TLabel *laSlices;
         TEdit *edSlices;
+        TUpDown *udSlices;
+        TPanel *paStacks;
         TLabel *laStacks;
         TEdit *edStacks;
-        TUpDown *udSlices;
         TUpDown *udStacks;
-        TPanel *paRadioButton;
-        TPanel *paRadioButtonRight;
+        TPanel *paFaces;
+        TLabel *laFaces;
+        TEdit *edFaces;
+        TUpDown *udFaces;
 
+        void __fastcall rgShapesClick(TObject* pSender);
+        void __fastcall edSlicesAndStacksChange(TObject* pSender);
         void __fastcall btSelectClick(TObject* pSender);
         void __fastcall btOpenFileClick(TObject* pSender);
-        void __fastcall OnClick(TObject* pSender);
-        void __fastcall edSlicesAndStacksChange(TObject* pSender);
 
     public:
         /**
