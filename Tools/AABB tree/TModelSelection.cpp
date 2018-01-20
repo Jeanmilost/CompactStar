@@ -49,14 +49,14 @@ __fastcall TModelSelection::TModelSelection(TComponent* pOwner) :
         odOpen->InitialDir = modelDir;
 }
 //---------------------------------------------------------------------------
-void __fastcall TModelSelection::edSlicesAndStacksChange(TObject* pSender)
+void __fastcall TModelSelection::rgShapesClick(TObject* pSender)
 {
     // clear the model values
     edMDLFilelName->Text = L"";
     m_ModelFileName.clear();
 }
 //---------------------------------------------------------------------------
-void __fastcall TModelSelection::OnClick(TObject* pSender)
+void __fastcall TModelSelection::edSlicesAndStacksChange(TObject* pSender)
 {
     // clear the model values
     edMDLFilelName->Text = L"";

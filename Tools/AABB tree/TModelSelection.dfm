@@ -1,10 +1,11 @@
 object ModelSelection: TModelSelection
   Left = 0
   Top = 0
+  AutoSize = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Select a model'
-  ClientHeight = 236
+  ClientHeight = 246
   ClientWidth = 388
   Color = clBtnFace
   DoubleBuffered = True
@@ -19,184 +20,82 @@ object ModelSelection: TModelSelection
   Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
-  object gbShape: TGroupBox
+  object paShape: TPanel
     AlignWithMargins = True
     Left = 3
     Top = 3
     Width = 382
-    Height = 168
-    Align = alClient
-    Caption = 'Select a shape'
+    Height = 178
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ParentColor = True
     TabOrder = 0
-    ExplicitLeft = 0
-    ExplicitTop = 0
-    ExplicitWidth = 533
-    ExplicitHeight = 353
-    object rbSphere: TRadioButton
-      Left = 2
-      Top = 49
-      Width = 378
-      Height = 17
+    object rgShapes: TRadioGroup
+      Left = 0
+      Top = 0
+      Width = 382
+      Height = 97
       Align = alTop
-      Caption = 'Sphere'
-      Checked = True
-      TabOrder = 2
-      TabStop = True
-      OnClick = OnClick
-      ExplicitLeft = 168
-      ExplicitTop = 80
-      ExplicitWidth = 113
-    end
-    object rbCylinder: TRadioButton
-      Left = 2
-      Top = 66
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Cylinder'
-      TabOrder = 3
-      OnClick = OnClick
-      ExplicitLeft = 10
-      ExplicitTop = 111
-      ExplicitWidth = 523
-    end
-    object rbDisk: TRadioButton
-      Left = 2
-      Top = 83
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Disk'
-      TabOrder = 4
-      OnClick = OnClick
-      ExplicitLeft = 18
-      ExplicitTop = 143
-      ExplicitWidth = 523
-    end
-    object rbRing: TRadioButton
-      Left = 2
-      Top = 100
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Ring'
-      TabOrder = 5
-      OnClick = OnClick
-      ExplicitLeft = 3
-      ExplicitTop = 167
-      ExplicitWidth = 523
-    end
-    object rbSpiral: TRadioButton
-      Left = 2
-      Top = 117
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Spiral'
-      TabOrder = 6
-      OnClick = OnClick
-      ExplicitLeft = 10
-      ExplicitTop = 151
-      ExplicitWidth = 523
-    end
-    object rbSurface: TRadioButton
-      Left = 2
-      Top = 15
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Surface'
+      Caption = 'Shapes'
+      Columns = 2
+      Items.Strings = (
+        'Surface'
+        'Box'
+        'Sphere'
+        'Cylinder'
+        'Disk'
+        'Ring'
+        'Spiral'
+        'Model')
       TabOrder = 0
-      OnClick = OnClick
-      ExplicitLeft = 168
-      ExplicitTop = 80
-      ExplicitWidth = 113
+      OnClick = rgShapesClick
+      ExplicitTop = 3
     end
-    object rbBox: TRadioButton
-      Left = 2
-      Top = 32
-      Width = 378
-      Height = 17
-      Align = alTop
-      Caption = 'Box'
-      TabOrder = 1
-      OnClick = OnClick
-      ExplicitLeft = 3
-      ExplicitTop = 43
-      ExplicitWidth = 523
-    end
-    object paShapeConfig: TPanel
+    object paSlices: TPanel
       AlignWithMargins = True
-      Left = 5
-      Top = 137
-      Width = 372
+      Left = 3
+      Top = 100
+      Width = 376
       Height = 21
       Align = alTop
       BevelOuter = bvNone
-      TabOrder = 7
-      ExplicitWidth = 517
+      TabOrder = 1
+      ExplicitTop = 103
       object laSlices: TLabel
         AlignWithMargins = True
-        Left = 13
+        Left = 0
         Top = 0
         Width = 26
-        Height = 13
-        Margins.Left = 13
+        Height = 20
+        Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
         Margins.Bottom = 1
         Align = alLeft
         Caption = 'Slices'
+        Transparent = True
         Layout = tlCenter
-      end
-      object laStacks: TLabel
-        AlignWithMargins = True
-        Left = 129
-        Top = 0
-        Width = 31
-        Height = 13
-        Margins.Left = 25
-        Margins.Top = 0
-        Margins.Right = 0
-        Margins.Bottom = 1
-        Align = alLeft
-        Caption = 'Stacks'
-        Layout = tlCenter
+        ExplicitHeight = 13
       end
       object edSlices: TEdit
         AlignWithMargins = True
-        Left = 44
+        Left = 98
         Top = 0
-        Width = 60
+        Width = 262
         Height = 21
-        Margins.Left = 5
+        Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
         Margins.Bottom = 0
-        Align = alLeft
+        Align = alRight
         NumbersOnly = True
         TabOrder = 0
         Text = '10'
         OnChange = edSlicesAndStacksChange
       end
-      object edStacks: TEdit
-        AlignWithMargins = True
-        Left = 165
-        Top = 0
-        Width = 60
-        Height = 21
-        Margins.Left = 5
-        Margins.Top = 0
-        Margins.Right = 0
-        Margins.Bottom = 0
-        Align = alLeft
-        NumbersOnly = True
-        TabOrder = 1
-        Text = '10'
-        OnChange = edSlicesAndStacksChange
-      end
       object udSlices: TUpDown
-        Left = 104
+        Left = 360
         Top = 0
         Width = 16
         Height = 21
@@ -204,10 +103,53 @@ object ModelSelection: TModelSelection
         Min = 1
         Max = 1000
         Position = 10
-        TabOrder = 2
+        TabOrder = 1
+      end
+    end
+    object paStacks: TPanel
+      AlignWithMargins = True
+      Left = 3
+      Top = 127
+      Width = 376
+      Height = 21
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 2
+      ExplicitTop = 130
+      object laStacks: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 0
+        Width = 31
+        Height = 20
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 1
+        Align = alLeft
+        Caption = 'Stacks'
+        Transparent = True
+        Layout = tlCenter
+        ExplicitHeight = 13
+      end
+      object edStacks: TEdit
+        AlignWithMargins = True
+        Left = 98
+        Top = 0
+        Width = 262
+        Height = 21
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alRight
+        NumbersOnly = True
+        TabOrder = 0
+        Text = '10'
+        OnChange = edSlicesAndStacksChange
       end
       object udStacks: TUpDown
-        Left = 225
+        Left = 360
         Top = 0
         Width = 16
         Height = 21
@@ -215,37 +157,102 @@ object ModelSelection: TModelSelection
         Min = 1
         Max = 1000
         Position = 10
-        TabOrder = 3
+        TabOrder = 1
       end
     end
+    object paFaces: TPanel
+      AlignWithMargins = True
+      Left = 3
+      Top = 154
+      Width = 376
+      Height = 21
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 3
+      ExplicitTop = 167
+      object laFaces: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 0
+        Width = 28
+        Height = 20
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 1
+        Align = alLeft
+        Caption = 'Faces'
+        Transparent = True
+        Layout = tlCenter
+        ExplicitHeight = 13
+      end
+      object edFaces: TEdit
+        AlignWithMargins = True
+        Left = 98
+        Top = 0
+        Width = 262
+        Height = 21
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alRight
+        NumbersOnly = True
+        TabOrder = 0
+        Text = '10'
+        OnChange = edSlicesAndStacksChange
+      end
+      object udFaces: TUpDown
+        Left = 360
+        Top = 0
+        Width = 16
+        Height = 21
+        Associate = edFaces
+        Min = 1
+        Max = 1000
+        Position = 10
+        TabOrder = 1
+      end
+    end
+  end
+  object btSelect: TButton
+    AlignWithMargins = True
+    Left = 3
+    Top = 218
+    Width = 382
+    Height = 25
+    Align = alTop
+    Caption = 'Select'
+    TabOrder = 1
+    OnClick = btSelectClick
+    ExplicitTop = 164
   end
   object paMDLModel: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 177
+    Top = 187
     Width = 382
     Height = 25
-    Align = alBottom
+    Align = alTop
     BevelOuter = bvNone
-    TabOrder = 1
-    ExplicitLeft = 0
-    ExplicitTop = 416
-    ExplicitWidth = 533
+    TabOrder = 2
+    ExplicitTop = 133
     object laSelectMDLModel: TLabel
       AlignWithMargins = True
       Left = 3
       Top = 2
       Width = 92
-      Height = 13
+      Height = 20
       Margins.Top = 2
       Align = alLeft
       Caption = 'Select a MDL model'
       Layout = tlCenter
+      ExplicitHeight = 13
     end
     object btOpenFile: TButton
-      Left = 337
+      Left = 357
       Top = 0
-      Width = 45
+      Width = 25
       Height = 25
       Margins.Top = 2
       Margins.Bottom = 2
@@ -253,40 +260,26 @@ object ModelSelection: TModelSelection
       Caption = '...'
       TabOrder = 0
       OnClick = btOpenFileClick
-      ExplicitLeft = 488
+      ExplicitLeft = 352
     end
     object edMDLFilelName: TEdit
       AlignWithMargins = True
       Left = 101
       Top = 2
-      Width = 233
+      Width = 253
       Height = 21
       Margins.Top = 2
       Margins.Bottom = 2
       Align = alClient
       ReadOnly = True
       TabOrder = 1
-      ExplicitLeft = 184
-      ExplicitTop = 8
-      ExplicitWidth = 121
+      ExplicitWidth = 233
     end
   end
-  object btSelect: TButton
-    AlignWithMargins = True
-    Left = 3
-    Top = 208
-    Width = 382
-    Height = 25
-    Align = alBottom
-    Caption = 'Select'
-    TabOrder = 2
-    OnClick = btSelectClick
-    ExplicitLeft = -8
-    ExplicitTop = 447
-    ExplicitWidth = 533
-  end
   object odOpen: TOpenDialog
-    Left = 491
-    Top = 19
+    DefaultExt = '.mdl'
+    Filter = 'Quake I model|*.mdl'
+    Left = 344
+    Top = 11
   end
 end

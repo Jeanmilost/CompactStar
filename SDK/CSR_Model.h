@@ -24,9 +24,8 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-
-#define M_MDL_Mesh_File_Version 6
-#define M_MDL_ID                (('O' << 24) + ('P' << 16) + ('D' << 8) + 'I')
+#define M_MDL_Mesh_File_Version 6
+#define M_MDL_ID                (('O' << 24) + ('P' << 16) + ('D' << 8) + 'I')
 
 //---------------------------------------------------------------------------
 // Structures
@@ -239,7 +238,7 @@ typedef struct
         *@param centerX - the disk center on the x axis
         *@param centerY - the disk center on the y axis
         *@param radius - disk radius
-        *@param sliceCount - disk slice count
+        *@param slices - disk slice count
         *@param color - disk color
         *@return mesh containing the disk, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
@@ -248,7 +247,7 @@ typedef struct
                                            float             centerX,
                                            float             centerY,
                                            float             radius,
-                                           unsigned          sliceCount,
+                                           unsigned          slices,
                                            unsigned          color);
 
         /**
@@ -258,7 +257,7 @@ typedef struct
         *@param centerY - the ring center on the y axis
         *@param minRadius - internal radius
         *@param maxRadius - external radius
-        *@param sliceCount - slice count
+        *@param slices - slice count
         *@param minColor - internal edge color
         *@param maxColor - external edge color
         *@return mesh containing the ring, 0 on error
@@ -269,7 +268,7 @@ typedef struct
                                            float             centerY,
                                            float             minRadius,
                                            float             maxRadius,
-                                           unsigned          sliceCount,
+                                           unsigned          slices,
                                            unsigned          minColor,
                                            unsigned          maxColor);
 
@@ -283,8 +282,8 @@ typedef struct
         *@param deltaMin - delta to apply to the min radius
         *@param deltaMax - delta to apply to the max radius
         *@param deltaZ - delta to apply to the z radius
-        *@param stackCount - stack count
-        *@param sliceCount - slice count
+        *@param slices - slice count
+        *@param stacks - stack count
         *@param minColor - internal edge color
         *@param maxColor - external edge color
         *@return mesh containing the spiral, 0 on error
@@ -298,8 +297,8 @@ typedef struct
                                              float             deltaMin,
                                              float             deltaMax,
                                              float             deltaZ,
-                                             unsigned          stackCount,
-                                             unsigned          sliceCount,
+                                             unsigned          slices,
+                                             unsigned          stacks,
                                              unsigned          minColor,
                                              unsigned          maxColor);
 

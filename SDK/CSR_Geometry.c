@@ -13,7 +13,6 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-
 #include "CSR_Geometry.h"
 
 // std
@@ -1806,8 +1805,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             // get the ray start position
             ray.m_Pos = pSegment->m_Start;
 
-            // calculate the ray direction. NOTE the inverted direction can be omitted here because this
-            // value will not be used by the csrIntersectRayPlane() function
+            // calculate the ray direction. NOTE the inverted direction can be omitted here because
+            // this value will not be used by the csrIntersectRayPlane() function
             csrVec3Sub(&pSegment->m_End, &pSegment->m_Start, &dir);
             csrVec3Normalize(&dir, &ray.m_Dir);
 
@@ -1893,8 +1892,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             // calculate the distance between the center of the sphere and the plane
             csrPlaneDistanceTo(&pSphere->m_Center, &polygonPlane, &testPoint1);
 
-            // calculate the normal of the distance sphere-plane using the positive or negative value of the
-            // calculated distance between plane and position
+            // calculate the normal of the distance sphere-plane using the positive or negative
+            // value of the calculated distance between plane and position
             if (testPoint1 < 0.0f)
             {
                 sphereNormal.m_X = polygonPlane.m_A;
@@ -1908,8 +1907,8 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                 sphereNormal.m_Z = -polygonPlane.m_C;
             }
 
-            // calculate the point who the segment from center of sphere in the direction of the plane will
-            // cross the border of the sphere
+            // calculate the point who the segment from center of sphere in the direction of the
+            // plane will cross the border of the sphere
             pointOnSphere.m_X = pSphere->m_Center.m_X + (pSphere->m_Radius * sphereNormal.m_X);
             pointOnSphere.m_Y = pSphere->m_Center.m_Y + (pSphere->m_Radius * sphereNormal.m_Y),
             pointOnSphere.m_Z = pSphere->m_Center.m_Z + (pSphere->m_Radius * sphereNormal.m_Z);
@@ -1917,9 +1916,9 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             // calculate the distance between the border of the sphere and the plane
             csrPlaneDistanceTo(&pointOnSphere, &polygonPlane, &testPoint2);
 
-            // if the test points are on each side of the plane, then the sphere cross the plane. We assume
-            // that the segment from the center of the sphere to the direction of the plane can never be
-            // coplanar
+            // if the test points are on each side of the plane, then the sphere cross the plane. We
+            // assume that the segment from the center of the sphere to the direction of the plane
+            // can never be coplanar
             if ((testPoint1 <= 0.0f && testPoint2 >= 0.0f) || (testPoint2 <= 0.0f && testPoint1 >= 0.0f))
             {
                 // calculate who the segment cross the plane
@@ -1950,8 +1949,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                 // check if calculated point is inside the polygon
                 if (csrInsidePolygon3(&pointOnPlane, pPolygon))
                 {
-                    // if yes, the sphere collide the polygon. In this case, we copy the plane and we
-                    // returns 1
+                    // yes, the sphere collide the polygon. Copy the plane and return 1
                     if (pR3)
                         *pR3 = polygonPlane;
 
@@ -1959,15 +1957,15 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                 }
                 else
                 {
-                    // otherwise check if the sphere collide a polygon edge. First calculate the point to
-                    // check on the polygon edge
+                    // otherwise check if the sphere collide a polygon edge. First calculate the
+                    // point to check on the polygon edge
                     csrPolygon3ClosestPoint(&pointOnPlane, pPolygon, &pointOnTriangle);
 
                     // check if this point is inside the sphere
                     if (csrInsideSphere(&pointOnTriangle, pSphere))
                     {
-                        // if yes, the sphere collide the polygon. In this case the sliding plane is copied
-                        // and the return value is 1
+                        // yes, the sphere collide the polygon. In this case the sliding plane is
+                        // copied and the return value is 1
                         if (pR3)
                             *pR3 = polygonPlane;
 

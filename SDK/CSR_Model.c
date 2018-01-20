@@ -837,7 +837,7 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
                                    float             centerX,
                                    float             centerY,
                                    float             radius,
-                                   unsigned          sliceCount,
+                                   unsigned          slices,
                                    unsigned          color)
 {
     unsigned    i;
@@ -883,10 +883,10 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // calculate the slice step
-    step = (2.0f * M_PI) / (float)sliceCount;
+    step = (2.0f * M_PI) / (float)slices;
 
     // iterate through disk slices to create
-    for (i = 0; i <= sliceCount + 1; ++i)
+    for (i = 0; i <= slices + 1; ++i)
     {
         // is the first point to calculate?
         if (!i)
@@ -945,7 +945,7 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
                                    float             centerY,
                                    float             minRadius,
                                    float             maxRadius,
-                                   unsigned          sliceCount,
+                                   unsigned          slices,
                                    unsigned          minColor,
                                    unsigned          maxColor)
 {
@@ -995,10 +995,10 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // calculate the slice step
-    step = (2.0f * M_PI) / (float)sliceCount;
+    step = (2.0f * M_PI) / (float)slices;
 
     // iterate through ring slices to create
-    for (i = 0; i <= sliceCount; ++i)
+    for (i = 0; i <= slices; ++i)
     {
         // calculate the current slice angle
         angle = step * (float)i;
@@ -1015,10 +1015,10 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
         if (!i)
             texU = 0.0f;
         else
-        if (i == sliceCount)
+        if (i == slices)
             texU = 1.0f;
         else
-            texU = (float)i / (float)sliceCount;
+            texU = (float)i / (float)slices;
 
         // add min point in buffer
         vertex.m_X = xA;
@@ -1082,8 +1082,8 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
                                      float             deltaMin,
                                      float             deltaMax,
                                      float             deltaZ,
-                                     unsigned          stackCount,
-                                     unsigned          sliceCount,
+                                     unsigned          slices,
+                                     unsigned          stacks,
                                      unsigned          minColor,
                                      unsigned          maxColor)
 {
@@ -1115,11 +1115,11 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         return 0;
 
     // calculate the slice step
-    step = (2.0f * M_PI) / (float)sliceCount;
+    step = (2.0f * M_PI) / (float)slices;
     z    =  0.0f;
 
     // iterate through spiral stacks to create
-    for (i = 0; i < stackCount; ++i)
+    for (i = 0; i < stacks; ++i)
     {
         // create a new vertex buffer to contain the next slice
         pVB = (CSR_VertexBuffer*)csrMemoryAlloc(pMesh->m_pVB,
@@ -1148,7 +1148,7 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
         // iterate through spiral slices to create
-        for (j = 0; j <= sliceCount; ++j)
+        for (j = 0; j <= slices; ++j)
         {
             // calculate the current slice angle
             angle = step * (float)j;
@@ -1172,10 +1172,10 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
             if (!j)
                 texU = 0.0f;
             else
-            if (j == sliceCount)
+            if (j == slices)
                 texU = 1.0f;
             else
-                texU = (float)j / (float)sliceCount;
+                texU = (float)j / (float)slices;
 
             // add min point in buffer
             vertex.m_X = xA;
@@ -1305,7 +1305,6 @@ void csrModelRelease(CSR_Model* pModel)
                 // free the mesh vertex buffer
                 free(pModel->m_pMesh[i].m_pVB);
             }
-
         }
 
         // free the meshes
