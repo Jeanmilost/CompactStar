@@ -40,7 +40,6 @@
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
         <ILINK_LibraryPath>..\..\SDK\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-        <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
         <IncludePath>..\..\SDK\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\Engine\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_AABBTree</SanitizedProjectName>

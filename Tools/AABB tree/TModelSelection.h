@@ -26,6 +26,7 @@
 #include <Vcl.ComCtrls.hpp>
 
 // std
+#include <vector>
 #include <string>
 
 /**
@@ -55,11 +56,18 @@ class TModelSelection : public TForm
         TLabel *laFaces;
         TEdit *edFaces;
         TUpDown *udFaces;
+        TColorDialog *cdColors;
+        TPanel *paColors;
+        TLabel *laColors;
+        TPanel *paSelectedColor;
+        TButton *btSelectColor;
 
         void __fastcall rgShapesClick(TObject* pSender);
+        void __fastcall paSelectedColorClick(TObject* pSender);
         void __fastcall edSlicesAndStacksChange(TObject* pSender);
-        void __fastcall btSelectClick(TObject* pSender);
         void __fastcall btOpenFileClick(TObject* pSender);
+        void __fastcall btSelectColorClick(TObject* pSender);
+        void __fastcall btSelectClick(TObject* pSender);
 
     public:
         /**
@@ -75,7 +83,20 @@ class TModelSelection : public TForm
         std::wstring GetModelFileName() const;
 
     private:
+        typedef std::vector<TControl*> IControls;
+
         std::wstring m_ModelFileName;
+
+        /**
+        * Selects the model color
+        */
+        void SelectModelColor();
+
+        /**
+        * Distribute the VCL controls from top to bottom
+        *@param controls - controls to distribute
+        */
+        void DistributeCtrlsTopToBottom(IControls& controls);
 };
 extern PACKAGE TModelSelection* pModelSelection;
 #endif

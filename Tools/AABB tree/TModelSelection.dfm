@@ -5,7 +5,7 @@ object ModelSelection: TModelSelection
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Select a model'
-  ClientHeight = 246
+  ClientHeight = 273
   ClientWidth = 388
   Color = clBtnFace
   DoubleBuffered = True
@@ -25,7 +25,7 @@ object ModelSelection: TModelSelection
     Left = 3
     Top = 3
     Width = 382
-    Height = 178
+    Height = 236
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
@@ -37,8 +37,9 @@ object ModelSelection: TModelSelection
       Width = 382
       Height = 97
       Align = alTop
-      Caption = 'Shapes'
+      Caption = 'Models and shapes'
       Columns = 2
+      ItemIndex = 2
       Items.Strings = (
         'Surface'
         'Box'
@@ -50,7 +51,6 @@ object ModelSelection: TModelSelection
         'Model')
       TabOrder = 0
       OnClick = rgShapesClick
-      ExplicitTop = 3
     end
     object paSlices: TPanel
       AlignWithMargins = True
@@ -61,13 +61,12 @@ object ModelSelection: TModelSelection
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitTop = 103
       object laSlices: TLabel
         AlignWithMargins = True
         Left = 0
         Top = 0
         Width = 26
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -76,13 +75,12 @@ object ModelSelection: TModelSelection
         Caption = 'Slices'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edSlices: TEdit
         AlignWithMargins = True
-        Left = 98
+        Left = 101
         Top = 0
-        Width = 262
+        Width = 259
         Height = 21
         Margins.Left = 0
         Margins.Top = 0
@@ -115,13 +113,12 @@ object ModelSelection: TModelSelection
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 2
-      ExplicitTop = 130
       object laStacks: TLabel
         AlignWithMargins = True
         Left = 0
         Top = 0
         Width = 31
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -130,13 +127,12 @@ object ModelSelection: TModelSelection
         Caption = 'Stacks'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edStacks: TEdit
         AlignWithMargins = True
-        Left = 98
+        Left = 101
         Top = 0
-        Width = 262
+        Width = 259
         Height = 21
         Margins.Left = 0
         Margins.Top = 0
@@ -169,13 +165,13 @@ object ModelSelection: TModelSelection
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
-      ExplicitTop = 167
+      Visible = False
       object laFaces: TLabel
         AlignWithMargins = True
         Left = 0
         Top = 0
         Width = 28
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -184,13 +180,12 @@ object ModelSelection: TModelSelection
         Caption = 'Faces'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edFaces: TEdit
         AlignWithMargins = True
-        Left = 98
+        Left = 101
         Top = 0
-        Width = 262
+        Width = 259
         Height = 21
         Margins.Left = 0
         Margins.Top = 0
@@ -214,72 +209,134 @@ object ModelSelection: TModelSelection
         TabOrder = 1
       end
     end
+    object paMDLModel: TPanel
+      AlignWithMargins = True
+      Left = 3
+      Top = 181
+      Width = 376
+      Height = 25
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 4
+      Visible = False
+      ExplicitTop = 187
+      ExplicitWidth = 382
+      object laSelectMDLModel: TLabel
+        AlignWithMargins = True
+        Left = 3
+        Top = 2
+        Width = 92
+        Height = 13
+        Margins.Top = 2
+        Align = alLeft
+        Caption = 'Select a MDL model'
+        Layout = tlCenter
+      end
+      object btOpenFile: TButton
+        Left = 351
+        Top = 0
+        Width = 25
+        Height = 25
+        Margins.Top = 2
+        Margins.Bottom = 2
+        Align = alRight
+        Caption = '...'
+        TabOrder = 0
+        OnClick = btOpenFileClick
+        ExplicitLeft = 357
+      end
+      object edMDLFilelName: TEdit
+        AlignWithMargins = True
+        Left = 101
+        Top = 2
+        Width = 247
+        Height = 21
+        Margins.Top = 2
+        Margins.Bottom = 2
+        Align = alClient
+        ReadOnly = True
+        TabOrder = 1
+        ExplicitWidth = 246
+      end
+    end
+    object paColors: TPanel
+      AlignWithMargins = True
+      Left = 3
+      Top = 212
+      Width = 376
+      Height = 21
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 5
+      ExplicitTop = 218
+      ExplicitWidth = 382
+      object laColors: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 0
+        Width = 25
+        Height = 13
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 1
+        Align = alLeft
+        Caption = 'Color'
+        Transparent = True
+        Layout = tlCenter
+      end
+      object paSelectedColor: TPanel
+        AlignWithMargins = True
+        Left = 101
+        Top = 0
+        Width = 247
+        Height = 21
+        Cursor = crHandPoint
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Bottom = 0
+        Align = alRight
+        BevelOuter = bvNone
+        Color = clWhite
+        ParentBackground = False
+        TabOrder = 0
+        OnClick = paSelectedColorClick
+      end
+      object btSelectColor: TButton
+        Left = 351
+        Top = 0
+        Width = 25
+        Height = 21
+        Margins.Top = 2
+        Margins.Bottom = 2
+        Align = alRight
+        Caption = '...'
+        TabOrder = 1
+        OnClick = btSelectColorClick
+        ExplicitLeft = 357
+      end
+    end
   end
   object btSelect: TButton
     AlignWithMargins = True
     Left = 3
-    Top = 218
+    Top = 245
     Width = 382
     Height = 25
     Align = alTop
     Caption = 'Select'
     TabOrder = 1
     OnClick = btSelectClick
-    ExplicitTop = 164
-  end
-  object paMDLModel: TPanel
-    AlignWithMargins = True
-    Left = 3
-    Top = 187
-    Width = 382
-    Height = 25
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 2
-    ExplicitTop = 133
-    object laSelectMDLModel: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 2
-      Width = 92
-      Height = 20
-      Margins.Top = 2
-      Align = alLeft
-      Caption = 'Select a MDL model'
-      Layout = tlCenter
-      ExplicitHeight = 13
-    end
-    object btOpenFile: TButton
-      Left = 357
-      Top = 0
-      Width = 25
-      Height = 25
-      Margins.Top = 2
-      Margins.Bottom = 2
-      Align = alRight
-      Caption = '...'
-      TabOrder = 0
-      OnClick = btOpenFileClick
-      ExplicitLeft = 352
-    end
-    object edMDLFilelName: TEdit
-      AlignWithMargins = True
-      Left = 101
-      Top = 2
-      Width = 253
-      Height = 21
-      Margins.Top = 2
-      Margins.Bottom = 2
-      Align = alClient
-      ReadOnly = True
-      TabOrder = 1
-      ExplicitWidth = 233
-    end
+    ExplicitTop = 218
   end
   object odOpen: TOpenDialog
     DefaultExt = '.mdl'
     Filter = 'Quake I model|*.mdl'
     Left = 344
+    Top = 11
+  end
+  object cdColors: TColorDialog
+    Left = 307
     Top = 11
   end
 end

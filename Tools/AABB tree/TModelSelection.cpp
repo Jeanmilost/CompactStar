@@ -51,9 +51,74 @@ __fastcall TModelSelection::TModelSelection(TComponent* pOwner) :
 //---------------------------------------------------------------------------
 void __fastcall TModelSelection::rgShapesClick(TObject* pSender)
 {
-    // clear the model values
-    edMDLFilelName->Text = L"";
-    m_ModelFileName.clear();
+    // update the user interface for the selected model
+    switch (rgShapes->ItemIndex)
+    {
+        // surface or box
+        case 0:
+        case 1:
+            paSlices->Visible   = false;
+            paStacks->Visible   = false;
+            paFaces->Visible    = false;
+            paMDLModel->Visible = false;
+            break;
+
+        // sphere
+        case 2:
+            paSlices->Visible   = true;
+            paStacks->Visible   = true;
+            paFaces->Visible    = false;
+            paMDLModel->Visible = false;
+            break;
+
+        // cylinder
+        case 3:
+            paSlices->Visible   = false;
+            paStacks->Visible   = false;
+            paFaces->Visible    = true;
+            paMDLModel->Visible = false;
+            break;
+
+        // disk or ring
+        case 4:
+        case 5:
+            paSlices->Visible   = true;
+            paStacks->Visible   = false;
+            paFaces->Visible    = false;
+            paMDLModel->Visible = false;
+            break;
+
+        // spiral
+        case 6:
+            paSlices->Visible   = true;
+            paStacks->Visible   = true;
+            paFaces->Visible    = false;
+            paMDLModel->Visible = false;
+            break;
+
+        // MDL model
+        case 7:
+            paSlices->Visible   = false;
+            paStacks->Visible   = false;
+            paFaces->Visible    = false;
+            paMDLModel->Visible = true;
+            break;
+    }
+
+    // sort the controls from top to bottom
+    IControls controls;
+    controls.push_back(rgShapes);
+    controls.push_back(paSlices);
+    controls.push_back(paStacks);
+    controls.push_back(paFaces);
+    controls.push_back(paMDLModel);
+    controls.push_back(paColors);
+    DistributeCtrlsTopToBottom(controls);
+}
+//---------------------------------------------------------------------------
+void __fastcall TModelSelection::paSelectedColorClick(TObject* pSender)
+{
+    SelectModelColor();
 }
 //---------------------------------------------------------------------------
 void __fastcall TModelSelection::edSlicesAndStacksChange(TObject* pSender)
@@ -65,13 +130,18 @@ void __fastcall TModelSelection::edSlicesAndStacksChange(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TModelSelection::btOpenFileClick(TObject* pSender)
 {
-    // show the open dialog box
+    // show the open file dialog box
     if (!odOpen->Execute())
         return;
 
     // update the model values
     edMDLFilelName->Text = odOpen->FileName;
     m_ModelFileName      = odOpen->FileName.c_str();
+}
+//---------------------------------------------------------------------------
+void __fastcall TModelSelection::btSelectColorClick(TObject* pSender)
+{
+    SelectModelColor();
 }
 //---------------------------------------------------------------------------
 void __fastcall TModelSelection::btSelectClick(TObject* pSender)
@@ -82,5 +152,37 @@ void __fastcall TModelSelection::btSelectClick(TObject* pSender)
 std::wstring TModelSelection::GetModelFileName() const
 {
     return m_ModelFileName;
+}
+//---------------------------------------------------------------------------
+void TModelSelection::SelectModelColor()
+{
+    // select the current color
+    cdColors->Color = paSelectedColor->Color;
+
+    // show the select color dialog box
+    if (!cdColors->Execute())
+        return;
+
+    // get the newly selected color
+    paSelectedColor->Color = cdColors->Color;
+}
+//---------------------------------------------------------------------------
+void TModelSelection::DistributeCtrlsTopToBottom(IControls& controls)
+{
+    int pos = 0;
+
+    // iterate through controls to distribute
+    for (std::size_t i = 0; i < controls.size(); ++i)
+    {
+        // is control visible?
+        if (!controls[i]->Visible)
+            continue;
+
+        // place the control on the left
+        controls[i]->Top = pos;
+
+        // calculate the next position
+        pos += controls[i]->Margins->ControlHeight;
+    }
 }
 //---------------------------------------------------------------------------
