@@ -222,101 +222,125 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // clear all the previous models and meshes
     ClearModelsAndMeshes();
 
-    // get model file name
-    const std::wstring modelFileName = pModelSelection->GetModelFileName();
+    CSR_VertexFormat vf;
+    vf.m_UseNormals  = 0;
+    vf.m_UseTextures = 0;
+    vf.m_UseColors   = 1;
 
-    // do load a MDL model?
-    if (!modelFileName.empty())
+    // select the model to build
+    switch (pModelSelection->rgShapes->ItemIndex)
     {
-        CSR_MDL* pMDL = NULL;
-
-        try
+        // sphere
+        case 2:
         {
-            // enable the textured program
-            csrShaderEnable(m_pShader_TexturedMesh);
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
 
-            CSR_VertexFormat vertexFormat;
-            vertexFormat.m_UseNormals  = 0;
-            vertexFormat.m_UseTextures = 1;
-            vertexFormat.m_UseColors   = 1;
+            // create the shape to show
+            m_pMesh = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
 
-            // load MDL model
-            pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
-                                         0,
-                                         &vertexFormat,
-                                         0xFFFFFFFF);
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
-            if (!pMDL)
-            {
-                // build the error message to show
-                std::wostringstream sstr;
-                sstr << L"Failed to load the model:\r\n" << modelFileName;
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
 
-                // show the error message to the user
-                ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
+            return;
+        }
 
-                // clear the scene
-                ClearModelsAndMeshes();
+        // MDL model
+        case 7:
+        {
+            // get model file name
+            const std::wstring modelFileName = pModelSelection->GetModelFileName();
+
+            // do load a MDL model?
+            if (modelFileName.empty())
                 return;
-            }
 
-            // create the AABB trees for each frame
-            for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
-                for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
+            CSR_MDL* pMDL = NULL;
+
+            try
+            {
+                // enable the textured program
+                csrShaderEnable(m_pShader_TexturedMesh);
+
+                CSR_VertexFormat vertexFormat;
+                vertexFormat.m_UseNormals  = 0;
+                vertexFormat.m_UseTextures = 1;
+                vertexFormat.m_UseColors   = 1;
+
+                // load MDL model
+                pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
+                                             0,
+                                             &vertexFormat,
+                                             0xFFFFFFFF);
+
+                // succeeded?
+                if (!pMDL)
                 {
-                    // create the AABB tree for the next frame
-                    CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
+                    // build the error message to show
+                    std::wostringstream sstr;
+                    sstr << L"Failed to load the model:\r\n" << modelFileName;
 
-                    if (!pTree)
-                    {
-                        // build the error message to show
-                        std::wostringstream sstr;
-                        sstr << L"Failed to load the model:\r\n\r\n"
-                             << modelFileName << L"\r\n\r\n"
-                             << L"An error occurred while the AABB trees vere created."
-                             << L"Model index = " << i << L", mesh index = " << j;
+                    // show the error message to the user
+                    ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
 
-                        // show the error message to the user
-                        ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
-
-                        // clear the scene
-                        ClearModelsAndMeshes();
-                        return;
-                    }
-
-                    m_AABBTrees.push_back(pTree);
+                    // clear the scene
+                    ClearModelsAndMeshes();
+                    return;
                 }
 
-            // initialize values
-            m_pTextureLastTime = 0.0;
-            m_pModelLastTime   = 0.0;
-            m_pMeshLastTime    = 0.0;
-            m_TextureIndex     = 0;
-            m_ModelIndex       = 0;
-            m_MeshIndex        = 0;
+                // create the AABB trees for each frame
+                for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
+                    for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
+                    {
+                        // create the AABB tree for the next frame
+                        CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
 
-            // get the animation count
-            const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
+                        if (!pTree)
+                        {
+                            // build the error message to show
+                            std::wostringstream sstr;
+                            sstr << L"Failed to load the model:\r\n\r\n"
+                                 << modelFileName << L"\r\n\r\n"
+                                 << L"An error occurred while the AABB trees vere created."
+                                 << L"Model index = " << i << L", mesh index = " << j;
 
-            // update the interface
-            tbModelDistance->Position  = 100;
-            tbAnimationNb->Max         = animCount;
-            tbAnimationNb->Enabled     = animCount;
-            tbAnimationSpeed->Position = 10;
-            tbAnimationSpeed->Enabled  = tbAnimationNb->Enabled;
+                            // show the error message to the user
+                            ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
 
-            // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
-            // will be deleted while the csrModelRelease() function will be exectued
-            m_pMDL = pMDL;
-            pMDL   = 0;
+                            // clear the scene
+                            ClearModelsAndMeshes();
+                            return;
+                        }
+
+                        m_AABBTrees.push_back(pTree);
+                    }
+
+                // get the animation count
+                const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
+
+                // update the interface
+                tbModelDistance->Position  = 100;
+                tbAnimationNb->Max         = animCount;
+                tbAnimationNb->Enabled     = animCount;
+                tbAnimationSpeed->Position = 10;
+                tbAnimationSpeed->Enabled  = tbAnimationNb->Enabled;
+
+                // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
+                // will be deleted while the csrModelRelease() function will be exectued
+                m_pMDL = pMDL;
+                pMDL   = 0;
+            }
+            __finally
+            {
+                csrMDLRelease(pMDL);
+            }
+
+            return;
         }
-        __finally
-        {
-            csrMDLRelease(pMDL);
-        }
-
-        return;
     }
 }
 //---------------------------------------------------------------------------
