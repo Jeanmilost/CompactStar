@@ -1138,14 +1138,14 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         ++pMesh->m_Count;
 
         // initialize the newly created vertex buffer
-        pMesh->m_pVB->m_Format        = *pVertexFormat;
-        pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB->m_Time          =  0.0;
-        pMesh->m_pVB->m_pData         =  0;
-        pMesh->m_pVB->m_Count         =  0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format        = *pVertexFormat;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Type =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Time          =  0.0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_pData         =  0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Count         =  0;
 
         // calculate the stride
-        csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
+        csrVertexFormatCalculateStride(&pMesh->m_pVB[pMesh->m_Count - 1].m_Format);
 
         // iterate through spiral slices to create
         for (j = 0; j <= slices; ++j)

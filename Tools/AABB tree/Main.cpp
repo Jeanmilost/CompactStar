@@ -227,17 +227,24 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     vf.m_UseTextures = 0;
     vf.m_UseColors   = 1;
 
+    // get the color to apply
+    const unsigned rgbColor = Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color);
+    const unsigned color    =  ((rgbColor        & 0xff) << 24) |
+                              (((rgbColor >> 8)  & 0xff) << 16) |
+                              (((rgbColor >> 16) & 0xff) << 8)  |
+                                                   0xFF;
+
     // select the model to build
     switch (pModelSelection->rgShapes->ItemIndex)
     {
-        // sphere
-        case 2:
+        // surface
+        case 0:
         {
             // enable the colored program
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
+            m_pMesh = csrShapeCreateSurface(&vf, 0.5f, 0.5f, color);
 
             // create the AABB tree for the sphere mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -246,6 +253,179 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             if (pTree)
                 m_AABBTrees.push_back(pTree);
 
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // box
+        case 1:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateBox(&vf, 0.5f, 0.5f, 0.5f, color, 0);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // sphere
+        case 2:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateSphere(&vf,
+                                            0.5f,
+                                          ::StrToInt(pModelSelection->edSlices->Text),
+                                          ::StrToInt(pModelSelection->edStacks->Text),
+                                            color);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // cylinder
+        case 3:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateCylinder(&vf,
+                                              0.5f,
+                                              1.0f,
+                                            ::StrToInt(pModelSelection->edFaces->Text),
+                                              color);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // disk
+        case 4:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateDisk(&vf,
+                                          0.0f,
+                                          0.0f,
+                                          0.5f,
+                                        ::StrToInt(pModelSelection->edSlices->Text),
+                                          color);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // ring
+        case 5:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateRing(&vf,
+                                          0.0f,
+                                          0.0f,
+                                          0.25f,
+                                          0.5f,
+                                        ::StrToInt(pModelSelection->edSlices->Text),
+                                          color,
+                                          color);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
+            return;
+        }
+
+        // spiral
+        case 6:
+        {
+            // enable the colored program
+            csrShaderEnable(m_pShader_ColoredMesh);
+
+            // create the shape to show
+            m_pMesh = csrShapeCreateSpiral(&vf,
+                                            0.0f,
+                                            0.0f,
+                                            0.25f,
+                                            0.5f,
+                                            0.0f,
+                                            0.0f,
+                                            0.1f,
+                                          ::StrToInt(pModelSelection->edSlices->Text),
+                                          ::StrToInt(pModelSelection->edStacks->Text),
+                                            color,
+                                            color);
+
+            // create the AABB tree for the sphere mesh
+            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
+
+            // succeeded?
+            if (pTree)
+                m_AABBTrees.push_back(pTree);
+
+            // update the interface
+            tbModelDistance->Position = 2;
+            tbAnimationNb->Enabled    = false;
+            tbAnimationSpeed->Enabled = false;
             return;
         }
 
@@ -274,8 +454,8 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 // load MDL model
                 pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
                                              0,
-                                             &vertexFormat,
-                                             0xFFFFFFFF);
+                                            &vertexFormat,
+                                             color);
 
                 // succeeded?
                 if (!pMDL)

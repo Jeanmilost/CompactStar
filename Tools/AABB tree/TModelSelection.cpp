@@ -57,51 +57,65 @@ void __fastcall TModelSelection::rgShapesClick(TObject* pSender)
         // surface or box
         case 0:
         case 1:
-            paSlices->Visible   = false;
-            paStacks->Visible   = false;
-            paFaces->Visible    = false;
-            paMDLModel->Visible = false;
+            paSlices->Visible      = false;
+            paStacks->Visible      = false;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clBlue;
             break;
 
         // sphere
         case 2:
-            paSlices->Visible   = true;
-            paStacks->Visible   = true;
-            paFaces->Visible    = false;
-            paMDLModel->Visible = false;
+            paSlices->Visible      = true;
+            paStacks->Visible      = true;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clBlue;
             break;
 
         // cylinder
         case 3:
-            paSlices->Visible   = false;
-            paStacks->Visible   = false;
-            paFaces->Visible    = true;
-            paMDLModel->Visible = false;
+            paSlices->Visible      = false;
+            paStacks->Visible      = false;
+            paFaces->Visible       = true;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clBlue;
             break;
 
         // disk or ring
         case 4:
         case 5:
-            paSlices->Visible   = true;
-            paStacks->Visible   = false;
-            paFaces->Visible    = false;
-            paMDLModel->Visible = false;
+            paSlices->Visible      = true;
+            paStacks->Visible      = false;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clBlue;
             break;
 
         // spiral
         case 6:
-            paSlices->Visible   = true;
-            paStacks->Visible   = true;
-            paFaces->Visible    = false;
-            paMDLModel->Visible = false;
+            paSlices->Visible      = true;
+            paStacks->Visible      = true;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clBlue;
             break;
 
         // MDL model
         case 7:
-            paSlices->Visible   = false;
-            paStacks->Visible   = false;
-            paFaces->Visible    = false;
-            paMDLModel->Visible = true;
+            paSlices->Visible      = false;
+            paStacks->Visible      = false;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = true;
+            paSelectedColor->Color = clWhite;
+            break;
+
+        default:
+            paSlices->Visible      = false;
+            paStacks->Visible      = false;
+            paFaces->Visible       = false;
+            paMDLModel->Visible    = false;
+            paSelectedColor->Color = clWhite;
             break;
     }
 
