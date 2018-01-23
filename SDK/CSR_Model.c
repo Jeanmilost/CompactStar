@@ -878,7 +878,7 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
 
     // initialize the newly created vertex buffer
     pMesh->m_pVB->m_Format        = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleFan;
     pMesh->m_pVB->m_Time          =  0.0;
     pMesh->m_pVB->m_pData         =  0;
     pMesh->m_pVB->m_Count         =  0;
