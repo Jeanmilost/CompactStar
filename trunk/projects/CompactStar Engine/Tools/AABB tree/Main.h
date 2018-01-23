@@ -52,7 +52,6 @@ class TMainForm : public TForm
         TBevel *blOptionsSeparator;
         TBevel *blFilesSeparator;
         TLabel *laFilesCaption;
-        TButton *btSaveTree;
         TBevel *blStatsSeparator;
         TLabel *laStatsCaption;
         TCheckBox *ckShowCollidingBoxesOnly;

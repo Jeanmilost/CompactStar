@@ -160,6 +160,17 @@ void __fastcall TModelSelection::btSelectColorClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TModelSelection::btSelectClick(TObject* pSender)
 {
+    // do load a model but no file selected?
+    if (rgShapes->ItemIndex == 7 && edMDLFilelName->Text.IsEmpty())
+    {
+        ::MessageDlg(L"The model file name is empty.\r\n\r\nPlease select a file to open.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
+        return;
+    }
+
     ModalResult = mrOk;
 }
 //---------------------------------------------------------------------------

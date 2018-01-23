@@ -1383,8 +1383,9 @@ std::size_t TMainForm::GetAABBTreeIndex() const
 //---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
 {
-    unsigned vertexCount = 0;
-    unsigned stride      = 0;
+    unsigned    vertexCount = 0;
+    unsigned    stride;
+    std::size_t polyCount;
 
     if (m_pMesh)
     {
@@ -1394,6 +1395,18 @@ void TMainForm::ShowStats() const
         // count all vertices contained in the mesh
         for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
             vertexCount += m_pMesh->m_pVB[i].m_Count;
+
+        // calculate the polygons count
+        if (!m_pMesh->m_pVB)
+            polyCount = 0;
+        else
+            switch (m_pMesh->m_pVB->m_Format.m_Type)
+            {
+                case CSR_VT_Triangles:     polyCount = stride ? ((vertexCount / stride) /  3)                     : 0; break;
+                case CSR_VT_TriangleStrip:
+                case CSR_VT_TriangleFan:   polyCount = stride ? ((vertexCount / stride) - (2 * m_pMesh->m_Count)) : 0; break;
+                default:                   polyCount = 0;                                                              break;
+            }
     }
     else
     if (m_pMDL)
@@ -1411,14 +1424,12 @@ void TMainForm::ShowStats() const
         // count all vertices contained in the mesh
         for (std::size_t i = 0; i < pMesh->m_Count; ++i)
             vertexCount += pMesh->m_pVB[i].m_Count;
+
+        // calculate the polygons count
+        polyCount = stride ? ((vertexCount / stride) / 3) : 0;
     }
     else
         return;
-
-    std::size_t polyCount = 0;
-
-    // calculate the polygons count
-    polyCount = stride ? ((vertexCount / stride) / 3) : 0;
 
     // show the stats
     laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(polyCount));

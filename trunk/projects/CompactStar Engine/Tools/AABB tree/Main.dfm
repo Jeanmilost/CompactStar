@@ -72,13 +72,13 @@ object MainForm: TMainForm
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 325
+      Top = 282
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Transparency'
-      ExplicitWidth = 66
+      Caption = 'AABB Tree Box Transparency'
+      ExplicitWidth = 141
     end
     object blOptionsSeparator: TBevel
       Left = 0
@@ -91,7 +91,7 @@ object MainForm: TMainForm
     end
     object blFilesSeparator: TBevel
       Left = 0
-      Top = 536
+      Top = 567
       Width = 185
       Height = 2
       Align = alBottom
@@ -102,7 +102,7 @@ object MainForm: TMainForm
     object laFilesCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 514
+      Top = 545
       Width = 179
       Height = 19
       Margins.Top = 10
@@ -204,8 +204,8 @@ object MainForm: TMainForm
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Rotation Speed'
-      ExplicitWidth = 74
+      Caption = 'Model Rotation Speed'
+      ExplicitWidth = 105
     end
     object laAnimationSpeedCaption: TLabel
       AlignWithMargins = True
@@ -215,8 +215,8 @@ object MainForm: TMainForm
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Animation Speed'
-      ExplicitWidth = 80
+      Caption = 'Model Animation Speed'
+      ExplicitWidth = 111
     end
     object laAnimationNbCaption: TLabel
       AlignWithMargins = True
@@ -226,19 +226,19 @@ object MainForm: TMainForm
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Animation Nb.'
-      ExplicitWidth = 67
+      Caption = 'Model Animation Nb.'
+      ExplicitWidth = 98
     end
     object laModelDistance: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 282
+      Top = 325
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
-      Caption = 'Model distance'
-      ExplicitWidth = 71
+      Caption = 'Model Distance'
+      ExplicitWidth = 72
     end
     object ckWireFrame: TCheckBox
       AlignWithMargins = True
@@ -247,7 +247,7 @@ object MainForm: TMainForm
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'WireFrame'
+      Caption = 'Show Boxes In WireFrame'
       Checked = True
       State = cbChecked
       TabOrder = 4
@@ -259,13 +259,13 @@ object MainForm: TMainForm
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'Show Leaf Only'
+      Caption = 'Show Leaf Boxes Only'
       TabOrder = 3
     end
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 341
+      Top = 298
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -279,23 +279,13 @@ object MainForm: TMainForm
     object btLoadModel: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 541
-      Width = 179
-      Height = 25
-      Align = alBottom
-      Caption = 'Load Model...'
-      TabOrder = 11
-      OnClick = btLoadModelClick
-    end
-    object btSaveTree: TButton
-      AlignWithMargins = True
-      Left = 3
       Top = 572
       Width = 179
       Height = 25
       Align = alBottom
-      Caption = 'Save Tree...'
-      TabOrder = 12
+      Caption = 'Open Model...'
+      TabOrder = 11
+      OnClick = btLoadModelClick
     end
     object ckShowCollidingBoxesOnly: TCheckBox
       AlignWithMargins = True
@@ -368,7 +358,7 @@ object MainForm: TMainForm
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'Pause the model animation'
+      Caption = 'Pause The Model Animation'
       Checked = True
       State = cbChecked
       TabOrder = 5
@@ -390,7 +380,7 @@ object MainForm: TMainForm
     object tbModelDistance: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 298
+      Top = 341
       Width = 179
       Height = 19
       Margins.Top = 0
