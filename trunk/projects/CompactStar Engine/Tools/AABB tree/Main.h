@@ -76,6 +76,8 @@ class TMainForm : public TForm
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall FormMouseWheel(TObject* pSender, TShiftState shift, int wheelDelta,
+                TPoint& mousePos, bool& handled);
         void __fastcall spMainViewMoved(TObject* pSender);
         void __fastcall btLoadModelClick(TObject* pSender);
 

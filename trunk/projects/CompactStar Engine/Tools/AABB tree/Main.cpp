@@ -206,6 +206,12 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::FormMouseWheel(TObject* pSender, TShiftState shift, int wheelDelta,
+        TPoint& mousePos, bool& handled)
+{
+    tbModelDistance->Position = tbModelDistance->Position + ((wheelDelta > 0) ? 1 : -1);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
     // update the viewport
