@@ -132,6 +132,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
+    m_PosY(0.0f),
+    m_AngleX(-M_PI / 2.0f),
     m_AngleY(0.0f),
     m_pTextureLastTime(0.0),
     m_pModelLastTime(0.0),
@@ -244,14 +246,22 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSurface(&vf, 0.5f, 0.5f, color);
+            m_pMesh = csrShapeCreateSurface(&vf, 1.0f, 1.0f, color);
 
             // create the AABB tree for the sphere mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f : 1.0f;
+            }
+
+            // initialize the values
+            m_AngleX = 0.0f;
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -267,14 +277,22 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateBox(&vf, 0.5f, 0.5f, 0.5f, color, 0);
+            m_pMesh = csrShapeCreateBox(&vf, 1.0f, 1.0f, 1.0f, color, 0);
 
             // create the AABB tree for the sphere mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f : 0.0f;
+            }
+
+            // initialize the values
+            m_AngleX = 0.0f;
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -301,7 +319,12 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+            }
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -328,7 +351,12 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+            }
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -356,7 +384,15 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+            }
+
+            // initialize the values
+            m_AngleX = 0.0f;
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -386,7 +422,15 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = CalculateYPos(pTree, false);
+            }
+
+            // initialize the values
+            m_AngleX = 0.0f;
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -420,7 +464,12 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // succeeded?
             if (pTree)
+            {
                 m_AABBTrees.push_back(pTree);
+
+                // calculate the Y position from the bounding box
+                m_PosY = CalculateYPos(pTree, true);
+            }
 
             // update the interface
             tbModelDistance->Position = 2;
@@ -472,6 +521,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                     return;
                 }
 
+                float       yPos   = 0.0f;
+                std::size_t yCount = 0;
+
                 // create the AABB trees for each frame
                 for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
                     for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
@@ -496,8 +548,15 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                             return;
                         }
 
+                        // calculate the Y position from the bounding box
+                        yPos += CalculateYPos(pTree, true);
+                        ++yCount;
+
                         m_AABBTrees.push_back(pTree);
                     }
+
+                // calculate the y position
+                m_PosY = -(yCount ? yPos / yCount : 0.0f);
 
                 // get the animation count
                 const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
@@ -644,14 +703,17 @@ void TMainForm::ClearModelsAndMeshes()
     csrMeshRelease(m_pMesh);
 
     // reset the values
-    m_pMDL             = 0;
-    m_pMesh            = 0;
-    m_pTextureLastTime = 0.0;
-    m_pModelLastTime   = 0.0;
-    m_pMeshLastTime    = 0.0;
-    m_TextureIndex     = 0;
-    m_ModelIndex       = 0;
-    m_MeshIndex        = 0;
+    m_pMDL             =  0;
+    m_pMesh            =  0;
+    m_PosY             =  0.0f;
+    m_AngleX           = -M_PI / 2.0f;
+    m_AngleY           =  0.0f;
+    m_pTextureLastTime =  0.0;
+    m_pModelLastTime   =  0.0;
+    m_pMeshLastTime    =  0.0;
+    m_TextureIndex     =  0;
+    m_ModelIndex       =  0;
+    m_MeshIndex        =  0;
 
     // reset the stats
     m_Stats.Clear();
@@ -829,7 +891,7 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     // set translation
     t.m_X =  0.0f;
-    t.m_Y =  0.0f;
+    t.m_Y =  m_PosY;
     t.m_Z = -float(tbModelDistance->Position);
 
     // build the translation matrix
@@ -841,7 +903,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     r.m_Z = 0.0f;
 
     // rotate 90 degrees
-    xAngle = -M_PI / 2.0f;
+    xAngle = m_AngleX;
 
     // build the X rotation matrix
     csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
@@ -1371,6 +1433,21 @@ void TMainForm::ShowStats() const
     laHitPolygons->Caption     = L"Hit Polygons: "          + ::IntToStr(int(m_Stats.m_HitPolygonCount));
     laHitBoxes->Caption        = L"Hit Boxes: "             + ::IntToStr(int(m_Stats.m_HitBoxCount));
     laFPS->Caption             = L"FPS:"                    + ::IntToStr(int(m_Stats.m_FPS));
+}
+//---------------------------------------------------------------------------
+float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
+{
+    // no tree or box?
+    if (!pTree || !pTree->m_pBox)
+        return 0.0f;
+
+    // is model rotated?
+    if (rotated)
+        // calculate the y position from the z axis
+        return (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
+
+    // calculate the y position from the z axis
+    return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

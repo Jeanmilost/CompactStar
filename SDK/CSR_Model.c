@@ -316,7 +316,8 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
         return 0;
 
     // create a vertex buffer
-    pMesh->m_pVB = csrVertexBufferCreate();
+    pMesh->m_Count = 1;
+    pMesh->m_pVB   = csrVertexBufferCreate();
 
     // succeeded?
     if (!pMesh->m_pVB)
@@ -331,6 +332,9 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
     pMesh->m_pVB->m_Time          =  0.0;
     pMesh->m_pVB->m_pData         =  0;
     pMesh->m_pVB->m_Count         =  0;
+
+    // calculate the stride
+    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
 
     // iterate through vertex to create
     for (i = 0; i < 4; ++i)
