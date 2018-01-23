@@ -257,7 +257,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f : 1.0f;
+                m_PosY = -CalculateYPos(pTree, false);
             }
 
             // initialize the values
@@ -288,7 +288,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f : 0.0f;
+                m_PosY = -CalculateYPos(pTree, false);
             }
 
             // initialize the values
@@ -323,7 +323,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+                m_PosY = -CalculateYPos(pTree, true);
             }
 
             // update the interface
@@ -355,7 +355,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+                m_PosY = -CalculateYPos(pTree, true);
             }
 
             // update the interface
@@ -388,7 +388,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = pTree->m_pBox ? (pTree->m_pBox->m_Max.m_Z - pTree->m_pBox->m_Min.m_Z) / 2.0f : 1.0f;
+                m_PosY = -CalculateYPos(pTree, false);
             }
 
             // initialize the values
@@ -426,7 +426,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = CalculateYPos(pTree, false);
+                m_PosY = -CalculateYPos(pTree, false);
             }
 
             // initialize the values
@@ -468,7 +468,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 m_AABBTrees.push_back(pTree);
 
                 // calculate the Y position from the bounding box
-                m_PosY = CalculateYPos(pTree, true);
+                m_PosY = -CalculateYPos(pTree, true);
             }
 
             // update the interface
@@ -521,9 +521,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                     return;
                 }
 
-                float       yPos   = 0.0f;
-                std::size_t yCount = 0;
-
                 // create the AABB trees for each frame
                 for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
                     for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
@@ -548,15 +545,12 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                             return;
                         }
 
-                        // calculate the Y position from the bounding box
-                        yPos += CalculateYPos(pTree, true);
-                        ++yCount;
+                        // calculate the y position (based on the 1st model frame)
+                        if (!i && !j)
+                            m_PosY = -CalculateYPos(pTree, true);
 
                         m_AABBTrees.push_back(pTree);
                     }
-
-                // calculate the y position
-                m_PosY = -(yCount ? yPos / yCount : 0.0f);
 
                 // get the animation count
                 const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
