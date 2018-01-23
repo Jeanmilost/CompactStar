@@ -134,6 +134,8 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
+        float            m_PosY;
+        float            m_AngleX;
         float            m_AngleY;
         float            m_PolygonArray[21];
         double           m_pTextureLastTime;
@@ -251,6 +253,14 @@ class TMainForm : public TForm
         * Shows the stats
         */
         void ShowStats() const;
+
+        /**
+        * Calculates the model y position from his bounding box
+        *@param pTree - tree containing the bounding box to use to calculate the y position
+        *@param rotated - if true, the model is shown rotated 90° on the x axis
+        *@return the y position
+        */
+        float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
         /**
         * Called while application is idle
