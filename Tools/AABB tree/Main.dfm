@@ -16,6 +16,7 @@ object MainForm: TMainForm
   PrintScale = poNone
   Scaled = False
   OnCreate = FormCreate
+  OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
