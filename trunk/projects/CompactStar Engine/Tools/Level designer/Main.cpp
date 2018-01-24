@@ -55,10 +55,12 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hRC(NULL),
     m_pShader(NULL),
     m_pSphere(NULL),
-    m_PreviousTime(0)
+    m_PreviousTime(0),
+    m_Initialized(false),
+    m_fViewWndProc_Backup(NULL)
 {
     // enable OpenGL
-    EnableOpenGL(paView->Handle, &m_hDC, &m_hRC);
+    EnableOpenGL(pa3DView->Handle, &m_hDC, &m_hRC);
 
     // stop GLEW crashing on OSX :-/
     glewExperimental = GL_TRUE;
@@ -76,12 +78,20 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
 //---------------------------------------------------------------------------
 __fastcall TMainForm::~TMainForm()
 {
+    // restore the normal view procedure
+    if (m_fViewWndProc_Backup)
+        pa3DView->WindowProc = m_fViewWndProc_Backup;
+
     DeleteScene();
-    DisableOpenGL(paView->Handle, m_hDC, m_hRC);
+    DisableOpenGL(pa3DView->Handle, m_hDC, m_hRC);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
 {
+    // hook the 3D view procedure
+    m_fViewWndProc_Backup = pa3DView->WindowProc;
+    pa3DView->WindowProc  = ViewWndProc;
+
     // initialize the scene
     InitScene(ClientWidth, ClientHeight);
 
@@ -97,6 +107,72 @@ void __fastcall TMainForm::FormResize(TObject *Sender)
     // update the viewport
     CreateViewport(ClientWidth, ClientHeight);
 }
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::ViewWndProc(TMessage& message)
+{
+    switch (message.Msg)
+    {
+        /*REM
+        case WM_WINDOWPOSCHANGED:
+        {
+            if (!m_Initialized)
+                break;
+
+            if (m_fViewWndProc_Backup)
+                m_fViewWndProc_Backup(message);
+
+            HDC hDC = NULL;
+
+            try
+            {
+                hDC = ::GetDC(pa3DView->Handle);
+
+                if (hDC)
+                    // redraw here, thus the view will be redrawn to the correct size in real time
+                    // while the size changes
+                    OnDrawScene(true);
+            }
+            __finally
+            {
+                if (hDC)
+                    ::ReleaseDC(pa3DView->Handle, hDC);
+            }
+
+            return;
+        }
+        */
+
+        case WM_PAINT:
+        {
+            // is scene initialized?
+            if (!m_Initialized)
+                break;
+
+            HDC           hDC = NULL;
+            ::PAINTSTRUCT ps;
+
+            try
+            {
+                // get and lock the view device context
+                hDC = ::BeginPaint(pa3DView->Handle, &ps);
+
+                // on success, draw the scene
+                if (hDC)
+                    OnDrawScene(true);
+            }
+            __finally
+            {
+                // unlock and release the device context
+                ::EndPaint(pa3DView->Handle, &ps);
+            }
+
+            return;
+        }
+    }
+
+    if (m_fViewWndProc_Backup)
+        m_fViewWndProc_Backup(message);
+}
 //---------------------------------------------------------------------------
 void TMainForm::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
 {
@@ -200,10 +276,7 @@ void TMainForm::InitScene(int w, int h)
     glDepthFunc(GL_LEQUAL);
     glDepthRangef(0.0f, 1.0f);
 
-    // enable culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    m_Initialized = true;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
@@ -230,61 +303,88 @@ void TMainForm::DrawScene()
     CSR_Matrix4 rotateMatrix;
     CSR_Matrix4 modelMatrix;
 
-    csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
+    try
+    {
+        csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // set translation
-    t.m_X =  0.0f;
-    t.m_Y =  0.0f;
-    t.m_Z = -2.0f;
+        // set translation
+        t.m_X =  0.0f;
+        t.m_Y =  0.0f;
+        t.m_Z = -2.0f;
 
-    csrMat4Translate(&t, &translateMatrix);
+        csrMat4Translate(&t, &translateMatrix);
 
-    // set rotation on X axis
-    r.m_X = 1.0f;
-    r.m_Y = 0.0f;
-    r.m_Z = 0.0f;
+        // set rotation on X axis
+        r.m_X = 1.0f;
+        r.m_Y = 0.0f;
+        r.m_Z = 0.0f;
 
-    // rotate 90 degrees
-    xAngle = 1.57075f;
+        // rotate 90 degrees
+        xAngle = 1.57075f;
 
-    csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
+        csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
 
-    // set rotation on Y axis
-    r.m_X = 0.0f;
-    r.m_Y = 1.0f;
-    r.m_Z = 0.0f;
+        // set rotation on Y axis
+        r.m_X = 0.0f;
+        r.m_Y = 1.0f;
+        r.m_Z = 0.0f;
 
-    yAngle = 0.0f;
+        yAngle = 0.0f;
 
-    csrMat4Rotate(&yAngle, &r, &yRotateMatrix);
+        csrMat4Rotate(&yAngle, &r, &yRotateMatrix);
 
-    // build model view matrix
-    csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-    csrMat4Multiply(&rotateMatrix,  &translateMatrix, &modelMatrix);
+        // build model view matrix
+        csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &modelMatrix);
 
-    // connect model view matrix to shader
-    GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "qr_uModelview");
-    glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
+        // connect model view matrix to shader
+        GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "qr_uModelview");
+        glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
 
-    csrSceneDrawMesh(m_pSphere, m_pShader);
-    csrSceneDrawMesh(m_pBox, m_pShader);
-
-    csrSceneEnd();
+        csrSceneDrawMesh(m_pSphere, m_pShader);
+        csrSceneDrawMesh(m_pBox, m_pShader);
+    }
+    __finally
+    {
+        csrSceneEnd();
+    }
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
+void TMainForm::OnDrawScene(bool resize)
 {
+    // do draw the scene for a resize?
+    if (resize)
+    {
+        if (!m_Initialized)
+            return;
+
+        // just process a minimal draw
+        UpdateScene(0.0);
+        DrawScene();
+
+        ::SwapBuffers(m_hDC);
+        return;
+    }
+
     // calculate time interval
     const unsigned __int64 now            = ::GetTickCount();
     const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
                            m_PreviousTime =  now;
+
+    if (!m_Initialized)
+        return;
 
     // update and draw the scene
     UpdateScene(elapsedTime);
     DrawScene();
 
     ::SwapBuffers(m_hDC);
-
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
+{
     done = false;
+
+    OnDrawScene(false);
 }
 //---------------------------------------------------------------------------

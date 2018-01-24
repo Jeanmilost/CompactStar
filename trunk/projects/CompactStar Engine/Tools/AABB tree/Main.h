@@ -125,7 +125,6 @@ class TMainForm : public TForm
 
         HDC              m_hDC;
         HGLRC            m_hRC;
-        TCanvas*         m_pDocCanvas;
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
@@ -256,6 +255,12 @@ class TMainForm : public TForm
         *@return the y position
         */
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
+
+        /**
+        * Called when the scene should be drawn
+        *@param resize - if true, the scene should be repainted during a resize
+        */
+        void OnDrawScene(bool resize);
 
         /**
         * Called while application is idle

@@ -127,7 +127,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_hDC(NULL),
     m_hRC(NULL),
-    m_pDocCanvas(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
@@ -173,16 +172,10 @@ __fastcall TMainForm::~TMainForm()
 
     DeleteScene();
     DisableOpenGL(paView->Handle, m_hDC, m_hRC);
-
-    if (m_pDocCanvas)
-        delete m_pDocCanvas;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCreate(TObject* pSender)
 {
-    if (!m_pDocCanvas)
-        m_pDocCanvas = new TCanvas();
-
     // hook the panel procedure
     m_fViewWndProc_Backup = paView->WindowProc;
     paView->WindowProc    = ViewWndProc;
@@ -606,47 +599,10 @@ void __fastcall TMainForm::ViewWndProc(TMessage& message)
 {
     switch (message.Msg)
     {
-        case WM_WINDOWPOSCHANGED:
-        {
-            if (!m_Initialized)
-                break;
-
-            if (!m_pDocCanvas)
-                break;
-
-            if (m_fViewWndProc_Backup)
-                m_fViewWndProc_Backup(message);
-
-            HDC hDC = NULL;
-
-            try
-            {
-                hDC = ::GetDC(paView->Handle);
-
-                if (hDC)
-                {
-                    m_pDocCanvas->Handle = hDC;
-
-                    // redraw here, thus the view will be redrawn to the correct size in real time
-                    // while the size changes
-                    DrawScene();
-                }
-            }
-            __finally
-            {
-                if (hDC)
-                    ::ReleaseDC(paView->Handle, hDC);
-            }
-
-            return;
-        }
-
         case WM_PAINT:
         {
+            // is scene initialized?
             if (!m_Initialized)
-                break;
-
-            if (!m_pDocCanvas)
                 break;
 
             HDC           hDC = NULL;
@@ -654,16 +610,16 @@ void __fastcall TMainForm::ViewWndProc(TMessage& message)
 
             try
             {
+                // get and lock the view device context
                 hDC = ::BeginPaint(paView->Handle, &ps);
 
+                // on success, draw the scene
                 if (hDC)
-                {
-                    m_pDocCanvas->Handle = hDC;
-                    DrawScene();
-                }
+                    OnDrawScene(true);
             }
             __finally
             {
+                // unlock and release the device context
                 ::EndPaint(paView->Handle, &ps);
             }
 
@@ -1461,14 +1417,26 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
+void TMainForm::OnDrawScene(bool resize)
 {
+    // do draw the scene for a resize?
+    if (resize)
+    {
+        if (!m_Initialized)
+            return;
+
+        // just process a minimal draw
+        UpdateScene(0.0);
+        DrawScene();
+
+        ::SwapBuffers(m_hDC);
+        return;
+    }
+
     // calculate time interval
     const unsigned __int64 now            = ::GetTickCount();
     const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
                            m_PreviousTime =  now;
-
-    done = false;
 
     if (!m_Initialized)
         return;
@@ -1497,5 +1465,12 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 
     // show the stats
     ShowStats();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
+{
+    done = false;
+
+    OnDrawScene(false);
 }
 //---------------------------------------------------------------------------

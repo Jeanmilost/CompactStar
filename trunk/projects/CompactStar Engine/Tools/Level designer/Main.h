@@ -12,13 +12,28 @@
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
+#include <Vcl.Menus.hpp>
+#include <Vcl.ToolWin.hpp>
+#include <System.Actions.hpp>
+#include <Vcl.ActnList.hpp>
+#include <Vcl.ImgList.hpp>
 
 class TMainForm : public TForm
 {
     __published:
-        TPageControl *pcMain;
-        TTabSheet *tsView;
-        TPanel *paView;
+        TPageControl *pcViews;
+        TTabSheet *ts3DView;
+        TPanel *pa3DView;
+        TMainMenu *mmMenu;
+        TMenuItem *miViews;
+        TMenuItem *mi3Dview;
+        TActionList *alActions;
+        TAction *ac3DView;
+        TImageList *ilToolbox;
+        TPanel *paToolbox;
+        TPanel *paInspector;
+        TSplitter *spInspector;
+        TPanel *paViews;
 
         void __fastcall FormShow(TObject *Sender);
         void __fastcall FormResize(TObject *Sender);
@@ -26,6 +41,13 @@ class TMainForm : public TForm
     public:
         __fastcall TMainForm(TComponent* pOwner);
         virtual __fastcall ~TMainForm();
+
+    protected:
+        /**
+        * View panel main procedure
+        *@param message- Windows procedure message
+        */
+        void __fastcall ViewWndProc(TMessage& message);
 
     private:
         HDC              m_hDC;
@@ -35,6 +57,8 @@ class TMainForm : public TForm
         CSR_Mesh*        m_pBox;
         CSR_AABBNode*    m_pAABBTree;
         unsigned __int64 m_PreviousTime;
+        bool             m_Initialized;
+        TWndMethod       m_fViewWndProc_Backup;
 
         /**
         * Enables OpenGL
@@ -82,6 +106,12 @@ class TMainForm : public TForm
         */
         void DrawScene();
 
+        /**
+        * Called when the scene should be drawn
+        *@param resize - if true, the scene should be repainted during a resize
+        */
+        void OnDrawScene(bool resize);
+
         /**
         * Called while application is idle
         *@param pSender - event sender
