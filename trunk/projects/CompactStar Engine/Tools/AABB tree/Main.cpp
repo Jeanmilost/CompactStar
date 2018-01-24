@@ -132,6 +132,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader_TexturedMesh(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
+    m_LastSelectedModel(-1),
     m_PosY(0.0f),
     m_AngleX(-M_PI / 2.0f),
     m_AngleY(0.0f),
@@ -223,9 +224,23 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // create the select model dialog box
     std::auto_ptr<TModelSelection> pModelSelection(new TModelSelection(this));
 
+    // restore the last known selection
+    if (m_LastSelectedModel >= 0)
+    {
+        pModelSelection->rgShapes->ItemIndex = m_LastSelectedModel;
+
+        if (m_LastSelectedModel == 7 && !m_LastSelectedFile.empty())
+            pModelSelection->edMDLFilelName->Text = UnicodeString(m_LastSelectedFile.c_str());
+    }
+
     // show the dialog box
     if (pModelSelection->ShowModal() != mrOk)
         return;
+
+    // keep the current selection
+    m_LastSelectedModel = pModelSelection->rgShapes->ItemIndex;
+    m_LastSelectedFile  = pModelSelection->edMDLFilelName->Text.IsEmpty() ? L"" :
+                          pModelSelection->edMDLFilelName->Text.c_str();
 
     // clear all the previous models and meshes
     ClearModelsAndMeshes();
@@ -254,7 +269,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             // create the shape to show
             m_pMesh = csrShapeCreateSurface(&vf, 1.0f, 1.0f, color);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -285,7 +300,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             // create the shape to show
             m_pMesh = csrShapeCreateBox(&vf, 1.0f, 1.0f, 1.0f, color, 0);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -320,7 +335,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                           ::StrToInt(pModelSelection->edStacks->Text),
                                             color);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -352,7 +367,11 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                             ::StrToInt(pModelSelection->edFaces->Text),
                                               color);
 
-            // create the AABB tree for the sphere mesh
+            // disable the culling for this mesh
+            for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
+                m_pMesh->m_pVB[i].m_Format.m_Culling.m_Type = CSR_CT_None;
+
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -385,7 +404,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                         ::StrToInt(pModelSelection->edSlices->Text),
                                           color);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -423,7 +442,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                           color,
                                           color);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -465,7 +484,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                             color,
                                             color);
 
-            // create the AABB tree for the sphere mesh
+            // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
 
             // succeeded?
@@ -826,11 +845,6 @@ void TMainForm::InitScene(int w, int h)
     glDepthFunc(GL_LEQUAL);
     glDepthRangef(0.0f, 1.0f);
 
-    // enable culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
     m_Initialized = true;
 }
 //------------------------------------------------------------------------------
@@ -1058,9 +1072,6 @@ void TMainForm::ResolveTreeAndDrawPolygons()
     if (polygonBuffer.m_Count)
         free(polygonBuffer.m_pPolygon);
 
-    // disable the culling to show the polygons from any point of view
-    glDisable(GL_CULL_FACE);
-
     // found polygons to draw?
     if (polygonsToDrawCount)
     {
@@ -1072,7 +1083,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         mesh.m_Shader.m_BumpMapID             = GL_INVALID_VALUE;
         mesh.m_pVB                            = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
         mesh.m_pVB->m_Format.m_Type           = CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_Culling.m_Type = CSR_CT_Back;
+        mesh.m_pVB->m_Format.m_Culling.m_Type = CSR_CT_None;
         mesh.m_pVB->m_Format.m_Culling.m_Face = CSR_CF_CCW;
         mesh.m_pVB->m_Format.m_UseNormals     = 0;
         mesh.m_pVB->m_Format.m_UseColors      = 1;

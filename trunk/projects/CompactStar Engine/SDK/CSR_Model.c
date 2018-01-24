@@ -327,11 +327,13 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format        = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Time          =  0.0;
-    pMesh->m_pVB->m_pData         =  0;
-    pMesh->m_pVB->m_Count         =  0;
+    pMesh->m_pVB->m_Format                  = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
+    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
+    pMesh->m_pVB->m_Time                    =  0.0;
+    pMesh->m_pVB->m_pData                   =  0;
+    pMesh->m_pVB->m_Count                   =  0;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -430,9 +432,11 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
     for (i = 0; i < 6; ++i)
     {
         // set vertex format and calculate the stride
-        pMesh->m_pVB[i].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[i].m_Format.m_Type =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[i].m_Time          =  0.0;
+        pMesh->m_pVB[i].m_Format                  = *pVertexFormat;
+        pMesh->m_pVB[i].m_Format.m_Type           =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[i].m_Format.m_Culling.m_Type =  CSR_CT_Back;
+        pMesh->m_pVB[i].m_Format.m_Culling.m_Face =  CSR_CF_CCW;
+        pMesh->m_pVB[i].m_Time                    =  0.0;
         csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
 
         // initialize the vertex buffer data
@@ -653,11 +657,13 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
         ++pMesh->m_Count;
 
         // initialize the newly created vertex buffer
-        pMesh->m_pVB[index].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[index].m_Format.m_Type =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[index].m_Time          =  0.0;
-        pMesh->m_pVB[index].m_pData         =  0;
-        pMesh->m_pVB[index].m_Count         =  0;
+        pMesh->m_pVB[index].m_Format                  = *pVertexFormat;
+        pMesh->m_pVB[index].m_Format.m_Type           =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[index].m_Format.m_Culling.m_Type =  CSR_CT_Back;
+        pMesh->m_pVB[index].m_Format.m_Culling.m_Face =  CSR_CF_CCW;
+        pMesh->m_pVB[index].m_Time                    =  0.0;
+        pMesh->m_pVB[index].m_pData                   =  0;
+        pMesh->m_pVB[index].m_Count                   =  0;
 
         // calculate the stride
         csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
@@ -765,11 +771,13 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format        = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Time          =  0.0;
-    pMesh->m_pVB->m_pData         =  0;
-    pMesh->m_pVB->m_Count         =  0;
+    pMesh->m_pVB->m_Format                  = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_Back;
+    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CCW;
+    pMesh->m_pVB->m_Time                    =  0.0;
+    pMesh->m_pVB->m_pData                   =  0;
+    pMesh->m_pVB->m_Count                   =  0;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -877,11 +885,13 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format        = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleFan;
-    pMesh->m_pVB->m_Time          =  0.0;
-    pMesh->m_pVB->m_pData         =  0;
-    pMesh->m_pVB->m_Count         =  0;
+    pMesh->m_pVB->m_Format                  = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleFan;
+    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
+    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
+    pMesh->m_pVB->m_Time                    =  0.0;
+    pMesh->m_pVB->m_pData                   =  0;
+    pMesh->m_pVB->m_Count                   =  0;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -989,11 +999,13 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format        = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Time          =  0.0;
-    pMesh->m_pVB->m_pData         =  0;
-    pMesh->m_pVB->m_Count         =  0;
+    pMesh->m_pVB->m_Format                  = *pVertexFormat;
+    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
+    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
+    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
+    pMesh->m_pVB->m_Time                    =  0.0;
+    pMesh->m_pVB->m_pData                   =  0;
+    pMesh->m_pVB->m_Count                   =  0;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -1142,11 +1154,13 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         ++pMesh->m_Count;
 
         // initialize the newly created vertex buffer
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format        = *pVertexFormat;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Type =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Time          =  0.0;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_pData         =  0;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Count         =  0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format                  = *pVertexFormat;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Type           =  CSR_VT_TriangleStrip;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Culling.m_Type =  CSR_CT_None;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Culling.m_Face =  CSR_CF_CW;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Time                    =  0.0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_pData                   =  0;
+        pMesh->m_pVB[pMesh->m_Count - 1].m_Count                   =  0;
 
         // calculate the stride
         csrVertexFormatCalculateStride(&pMesh->m_pVB[pMesh->m_Count - 1].m_Format);
@@ -1738,8 +1752,10 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
         pModel->m_pMesh[i].m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
 
         // prepare the next vertex buffer format
-        pModel->m_pMesh[i].m_pVB->m_Format        = *pVertexFormat;
-        pModel->m_pMesh[i].m_pVB->m_Format.m_Type =  CSR_VT_Triangles;
+        pModel->m_pMesh[i].m_pVB->m_Format                  = *pVertexFormat;
+        pModel->m_pMesh[i].m_pVB->m_Format.m_Type           =  CSR_VT_Triangles;
+        pModel->m_pMesh[i].m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_Back;
+        pModel->m_pMesh[i].m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
 
         // calculate the vertex stride
         csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB->m_Format);

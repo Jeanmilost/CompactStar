@@ -40,6 +40,23 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     // iterate through the vertex buffers composing the mesh to draw
     for (i = 0; i < pMesh->m_Count; ++i)
     {
+        // configure the culling
+        switch (pMesh->m_pVB[i].m_Format.m_Culling.m_Type)
+        {
+            case CSR_CT_None:  glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
+            case CSR_CT_Front: glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT);          break;
+            case CSR_CT_Back:  glEnable(GL_CULL_FACE);  glCullFace(GL_BACK);           break;
+            case CSR_CT_Both:  glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT_AND_BACK); break;
+            default:           glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
+        }
+
+        // configure the culling face
+        switch (pMesh->m_pVB[i].m_Format.m_Culling.m_Face)
+        {
+            case CSR_CF_CW:  glFrontFace(GL_CW);  break;
+            case CSR_CF_CCW: glFrontFace(GL_CCW); break;
+        }
+
         // do use texture?
         if (pMesh->m_pVB[i].m_Format.m_UseTextures)
         {
@@ -54,7 +71,6 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
                 glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_TextureID);
             }
 
-
             // a bump map is defined for this mesh?
             if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
             {
@@ -65,7 +81,6 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
                 // bind the texure to use
                 glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_BumpMapID);
             }
-
         }
 
         // check if vertex buffer is empty, skip to next if yes
