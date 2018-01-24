@@ -135,6 +135,8 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
+        std::wstring     m_LastSelectedFile;
+        int              m_LastSelectedModel;
         float            m_PosY;
         float            m_AngleX;
         float            m_AngleY;
