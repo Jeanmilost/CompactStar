@@ -52,6 +52,7 @@ object MainForm: TMainForm
     Align = alRight
     BevelOuter = bvNone
     Constraints.MinWidth = 185
+    ParentBackground = False
     TabOrder = 1
     object laOptionsCaption: TLabel
       AlignWithMargins = True
