@@ -12,15 +12,15 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #ifndef CSR_RendererH
 #define CSR_RendererH
 
 // compactStar engine
 #include "CSR_Model.h"
-#include "CSR_Shader.h"
+#include "CSR_Shader.h"
 
-#ifdef __cplusplus
+#ifdef __cplusplus
     extern "C"
     {
 #endif

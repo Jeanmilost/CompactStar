@@ -173,14 +173,6 @@ class TMainForm : public TForm
         void ClearModelsAndMeshes();
 
         /**
-        * Loads a shader
-        *@param vertex - vertex program
-        *@param fragment - fragment program
-        *@param[out] pShader - loaded shader, NULL on error
-        */
-        void LoadShader(const std::string& vertex, const std::string& fragment, CSR_Shader*& pShader);
-
-        /**
         * Creates the viewport
         *@param w - viewport width
         *@param h - viewport height

@@ -43,7 +43,7 @@
 /**
 * Vertex shader program to show a colored mesh
 */
-const char* g_VertexProgram_ColoredMesh =
+const char g_VertexProgram_ColoredMesh[] =
     "precision mediump float;"
     "attribute vec4 csr_vVertex;"
     "attribute vec4 csr_vColor;"
@@ -59,7 +59,7 @@ const char* g_VertexProgram_ColoredMesh =
 /**
 * Fragment shader program to show a colored mesh
 */
-const char* g_FragmentProgram_ColoredMesh =
+const char g_FragmentProgram_ColoredMesh[] =
     "precision mediump float;"
     "varying lowp vec4 csr_fColor;"
     "void main(void)"
@@ -70,7 +70,7 @@ const char* g_FragmentProgram_ColoredMesh =
 /**
 * Vertex shader program to show a textured mesh
 */
-const char* g_VertexProgram_TexturedMesh =
+const char g_VertexProgram_TexturedMesh[] =
     "precision mediump float;"
     "attribute vec4 csr_vVertex;"
     "attribute vec4 csr_vColor;"
@@ -89,7 +89,7 @@ const char* g_VertexProgram_TexturedMesh =
 /**
 * Fragment shader program to show a textured mesh
 */
-const char* g_FragmentProgram_TexturedMesh =
+const char g_FragmentProgram_TexturedMesh[] =
     "precision mediump float;"
     "uniform sampler2D csr_sTexture;"
     "varying lowp vec4 csr_fColor;"
@@ -721,40 +721,6 @@ void TMainForm::ClearModelsAndMeshes()
     m_Stats.m_FPS                 = 0;
 }
 //------------------------------------------------------------------------------
-void TMainForm::LoadShader(const std::string& vertex, const std::string& fragment, CSR_Shader*& pShader)
-{
-    CSR_Buffer* pVS = NULL;
-    CSR_Buffer* pFS = NULL;
-
-    try
-    {
-        // create buffers to contain vertex and fragment programs
-        pVS = csrBufferCreate();
-        pFS = csrBufferCreate();
-
-        // copy the vertex program to read
-        pVS->m_Length = vertex.length();
-        pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
-        std::memcpy(pVS->m_pData, vertex.c_str(), pVS->m_Length);
-        pVS->m_pData[pVS->m_Length] = 0x0;
-
-        // copy the fragment program to read
-        pFS->m_Length = fragment.length();
-        pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
-        std::memcpy(pFS->m_pData, fragment.c_str(), pFS->m_Length);
-        pFS->m_pData[pFS->m_Length] = 0x0;
-
-        // compile and build the shader
-        pShader = csrShaderLoadFromBuffer(pVS, pFS);
-    }
-    __finally
-    {
-        // release the buffers
-        csrBufferRelease(pVS);
-        csrBufferRelease(pFS);
-    }
-}
-//------------------------------------------------------------------------------
 void TMainForm::CreateViewport(float w, float h)
 {
     if (!m_pShader_ColoredMesh)
@@ -790,8 +756,27 @@ void TMainForm::CreateViewport(float w, float h)
 void TMainForm::InitScene(int w, int h)
 {
     // load the shaders
-    LoadShader(g_VertexProgram_ColoredMesh,  g_FragmentProgram_ColoredMesh,  m_pShader_ColoredMesh);
-    LoadShader(g_VertexProgram_TexturedMesh, g_FragmentProgram_TexturedMesh, m_pShader_TexturedMesh);
+    m_pShader_ColoredMesh  = csrShaderLoadFromStr(g_VertexProgram_ColoredMesh,
+                                                  sizeof(g_VertexProgram_ColoredMesh),
+                                                  g_FragmentProgram_ColoredMesh,
+                                                  sizeof(g_FragmentProgram_ColoredMesh));
+    m_pShader_TexturedMesh = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
+                                                  sizeof(g_VertexProgram_TexturedMesh),
+                                                  g_FragmentProgram_TexturedMesh,
+                                                  sizeof(g_FragmentProgram_TexturedMesh));
+
+    // succeeded?
+    if (!m_pShader_ColoredMesh || !m_pShader_TexturedMesh)
+    {
+        // show the error message to the user
+        ::MessageDlg(L"Failed to load the shaders.\r\n\r\nThe application will quit.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
+        Application->Terminate();
+        return;
+    }
 
     // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
@@ -1082,17 +1067,19 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         CSR_Mesh mesh;
 
         // create and configure a mesh for the polygons
-        mesh.m_Count                       = 1;
-        mesh.m_Shader.m_TextureID          = GL_INVALID_VALUE;
-        mesh.m_Shader.m_BumpMapID          = GL_INVALID_VALUE;
-        mesh.m_pVB                         = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type        = CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_UseNormals  = 0;
-        mesh.m_pVB->m_Format.m_UseColors   = 1;
-        mesh.m_pVB->m_Format.m_UseTextures = 0;
-        mesh.m_pVB->m_Format.m_Stride      = 7;
-        mesh.m_pVB->m_pData                = m_PolygonArray;
-        mesh.m_pVB->m_Count                = 21;
+        mesh.m_Count                          = 1;
+        mesh.m_Shader.m_TextureID             = GL_INVALID_VALUE;
+        mesh.m_Shader.m_BumpMapID             = GL_INVALID_VALUE;
+        mesh.m_pVB                            = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type           = CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_Culling.m_Type = CSR_CT_Back;
+        mesh.m_pVB->m_Format.m_Culling.m_Face = CSR_CF_CCW;
+        mesh.m_pVB->m_Format.m_UseNormals     = 0;
+        mesh.m_pVB->m_Format.m_UseColors      = 1;
+        mesh.m_pVB->m_Format.m_UseTextures    = 0;
+        mesh.m_pVB->m_Format.m_Stride         = 7;
+        mesh.m_pVB->m_pData                   = m_PolygonArray;
+        mesh.m_pVB->m_Count                   = 21;
 
         // iterate through polygons to draw
         for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
@@ -1233,10 +1220,12 @@ CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, u
     for (i = 0; i < 6; ++i)
     {
         // set vertex format and calculate the stride
-        pMesh->m_pVB[i].m_Format.m_Type        = CSR_VT_TriangleStrip;
-        pMesh->m_pVB[i].m_Format.m_UseNormals  = 0;
-        pMesh->m_pVB[i].m_Format.m_UseTextures = 0;
-        pMesh->m_pVB[i].m_Format.m_UseColors   = 1;
+        pMesh->m_pVB[i].m_Format.m_Type           = CSR_VT_TriangleStrip;
+        pMesh->m_pVB[i].m_Format.m_Culling.m_Type = CSR_CT_Back;
+        pMesh->m_pVB[i].m_Format.m_Culling.m_Face = CSR_CF_CCW;
+        pMesh->m_pVB[i].m_Format.m_UseNormals     = 0;
+        pMesh->m_pVB[i].m_Format.m_UseTextures    = 0;
+        pMesh->m_pVB[i].m_Format.m_UseColors      = 1;
         csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
 
         // initialize the vertex buffer data

@@ -18,11 +18,31 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
-#include "CSR_Texture.h"
+#include "CSR_Texture.h"
 
 //---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
+
+/**
+* Culling type
+*/
+typedef enum
+{
+    CSR_CT_None,
+    CSR_CT_Front,
+    CSR_CT_Back,
+    CSR_CT_Both
+} CSR_ECullingType;
+
+/**
+* Culling face
+*/
+typedef enum
+{
+    CSR_CF_CW,
+    CSR_CF_CCW
+} CSR_ECullingFace;
 
 /**
 * Vertex type
@@ -36,7 +56,14 @@ typedef enum
     CSR_VT_QuadStrip
 } CSR_EVertexType;
 
-// todo FIXME -cFeature -oJean: add the cull mode and face
+/**
+* Culling
+*/
+typedef struct
+{
+    CSR_ECullingType m_Type;
+    CSR_ECullingFace m_Face;
+} CSR_Culling;
 
 /**
 * Vertex format
@@ -44,6 +71,7 @@ typedef enum
 typedef struct
 {
     CSR_EVertexType m_Type;
+    CSR_Culling     m_Culling;
     int             m_UseNormals;
     int             m_UseTextures;
     int             m_UseColors;
@@ -99,7 +127,8 @@ typedef struct
     size_t              m_Count;
 } CSR_IndexedPolygonBuffer;
 
-#ifdef __cplusplus
+
+#ifdef __cplusplus
     extern "C"
     {
 #endif
@@ -116,7 +145,7 @@ typedef struct
         //-------------------------------------------------------------------
         // Vertex buffer functions
         //-------------------------------------------------------------------
-
+
         /**
         * Creates a vertex buffer
         *@return newly created vertex buffer, 0 on error
@@ -129,7 +158,7 @@ typedef struct
         *@param pVB - vertex buffer to release
         */
         void csrVertexBufferRelease(CSR_VertexBuffer* pVB);
-
+
         /**
         * Adds a vertex to a vertex buffer
         *@param pVertex - vertex
@@ -165,7 +194,7 @@ typedef struct
         //-------------------------------------------------------------------
         // Indexed polygon functions
         //-------------------------------------------------------------------
-
+
         /**
         * Gets a polygon from an indexed polygon
         *@param pIndexedPolygon - indexed polygon to get from
@@ -178,7 +207,7 @@ typedef struct
         //-------------------------------------------------------------------
         // Indexed polygon buffer functions
         //-------------------------------------------------------------------
-
+
         /**
         * Creates an indexed polygon buffer
         *@return newly created indexed polygon buffer, 0 on error
@@ -192,7 +221,7 @@ typedef struct
         *@param pIPB - indexed polygon buffer to release
         */
         void csrIndexedPolygonBufferRelease(CSR_IndexedPolygonBuffer* pIPB);
-
+
         /**
         * Adds an indexed polygon to an indexed polygon buffer
         *@param pIndexedPolygon - indexed polygon to add to the indexed polygon buffer
