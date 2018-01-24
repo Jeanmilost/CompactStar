@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include "CSR_Shader.h"
 
 //---------------------------------------------------------------------------
@@ -71,6 +71,45 @@ CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
     // release the program buffers
     csrBufferRelease(pVertexProgram);
     csrBufferRelease(pFragmentProgram);
+
+    return pShader;
+}
+//------------------------------------------------------------------------------
+CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
+                                 size_t      vertexLength,
+                                 const char* pFragment,
+                                 size_t      fragmentLength)
+{
+    CSR_Buffer* pVS;
+    CSR_Buffer* pFS;
+    CSR_Shader* pShader;
+
+    // validate the input
+    if (!pVertex || !vertexLength || !pFragment || !fragmentLength)
+        return 0;
+
+    // create buffers to contain vertex and fragment programs
+    pVS = csrBufferCreate();
+    pFS = csrBufferCreate();
+
+    // copy the vertex program to read
+    pVS->m_Length = vertexLength;
+    pVS->m_pData  = (unsigned char*)malloc(pVS->m_Length + 1);
+    memcpy(pVS->m_pData, pVertex, pVS->m_Length);
+    pVS->m_pData[pVS->m_Length] = 0x0;
+
+    // copy the fragment program to read
+    pFS->m_Length = fragmentLength;
+    pFS->m_pData  = (unsigned char*)malloc(pFS->m_Length + 1);
+    memcpy(pFS->m_pData, pFragment, pFS->m_Length);
+    pFS->m_pData[pFS->m_Length] = 0x0;
+
+    // compile and build the shader
+    pShader = csrShaderLoadFromBuffer(pVS, pFS);
+
+    // release the buffers
+    csrBufferRelease(pVS);
+    csrBufferRelease(pFS);
 
     return pShader;
 }

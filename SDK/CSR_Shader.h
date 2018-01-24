@@ -12,14 +12,14 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #ifndef CSR_ShaderH
 #define CSR_ShaderH
 
 // compactStar engine
 #include "CSR_Common.h"
 
-//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
@@ -63,6 +63,20 @@ typedef struct
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
         CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment);
+
+        /**
+        * Loads, compiles and links a shader from strings containing the vertex and fragment programs
+        *@param pVertex - string containing the vertex shader program to load
+        *@param vertexLength - vertex shader program string length
+        *@param pFragment - string containing the fragment shader program to load
+        *@param fragmentLength - fragment shader program string length
+        *@return newly created shader, 0 on error
+        *@note The shader must be released when no longer used, see csrShaderRelease()
+        */
+        CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
+                                         size_t      vertexLength,
+                                         const char* pFragment,
+                                         size_t      fragmentLength);
 
         /**
         * Loads, compiles and links a shader from vertex and fragment buffers

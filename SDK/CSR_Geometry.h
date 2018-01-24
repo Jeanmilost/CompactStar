@@ -200,7 +200,7 @@ typedef struct
     CSR_Polygon3* m_pPolygon;
     size_t        m_Count;
 } CSR_Polygon3Buffer;
-
+
 /**
 * 2D Figure
 */

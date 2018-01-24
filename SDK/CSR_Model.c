@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include "CSR_Model.h"
 
 // std
@@ -1285,20 +1285,21 @@ void csrModelRelease(CSR_Model* pModel)
                         pModel->m_pMesh[j].m_Shader.m_TextureID = GL_INVALID_VALUE;
 
                 glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_TextureID);
-            }
-
+            }
+
             // delete the bump map
             if (pModel->m_pMesh[i].m_Shader.m_BumpMapID != GL_INVALID_VALUE)
             {
                 // check if the same bump map is assigned to several meshes
-                for (j = i + 1; j < pModel->m_MeshCount; ++j)
+                for (j = i + 1; j < pModel->m_MeshCount; ++j)
                     if (pModel->m_pMesh[i].m_Shader.m_BumpMapID == pModel->m_pMesh[j].m_Shader.m_BumpMapID)
                         // reset the identifier to avoid to delete it twice
                         pModel->m_pMesh[j].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
 
-                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_BumpMapID);
-            }
-            // do free the mesh vertex buffer?
+                glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_BumpMapID);
+            }
+
+            // do free the mesh vertex buffer?
             if (pModel->m_pMesh[i].m_pVB)
             {
                 // free the mesh vertex buffer content
@@ -2409,7 +2410,7 @@ CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex
         return 0;
 
     // draw the model mesh
-    return &pMDL->m_pModel[modelIndex].m_pMesh[meshIndex];
+    return &pMDL->m_pModel[modelIndex].m_pMesh[meshIndex];
 }
 //---------------------------------------------------------------------------
 void csrMDLRelease(CSR_MDL* pMDL)

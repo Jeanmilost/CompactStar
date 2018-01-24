@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include "CSR_Renderer.h"
 
 //---------------------------------------------------------------------------
@@ -50,21 +50,23 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
                 glActiveTexture(GL_TEXTURE0);
                 glUniform1i(pShader->m_TextureSlot, GL_TEXTURE0);
 
-                // bind the texure to use
-                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_TextureID);
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_TextureID);
             }
 
-            // a bump map is defined for this mesh?
-            if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+
+            // a bump map is defined for this mesh?
+            if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
             {
                 // select the texture sampler to use (GL_TEXTURE1 for bump map textures)
                 glActiveTexture(GL_TEXTURE1);
                 glUniform1i(pShader->m_BumpMapSlot, GL_TEXTURE1);
 
-                // bind the texure to use
-                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_BumpMapID);
+                // bind the texure to use
+                glBindTexture(GL_TEXTURE_2D, pMesh->m_Shader.m_BumpMapID);
             }
-        }
+
+        }
 
         // check if vertex buffer is empty, skip to next if yes
         if (!pMesh->m_pVB[i].m_Count || !pMesh->m_pVB[i].m_Format.m_Stride)
@@ -196,11 +198,11 @@ void csrSceneDrawMDL(const CSR_MDL*    pMDL,
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(pShader->m_TextureSlot, GL_TEXTURE0);
 
-            // bind the texure to use
-            glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[textureIndex].m_TextureID);
+            // bind the texure to use
+            glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[textureIndex].m_TextureID);
         }
 
-    // draw the model mesh
-    csrSceneDrawMesh(pMesh, pShader);
+    // draw the model mesh
+    csrSceneDrawMesh(pMesh, pShader);
 }
 //---------------------------------------------------------------------------

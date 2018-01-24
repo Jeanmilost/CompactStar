@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include "CSR_Vertex.h"
 
 //---------------------------------------------------------------------------
@@ -51,14 +51,16 @@ CSR_VertexBuffer* csrVertexBufferCreate(void)
         return 0;
 
     // initialize the vertex buffer content
-    pVB->m_Format.m_Type        = CSR_VT_Triangles;
-    pVB->m_Format.m_UseNormals  = 0;
-    pVB->m_Format.m_UseTextures = 0;
-    pVB->m_Format.m_UseColors   = 0;
-    pVB->m_Format.m_Stride      = 0;
-    pVB->m_pData                = 0;
-    pVB->m_Count                = 0;
-    pVB->m_Time                 = 0.0;
+    pVB->m_Format.m_Type           = CSR_VT_Triangles;
+    pVB->m_Format.m_Culling.m_Type = CSR_CT_Back;
+    pVB->m_Format.m_Culling.m_Face = CSR_CF_CCW;
+    pVB->m_Format.m_UseNormals     = 0;
+    pVB->m_Format.m_UseTextures    = 0;
+    pVB->m_Format.m_UseColors      = 0;
+    pVB->m_Format.m_Stride         = 0;
+    pVB->m_pData                   = 0;
+    pVB->m_Count                   = 0;
+    pVB->m_Time                    = 0.0;
 
     return pVB;
 }
@@ -210,7 +212,8 @@ void csrMeshRelease(CSR_Mesh* pMesh)
     // delete the texture
     if (pMesh->m_Shader.m_TextureID != GL_INVALID_VALUE)
         glDeleteTextures(1, &pMesh->m_Shader.m_TextureID);
-
+
+
     // delete the bump map
     if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
         glDeleteTextures(1, &pMesh->m_Shader.m_BumpMapID);
@@ -360,7 +363,7 @@ CSR_IndexedPolygonBuffer* csrIndexedPolygonBufferFromMesh(const CSR_Mesh* pMesh)
     CSR_IndexedPolygon        indexedPolygon;
     CSR_IndexedPolygonBuffer* pIPB;
 
-    // is source mesh empty?
+    // validate the input
     if (!pMesh || !pMesh->m_pVB || !pMesh->m_Count)
         return 0;
 
