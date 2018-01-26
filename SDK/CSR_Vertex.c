@@ -192,11 +192,15 @@ CSR_Mesh* csrMeshCreate(void)
         return 0;
 
     // initialize the buffer content
-    pMesh->m_Shader.m_TextureID = GL_INVALID_VALUE;
-    pMesh->m_Shader.m_BumpMapID = GL_INVALID_VALUE;
-    pMesh->m_pVB                = 0;
-    pMesh->m_Count              = 0;
-    pMesh->m_Time               = 0.0;
+    pMesh->m_Material.m_Color.m_R = 255;
+    pMesh->m_Material.m_Color.m_G = 255;
+    pMesh->m_Material.m_Color.m_B = 255;
+    pMesh->m_Material.m_Color.m_A = 255;
+    pMesh->m_Shader.m_TextureID   = GL_INVALID_VALUE;
+    pMesh->m_Shader.m_BumpMapID   = GL_INVALID_VALUE;
+    pMesh->m_pVB                  = 0;
+    pMesh->m_Count                = 0;
+    pMesh->m_Time                 = 0.0;
 
     return pMesh;
 }
