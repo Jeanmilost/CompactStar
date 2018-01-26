@@ -237,11 +237,11 @@ void csrMat4Translate(const CSR_Vector3* pT, CSR_Matrix4* pR)
     pR->m_Table[3][3] += pR->m_Table[0][3] * pT->m_X + pR->m_Table[1][3] * pT->m_Y + pR->m_Table[2][3] * pT->m_Z;
 }
 //---------------------------------------------------------------------------
-void csrMat4Rotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix4* pR)
+void csrMat4Rotate(float angle, const CSR_Vector3* pAxis, CSR_Matrix4* pR)
 {
     // calculate sinus, cosinus and inverted cosinus values
-    const float c  = cosf(*pAngle);
-    const float s  = sinf(*pAngle);
+    const float c  = cosf(angle);
+    const float s  = sinf(angle);
     const float ic = (1.0f - c);
 
     // create rotation matrix

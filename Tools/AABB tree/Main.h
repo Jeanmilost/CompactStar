@@ -132,6 +132,7 @@ class TMainForm : public TForm
         CSR_MDL*         m_pMDL;
         IAABBTrees       m_AABBTrees;
         CSR_Matrix4      m_ProjectionMatrix;
+        CSR_Matrix4      m_ViewMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Ray3         m_Ray;
         std::wstring     m_LastSelectedFile;
@@ -213,16 +214,6 @@ class TMainForm : public TForm
         *@param pTree - root tree node, or parent node from which the boxes should be drawn
         */
         void DrawTreeBoxes(const CSR_AABBNode* pTree);
-
-        /**
-        * Creates a colored box mesh, which is on the physical position specified by min and max
-        *@param min - box min vertex
-        *@param max - box max vertex
-        *@param color - box color
-        *@return mesh
-        *@note The caller is responsible to delete the mesh whenever useless
-        */
-        CSR_Mesh* CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const;
 
         /**
         * Converts a mouse position to a viewport coordinate

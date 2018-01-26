@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include <vcl.h>
 #pragma hdrstop
 #include "Main.h"
@@ -42,18 +42,19 @@
 //----------------------------------------------------------------------------
 /**
 * Vertex shader program to show a colored mesh
+*@note The view matrix is implicitly set to identity and combined to the model one
 */
 const char g_VertexProgram_ColoredMesh[] =
     "precision mediump float;"
     "attribute vec4 csr_vVertex;"
     "attribute vec4 csr_vColor;"
     "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uModelview;"
+    "uniform   mat4 csr_uModelView;"
     "varying   vec4 csr_fColor;"
     "void main(void)"
     "{"
     "    csr_fColor   = csr_vColor;"
-    "    gl_Position  = csr_uProjection * csr_uModelview * csr_vVertex;"
+    "    gl_Position  = csr_uProjection * csr_uModelView * csr_vVertex;"
     "}";
 //----------------------------------------------------------------------------
 /**
@@ -69,6 +70,7 @@ const char g_FragmentProgram_ColoredMesh[] =
 //----------------------------------------------------------------------------
 /**
 * Vertex shader program to show a textured mesh
+*@note The view matrix is implicitly set to identity and combined to the model one
 */
 const char g_VertexProgram_TexturedMesh[] =
     "precision mediump float;"
@@ -76,14 +78,14 @@ const char g_VertexProgram_TexturedMesh[] =
     "attribute vec4 csr_vColor;"
     "attribute vec2 csr_vTexCoord;"
     "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uModelview;"
+    "uniform   mat4 csr_uModelView;"
     "varying   vec4 csr_fColor;"
     "varying   vec2 csr_fTexCoord;"
     "void main(void)"
     "{"
     "    csr_fColor    = csr_vColor;"
     "    csr_fTexCoord = csr_vTexCoord;"
-    "    gl_Position   = csr_uProjection * csr_uModelview * csr_vVertex;"
+    "    gl_Position   = csr_uProjection * csr_uModelView * csr_vVertex;"
     "}";
 //----------------------------------------------------------------------------
 /**
@@ -726,6 +728,10 @@ void TMainForm::CreateViewport(float w, float h)
     // connect projection matrix to textured shader
     projectionUniform = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
+
+    // create a default view matrix (set implicitly to identity in the shader but used later for
+    // unprojection in the CalculateMouseRay() function)
+    csrMat4Identity(&m_ViewMatrix);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -816,7 +822,6 @@ void TMainForm::DeleteScene()
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    float       xAngle;
     CSR_Vector3 t;
     CSR_Vector3 r;
     CSR_Matrix4 translateMatrix;
@@ -857,11 +862,8 @@ void TMainForm::UpdateScene(float elapsedTime)
     r.m_Y = 0.0f;
     r.m_Z = 0.0f;
 
-    // rotate 90 degrees
-    xAngle = m_AngleX;
-
     // build the X rotation matrix
-    csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
+    csrMat4Rotate(m_AngleX, &r, &xRotateMatrix);
 
     // set rotation on Y axis
     r.m_X = 0.0f;
@@ -869,25 +871,27 @@ void TMainForm::UpdateScene(float elapsedTime)
     r.m_Z = 0.0f;
 
     // build the Y rotation matrix
-    csrMat4Rotate(&m_AngleY, &r, &yRotateMatrix);
+    csrMat4Rotate(m_AngleY, &r, &yRotateMatrix);
 
     // build the model view matrix
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
     csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
+    GLint shaderSlot;
+
     // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
 
     // connect the model view matrix to shader
-    GLint modelUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelview");
-    glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+    shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
+    glUniformMatrix4fv(shaderSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
     // enable the textured program
     csrShaderEnable(m_pShader_TexturedMesh);
 
     // connect the model view matrix to shader
-    modelUniform = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uModelview");
-    glUniformMatrix4fv(modelUniform, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+    shaderSlot = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uModelView");
+    glUniformMatrix4fv(shaderSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
     // calculate the ray from current mouse position
     CalculateMouseRay();
@@ -1140,12 +1144,51 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 
     try
     {
-        // get the mesh for the box (this is weak for performances, and in a real productive code I
-        // would not do that this way, but thus the box is get to his final location directly, and
-        // this simplify the code, which is only used to visualize graphically the tree content)
-        pMesh = CreateBox(pTree->m_pBox->m_Min,
-                          pTree->m_pBox->m_Max,
-                          color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max));
+        CSR_VertexFormat vf;
+        vf.m_UseNormals  = 0;
+        vf.m_UseTextures = 0;
+        vf.m_UseColors   = 1;
+
+        // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
+        // create a generic box
+        pMesh = csrShapeCreateBox(&vf,
+                                   1.0f,
+                                   1.0f,
+                                   1.0f,
+                                   color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max),
+                                   0);
+
+        CSR_Vector3 t;
+        CSR_Vector3 s;
+        CSR_Matrix4 translateMatrix;
+        CSR_Matrix4 scaleMatrix;
+        CSR_Matrix4 buildMatrix;
+        CSR_Matrix4 modelViewMatrix;
+
+        // set translation
+        t.m_X = (pTree->m_pBox->m_Max.m_X + pTree->m_pBox->m_Min.m_X) / 2.0f;
+        t.m_Y = (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
+        t.m_Z = (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
+
+        // build the translation matrix
+        csrMat4Translate(&t, &translateMatrix);
+
+        // set scaling
+        csrVec3Sub(&pTree->m_pBox->m_Max, &pTree->m_pBox->m_Min, &s);
+
+        // build the scale matrix
+        csrMat4Scale(&s, &scaleMatrix);
+
+        // build the model view matrix
+        csrMat4Multiply(&scaleMatrix, &translateMatrix, &buildMatrix);
+        csrMat4Multiply(&buildMatrix, &m_ModelMatrix,   &modelViewMatrix);
+
+        // enable the colored program
+        csrShaderEnable(m_pShader_ColoredMesh);
+
+        // connect the model view matrix to shader
+        GLint shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
+        glUniformMatrix4fv(shaderSlot, 1, 0, &modelViewMatrix.m_Table[0][0]);
 
         // draw the AABB box
         if (pMesh)
@@ -1157,115 +1200,6 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
         if (pMesh)
             csrMeshRelease(pMesh);
     }
-}
-//---------------------------------------------------------------------------
-CSR_Mesh* TMainForm::CreateBox(const CSR_Vector3& min, const CSR_Vector3& max, unsigned color) const
-{
-    size_t      i;
-    CSR_Vector3 vertices[8];
-    CSR_Mesh*   pMesh;
-
-    // create a new mesh for the box
-    pMesh = csrMeshCreate();
-
-    // succeeded?
-    if (!pMesh)
-        return 0;
-
-    // prepare the vertex buffer for each box edges
-    pMesh->m_pVB   = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 6);
-    pMesh->m_Count = 6;
-
-    // succeeded?
-    if (!pMesh->m_pVB)
-    {
-        csrMeshRelease(pMesh);
-        return 0;
-    }
-
-    // iterate through each edges
-    for (i = 0; i < 6; ++i)
-    {
-        // set vertex format and calculate the stride
-        pMesh->m_pVB[i].m_Format.m_Type           = CSR_VT_TriangleStrip;
-        pMesh->m_pVB[i].m_Format.m_Culling.m_Type = CSR_CT_Back;
-        pMesh->m_pVB[i].m_Format.m_Culling.m_Face = CSR_CF_CCW;
-        pMesh->m_pVB[i].m_Format.m_UseNormals     = 0;
-        pMesh->m_pVB[i].m_Format.m_UseTextures    = 0;
-        pMesh->m_pVB[i].m_Format.m_UseColors      = 1;
-        csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
-
-        // initialize the vertex buffer data
-        pMesh->m_pVB[i].m_pData = 0;
-        pMesh->m_pVB[i].m_Count = 0;
-    }
-
-    // iterate through vertices to create. Vertices are generated as follow:
-    //     v2 *--------* v6
-    //      / |      / |
-    // v4 *--------* v8|
-    //    |   |    |   |
-    //    |v1 *----|---* v5
-    //    | /      | /
-    // v3 *--------* v7
-    for (i = 0; i < 8; ++i)
-    {
-        // generate the 4 first vertices on the left, and 4 last on the right
-        if (!(i / 4))
-            vertices[i].m_X = min.m_X;
-        else
-            vertices[i].m_X = max.m_X;
-
-        // generate 2 vertices on the front, then 2 vertices on the back
-        if (!((i / 2) % 2))
-            vertices[i].m_Z = min.m_Z;
-        else
-            vertices[i].m_Z = max.m_Z;
-
-        // for each vertices, generates one on the top, and one on the bottom
-        if (!(i % 2))
-            vertices[i].m_Y = min.m_Y;
-        else
-            vertices[i].m_Y = max.m_Y;
-    }
-
-    // create box edge 1
-    csrVertexBufferAdd(&vertices[1], NULL, NULL, color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[0], NULL, NULL, color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[3], NULL, NULL, color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[2], NULL, NULL, color, &pMesh->m_pVB[0]);
-
-    // create box edge 2
-    csrVertexBufferAdd(&vertices[3], NULL, NULL, color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[2], NULL, NULL, color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[7], NULL, NULL, color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[6], NULL, NULL, color, &pMesh->m_pVB[1]);
-
-    // create box edge 3
-    csrVertexBufferAdd(&vertices[7], NULL, NULL, color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[6], NULL, NULL, color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[5], NULL, NULL, color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[4], NULL, NULL, color, &pMesh->m_pVB[2]);
-
-    // create box edge 4
-    csrVertexBufferAdd(&vertices[5], NULL, NULL, color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[4], NULL, NULL, color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[1], NULL, NULL, color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[0], NULL, NULL, color, &pMesh->m_pVB[3]);
-
-    // create box edge 5
-    csrVertexBufferAdd(&vertices[1], NULL, NULL, color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[3], NULL, NULL, color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[5], NULL, NULL, color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[7], NULL, NULL, color, &pMesh->m_pVB[4]);
-
-    // create box edge 6
-    csrVertexBufferAdd(&vertices[2], NULL, NULL, color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[0], NULL, NULL, color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[6], NULL, NULL, color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[4], NULL, NULL, color, &pMesh->m_pVB[5]);
-
-    return pMesh;
 }
 //---------------------------------------------------------------------------
 CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
@@ -1311,11 +1245,8 @@ void TMainForm::CalculateMouseRay()
     m_Ray.m_Dir.m_Y =  m_Ray.m_Pos.m_Y;
     m_Ray.m_Dir.m_Z = -1.0f;
 
-    CSR_Matrix4 identity;
-    csrMat4Identity(&identity);
-
     // put the ray in the world coordinates
-    csrMat4Unproject(&m_ProjectionMatrix, &identity, &m_Ray);
+    csrMat4Unproject(&m_ProjectionMatrix, &m_ViewMatrix, &m_Ray);
 
     float determinant;
 
@@ -1470,7 +1401,6 @@ void TMainForm::OnDrawScene(bool resize)
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
-
     OnDrawScene(false);
 }
 //---------------------------------------------------------------------------
