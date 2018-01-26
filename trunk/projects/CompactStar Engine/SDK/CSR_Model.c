@@ -1767,6 +1767,12 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
         //initialize the vertex buffer time
         pModel->m_pMesh[i].m_pVB->m_Time = 0.0;
 
+        // configure the model materials
+        pModel->m_pMesh[i].m_Material.m_Color.m_R = 255;
+        pModel->m_pMesh[i].m_Material.m_Color.m_G = 255;
+        pModel->m_pMesh[i].m_Material.m_Color.m_B = 255;
+        pModel->m_pMesh[i].m_Material.m_Color.m_A = 255;
+
         // configure the model texture
         pModel->m_pMesh[i].m_Shader.m_TextureID = GL_INVALID_VALUE;
         pModel->m_pMesh[i].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
