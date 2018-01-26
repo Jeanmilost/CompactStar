@@ -246,11 +246,8 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     vf.m_UseColors   = 1;
 
     // get the color to apply
-    const unsigned rgbColor = Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color);
-    const unsigned color    =  ((rgbColor        & 0xff) << 24) |
-                              (((rgbColor >> 8)  & 0xff) << 16) |
-                              (((rgbColor >> 16) & 0xff) << 8)  |
-                                                   0xFF;
+    const unsigned color =
+            csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
 
     // select the model to build
     switch (pModelSelection->rgShapes->ItemIndex)
