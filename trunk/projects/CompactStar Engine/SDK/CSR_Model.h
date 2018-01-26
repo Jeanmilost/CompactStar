@@ -32,6 +32,49 @@
 //---------------------------------------------------------------------------
 
 /**
+* Model, it's a collection of meshes, each of them represent a frame. The model may be animated, by
+* showing each frame, one after the other
+*/
+typedef struct
+{
+    CSR_Mesh* m_pMesh;
+    size_t    m_MeshCount;
+    double    m_Time;
+} CSR_Model;
+
+/**
+* Model animation (based on frames)
+*/
+typedef struct
+{
+    char   m_Name[16];
+    size_t m_Start;
+    size_t m_End;
+} CSR_ModelAnimation;
+
+/**
+* Model texture
+*/
+typedef struct
+{
+    GLuint m_TextureID;
+    double m_Time;
+} CSR_ModelTexture;
+
+/**
+* Quake I (.mdl) model
+*/
+typedef struct
+{
+    CSR_Model*          m_pModel;
+    size_t              m_ModelCount;
+    CSR_ModelAnimation* m_pAnimation;
+    size_t              m_AnimationCount;
+    CSR_ModelTexture*   m_pTexture;
+    size_t              m_TextureCount;
+} CSR_MDL;
+
+/**
 * MDL header
 */
 typedef struct
@@ -116,49 +159,6 @@ typedef struct
     float*        m_pTime;
     CSR_MDLFrame* m_pFrame;
 } CSR_MDLFrameGroup;
-
-/**
-* Model, it's a collection of meshes, each of them represent a frame. The model may be animated, by
-* showing each frame, one after the other
-*/
-typedef struct
-{
-    CSR_Mesh* m_pMesh;
-    size_t    m_MeshCount;
-    double    m_Time;
-} CSR_Model;
-
-/**
-* Model animation (based on frames)
-*/
-typedef struct
-{
-    char   m_Name[16];
-    size_t m_Start;
-    size_t m_End;
-} CSR_ModelAnimation;
-
-/**
-* Model texture
-*/
-typedef struct
-{
-    GLuint m_TextureID;
-    double m_Time;
-} CSR_ModelTexture;
-
-/**
-* Quake I (.mdl) model
-*/
-typedef struct
-{
-    CSR_Model*          m_pModel;
-    size_t              m_ModelCount;
-    CSR_ModelAnimation* m_pAnimation;
-    size_t              m_AnimationCount;
-    CSR_ModelTexture*   m_pTexture;
-    size_t              m_TextureCount;
-} CSR_MDL;
 
 #ifdef __cplusplus
     extern "C"
