@@ -418,11 +418,11 @@ typedef struct
 
         /**
         * Gets rotation matrix
-        *@param pAngle - rotation angle, in radian
+        *@param angle - rotation angle, in radians
         *@param pAxis - rotation axis
         *@param[out] pR - resulting orthogonal matrix
         */
-        void csrMat4Rotate(const float* pAngle, const CSR_Vector3* pAxis, CSR_Matrix4* pR);
+        void csrMat4Rotate(float angle, const CSR_Vector3* pAxis, CSR_Matrix4* pR);
 
         /**
         * Gets scale matrix
