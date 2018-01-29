@@ -16,7 +16,34 @@
 #include "CSR_Vertex.h"
 
 //---------------------------------------------------------------------------
+// Vertex properties functions
+//---------------------------------------------------------------------------
+void csrVertexPropsInit(CSR_VertexProps* pVertexProps)
+{
+    // no vertex props to initialize?
+    if (!pVertexProps)
+        return;
+
+    // initialize the vertex properties content
+    pVertexProps->m_Color       = 0xFFFFFFFF;
+    pVertexProps->m_Transparent = 0;
+}
+//---------------------------------------------------------------------------
 // Vertex format functions
+//---------------------------------------------------------------------------
+void csrVertexFormatInit(CSR_VertexFormat* pVertexFormat)
+{
+    // no vertex format to initialize?
+    if (!pVertexFormat)
+        return;
+
+    // initialize the vertex format content
+    pVertexFormat->m_Type              = CSR_VT_Triangles;
+    pVertexFormat->m_HasNormal         = 0;
+    pVertexFormat->m_HasTexCoords      = 0;
+    pVertexFormat->m_HasPerVertexColor = 0;
+    pVertexFormat->m_Stride            = 0;
+}
 //---------------------------------------------------------------------------
 void csrVertexFormatCalculateStride(CSR_VertexFormat* pVertexFormat)
 {
@@ -26,17 +53,30 @@ void csrVertexFormatCalculateStride(CSR_VertexFormat* pVertexFormat)
 
     pVertexFormat->m_Stride = 3;
 
-    // do use normals?
-    if (pVertexFormat->m_UseNormals)
+    // is a normal included in the vertex?
+    if (pVertexFormat->m_HasNormal)
         pVertexFormat->m_Stride += 3;
 
-    // do use textures?
-    if (pVertexFormat->m_UseTextures)
+    // are texture UV coordinates included in the vertex?
+    if (pVertexFormat->m_HasTexCoords)
         pVertexFormat->m_Stride += 2;
 
-    // do use colors?
-    if (pVertexFormat->m_UseColors)
+    // is a per-vertex color included in the vertex?
+    if (pVertexFormat->m_HasPerVertexColor)
         pVertexFormat->m_Stride += 4;
+}
+//---------------------------------------------------------------------------
+// Vertex culling functions
+//---------------------------------------------------------------------------
+void csrVertexCullingInit(CSR_VertexCulling* pVertexCulling)
+{
+    // no vertex culling to initialize?
+    if (!pVertexCulling)
+        return;
+
+    // initialize the vertex culling content
+    pVertexCulling->m_Type = CSR_CT_Back;
+    pVertexCulling->m_Face = CSR_CF_CCW;
 }
 //---------------------------------------------------------------------------
 // Vertex buffer functions
@@ -51,16 +91,7 @@ CSR_VertexBuffer* csrVertexBufferCreate(void)
         return 0;
 
     // initialize the vertex buffer content
-    pVB->m_Format.m_Type           = CSR_VT_Triangles;
-    pVB->m_Format.m_Culling.m_Type = CSR_CT_Back;
-    pVB->m_Format.m_Culling.m_Face = CSR_CF_CCW;
-    pVB->m_Format.m_UseNormals     = 0;
-    pVB->m_Format.m_UseTextures    = 0;
-    pVB->m_Format.m_UseColors      = 0;
-    pVB->m_Format.m_Stride         = 0;
-    pVB->m_pData                   = 0;
-    pVB->m_Count                   = 0;
-    pVB->m_Time                    = 0.0;
+    csrVertexBufferInit(pVB);
 
     return pVB;
 }
@@ -79,14 +110,36 @@ void csrVertexBufferRelease(CSR_VertexBuffer* pVB)
     free(pVB);
 }
 //---------------------------------------------------------------------------
-int csrVertexBufferAdd(CSR_Vector3*      pVertex,
-                       CSR_Vector3*      pNormal,
-                       CSR_Vector2*      pUV,
-                       unsigned          color,
-                       CSR_VertexBuffer* pVB)
+void csrVertexBufferInit(CSR_VertexBuffer* pVB)
 {
-    size_t offset;
-    float* pNewData;
+    // no vertex buffer to initialize?
+    if (!pVB)
+        return;
+
+    // initialize the vertex properties content
+    csrVertexPropsInit(&pVB->m_Properties);
+
+    // initialize the vertex format content
+    csrVertexFormatInit(&pVB->m_Format);
+
+    // initialize the vertex culling content
+    csrVertexCullingInit(&pVB->m_Culling);
+
+    // initialize the vertex buffer content
+    pVB->m_pData = 0;
+    pVB->m_Count = 0;
+    pVB->m_Time  = 0.0;
+}
+//---------------------------------------------------------------------------
+int csrVertexBufferAdd(CSR_Vector3*          pVertex,
+                       CSR_Vector3*          pNormal,
+                       CSR_Vector2*          pUV,
+                       CSR_fOnGetVertexColor fOnGetVertexColor,
+                       CSR_VertexBuffer*     pVB)
+{
+    unsigned vertexColor;
+    size_t   offset;
+    float*   pNewData;
 
     // no vertex buffer to add to?
     if (!pVB)
@@ -122,8 +175,8 @@ int csrVertexBufferAdd(CSR_Vector3*      pVertex,
 
     offset += 3;
 
-    // do include normals?
-    if (pVB->m_Format.m_UseNormals)
+    // vertex has a normal?
+    if (pVB->m_Format.m_HasNormal)
     {
         // source normal exists?
         if (!pNormal)
@@ -144,8 +197,8 @@ int csrVertexBufferAdd(CSR_Vector3*      pVertex,
         offset += 3;
     }
 
-    // do include texture coordinates?
-    if (pVB->m_Format.m_UseTextures)
+    // vertex has UV texture coordinates?
+    if (pVB->m_Format.m_HasTexCoords)
     {
         // source texture coordinates exists?
         if (!pUV)
@@ -164,9 +217,17 @@ int csrVertexBufferAdd(CSR_Vector3*      pVertex,
         offset += 2;
     }
 
-    // do include colors?
-    if (pVB->m_Format.m_UseColors)
+    // vertex has color?
+    if (pVB->m_Format.m_HasPerVertexColor)
     {
+        unsigned color;
+
+        // get the vertex color
+        if (fOnGetVertexColor)
+            color = fOnGetVertexColor(pVB, pNormal);
+        else
+            color = pVB->m_Properties.m_Color;
+
         // set color data
         pVB->m_pData[offset]     = (float)((color >> 24) & 0xFF) / 255.0f;
         pVB->m_pData[offset + 1] = (float)((color >> 16) & 0xFF) / 255.0f;
@@ -180,6 +241,19 @@ int csrVertexBufferAdd(CSR_Vector3*      pVertex,
     return 1;
 }
 //---------------------------------------------------------------------------
+// Mesh shader functions
+//---------------------------------------------------------------------------
+void csrMeshShaderInit(CSR_MeshShader* pMeshShader)
+{
+    // no mesh shader to initialize?
+    if (!pMeshShader)
+        return;
+
+    // initialize the mesh shader content
+    pMeshShader->m_TextureID = GL_INVALID_VALUE;
+    pMeshShader->m_BumpMapID = GL_INVALID_VALUE;
+}
+//---------------------------------------------------------------------------
 // Mesh functions
 //---------------------------------------------------------------------------
 CSR_Mesh* csrMeshCreate(void)
@@ -191,16 +265,8 @@ CSR_Mesh* csrMeshCreate(void)
     if (!pMesh)
         return 0;
 
-    // initialize the buffer content
-    pMesh->m_Material.m_Color.m_R = 255;
-    pMesh->m_Material.m_Color.m_G = 255;
-    pMesh->m_Material.m_Color.m_B = 255;
-    pMesh->m_Material.m_Color.m_A = 255;
-    pMesh->m_Shader.m_TextureID   = GL_INVALID_VALUE;
-    pMesh->m_Shader.m_BumpMapID   = GL_INVALID_VALUE;
-    pMesh->m_pVB                  = 0;
-    pMesh->m_Count                = 0;
-    pMesh->m_Time                 = 0.0;
+    // initialize the mesh content
+    csrMeshInit(pMesh);
 
     return pMesh;
 }
@@ -238,7 +304,37 @@ void csrMeshRelease(CSR_Mesh* pMesh)
     free(pMesh);
 }
 //---------------------------------------------------------------------------
+void csrMeshInit(CSR_Mesh* pMesh)
+{
+    // no mesh to initialize?
+    if (!pMesh)
+        return;
+
+    // initialize the mesh shader content
+    csrMeshShaderInit(&pMesh->m_Shader);
+
+    // initialize the mesh content
+    pMesh->m_pVB   = 0;
+    pMesh->m_Count = 0;
+    pMesh->m_Time  = 0.0;
+}
+//---------------------------------------------------------------------------
 // Indexed polygon functions
+//---------------------------------------------------------------------------
+void csrIndexedPolygonInit(CSR_IndexedPolygon* pIndexedPolygon)
+{
+    size_t i;
+
+    // no indexed polygon to initialize?
+    if (!pIndexedPolygon)
+        return;
+
+    // initialize the indexed polygon content
+    pIndexedPolygon->m_pVB = 0;
+
+    for (i = 0; i < 3; ++i)
+        pIndexedPolygon->m_pIndex[i] = 0;
+}
 //---------------------------------------------------------------------------
 int csrIndexedPolygonToPolygon(const CSR_IndexedPolygon* pIndexedPolygon,
                                      CSR_Polygon3*       pPolygon)
@@ -304,8 +400,7 @@ CSR_IndexedPolygonBuffer* csrIndexedPolygonBufferCreate(void)
         return 0;
 
     // initialize the indexed polygon buffer content
-    pIPB->m_pIndexedPolygon = 0;
-    pIPB->m_Count           = 0;
+    csrIndexedPolygonBufferInit(pIPB);
 
     return pIPB;
 }
@@ -324,6 +419,17 @@ void csrIndexedPolygonBufferRelease(CSR_IndexedPolygonBuffer* pIPB)
 
     // free the indexed polygon buffer
     free(pIPB);
+}
+//---------------------------------------------------------------------------
+void csrIndexedPolygonBufferInit(CSR_IndexedPolygonBuffer* pIPB)
+{
+    // no indexed polygon buffer to initialize?
+    if (!pIPB)
+        return;
+
+    // initialize the indexed polygon buffer content
+    pIPB->m_pIndexedPolygon = 0;
+    pIPB->m_Count           = 0;
 }
 //---------------------------------------------------------------------------
 int csrIndexedPolygonBufferAdd(const CSR_IndexedPolygon*       pIndexedPolygon,

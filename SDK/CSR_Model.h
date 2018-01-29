@@ -20,6 +20,7 @@
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
 #include "CSR_Vertex.h"
+#include "CSR_Texture.h"
 
 //---------------------------------------------------------------------------
 // Global defines
@@ -170,111 +171,132 @@ typedef struct
 
         /**
         * Creates a surface
-        *@param pVertexFormat - vertex format
-        *@param width - surface width
-        *@param height - surface height
-        *@param color - color in RGBA format
+        *@param width - surface width (on the x axis)
+        *@param height - surface height (on the y axis)
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the surface, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
-                                              float             width,
-                                              float             height,
-                                              unsigned          color);
+        CSR_Mesh* csrShapeCreateSurface(      float                 width,
+                                              float                 height,
+                                        const CSR_VertexProps*      pVertProps,
+                                        const CSR_VertexFormat*     pVertFormat,
+                                        const CSR_VertexCulling*    pVertCulling,
+                                              CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a box
-        *@param pVertexFormat - vertex format
-        *@param width - box width
-        *@param height - box height
-        *@param depth - box depth
-        *@param color - color in RGBA format
+        *@param width - box width (on the x axis)
+        *@param height - box height (on the y axis)
+        *@param depth - box depth (on the z axis)
         *@param repeatTexOnEachFace - if 1 the texture will be repeated on each face
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the surface, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
-                                          float             width,
-                                          float             height,
-                                          float             depth,
-                                          unsigned          color,
-                                          int               repeatTexOnEachFace);
+        CSR_Mesh* csrShapeCreateBox(      float                 width,
+                                          float                 height,
+                                          float                 depth,
+                                          int                   repeatTexOnEachFace,
+                                    const CSR_VertexProps*      pVertProps,
+                                    const CSR_VertexFormat*     pVertFormat,
+                                    const CSR_VertexCulling*    pVertCulling,
+                                          CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a sphere
-        *@param pVertexFormat - vertex format
         *@param radius - sphere radius
         *@param slices - slices (longitude) count
         *@param stacks - stacks (latitude) count
-        *@param color - color in RGBA format
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the sphere, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
-                                             float             radius,
-                                             int               slices,
-                                             int               stacks,
-                                             unsigned          color);
+        CSR_Mesh* csrShapeCreateSphere(      float                 radius,
+                                             int                   slices,
+                                             int                   stacks,
+                                       const CSR_VertexProps*      pVertProps,
+                                       const CSR_VertexFormat*     pVertFormat,
+                                       const CSR_VertexCulling*    pVertCulling,
+                                             CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a cylinder
-        *@param pVertexFormat - vertex format to use
         *@param radius - cylinder radius
         *@param height - cylinder height
         *@param faces - number of faces composing the cylinder
-        *@param color - color in RGBA format
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the cylinder, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
-                                               float             radius,
-                                               float             height,
-                                               int               faces,
-                                               unsigned          color);
+        CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
+                                               float                 height,
+                                               int                   faces,
+                                         const CSR_VertexProps*      pVertProps,
+                                         const CSR_VertexFormat*     pVertFormat,
+                                         const CSR_VertexCulling*    pVertCulling,
+                                               CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a disk
-        *@param pVertexFormat - vertex format to use
         *@param centerX - the disk center on the x axis
         *@param centerY - the disk center on the y axis
         *@param radius - disk radius
         *@param slices - disk slice count
-        *@param color - disk color
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the disk, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
-                                           float             centerX,
-                                           float             centerY,
-                                           float             radius,
-                                           unsigned          slices,
-                                           unsigned          color);
+        CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
+                                           float                 centerY,
+                                           float                 radius,
+                                           unsigned              slices,
+                                     const CSR_VertexProps*      pVertProps,
+                                     const CSR_VertexFormat*     pVertFormat,
+                                     const CSR_VertexCulling*    pVertCulling,
+                                           CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a ring
-        *@param pVertexFormat - vertex format to use
         *@param centerX - the ring center on the x axis
         *@param centerY - the ring center on the y axis
         *@param minRadius - internal radius
         *@param maxRadius - external radius
         *@param slices - slice count
-        *@param minColor - internal edge color
-        *@param maxColor - external edge color
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the ring, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
-                                           float             centerX,
-                                           float             centerY,
-                                           float             minRadius,
-                                           float             maxRadius,
-                                           unsigned          slices,
-                                           unsigned          minColor,
-                                           unsigned          maxColor);
+        CSR_Mesh* csrShapeCreateRing(      float                 centerX,
+                                           float                 centerY,
+                                           float                 minRadius,
+                                           float                 maxRadius,
+                                           unsigned              slices,
+                                     const CSR_VertexProps*      pVertProps,
+                                     const CSR_VertexFormat*     pVertFormat,
+                                     const CSR_VertexCulling*    pVertCulling,
+                                           CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a spiral
-        *@param pVertexFormat - vertex format to use
         *@param centerX - the spiral center on the x axis
         *@param centerY - the spiral center on the y axis
         *@param minRadius - internal radius
@@ -284,23 +306,26 @@ typedef struct
         *@param deltaZ - delta to apply to the z radius
         *@param slices - slice count
         *@param stacks - stack count
-        *@param minColor - internal edge color
-        *@param maxColor - external edge color
+        *@param pVertProps - mesh vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - mesh vertex format, if 0 the default format will be used
+        *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@return mesh containing the spiral, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
-        CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
-                                             float             centerX,
-                                             float             centerY,
-                                             float             minRadius,
-                                             float             maxRadius,
-                                             float             deltaMin,
-                                             float             deltaMax,
-                                             float             deltaZ,
-                                             unsigned          slices,
-                                             unsigned          stacks,
-                                             unsigned          minColor,
-                                             unsigned          maxColor);
+        CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
+                                             float                 centerY,
+                                             float                 minRadius,
+                                             float                 maxRadius,
+                                             float                 deltaMin,
+                                             float                 deltaMax,
+                                             float                 deltaZ,
+                                             unsigned              slices,
+                                             unsigned              stacks,
+                                       const CSR_VertexProps*      pVertProps,
+                                       const CSR_VertexFormat*     pVertFormat,
+                                       const CSR_VertexCulling*    pVertCulling,
+                                             CSR_fOnGetVertexColor fOnGetVertexColor);
 
         //-------------------------------------------------------------------
         // Model functions
@@ -319,9 +344,97 @@ typedef struct
         */
         void csrModelRelease(CSR_Model* pModel);
 
+        /**
+        * Initializes a model structure
+        *@param pModel - model to initialize
+        */
+        void csrModelInit(CSR_Model* pModel);
+
         //-------------------------------------------------------------------
         // MDL model functions
         //-------------------------------------------------------------------
+
+        /**
+        * Creates a MDL model from a buffer
+        *@param pBuffer - buffer containing the MDL data to read
+        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
+        *@param pVertProps - model vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - model vertex format, if 0 the default format will be used
+        *@param pVertCulling - model vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
+        *@return the newly created MDL model, 0 on error
+        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
+        */
+        CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
+                              const CSR_Buffer*           pPalette,
+                              const CSR_VertexProps*      pVertProps,
+                              const CSR_VertexFormat*     pVertFormat,
+                              const CSR_VertexCulling*    pVertCulling,
+                                    CSR_fOnGetVertexColor fOnGetVertexColor);
+
+        /**
+        * Opens a MDL model from a file
+        *@param pFileName - MDL model file name
+        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
+        *@param pVertProps - model vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - model vertex format, if 0 the default format will be used
+        *@param pVertCulling - model vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
+        *@return the newly created MDL model, 0 on error
+        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
+        */
+        CSR_MDL* csrMDLOpen(const char*                 pFileName,
+                            const CSR_Buffer*           pPalette,
+                            const CSR_VertexProps*      pVertProps,
+                            const CSR_VertexFormat*     pVertFormat,
+                            const CSR_VertexCulling*    pVertCulling,
+                                  CSR_fOnGetVertexColor fOnGetVertexColor);
+
+        /**
+        * Releases a MDL model
+        *@param pMDL - MDL model to release
+        */
+        void csrMDLRelease(CSR_MDL* pMDL);
+
+        /**
+        * Initializes a MDL model structure
+        *@param pMDL - MDL model to initialize
+        */
+        void csrMDLInit(CSR_MDL* pMDL);
+
+        /**
+        * Updates the MDL model indexes (e.g. before getting the next mesh to show)
+        *@param pMDL - MDL model
+        *@param fps - frame per seconds to apply
+        *@aram animationIndex - animation index
+        *@param[in, out] pTextureIndex - texture index, new texture index on function ends
+        *@param[in, out] pModelIndex - model index, new model index on function ends
+        *@param[in, out] pMeshIndex - mesh index, new mesh index on function ends
+        *@param[in, out] pTextureLastTime - texture last known time
+        *@param[in, out] pModelLastTime - model last known time
+        *@param[in, out] pMeshLastTime - mesh last known time
+        *@param elapsedTime - elapsed time since last calculation
+        */
+        void csrMDLUpdateIndex(const CSR_MDL* pMDL,
+                                     size_t   fps,
+                                     size_t   animationIndex,
+                                     size_t*  pTextureIndex,
+                                     size_t*  pModelIndex,
+                                     size_t*  pMeshIndex,
+                                     double*  pTextureLastTime,
+                                     double*  pModelLastTime,
+                                     double*  pMeshLastTime,
+                                     double   elapsedTime);
+
+        /**
+        * Get the current mesh from a MDL model (e.g. to draw it)
+        *@param pMDL - MDL model to get from
+        *@param modelIndex - model index, 0 if unknown (csrMDLUpdateIndex() may be called first)
+        *@param meshIndex - mesh index, 0 if unknown (csrMDLUpdateIndex() may be called first)
+        *@return current mesh from MDL model, 0 on error or if not found
+        *@note The returned mesh will be valid as long as his owner model is
+        */
+        CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex);
 
         /**
         * Reads MDL header
@@ -432,46 +545,21 @@ typedef struct
         *@param pFrameGroup - MDL frame group
         *@param pPolygon - MDL polygon
         *@param pTexCoord - MDL texture coordinates
-        *@param pVertexFormat - vertex format to use
-        *@param color - color in RGBA format
-        *@param textureID - texture identifier
+        *@param pVertProps - model vertex properties, if 0 the default properties will be used
+        *@param pVertFormat - model vertex format, if 0 the default format will be used
+        *@param pVertCulling - model vertex culling, if 0 the default culling will be used
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@param[out] pModel - model to populate (a blank model should be propvided)
         */
-        void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
-                                 const CSR_MDLFrameGroup*   pFrameGroup,
-                                 const CSR_MDLPolygon*      pPolygon,
-                                 const CSR_MDLTextureCoord* pTexCoord,
-                                 const CSR_VertexFormat*    pVertexFormat,
-                                       unsigned             color,
-                                       CSR_Model*           pModel);
-
-        /**
-        * Creates a MDL model from a buffer
-        *@param pBuffer - buffer containing the MDL data to read
-        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
-        *@param pVertexFormat - vertex format to use
-        *@param color - color in RGBA format
-        *@return the newly created MDL model, 0 on error
-        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
-        */
-        CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                              const CSR_Buffer*       pPalette,
-                                    CSR_VertexFormat* pVertexFormat,
-                                    unsigned          color);
-
-        /**
-        * Opens a MDL model from a file
-        *@param pFileName - MDL model file name
-        *@param pPalette - palette to use to generate the model texture, if 0 a default palette will be used
-        *@param pVertexFormat - vertex format to use
-        *@param color - color in RGBA format
-        *@return the newly created MDL model, 0 on error
-        *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
-        */
-        CSR_MDL* csrMDLOpen(const char*             pFileName,
-                            const CSR_Buffer*       pPalette,
-                                  CSR_VertexFormat* pVertexFormat,
-                                  unsigned          color);
+        void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
+                                 const CSR_MDLFrameGroup*    pFrameGroup,
+                                 const CSR_MDLPolygon*       pPolygon,
+                                 const CSR_MDLTextureCoord*  pTexCoord,
+                                 const CSR_VertexProps*      pVertProps,
+                                 const CSR_VertexFormat*     pVertFormat,
+                                 const CSR_VertexCulling*    pVertCulling,
+                                       CSR_fOnGetVertexColor fOnGetVertexColor,
+                                       CSR_Model*            pModel);
 
         /**
         * Releases the MDL objects used during the opening
@@ -486,46 +574,6 @@ typedef struct
                                   CSR_MDLSkin*         pSkin,
                                   CSR_MDLTextureCoord* pTexCoord,
                                   CSR_MDLPolygon*      pPolygon);
-
-        /**
-        * Updates the MDL model indexes (e.g. before getting the next mesh to show)
-        *@param pMDL - MDL model
-        *@param fps - frame per seconds to apply
-        *@aram animationIndex - animation index
-        *@param[in, out] pTextureIndex - texture index, new texture index on function ends
-        *@param[in, out] pModelIndex - model index, new model index on function ends
-        *@param[in, out] pMeshIndex - mesh index, new mesh index on function ends
-        *@param[in, out] pTextureLastTime - texture last known time
-        *@param[in, out] pModelLastTime - model last known time
-        *@param[in, out] pMeshLastTime - mesh last known time
-        *@param elapsedTime - elapsed time since last calculation
-        */
-        void csrMDLUpdateIndex(const CSR_MDL* pMDL,
-                                     size_t   fps,
-                                     size_t   animationIndex,
-                                     size_t*  pTextureIndex,
-                                     size_t*  pModelIndex,
-                                     size_t*  pMeshIndex,
-                                     double*  pTextureLastTime,
-                                     double*  pModelLastTime,
-                                     double*  pMeshLastTime,
-                                     double   elapsedTime);
-
-        /**
-        * Get the current mesh from a MDL model (e.g. to draw it)
-        *@param pMDL - MDL model to get from
-        *@param modelIndex - model index, 0 if unknown (csrMDLUpdateIndex() may be called first)
-        *@param meshIndex - mesh index, 0 if unknown (csrMDLUpdateIndex() may be called first)
-        *@return current mesh from MDL model, 0 on error or if not found
-        *@note The returned mesh will be valid as long as his owner model is
-        */
-        CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex);
-
-        /**
-        * Releases a MDL model
-        *@param pMDL - MDL model to release
-        */
-        void csrMDLRelease(CSR_MDL* pMDL);
 
 #ifdef __cplusplus
     }

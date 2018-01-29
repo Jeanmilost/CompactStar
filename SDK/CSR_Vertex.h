@@ -18,10 +18,9 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
-#include "CSR_Texture.h"
 
 //---------------------------------------------------------------------------
-// Structures
+// Enumerators
 //---------------------------------------------------------------------------
 
 /**
@@ -56,14 +55,18 @@ typedef enum
     CSR_VT_QuadStrip
 } CSR_EVertexType;
 
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
+
 /**
-* Culling
+* Vertex properties
 */
 typedef struct
 {
-    CSR_ECullingType m_Type;
-    CSR_ECullingFace m_Face;
-} CSR_Culling;
+    unsigned m_Color;       // vertex color, applied to all vertices if per-vertex color is disabled
+    int      m_Transparent; // whether or not the alpha blending should be activated
+} CSR_VertexProps;
 
 /**
 * Vertex format
@@ -71,31 +74,33 @@ typedef struct
 typedef struct
 {
     CSR_EVertexType m_Type;
-    CSR_Culling     m_Culling;
-    int             m_UseNormals;
-    int             m_UseTextures;
-    int             m_UseColors;
+    int             m_HasNormal;         // each vertex contains a normal
+    int             m_HasTexCoords;      // each vertex contains an UV texture coordinate
+    int             m_HasPerVertexColor; // each vertex contains his own color, see CSR_fOnGetVertexColor callback
     unsigned        m_Stride;
 } CSR_VertexFormat;
+
+/**
+* Vertex culling
+*/
+typedef struct
+{
+    CSR_ECullingType m_Type;
+    CSR_ECullingFace m_Face;
+} CSR_VertexCulling;
 
 /**
 * Vertex buffer
 */
 typedef struct
 {
-    CSR_VertexFormat m_Format;
-    float*           m_pData;
-    size_t           m_Count;
-    double           m_Time;
+    CSR_VertexProps   m_Properties;
+    CSR_VertexFormat  m_Format;
+    CSR_VertexCulling m_Culling;
+    float*            m_pData;
+    size_t            m_Count;
+    double            m_Time;
 } CSR_VertexBuffer;
-
-/**
-* Mesh material
-*/
-typedef struct
-{
-    CSR_Color m_Color;
-} CSR_MeshMaterial;
 
 /**
 * Mesh shader (i.e. the elements that should be connected to shader for this mesh)
@@ -111,7 +116,6 @@ typedef struct
 */
 typedef struct
 {
-    CSR_MeshMaterial  m_Material;
     CSR_MeshShader    m_Shader;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
@@ -136,20 +140,59 @@ typedef struct
     size_t              m_Count;
 } CSR_IndexedPolygonBuffer;
 
+//---------------------------------------------------------------------------
+// Callbacks
+//---------------------------------------------------------------------------
+
+/**
+* Called when a vertex color should be get
+*@param pVB - vertex buffer that will contain the vertex for which the color should be get
+*@param pNormal - vertex normal
+*@return RGBA color to apply to the vertex
+*@note This callback will be called only if the per-vertex color option is activated in the vertex
+*      buffer
+*/
+typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR_Vector3* pNormal);
 
 #ifdef __cplusplus
     extern "C"
     {
 #endif
         //-------------------------------------------------------------------
+        // Vertex properties functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a vertex properties structure
+        *@param pVertexProps - vertex properties to initialize
+        */
+        void csrVertexPropsInit(CSR_VertexProps* pVertexProps);
+
+        //-------------------------------------------------------------------
         // Vertex format functions
         //-------------------------------------------------------------------
+
+        /**
+        * Initializes a vertex format structure
+        *@param pVertexFormat - vertex format to initialize
+        */
+        void csrVertexFormatInit(CSR_VertexFormat* pVertexFormat);
 
         /**
         * Calculates the vertex stride
         *@param[in, out] pVertexFormat - vertex format for which the stride should be calculated
         */
         void csrVertexFormatCalculateStride(CSR_VertexFormat* pVertexFormat);
+
+        //-------------------------------------------------------------------
+        // Vertex culling functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a vertex culling structure
+        *@param pVertexCulling - vertex culling to initialize
+        */
+        void csrVertexCullingInit(CSR_VertexCulling* pVertexCulling);
 
         //-------------------------------------------------------------------
         // Vertex buffer functions
@@ -169,19 +212,35 @@ typedef struct
         void csrVertexBufferRelease(CSR_VertexBuffer* pVB);
 
         /**
+        * Initializes a vertex buffer structure
+        *@param pVB - vertex buffer to initialize
+        */
+        void csrVertexBufferInit(CSR_VertexBuffer* pVB);
+
+        /**
         * Adds a vertex to a vertex buffer
         *@param pVertex - vertex
         *@param pNormal - normal
         *@param pUV - texture coordinate
-        *@param color - color
+        *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@param[in, out] pVB - vertex buffer to add to
         *@return 1 on success, otherwise 0
         */
-        int csrVertexBufferAdd(CSR_Vector3*      pVertex,
-                               CSR_Vector3*      pNormal,
-                               CSR_Vector2*      pUV,
-                               unsigned          color,
-                               CSR_VertexBuffer* pVB);
+        int csrVertexBufferAdd(CSR_Vector3*          pVertex,
+                               CSR_Vector3*          pNormal,
+                               CSR_Vector2*          pUV,
+                               CSR_fOnGetVertexColor fOnGetVertexColor,
+                               CSR_VertexBuffer*     pVB);
+
+        //-------------------------------------------------------------------
+        // Mesh shader functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a mesh shader structure
+        *@param pMeshShader - mesh shader to initialize
+        */
+        void csrMeshShaderInit(CSR_MeshShader* pMeshShader);
 
         //-------------------------------------------------------------------
         // Mesh functions
@@ -200,9 +259,21 @@ typedef struct
         */
         void csrMeshRelease(CSR_Mesh* pMesh);
 
+        /**
+        * Initializes a mesh structure
+        *@param pMesh - mesh to initialize
+        */
+        void csrMeshInit(CSR_Mesh* pMesh);
+
         //-------------------------------------------------------------------
         // Indexed polygon functions
         //-------------------------------------------------------------------
+
+        /**
+        * Initializes an indexed polygon structure
+        *@param pIndexedPolygon - indexed polygon to initialize
+        */
+        void csrIndexedPolygonInit(CSR_IndexedPolygon* pIndexedPolygon);
 
         /**
         * Gets a polygon from an indexed polygon
@@ -230,6 +301,12 @@ typedef struct
         *@param pIPB - indexed polygon buffer to release
         */
         void csrIndexedPolygonBufferRelease(CSR_IndexedPolygonBuffer* pIPB);
+
+        /**
+        * Initializes an indexed polygon buffer structure
+        *@param pIPB - indexed polygon buffer to initialize
+        */
+        void csrIndexedPolygonBufferInit(CSR_IndexedPolygonBuffer* pIPB);
 
         /**
         * Adds an indexed polygon to an indexed polygon buffer

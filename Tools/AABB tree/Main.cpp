@@ -240,14 +240,14 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // clear all the previous models and meshes
     ClearModelsAndMeshes();
 
-    CSR_VertexFormat vf;
-    vf.m_UseNormals  = 0;
-    vf.m_UseTextures = 0;
-    vf.m_UseColors   = 1;
+    CSR_VertexProps vp;
+    vp.m_Color       = csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
+    vp.m_Transparent = 0;
 
-    // get the color to apply
-    const unsigned color =
-            csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 0;
+    vf.m_HasPerVertexColor = 1;
 
     // select the model to build
     switch (pModelSelection->rgShapes->ItemIndex)
@@ -259,7 +259,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSurface(&vf, 1.0f, 1.0f, color);
+            m_pMesh = csrShapeCreateSurface(1.0f, 1.0f, &vp, &vf, 0, 0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -290,7 +290,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateBox(&vf, 1.0f, 1.0f, 1.0f, color, 0);
+            m_pMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vp, &vf, 0, 0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -321,11 +321,13 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSphere(&vf,
-                                            0.5f,
-                                          ::StrToInt(pModelSelection->edSlices->Text),
-                                          ::StrToInt(pModelSelection->edStacks->Text),
-                                            color);
+            m_pMesh = csrShapeCreateSphere(0.5f,
+                                         ::StrToInt(pModelSelection->edSlices->Text),
+                                         ::StrToInt(pModelSelection->edStacks->Text),
+                                          &vp,
+                                          &vf,
+                                           0,
+                                           0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -352,16 +354,18 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             // enable the colored program
             csrShaderEnable(m_pShader_ColoredMesh);
 
-            // create the shape to show
-            m_pMesh = csrShapeCreateCylinder(&vf,
-                                              0.5f,
-                                              1.0f,
-                                            ::StrToInt(pModelSelection->edFaces->Text),
-                                              color);
+            CSR_VertexCulling vc;
+            vc.m_Type = CSR_CT_None;
+            vc.m_Face = CSR_CF_CW;
 
-            // disable the culling for this mesh
-            for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
-                m_pMesh->m_pVB[i].m_Format.m_Culling.m_Type = CSR_CT_None;
+            // create the shape to show
+            m_pMesh = csrShapeCreateCylinder(0.5f,
+                                             1.0f,
+                                           ::StrToInt(pModelSelection->edFaces->Text),
+                                            &vp,
+                                            &vf,
+                                            &vc,
+                                             0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -389,12 +393,14 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateDisk(&vf,
-                                          0.0f,
-                                          0.0f,
-                                          0.5f,
-                                        ::StrToInt(pModelSelection->edSlices->Text),
-                                          color);
+            m_pMesh = csrShapeCreateDisk(0.0f,
+                                         0.0f,
+                                         0.5f,
+                                       ::StrToInt(pModelSelection->edSlices->Text),
+                                        &vp,
+                                        &vf,
+                                         0,
+                                         0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -425,14 +431,15 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateRing(&vf,
-                                          0.0f,
-                                          0.0f,
-                                          0.25f,
-                                          0.5f,
-                                        ::StrToInt(pModelSelection->edSlices->Text),
-                                          color,
-                                          color);
+            m_pMesh = csrShapeCreateRing(0.0f,
+                                         0.0f,
+                                         0.25f,
+                                         0.5f,
+                                       ::StrToInt(pModelSelection->edSlices->Text),
+                                        &vp,
+                                        &vf,
+                                         0,
+                                         0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -463,18 +470,19 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSpiral(&vf,
-                                            0.0f,
-                                            0.0f,
-                                            0.25f,
-                                            0.5f,
-                                            0.0f,
-                                            0.0f,
-                                            0.1f,
-                                          ::StrToInt(pModelSelection->edSlices->Text),
-                                          ::StrToInt(pModelSelection->edStacks->Text),
-                                            color,
-                                            color);
+            m_pMesh = csrShapeCreateSpiral(0.0f,
+                                           0.0f,
+                                           0.25f,
+                                           0.5f,
+                                           0.0f,
+                                           0.0f,
+                                           0.1f,
+                                         ::StrToInt(pModelSelection->edSlices->Text),
+                                         ::StrToInt(pModelSelection->edStacks->Text),
+                                          &vp,
+                                          &vf,
+                                           0,
+                                           0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -513,15 +521,17 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 csrShaderEnable(m_pShader_TexturedMesh);
 
                 CSR_VertexFormat vertexFormat;
-                vertexFormat.m_UseNormals  = 0;
-                vertexFormat.m_UseTextures = 1;
-                vertexFormat.m_UseColors   = 1;
+                vertexFormat.m_HasNormal         = 0;
+                vertexFormat.m_HasTexCoords      = 1;
+                vertexFormat.m_HasPerVertexColor = 1;
 
                 // load MDL model
                 pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
                                              0,
+                                             0,
                                             &vertexFormat,
-                                             color);
+                                             0,
+                                             0);
 
                 // succeeded?
                 if (!pMDL)
@@ -775,13 +785,17 @@ void TMainForm::InitScene(int w, int h)
     // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
 
+    CSR_VertexProps vp;
+    vp.m_Color       = 0xFFFF;
+    vp.m_Transparent = 0;
+
     CSR_VertexFormat vf;
-    vf.m_UseNormals  = 0;
-    vf.m_UseTextures = 0;
-    vf.m_UseColors   = 1;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 0;
+    vf.m_HasPerVertexColor = 1;
 
     // create a default sphere
-    m_pMesh = csrShapeCreateSphere(&vf, 0.5f, 10, 10, 0xFFFF);
+    m_pMesh = csrShapeCreateSphere(0.5f, 10, 10, &vp, &vf, 0, 0);
 
     // create the AABB tree for the sphere mesh
     CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -1035,19 +1049,19 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         CSR_Mesh mesh;
 
         // create and configure a mesh for the polygons
-        mesh.m_Count                          = 1;
-        mesh.m_Shader.m_TextureID             = GL_INVALID_VALUE;
-        mesh.m_Shader.m_BumpMapID             = GL_INVALID_VALUE;
-        mesh.m_pVB                            = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type           = CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_Culling.m_Type = CSR_CT_None;
-        mesh.m_pVB->m_Format.m_Culling.m_Face = CSR_CF_CCW;
-        mesh.m_pVB->m_Format.m_UseNormals     = 0;
-        mesh.m_pVB->m_Format.m_UseColors      = 1;
-        mesh.m_pVB->m_Format.m_UseTextures    = 0;
-        mesh.m_pVB->m_Format.m_Stride         = 7;
-        mesh.m_pVB->m_pData                   = m_PolygonArray;
-        mesh.m_pVB->m_Count                   = 21;
+        mesh.m_Count                             =  1;
+        mesh.m_Shader.m_TextureID                =  GL_INVALID_VALUE;
+        mesh.m_Shader.m_BumpMapID                =  GL_INVALID_VALUE;
+        mesh.m_pVB                               = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
+        mesh.m_pVB->m_Format.m_Type              =  CSR_VT_Triangles;
+        mesh.m_pVB->m_Format.m_HasNormal         =  0;
+        mesh.m_pVB->m_Format.m_HasTexCoords      =  0;
+        mesh.m_pVB->m_Format.m_HasPerVertexColor =  1;
+        mesh.m_pVB->m_Format.m_Stride            =  7;
+        mesh.m_pVB->m_Culling.m_Type             =  CSR_CT_None;
+        mesh.m_pVB->m_Culling.m_Face             =  CSR_CF_CCW;
+        mesh.m_pVB->m_pData                      =  m_PolygonArray;
+        mesh.m_pVB->m_Count                      =  21;
 
         // iterate through polygons to draw
         for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
@@ -1141,19 +1155,25 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 
     try
     {
+        CSR_VertexProps vp;
+        vp.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
+        vp.m_Transparent = 0;
+
         CSR_VertexFormat vf;
-        vf.m_UseNormals  = 0;
-        vf.m_UseTextures = 0;
-        vf.m_UseColors   = 1;
+        vf.m_HasNormal         = 0;
+        vf.m_HasTexCoords      = 0;
+        vf.m_HasPerVertexColor = 1;
 
         // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
         // create a generic box
-        pMesh = csrShapeCreateBox(&vf,
-                                   1.0f,
-                                   1.0f,
-                                   1.0f,
-                                   color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max),
-                                   0);
+        pMesh = csrShapeCreateBox(1.0f,
+                                  1.0f,
+                                  1.0f,
+                                  0,
+                                 &vp,
+                                 &vf,
+                                  0,
+                                  0);
 
         CSR_Vector3 t;
         CSR_Vector3 s;

@@ -43,7 +43,7 @@
 #define M_CSR_Epsilon         1.0E-3 // epsilon value used for tolerance
 
 //---------------------------------------------------------------------------
-// Structures
+// Enumerators
 //---------------------------------------------------------------------------
 
 /**
@@ -55,17 +55,9 @@ typedef enum
     CSR_E_BigEndian,
 } CSR_EEndianness;
 
-/**
-* Color
-*@note WARNING don't change the RGBA arrangement because memory copies may be done using this struct
-*/
-typedef struct
-{
-    unsigned char m_R;
-    unsigned char m_G;
-    unsigned char m_B;
-    unsigned char m_A;
-} CSR_Color;
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
 
 /**
 * Memory buffer
@@ -169,30 +161,6 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
-        * Gets a color from RGBA values expressed in percent
-        *@param r - color red component, in percent (between 0.0f and 1.0f)
-        *@param g - color green component, in percent (between 0.0f and 1.0f)
-        *@param b - color blue component, in percent (between 0.0f and 1.0f)
-        *@param a - color alpha component, in percent (between 0.0f and 1.0f)
-        *@param pColor - color to populate with result
-        */
-        void csrGetColorFromFloatRGBA(float r, float g, float b, float a, CSR_Color* pColor);
-
-        /**
-        * Converts the color to an unsigned 32 bit RGBA value
-        *@param pColor - color to convert
-        *@return color as unsigned 32 bit ARGB value
-        */
-        unsigned csrColorToUInt32RGBA(const CSR_Color* pColor);
-
-        /**
-        * Converts the color to an unsigned 32 bit BGRA value
-        *@param pColor - color to convert
-        *@return color as unsigned 32 bit BGRA value
-        */
-        unsigned csrColorToUInt32BGRA(const CSR_Color* pColor);
-
-        /**
         * Converts a 32 bit BGR color (Windows style) to a RGBA color
         *@param color - BGR color to convert
         *@return RGBA color
@@ -222,6 +190,12 @@ typedef struct
         *@param pBuffer - buffer to release
         */
         void csrBufferRelease(CSR_Buffer* pBuffer);
+
+        /**
+        * Initializes a buffer structure
+        *@param pBuffer - buffer to initialize
+        */
+        void csrBufferInit(CSR_Buffer* pBuffer);
 
         /**
         * Reads a data from a buffer

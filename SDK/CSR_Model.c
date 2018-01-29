@@ -283,10 +283,12 @@ unsigned char g_ColorTable[] =
 //---------------------------------------------------------------------------
 // Shape functions
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
-                                      float             width,
-                                      float             height,
-                                      unsigned          color)
+CSR_Mesh* csrShapeCreateSurface(      float                 width,
+                                      float                 height,
+                                const CSR_VertexProps*      pVertProps,
+                                const CSR_VertexFormat*     pVertFormat,
+                                const CSR_VertexCulling*    pVertCulling,
+                                      CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
     int         index;
@@ -303,10 +305,6 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
         1, 0,
         1, 1,
     };
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -327,13 +325,28 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format                  = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
-    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
-    pMesh->m_pVB->m_Time                    =  0.0;
-    pMesh->m_pVB->m_pData                   =  0;
-    pMesh->m_pVB->m_Count                   =  0;
+    csrVertexBufferInit(pMesh->m_pVB);
+
+    // apply the user wished vertex properties
+    if (pVertProps)
+        pMesh->m_pVB->m_Properties = *pVertProps;
+
+    // apply the user wished vertex format
+    if (pVertFormat)
+        pMesh->m_pVB->m_Format = *pVertFormat;
+
+    // apply the user wished vertex culling
+    if (pVertCulling)
+        pMesh->m_pVB->m_Culling = *pVertCulling;
+    else
+    {
+        // otherwise configure the default culling
+        pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
+        pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+    }
+
+    // set the vertex format type
+    pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -357,16 +370,16 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
 
         vertex.m_Z = 0.0f;
 
-        // do include normals?
-        if (pMesh->m_pVB[0].m_Format.m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB[0].m_Format.m_HasNormal)
         {
             normal.m_X =  0.0f;
             normal.m_Y =  0.0f;
             normal.m_Z = -1.0f;
         }
 
-        // do include texture?
-        if (pMesh->m_pVB[0].m_Format.m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB[0].m_Format.m_HasTexCoords)
         {
             // calculate texture u coordinate
             if (bufferTemplate[index])
@@ -382,19 +395,22 @@ CSR_Mesh* csrShapeCreateSurface(const CSR_VertexFormat* pVertexFormat,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
-                                  float             width,
-                                  float             height,
-                                  float             depth,
-                                  unsigned          color,
-                                  int               repeatTexOnEachFace)
+CSR_Mesh* csrShapeCreateBox(      float                 width,
+                                  float                 height,
+                                  float                 depth,
+                                  int                   repeatTexOnEachFace,
+                            const CSR_VertexProps*      pVertProps,
+                            const CSR_VertexFormat*     pVertFormat,
+                            const CSR_VertexCulling*    pVertCulling,
+                                  CSR_fOnGetVertexColor fOnGetVertexColor)
 {
+    unsigned    color;
     size_t      i;
     CSR_Vector3 vertices[8];
     CSR_Vector3 normals[6];
@@ -405,10 +421,6 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
     const float halfX = width  / 2.0;
     const float halfY = height / 2.0;
     const float halfZ = depth  / 2.0;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a new mesh for the box
     pMesh = csrMeshCreate();
@@ -431,17 +443,26 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
     // iterate through each edges
     for (i = 0; i < 6; ++i)
     {
-        // set vertex format and calculate the stride
-        pMesh->m_pVB[i].m_Format                  = *pVertexFormat;
-        pMesh->m_pVB[i].m_Format.m_Type           =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[i].m_Format.m_Culling.m_Type =  CSR_CT_Back;
-        pMesh->m_pVB[i].m_Format.m_Culling.m_Face =  CSR_CF_CCW;
-        pMesh->m_pVB[i].m_Time                    =  0.0;
-        csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
+        // initialize the vertex buffer
+        csrVertexBufferInit(&pMesh->m_pVB[i]);
 
-        // initialize the vertex buffer data
-        pMesh->m_pVB[i].m_pData = 0;
-        pMesh->m_pVB[i].m_Count = 0;
+        // apply the user wished vertex properties
+        if (pVertProps)
+            pMesh->m_pVB[i].m_Properties = *pVertProps;
+
+        // apply the user wished vertex format
+        if (pVertFormat)
+            pMesh->m_pVB[i].m_Format = *pVertFormat;
+
+        // apply the user wished vertex culling
+        if (pVertCulling)
+            pMesh->m_pVB[i].m_Culling = *pVertCulling;
+
+        // set the vertex format type
+        pMesh->m_pVB[i].m_Format.m_Type = CSR_VT_TriangleStrip;
+
+        // calculate the stride
+        csrVertexFormatCalculateStride(&pMesh->m_pVB[i].m_Format);
     }
 
     // iterate through vertices to create. Vertices are generated as follow:
@@ -556,49 +577,51 @@ CSR_Mesh* csrShapeCreateBox(const CSR_VertexFormat* pVertexFormat,
     }
 
     // create box edge 1
-    csrVertexBufferAdd(&vertices[1], &normals[0], &texCoords[4], color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[0], &normals[0], &texCoords[5], color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[3], &normals[0], &texCoords[6], color, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[2], &normals[0], &texCoords[7], color, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[1], &normals[0], &texCoords[4], fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[0], &normals[0], &texCoords[5], fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[3], &normals[0], &texCoords[6], fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[2], &normals[0], &texCoords[7], fOnGetVertexColor, &pMesh->m_pVB[0]);
 
     // create box edge 2
-    csrVertexBufferAdd(&vertices[3], &normals[5], &texCoords[8],  color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[2], &normals[5], &texCoords[9],  color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[7], &normals[5], &texCoords[10], color, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[6], &normals[5], &texCoords[11], color, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[3], &normals[5], &texCoords[8],  fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[2], &normals[5], &texCoords[9],  fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[7], &normals[5], &texCoords[10], fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[6], &normals[5], &texCoords[11], fOnGetVertexColor, &pMesh->m_pVB[1]);
 
     // create box edge 3
-    csrVertexBufferAdd(&vertices[7], &normals[1], &texCoords[12], color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[6], &normals[1], &texCoords[13], color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[5], &normals[1], &texCoords[14], color, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[4], &normals[1], &texCoords[15], color, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[7], &normals[1], &texCoords[12], fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[6], &normals[1], &texCoords[13], fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[5], &normals[1], &texCoords[14], fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[4], &normals[1], &texCoords[15], fOnGetVertexColor, &pMesh->m_pVB[2]);
 
     // create box edge 4
-    csrVertexBufferAdd(&vertices[5], &normals[4], &texCoords[16], color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[4], &normals[4], &texCoords[17], color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[1], &normals[4], &texCoords[18], color, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[0], &normals[4], &texCoords[19], color, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[5], &normals[4], &texCoords[16], fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[4], &normals[4], &texCoords[17], fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[1], &normals[4], &texCoords[18], fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[0], &normals[4], &texCoords[19], fOnGetVertexColor, &pMesh->m_pVB[3]);
 
     // create box edge 5
-    csrVertexBufferAdd(&vertices[1], &normals[3], &texCoords[0], color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[3], &normals[3], &texCoords[1], color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[5], &normals[3], &texCoords[2], color, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[7], &normals[3], &texCoords[3], color, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[1], &normals[3], &texCoords[0], fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[3], &normals[3], &texCoords[1], fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[5], &normals[3], &texCoords[2], fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[7], &normals[3], &texCoords[3], fOnGetVertexColor, &pMesh->m_pVB[4]);
 
     // create box edge 6
-    csrVertexBufferAdd(&vertices[2], &normals[2], &texCoords[20], color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[0], &normals[2], &texCoords[21], color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[6], &normals[2], &texCoords[22], color, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[4], &normals[2], &texCoords[23], color, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[2], &normals[2], &texCoords[20], fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[0], &normals[2], &texCoords[21], fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[6], &normals[2], &texCoords[22], fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[4], &normals[2], &texCoords[23], fOnGetVertexColor, &pMesh->m_pVB[5]);
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
-                                     float             radius,
-                                     int               slices,
-                                     int               stacks,
-                                     unsigned          color)
+CSR_Mesh* csrShapeCreateSphere(      float                 radius,
+                                     int                   slices,
+                                     int                   stacks,
+                               const CSR_VertexProps*      pVertProps,
+                               const CSR_VertexFormat*     pVertFormat,
+                               const CSR_VertexCulling*    pVertCulling,
+                                     CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int               i;
     int               j;
@@ -620,10 +643,6 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
     CSR_Vector3       vertex;
     CSR_Vector3       normal;
     CSR_Vector2       uv;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -657,13 +676,22 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
         ++pMesh->m_Count;
 
         // initialize the newly created vertex buffer
-        pMesh->m_pVB[index].m_Format                  = *pVertexFormat;
-        pMesh->m_pVB[index].m_Format.m_Type           =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[index].m_Format.m_Culling.m_Type =  CSR_CT_Back;
-        pMesh->m_pVB[index].m_Format.m_Culling.m_Face =  CSR_CF_CCW;
-        pMesh->m_pVB[index].m_Time                    =  0.0;
-        pMesh->m_pVB[index].m_pData                   =  0;
-        pMesh->m_pVB[index].m_Count                   =  0;
+        csrVertexBufferInit(&pMesh->m_pVB[index]);
+
+        // apply the user wished vertex properties
+        if (pVertProps)
+            pMesh->m_pVB[index].m_Properties = *pVertProps;
+
+        // apply the user wished vertex format
+        if (pVertFormat)
+            pMesh->m_pVB[index].m_Format = *pVertFormat;
+
+        // apply the user wished vertex culling
+        if (pVertCulling)
+            pMesh->m_pVB[index].m_Culling = *pVertCulling;
+
+        // set the vertex format type
+        pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
 
         // calculate the stride
         csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
@@ -688,57 +716,59 @@ CSR_Mesh* csrShapeCreateSphere(const CSR_VertexFormat* pVertexFormat,
             vertex.m_Y = y * r0;
             vertex.m_Z =     z0;
 
-            // do include normals?
-            if (pMesh->m_pVB[0].m_Format.m_UseNormals)
+            // vertex has a normal?
+            if (pMesh->m_pVB[0].m_Format.m_HasNormal)
             {
                 normal.m_X = (x * r0) / radius;
                 normal.m_Y = (y * r0) / radius;
                 normal.m_Z =      z0  / radius;
             }
 
-            // do include texture?
-            if (pMesh->m_pVB[0].m_Format.m_UseTextures)
+            // vertex has UV texture coordinates?
+            if (pMesh->m_pVB[0].m_Format.m_HasTexCoords)
             {
                 uv.m_X = ((float)j / (float)stacks);
                 uv.m_Y = ((float)i / (float)slices);
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, color, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
 
             // calculate vertex
             vertex.m_X = x * r1;
             vertex.m_Y = y * r1;
             vertex.m_Z =     z1;
 
-            // do include normals?
-            if (pMesh->m_pVB[0].m_Format.m_UseNormals)
+            // vertex has a normal?
+            if (pMesh->m_pVB[0].m_Format.m_HasNormal)
             {
                 normal.m_X = (x * r1) / radius;
                 normal.m_Y = (y * r1) / radius;
                 normal.m_Z =      z1  / radius;
             }
 
-            // do include texture?
-            if (pMesh->m_pVB[0].m_Format.m_UseTextures)
+            // vertex has UV texture coordinates?
+            if (pMesh->m_pVB[0].m_Format.m_HasTexCoords)
             {
                 uv.m_X = ( (float)j         / (float)stacks);
                 uv.m_Y = (((float)i + 1.0f) / (float)slices);
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, color, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
         }
     }
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
-                                       float             radius,
-                                       float             height,
-                                       int               faces,
-                                       unsigned          color)
+CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
+                                       float                 height,
+                                       int                   faces,
+                                 const CSR_VertexProps*      pVertProps,
+                                 const CSR_VertexFormat*     pVertFormat,
+                                 const CSR_VertexCulling*    pVertCulling,
+                                       CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
     float       angle;
@@ -747,10 +777,6 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
     CSR_Vector3 normal;
     CSR_Vector2 uv;
     CSR_Mesh*   pMesh;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -771,13 +797,22 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format                  = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_Back;
-    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CCW;
-    pMesh->m_pVB->m_Time                    =  0.0;
-    pMesh->m_pVB->m_pData                   =  0;
-    pMesh->m_pVB->m_Count                   =  0;
+    csrVertexBufferInit(pMesh->m_pVB);
+
+    // apply the user wished vertex properties
+    if (pVertProps)
+        pMesh->m_pVB->m_Properties = *pVertProps;
+
+    // apply the user wished vertex format
+    if (pVertFormat)
+        pMesh->m_pVB->m_Format = *pVertFormat;
+
+    // apply the user wished vertex culling
+    if (pVertCulling)
+        pMesh->m_pVB->m_Culling = *pVertCulling;
+
+    // set the vertex format type
+    pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -796,8 +831,8 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
         vertex.m_Y = -(height / 2.0f);
         vertex.m_Z =   radius * sinf(angle);
 
-        // do generate normals?
-        if (pVertexFormat->m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normals
             normal.m_X = cosf(angle);
@@ -805,8 +840,8 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
             normal.m_Z = sinf(angle);
         }
 
-        // do generate texture coordinates?
-        if (pVertexFormat->m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
             // add texture coordinates data to buffer
             uv.m_X = 1.0f / i;
@@ -814,15 +849,15 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
 
         // set vertex data
         vertex.m_X =  radius * cosf(angle);
         vertex.m_Y = (height / 2.0f);
         vertex.m_Z =  radius * sinf(angle);
 
-        // do generate normals?
-        if (pVertexFormat->m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normals
             normal.m_X = cosf(angle);
@@ -830,8 +865,8 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
             normal.m_Z = sinf(angle);
         }
 
-        // do generate texture coordinates?
-        if (pVertexFormat->m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
             // add texture coordinates data to buffer
             uv.m_X = 1.0f / i;
@@ -839,18 +874,20 @@ CSR_Mesh* csrShapeCreateCylinder(const CSR_VertexFormat* pVertexFormat,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
-                                   float             centerX,
-                                   float             centerY,
-                                   float             radius,
-                                   unsigned          slices,
-                                   unsigned          color)
+CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
+                                   float                 centerY,
+                                   float                 radius,
+                                   unsigned              slices,
+                             const CSR_VertexProps*      pVertProps,
+                             const CSR_VertexFormat*     pVertFormat,
+                             const CSR_VertexCulling*    pVertCulling,
+                                   CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
     float       x;
@@ -861,10 +898,6 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
     CSR_Vector3 normal;
     CSR_Vector2 uv;
     CSR_Mesh*   pMesh;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -885,13 +918,28 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format                  = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleFan;
-    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
-    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
-    pMesh->m_pVB->m_Time                    =  0.0;
-    pMesh->m_pVB->m_pData                   =  0;
-    pMesh->m_pVB->m_Count                   =  0;
+    csrVertexBufferInit(pMesh->m_pVB);
+
+    // apply the user wished vertex properties
+    if (pVertProps)
+        pMesh->m_pVB->m_Properties = *pVertProps;
+
+    // apply the user wished vertex format
+    if (pVertFormat)
+        pMesh->m_pVB->m_Format = *pVertFormat;
+
+    // apply the user wished vertex culling
+    if (pVertCulling)
+        pMesh->m_pVB->m_Culling = *pVertCulling;
+    else
+    {
+        // otherwise configure the default culling
+        pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
+        pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+    }
+
+    // set the vertex format type
+    pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleFan;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -924,8 +972,8 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
         vertex.m_Y = y;
         vertex.m_Z = 0.0f;
 
-        // do use normals?
-        if (pVertexFormat->m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normal data
             normal.m_X = 0.0f;
@@ -933,8 +981,8 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
             normal.m_Z = 1.0f;
         }
 
-        // do use textures?
-        if (pVertexFormat->m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords)
             // set texture data
             if (!i)
             {
@@ -948,20 +996,21 @@ CSR_Mesh* csrShapeCreateDisk(const CSR_VertexFormat* pVertexFormat,
             }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, color, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
-                                   float             centerX,
-                                   float             centerY,
-                                   float             minRadius,
-                                   float             maxRadius,
-                                   unsigned          slices,
-                                   unsigned          minColor,
-                                   unsigned          maxColor)
+CSR_Mesh* csrShapeCreateRing(      float                 centerX,
+                                   float                 centerY,
+                                   float                 minRadius,
+                                   float                 maxRadius,
+                                   unsigned              slices,
+                             const CSR_VertexProps*      pVertProps,
+                             const CSR_VertexFormat*     pVertFormat,
+                             const CSR_VertexCulling*    pVertCulling,
+                                   CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
     float       xA;
@@ -975,10 +1024,6 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
     CSR_Vector3 normal;
     CSR_Vector2 uv;
     CSR_Mesh*   pMesh;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -999,13 +1044,28 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
     }
 
     // initialize the newly created vertex buffer
-    pMesh->m_pVB->m_Format                  = *pVertexFormat;
-    pMesh->m_pVB->m_Format.m_Type           =  CSR_VT_TriangleStrip;
-    pMesh->m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_None;
-    pMesh->m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
-    pMesh->m_pVB->m_Time                    =  0.0;
-    pMesh->m_pVB->m_pData                   =  0;
-    pMesh->m_pVB->m_Count                   =  0;
+    csrVertexBufferInit(pMesh->m_pVB);
+
+    // apply the user wished vertex properties
+    if (pVertProps)
+        pMesh->m_pVB->m_Properties = *pVertProps;
+
+    // apply the user wished vertex format
+    if (pVertFormat)
+        pMesh->m_pVB->m_Format = *pVertFormat;
+
+    // apply the user wished vertex culling
+    if (pVertCulling)
+        pMesh->m_pVB->m_Culling = *pVertCulling;
+    else
+    {
+        // otherwise configure the default culling
+        pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
+        pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+    }
+
+    // set the vertex format type
+    pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
 
     // calculate the stride
     csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
@@ -1041,8 +1101,8 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
         vertex.m_Y = yA;
         vertex.m_Z = 0.0f;
 
-        // do use normals?
-        if (pVertexFormat->m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normal data
             normal.m_X = 0.0f;
@@ -1050,8 +1110,8 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
             normal.m_Z = 1.0f;
         }
 
-        // do use textures?
-        if (pVertexFormat->m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
             // set texture data
             uv.m_X = texU;
@@ -1059,15 +1119,15 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, minColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
 
         // add max point in the buffer
         vertex.m_X = xB;
         vertex.m_Y = yB;
         vertex.m_Z = 0.0f;
 
-        // do use normals?
-        if (pVertexFormat->m_UseNormals)
+        // vertex has a normal?
+        if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normal data
             normal.m_X = 0.0f;
@@ -1075,8 +1135,8 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
             normal.m_Z = 1.0f;
         }
 
-        // do use textures?
-        if (pVertexFormat->m_UseTextures)
+        // vertex has UV texture coordinates?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
             // set texture data
             uv.m_X = texU;
@@ -1084,24 +1144,25 @@ CSR_Mesh* csrShapeCreateRing(const CSR_VertexFormat* pVertexFormat,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, maxColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
 }
 //---------------------------------------------------------------------------
-CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
-                                     float             centerX,
-                                     float             centerY,
-                                     float             minRadius,
-                                     float             maxRadius,
-                                     float             deltaMin,
-                                     float             deltaMax,
-                                     float             deltaZ,
-                                     unsigned          slices,
-                                     unsigned          stacks,
-                                     unsigned          minColor,
-                                     unsigned          maxColor)
+CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
+                                     float                 centerY,
+                                     float                 minRadius,
+                                     float                 maxRadius,
+                                     float                 deltaMin,
+                                     float                 deltaMax,
+                                     float                 deltaZ,
+                                     unsigned              slices,
+                                     unsigned              stacks,
+                               const CSR_VertexProps*      pVertProps,
+                               const CSR_VertexFormat*     pVertFormat,
+                               const CSR_VertexCulling*    pVertCulling,
+                                     CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned          i;
     unsigned          j;
@@ -1113,15 +1174,12 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
     float             angle;
     float             z;
     float             texU;
+    size_t            index;
     CSR_Vector3       vertex;
     CSR_Vector3       normal;
     CSR_Vector2       uv;
     CSR_Mesh*         pMesh;
     CSR_VertexBuffer* pVB;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
 
     // create a mesh to contain the shape
     pMesh = csrMeshCreate();
@@ -1153,17 +1211,35 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
         pMesh->m_pVB = pVB;
         ++pMesh->m_Count;
 
+        // get the vertex buffer index
+        index = pMesh->m_Count - 1;
+
         // initialize the newly created vertex buffer
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format                  = *pVertexFormat;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Type           =  CSR_VT_TriangleStrip;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Culling.m_Type =  CSR_CT_None;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Format.m_Culling.m_Face =  CSR_CF_CW;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Time                    =  0.0;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_pData                   =  0;
-        pMesh->m_pVB[pMesh->m_Count - 1].m_Count                   =  0;
+        csrVertexBufferInit(&pMesh->m_pVB[index]);
+
+        // apply the user wished vertex properties
+        if (pVertProps)
+            pMesh->m_pVB[index].m_Properties = *pVertProps;
+
+        // apply the user wished vertex format
+        if (pVertFormat)
+            pMesh->m_pVB[index].m_Format = *pVertFormat;
+
+        // apply the user wished vertex culling
+        if (pVertCulling)
+            pMesh->m_pVB[index].m_Culling = *pVertCulling;
+        else
+        {
+            // otherwise configure the default culling
+            pMesh->m_pVB[index].m_Culling.m_Type = CSR_CT_None;
+            pMesh->m_pVB[index].m_Culling.m_Face = CSR_CF_CW;
+        }
+
+        // set the vertex format type
+        pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
 
         // calculate the stride
-        csrVertexFormatCalculateStride(&pMesh->m_pVB[pMesh->m_Count - 1].m_Format);
+        csrVertexFormatCalculateStride(&pMesh->m_pVB[index].m_Format);
 
         // iterate through spiral slices to create
         for (j = 0; j <= slices; ++j)
@@ -1200,8 +1276,8 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
             vertex.m_Y = yA;
             vertex.m_Z = z;
 
-            // do use normals?
-            if (pVertexFormat->m_UseNormals)
+            // vertex has a normal?
+            if (pMesh->m_pVB[index].m_Format.m_HasNormal)
             {
                 // set normal data
                 normal.m_X = 0.0f;
@@ -1209,8 +1285,8 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
                 normal.m_Z = 1.0f;
             }
 
-            // do use textures?
-            if (pVertexFormat->m_UseTextures)
+            // vertex has UV texture coordinates?
+            if (pMesh->m_pVB[index].m_Format.m_HasTexCoords)
             {
                 // set texture data
                 uv.m_X = texU;
@@ -1218,15 +1294,15 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, minColor, &pMesh->m_pVB[pMesh->m_Count - 1]);
+            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
 
             // add max point in the buffer
             vertex.m_X = xB;
             vertex.m_Y = yB;
             vertex.m_Z = z;
 
-            // do use normals?
-            if (pVertexFormat->m_UseNormals)
+            // vertex has a normal?
+            if (pMesh->m_pVB[index].m_Format.m_HasNormal)
             {
                 // set normal data
                 normal.m_X = 0.0f;
@@ -1234,8 +1310,8 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
                 normal.m_Z = 1.0f;
             }
 
-            // do use textures?
-            if (pVertexFormat->m_UseTextures)
+            // vertex has UV texture coordinates?
+            if (pMesh->m_pVB[index].m_Format.m_HasTexCoords)
             {
                 // set texture data
                 uv.m_X = texU;
@@ -1243,7 +1319,7 @@ CSR_Mesh* csrShapeCreateSpiral(const CSR_VertexFormat* pVertexFormat,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, maxColor, &pMesh->m_pVB[pMesh->m_Count - 1]);
+            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
         }
 
         // correct the last values otherwise the spiral will appears broken
@@ -1267,9 +1343,7 @@ CSR_Model* csrModelCreate(void)
         return 0;
 
     // initialize the model content
-    pModel->m_pMesh     = 0;
-    pModel->m_MeshCount = 0;
-    pModel->m_Time      = 0.0;
+    csrModelInit(pModel);
 
     return pModel;
 }
@@ -1334,7 +1408,664 @@ void csrModelRelease(CSR_Model* pModel)
     free(pModel);
 }
 //---------------------------------------------------------------------------
+void csrModelInit(CSR_Model* pModel)
+{
+    // no model to initialize?
+    if (!pModel)
+        return;
+
+    // initialize the model content
+    pModel->m_pMesh     = 0;
+    pModel->m_MeshCount = 0;
+    pModel->m_Time      = 0.0;
+}
+//---------------------------------------------------------------------------
 // MDL model functions
+//---------------------------------------------------------------------------
+CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
+                      const CSR_Buffer*           pPalette,
+                      const CSR_VertexProps*      pVertProps,
+                      const CSR_VertexFormat*     pVertFormat,
+                      const CSR_VertexCulling*    pVertCulling,
+                            CSR_fOnGetVertexColor fOnGetVertexColor)
+{
+    CSR_MDLHeader*       pHeader;
+    CSR_MDLSkin*         pSkin;
+    CSR_MDLTextureCoord* pTexCoord;
+    CSR_MDLPolygon*      pPolygon;
+    CSR_MDLFrameGroup*   pFrameGroup;
+    CSR_MDL*             pMDL;
+    CSR_PixelBuffer*     pPixelBuffer;
+    CSR_ModelTexture*    pTexture;
+    CSR_ModelAnimation*  pAnimation;
+    unsigned char        skinName[16];
+    unsigned char        prevSkinName[16];
+    unsigned             animationStartIndex;
+    unsigned             skinNameIndex;
+    const unsigned       skinNameLength = sizeof(skinName);
+    GLuint               textureID;
+    size_t               i;
+    size_t               j;
+    size_t               offset        = 0;
+    double               lastKnownTime = 0.0;
+
+    // no buffer to read from?
+    if (!pBuffer)
+        return 0;
+
+    // create a MDL model
+    pMDL = (CSR_MDL*)malloc(sizeof(CSR_MDL));
+
+    // succeeded?
+    if (!pMDL)
+        return 0;
+
+    // initialize it
+    csrMDLInit(pMDL);
+
+    // create mdl header
+    pHeader = (CSR_MDLHeader*)malloc(sizeof(CSR_MDLHeader));
+
+    // succeeded?
+    if (!pHeader)
+    {
+        csrMDLRelease(pMDL);
+        return 0;
+    }
+
+    // read file header
+    csrMDLReadHeader(pBuffer, &offset, pHeader);
+
+    // is mdl file and version correct?
+    if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
+    {
+        free(pHeader);
+        csrMDLRelease(pMDL);
+        return 0;
+    }
+
+    // read skins
+    if (pHeader->m_SkinCount)
+    {
+        pSkin = (CSR_MDLSkin*)malloc(sizeof(CSR_MDLSkin) * pHeader->m_SkinCount);
+
+        for (i = 0; i < pHeader->m_SkinCount; ++i)
+            if (!csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]))
+            {
+                // release the used memory
+                csrMDLReleaseObjects(pHeader, 0, pSkin, 0, 0);
+                csrMDLRelease(pMDL);
+                return 0;
+            }
+    }
+    else
+        pSkin = 0;
+
+    // read texture coordinates
+    if (pHeader->m_VertexCount)
+    {
+        pTexCoord = (CSR_MDLTextureCoord*)malloc(sizeof(CSR_MDLTextureCoord) * pHeader->m_VertexCount);
+
+        for (i = 0; i < pHeader->m_VertexCount; ++i)
+            if (!csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]))
+            {
+                // release the used memory
+                csrMDLReleaseObjects(pHeader, 0, pSkin, pTexCoord, 0);
+                csrMDLRelease(pMDL);
+                return 0;
+            }
+    }
+    else
+        pTexCoord = 0;
+
+    // read polygons
+    if (pHeader->m_PolygonCount)
+    {
+        pPolygon = (CSR_MDLPolygon*)malloc(sizeof(CSR_MDLPolygon) * pHeader->m_PolygonCount);
+
+        for (i = 0; i < pHeader->m_PolygonCount; ++i)
+            if (!csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]))
+            {
+                // release the used memory
+                csrMDLReleaseObjects(pHeader, 0, pSkin, pTexCoord, pPolygon);
+                csrMDLRelease(pMDL);
+                return 0;
+            }
+    }
+    else
+        pPolygon = 0;
+
+    // read frames
+    if (pHeader->m_FrameCount)
+    {
+        pFrameGroup = (CSR_MDLFrameGroup*)malloc(sizeof(CSR_MDLFrameGroup) * pHeader->m_FrameCount);
+
+        for (i = 0; i < pHeader->m_FrameCount; ++i)
+            if (!csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]))
+            {
+                // release the used memory
+                csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+                csrMDLRelease(pMDL);
+                return 0;
+            }
+    }
+    else
+        pFrameGroup = 0;
+
+    // do generate textures?
+    if (!pVertFormat || pVertFormat->m_HasTexCoords)
+    {
+        // assign the memory to contain the textures
+        pMDL->m_pTexture     = (CSR_ModelTexture*)malloc(sizeof(CSR_ModelTexture));
+        pMDL->m_TextureCount = pSkin->m_Count;
+
+        // succeeded?
+        if (!pMDL->m_pTexture)
+        {
+            // release the MDL object used for the loading
+            csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+            // release the model
+            csrMDLRelease(pMDL);
+
+            return 0;
+        }
+
+        // iterate through textures to extract
+        for (i = 0; i < pSkin->m_Count; ++i)
+        {
+            // extract texture from model
+            pPixelBuffer = csrMDLUncompressTexture(pSkin,
+                                                   pPalette,
+                                                   pHeader->m_SkinWidth,
+                                                   pHeader->m_SkinHeight,
+                                                   i);
+
+            // succeeded?
+            if (!pPixelBuffer)
+            {
+                // release the MDL object used for the loading
+                csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+                // release the model
+                csrMDLRelease(pMDL);
+
+                return 0;
+            }
+
+            // is a default texture?
+            if (pPixelBuffer->m_DataLength <= 16)
+            {
+                unsigned color;
+
+                free(pPixelBuffer->m_pData);
+
+                // recreate a 4 * 4 * 3 pixel buffer
+                pPixelBuffer->m_DataLength = 48;
+                pPixelBuffer->m_pData      = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
+
+                // succeeded?
+                if (!pPixelBuffer->m_pData)
+                {
+                    // release the MDL object used for the loading
+                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+                    // release the model
+                    csrMDLRelease(pMDL);
+
+                    return 0;
+                }
+
+                // get the texture color
+                if (pVertProps)
+                    color = pVertProps->m_Color;
+                else
+                    color = 0xFFFFFFFF;
+
+                // initialize the buffer
+                for (j = 0; j < 16; ++j)
+                {
+                    // set color data
+                    ((unsigned char*)pPixelBuffer->m_pData)[ j * 3]      = ((color >> 24) & 0xFF);
+                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 1] = ((color >> 16) & 0xFF);
+                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 2] = ((color >> 8)  & 0xFF);
+                }
+            }
+
+            // create new OpenGL texture
+            glGenTextures(1, &pMDL->m_pTexture[i].m_TextureID);
+            glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[i].m_TextureID);
+
+            // set texture filtering
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // set texture wrapping mode
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            // generate texture from bitmap data. NOTE MDL textures are always provided in 24 bit RGB
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         GL_RGB,
+                         pPixelBuffer->m_Width,
+                         pPixelBuffer->m_Height,
+                         0,
+                         GL_RGB,
+                         GL_UNSIGNED_BYTE,
+                         pPixelBuffer->m_pData);
+
+            // release the pixel buffer
+            csrPixelBufferRelease(pPixelBuffer);
+
+            // also get the animation time
+            if (pSkin->m_pTime)
+            {
+                pMDL->m_pTexture[i].m_Time = pSkin->m_pTime[i] - lastKnownTime;
+                lastKnownTime              = pSkin->m_pTime[i];
+            }
+            else
+                pMDL->m_pTexture[i].m_Time = 0.0;
+        }
+    }
+
+    // create the models required to keep the frame groups content
+    pMDL->m_pModel     = (CSR_Model*)malloc(pHeader->m_FrameCount * sizeof(CSR_Model));
+    pMDL->m_ModelCount =  pHeader->m_FrameCount;
+
+    // initialize the previous skin name (needed to detect the animations)
+    memset(prevSkinName, 0x0, sizeof(prevSkinName));
+
+    // initialize the animation start index
+    animationStartIndex = 0;
+
+    // iterate through MDL model frame group
+    for (i = 0; i < pHeader->m_FrameCount; ++i)
+    {
+        // the frame group contains at least 1 sub-frame?
+        if (pFrameGroup[i].m_Count > 0)
+        {
+            // get the skin name
+            memset(skinName, 0x0, skinNameLength);
+            strcpy(skinName, pFrameGroup[i].m_pFrame[0].m_Name);
+
+            // revert iterate through the skin name and remove all the trailing numbers
+            for (j = 0; j < skinNameLength; ++j)
+            {
+                // calculate the skin name index
+                skinNameIndex = (skinNameLength - 1) - j;
+
+                // is char empty or is a number?
+                if (skinName[skinNameIndex] == 0x0 ||
+                   (skinName[skinNameIndex] >= '0' && skinName[skinNameIndex] <= '9'))
+                {
+                    // erase it
+                    skinName[skinNameIndex] = 0x0;
+                    continue;
+                }
+
+                break;
+            }
+
+            // is previous skin name already initialized?
+            if (prevSkinName[0] == 0x0)
+                // no, initialize it
+                memcpy(prevSkinName, skinName, skinNameLength);
+
+            // do begin a new animation?
+            if (i == pHeader->m_FrameCount - 1 || memcmp(skinName, prevSkinName, skinNameLength) != 0)
+            {
+                // increase the memory to contain the new animation
+                pAnimation = (CSR_ModelAnimation*)csrMemoryAlloc(pMDL->m_pAnimation,
+                                                                 sizeof(CSR_ModelAnimation),
+                                                                 pMDL->m_AnimationCount + 1);
+
+                // succeeded?
+                if (!pAnimation)
+                {
+                    // release the MDL object used for the loading
+                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+                    // release the model
+                    csrMDLRelease(pMDL);
+
+                    return 0;
+                }
+
+                // update the model
+                pMDL->m_pAnimation = pAnimation;
+                ++pMDL->m_AnimationCount;
+
+                // get the animation name
+                memcpy(pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Name,
+                       prevSkinName,
+                       skinNameLength);
+
+                // only one frame?
+                if (pHeader->m_FrameCount == 1)
+                {
+                    // populate the animation
+                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Start = 0;
+                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_End   = 0;
+                }
+                else
+                {
+                    // populate the animation
+                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Start = animationStartIndex;
+                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_End   = i - 1;
+                }
+
+                // prepare the values for the next animation
+                animationStartIndex = i;
+                memset(prevSkinName, 0x0, skinNameLength);
+            }
+        }
+
+        // extract model from file content
+        csrMDLPopulateModel(pHeader,
+                           &pFrameGroup[i],
+                            pPolygon,
+                            pTexCoord,
+                            pVertProps,
+                            pVertFormat,
+                            pVertCulling,
+                            fOnGetVertexColor,
+                           &pMDL->m_pModel[i]);
+    }
+
+    // release the MDL object used for the loading
+    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+    return pMDL;
+}
+//---------------------------------------------------------------------------
+CSR_MDL* csrMDLOpen(const char*                 pFileName,
+                    const CSR_Buffer*           pPalette,
+                    const CSR_VertexProps*      pVertProps,
+                    const CSR_VertexFormat*     pVertFormat,
+                    const CSR_VertexCulling*    pVertCulling,
+                          CSR_fOnGetVertexColor fOnGetVertexColor)
+{
+    CSR_Buffer* pBuffer;
+    CSR_MDL*    pMDL;
+
+    // open the sound file
+    pBuffer = csrFileOpen(pFileName);
+
+    // succeeded?
+    if (!pBuffer || !pBuffer->m_Length)
+    {
+        csrBufferRelease(pBuffer);
+        return 0;
+    }
+
+    // create the MDL model from the file content
+    pMDL = csrMDLCreate(pBuffer,
+                        pPalette,
+                        pVertProps,
+                        pVertFormat,
+                        pVertCulling,
+                        fOnGetVertexColor);
+
+    // release the file buffer (no longer required)
+    csrBufferRelease(pBuffer);
+
+    return pMDL;
+}
+//---------------------------------------------------------------------------
+void csrMDLRelease(CSR_MDL* pMDL)
+{
+    size_t i;
+    size_t j;
+    size_t k;
+
+    // no MDL model to release?
+    if (!pMDL)
+        return;
+
+    // do free the textures?
+    if (pMDL->m_pTexture)
+    {
+        // delete each texture
+        for (i = 0; i < pMDL->m_TextureCount; ++i)
+            if (pMDL->m_pTexture[i].m_TextureID != GL_INVALID_VALUE)
+                glDeleteTextures(1, &pMDL->m_pTexture[i].m_TextureID);
+
+        // free the textures
+        free(pMDL->m_pTexture);
+    }
+
+    // delete the animations
+    if (pMDL->m_pAnimation)
+        free(pMDL->m_pAnimation);
+
+    // do free the models content?
+    if (pMDL->m_pModel)
+    {
+        // iterate through models to free
+        for (i = 0; i < pMDL->m_ModelCount; ++i)
+            // do free the model content?
+            if (pMDL->m_pModel[i].m_pMesh)
+            {
+                // iterate through meshes to free
+                for (j = 0; j < pMDL->m_pModel[i].m_MeshCount; ++j)
+                    // do free the mesh vertex buffer?
+                    if (pMDL->m_pModel[i].m_pMesh[j].m_pVB)
+                    {
+                        // free the mesh vertex buffer content
+                        for (k = 0; k < pMDL->m_pModel[i].m_pMesh[j].m_Count; ++k)
+                            if (pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData)
+                                free(pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData);
+
+                        // free the mesh vertex buffer
+                        free(pMDL->m_pModel[i].m_pMesh[j].m_pVB);
+                    }
+
+                // free the mesh
+                free(pMDL->m_pModel[i].m_pMesh);
+            }
+
+        // free the models
+        free(pMDL->m_pModel);
+    }
+
+    // free the MDL model
+    free(pMDL);
+}
+//---------------------------------------------------------------------------
+void csrMDLInit(CSR_MDL* pMDL)
+{
+    // no MDL model to initialize?
+    if (!pMDL)
+        return;
+
+    // initialize the MDL model content
+    pMDL->m_pModel         = 0;
+    pMDL->m_ModelCount     = 0;
+    pMDL->m_pAnimation     = 0;
+    pMDL->m_AnimationCount = 0;
+    pMDL->m_pTexture       = 0;
+    pMDL->m_TextureCount   = 0;
+}
+//---------------------------------------------------------------------------
+void csrMDLUpdateIndex(const CSR_MDL* pMDL,
+                             size_t   fps,
+                             size_t   animationIndex,
+                             size_t*  pTextureIndex,
+                             size_t*  pModelIndex,
+                             size_t*  pMeshIndex,
+                             double*  pTextureLastTime,
+                             double*  pModelLastTime,
+                             double*  pMeshLastTime,
+                             double   elapsedTime)
+{
+    size_t    animLength;
+    size_t    animIndex;
+    double    interval;
+    CSR_Mesh* pMesh;
+
+    // no MDL model to calculate from?
+    if (!pMDL)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // are textures animated?
+    if (pMDL->m_TextureCount > 1)
+    {
+        // apply the elapsed time
+        *pTextureLastTime += elapsedTime;
+
+        // certify that the texture index is inside the limits
+        *pTextureIndex = (*pTextureIndex % pMDL->m_TextureCount);
+
+        // do get the next texture?
+        while (*pTextureLastTime >= (pMDL->m_pTexture[*pTextureIndex].m_Time))
+        {
+            // decrease the counted time
+            *pTextureLastTime -= pMDL->m_pTexture[*pTextureIndex].m_Time;
+
+            // go to next index
+            *pTextureIndex = ((*pTextureIndex + 1) % pMDL->m_TextureCount);
+        }
+    }
+
+    // get the current model mesh for which the index should be updated
+    pMesh = csrMDLGetMesh(pMDL, *pModelIndex, *pMeshIndex);
+
+    // found it?
+    if (!pMesh)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // do animate current model frames? (NOTE the modelIndex value was indirectly validated while
+    // csrMDLGetMesh() was executed)
+    if (pMDL->m_pModel[*pModelIndex].m_MeshCount > 1 && pMesh->m_Time)
+    {
+        // apply the elapsed time
+        *pMeshLastTime += elapsedTime;
+
+        // certify that the mesh index is inside the limits
+        *pMeshIndex = (*pMeshIndex % pMDL->m_pModel[*pModelIndex].m_MeshCount);
+
+        // do get the next mesh?
+        while (*pMeshLastTime >= pMesh->m_Time)
+        {
+            // decrease the counted time
+            *pMeshLastTime -= pMesh->m_Time;
+
+            // go to next index
+            *pMeshIndex = ((*pMeshIndex + 1) % pMDL->m_pModel[*pModelIndex].m_MeshCount);
+        }
+
+        return;
+    }
+
+    // is animation index out of bounds?
+    if (animationIndex >= pMDL->m_AnimationCount)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // no fps?
+    if (!fps)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // calculate the running animation length
+    animLength = pMDL->m_pAnimation[animationIndex].m_End - pMDL->m_pAnimation[animationIndex].m_Start;
+
+    // is animation empty?
+    if (!animLength)
+    {
+        // reset all values
+        *pTextureIndex    = 0;
+        *pModelIndex      = 0;
+        *pMeshIndex       = 0;
+        *pTextureLastTime = 0.0;
+        *pModelLastTime   = 0.0;
+        *pMeshLastTime    = 0.0;
+        return;
+    }
+
+    // apply the elapsed time
+    *pModelLastTime += elapsedTime;
+
+    // calculate the frame interval
+    interval = 1.0 / fps;
+
+    // calculate the model animation index, and certify that is it inside the limits
+    animIndex = ((*pModelIndex - pMDL->m_pAnimation[animationIndex].m_Start) % animLength);
+
+    // do get the next model?
+    while (*pModelLastTime >= interval)
+    {
+        // decrease the counted time
+        *pModelLastTime -= interval;
+
+        // go to next index
+        animIndex = ((animIndex + 1) % animLength);
+    }
+
+    *pModelIndex = pMDL->m_pAnimation[animationIndex].m_Start + animIndex;
+}
+//---------------------------------------------------------------------------
+CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex)
+{
+    // no MDL model?
+    if (!pMDL)
+        return 0;
+
+    // is model index valid?
+    if (modelIndex >= pMDL->m_ModelCount)
+        return 0;
+
+    // determine how many meshes the model contains
+    if (!pMDL->m_pModel[modelIndex].m_MeshCount)
+        // no mesh, nothing to do
+        return 0;
+    else
+    if (pMDL->m_pModel[modelIndex].m_MeshCount == 1)
+        // one mesh, return it
+        return pMDL->m_pModel[modelIndex].m_pMesh;
+
+    // several meshes (i.e. meshes are animated), check if mesh index is out of bounds
+    if (meshIndex >= pMDL->m_pModel[modelIndex].m_MeshCount)
+        return 0;
+
+    // draw the model mesh
+    return &pMDL->m_pModel[modelIndex].m_pMesh[meshIndex];
+}
 //---------------------------------------------------------------------------
 int csrMDLReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_MDLHeader* pHeader)
 {
@@ -1706,13 +2437,15 @@ void csrMDLUncompressVertex(const CSR_MDLHeader* pHeader,
     pResult->m_Z = vertex[2];
 }
 //---------------------------------------------------------------------------
-void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
-                         const CSR_MDLFrameGroup*   pFrameGroup,
-                         const CSR_MDLPolygon*      pPolygon,
-                         const CSR_MDLTextureCoord* pTexCoord,
-                         const CSR_VertexFormat*    pVertexFormat,
-                               unsigned             color,
-                               CSR_Model*           pModel)
+void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
+                         const CSR_MDLFrameGroup*    pFrameGroup,
+                         const CSR_MDLPolygon*       pPolygon,
+                         const CSR_MDLTextureCoord*  pTexCoord,
+                         const CSR_VertexProps*      pVertProps,
+                         const CSR_VertexFormat*     pVertFormat,
+                         const CSR_VertexCulling*    pVertCulling,
+                               CSR_fOnGetVertexColor fOnGetVertexColor,
+                               CSR_Model*            pModel)
 {
     int            i;
     size_t         j;
@@ -1724,7 +2457,7 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
     double         lastKnownTime = 0.0;
 
     // any MDL source is missing?
-    if (!pHeader || !pFrameGroup || !pPolygon || !pTexCoord || !pVertexFormat)
+    if (!pHeader || !pFrameGroup || !pPolygon || !pTexCoord)
         return;
 
     // model contains no frame?
@@ -1752,26 +2485,34 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
         pModel->m_pMesh[i].m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
 
         // prepare the next vertex buffer format
-        pModel->m_pMesh[i].m_pVB->m_Format                  = *pVertexFormat;
-        pModel->m_pMesh[i].m_pVB->m_Format.m_Type           =  CSR_VT_Triangles;
-        pModel->m_pMesh[i].m_pVB->m_Format.m_Culling.m_Type =  CSR_CT_Back;
-        pModel->m_pMesh[i].m_pVB->m_Format.m_Culling.m_Face =  CSR_CF_CW;
+        csrVertexBufferInit(pModel->m_pMesh[i].m_pVB);
+
+        // apply the user wished vertex properties
+        if (pVertProps)
+            pModel->m_pMesh[i].m_pVB->m_Properties = *pVertProps;
+
+        // apply the user wished vertex format
+        if (pVertFormat)
+            pModel->m_pMesh[i].m_pVB->m_Format = *pVertFormat;
+        else
+        {
+            // otherwise configure the default vertex format
+            pModel->m_pMesh[i].m_pVB->m_Format.m_HasNormal    = 1;
+            pModel->m_pMesh[i].m_pVB->m_Format.m_HasTexCoords = 1;
+        }
+
+        // apply the user wished vertex culling
+        if (pVertCulling)
+            pModel->m_pMesh[i].m_pVB->m_Culling = *pVertCulling;
+        else
+            // otherwise configure the default culling
+            pModel->m_pMesh[i].m_pVB->m_Culling.m_Face = CSR_CF_CW;
+
+        // set the vertex format type
+        pModel->m_pMesh[i].m_pVB->m_Format.m_Type = CSR_VT_Triangles;
 
         // calculate the vertex stride
         csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB->m_Format);
-
-        // initialize the vertex buffer data
-        pModel->m_pMesh[i].m_pVB->m_pData = 0;
-        pModel->m_pMesh[i].m_pVB->m_Count = 0;
-
-        //initialize the vertex buffer time
-        pModel->m_pMesh[i].m_pVB->m_Time = 0.0;
-
-        // configure the model materials
-        pModel->m_pMesh[i].m_Material.m_Color.m_R = 255;
-        pModel->m_pMesh[i].m_Material.m_Color.m_G = 255;
-        pModel->m_pMesh[i].m_Material.m_Color.m_B = 255;
-        pModel->m_pMesh[i].m_Material.m_Color.m_A = 255;
 
         // configure the model texture
         pModel->m_pMesh[i].m_Shader.m_TextureID = GL_INVALID_VALUE;
@@ -1816,394 +2557,14 @@ void csrMDLPopulateModel(const CSR_MDLHeader*       pHeader,
                 uv.m_Y = (uv.m_Y + 0.5) / pHeader->m_SkinHeight;
 
                 // add vertex to frame buffer
-                if (!csrVertexBufferAdd(&vertex, &normal, &uv, color, pModel->m_pMesh[i].m_pVB))
+                if (!csrVertexBufferAdd(&vertex,
+                                        &normal,
+                                        &uv,
+                                         fOnGetVertexColor,
+                                         pModel->m_pMesh[i].m_pVB))
                     return;
             }
     }
-}
-//---------------------------------------------------------------------------
-CSR_MDL* csrMDLCreate(const CSR_Buffer*       pBuffer,
-                      const CSR_Buffer*       pPalette,
-                            CSR_VertexFormat* pVertexFormat,
-                            unsigned          color)
-{
-    CSR_MDLHeader*       pHeader;
-    CSR_MDLSkin*         pSkin;
-    CSR_MDLTextureCoord* pTexCoord;
-    CSR_MDLPolygon*      pPolygon;
-    CSR_MDLFrameGroup*   pFrameGroup;
-    CSR_MDL*             pMDL;
-    CSR_PixelBuffer*     pPixelBuffer;
-    CSR_ModelTexture*    pTexture;
-    CSR_ModelAnimation*  pAnimation;
-    unsigned char        skinName[16];
-    unsigned char        prevSkinName[16];
-    unsigned             animationStartIndex;
-    unsigned             skinNameIndex;
-    const unsigned       skinNameLength = sizeof(skinName);
-    GLuint               textureID;
-    size_t               i;
-    size_t               j;
-    size_t               offset        = 0;
-    double               lastKnownTime = 0.0;
-
-    // no buffer to read from?
-    if (!pBuffer)
-        return 0;
-
-    // no vertex format?
-    if (!pVertexFormat)
-        return 0;
-
-    // create a MDL model
-    pMDL = (CSR_MDL*)malloc(sizeof(CSR_MDL));
-
-    // succeeded?
-    if (!pMDL)
-        return 0;
-
-    // initialize it
-    pMDL->m_pModel         = 0;
-    pMDL->m_ModelCount     = 0;
-    pMDL->m_pAnimation     = 0;
-    pMDL->m_AnimationCount = 0;
-    pMDL->m_pTexture       = 0;
-    pMDL->m_TextureCount   = 0;
-
-    // create mdl header
-    pHeader = (CSR_MDLHeader*)malloc(sizeof(CSR_MDLHeader));
-
-    // succeeded?
-    if (!pHeader)
-    {
-        csrMDLRelease(pMDL);
-        return 0;
-    }
-
-    // read file header
-    csrMDLReadHeader(pBuffer, &offset, pHeader);
-
-    // is mdl file and version correct?
-    if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
-    {
-        free(pHeader);
-        csrMDLRelease(pMDL);
-        return 0;
-    }
-
-    // read skins
-    if (pHeader->m_SkinCount)
-    {
-        pSkin = (CSR_MDLSkin*)malloc(sizeof(CSR_MDLSkin) * pHeader->m_SkinCount);
-
-        for (i = 0; i < pHeader->m_SkinCount; ++i)
-            if (!csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]))
-            {
-                // release the used memory
-                csrMDLReleaseObjects(pHeader, 0, pSkin, 0, 0);
-                csrMDLRelease(pMDL);
-                return 0;
-            }
-    }
-    else
-        pSkin = 0;
-
-    // read texture coordinates
-    if (pHeader->m_VertexCount)
-    {
-        pTexCoord = (CSR_MDLTextureCoord*)malloc(sizeof(CSR_MDLTextureCoord) * pHeader->m_VertexCount);
-
-        for (i = 0; i < pHeader->m_VertexCount; ++i)
-            if (!csrMDLReadTextureCoord(pBuffer, &offset, &pTexCoord[i]))
-            {
-                // release the used memory
-                csrMDLReleaseObjects(pHeader, 0, pSkin, pTexCoord, 0);
-                csrMDLRelease(pMDL);
-                return 0;
-            }
-    }
-    else
-        pTexCoord = 0;
-
-    // read polygons
-    if (pHeader->m_PolygonCount)
-    {
-        pPolygon = (CSR_MDLPolygon*)malloc(sizeof(CSR_MDLPolygon) * pHeader->m_PolygonCount);
-
-        for (i = 0; i < pHeader->m_PolygonCount; ++i)
-            if (!csrMDLReadPolygon(pBuffer, &offset, &pPolygon[i]))
-            {
-                // release the used memory
-                csrMDLReleaseObjects(pHeader, 0, pSkin, pTexCoord, pPolygon);
-                csrMDLRelease(pMDL);
-                return 0;
-            }
-    }
-    else
-        pPolygon = 0;
-
-    // read frames
-    if (pHeader->m_FrameCount)
-    {
-        pFrameGroup = (CSR_MDLFrameGroup*)malloc(sizeof(CSR_MDLFrameGroup) * pHeader->m_FrameCount);
-
-        for (i = 0; i < pHeader->m_FrameCount; ++i)
-            if (!csrMDLReadFrameGroup(pBuffer, &offset, pHeader, &pFrameGroup[i]))
-            {
-                // release the used memory
-                csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-                csrMDLRelease(pMDL);
-                return 0;
-            }
-    }
-    else
-        pFrameGroup = 0;
-
-    // are textures enabled?
-    if (pVertexFormat->m_UseTextures)
-    {
-        // assign the memory to contain the textures
-        pMDL->m_pTexture     = (CSR_ModelTexture*)malloc(sizeof(CSR_ModelTexture));
-        pMDL->m_TextureCount = pSkin->m_Count;
-
-        // succeeded?
-        if (!pMDL->m_pTexture)
-        {
-            // release the MDL object used for the loading
-            csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-
-            // release the model
-            csrMDLRelease(pMDL);
-
-            return 0;
-        }
-
-        // iterate through textures to extract
-        for (i = 0; i < pSkin->m_Count; ++i)
-        {
-            // extract texture from model
-            pPixelBuffer = csrMDLUncompressTexture(pSkin,
-                                                   pPalette,
-                                                   pHeader->m_SkinWidth,
-                                                   pHeader->m_SkinHeight,
-                                                   i);
-
-            // succeeded?
-            if (!pPixelBuffer)
-            {
-                // release the MDL object used for the loading
-                csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-
-                // release the model
-                csrMDLRelease(pMDL);
-
-                return 0;
-            }
-
-            // is a default texture?
-            if (pPixelBuffer->m_DataLength <= 16)
-            {
-                free(pPixelBuffer->m_pData);
-
-                // recreate a 4 * 4 * 3 pixel buffer
-                pPixelBuffer->m_DataLength = 48;
-                pPixelBuffer->m_pData      = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
-
-                // succeeded?
-                if (!pPixelBuffer->m_pData)
-                {
-                    // release the MDL object used for the loading
-                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-
-                    // release the model
-                    csrMDLRelease(pMDL);
-
-                    return 0;
-                }
-
-                // initialize the buffer
-                for (j = 0; j < 16; ++j)
-                {
-                    // set color data
-                    ((unsigned char*)pPixelBuffer->m_pData)[ j * 3]      = ((color >> 24) & 0xFF);
-                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 1] = ((color >> 16) & 0xFF);
-                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 2] = ((color >> 8)  & 0xFF);
-                }
-
-                // force the color to be white
-                color = 0xFFFFFFFF;
-            }
-
-            // create new OpenGL texture
-            glGenTextures(1, &pMDL->m_pTexture[i].m_TextureID);
-            glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[i].m_TextureID);
-
-            // set texture filtering
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            // set texture wrapping mode
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            // generate texture from bitmap data. NOTE MDL textures are always provided in 24 bit RGB
-            glTexImage2D(GL_TEXTURE_2D,
-                         0,
-                         GL_RGB,
-                         pPixelBuffer->m_Width,
-                         pPixelBuffer->m_Height,
-                         0,
-                         GL_RGB,
-                         GL_UNSIGNED_BYTE,
-                         pPixelBuffer->m_pData);
-
-            // release the pixel buffer
-            csrPixelBufferRelease(pPixelBuffer);
-
-            // also get the animation time
-            if (pSkin->m_pTime)
-            {
-                pMDL->m_pTexture[i].m_Time = pSkin->m_pTime[i] - lastKnownTime;
-                lastKnownTime              = pSkin->m_pTime[i];
-            }
-            else
-                pMDL->m_pTexture[i].m_Time = 0.0;
-        }
-    }
-
-    // create the models required to keep the frame groups content
-    pMDL->m_pModel     = (CSR_Model*)malloc(pHeader->m_FrameCount * sizeof(CSR_Model));
-    pMDL->m_ModelCount =  pHeader->m_FrameCount;
-
-    // initialize the previous skin name (needed to detect the animations)
-    memset(prevSkinName, 0x0, sizeof(prevSkinName));
-
-    // initialize the animation start index
-    animationStartIndex = 0;
-
-    // iterate through MDL model frame group
-    for (i = 0; i < pHeader->m_FrameCount; ++i)
-    {
-        // the frame group contains at least 1 sub-frame?
-        if (pFrameGroup[i].m_Count > 0)
-        {
-            // get the skin name
-            memset(skinName, 0x0, skinNameLength);
-            strcpy(skinName, pFrameGroup[i].m_pFrame[0].m_Name);
-
-            // revert iterate through the skin name and remove all the trailing numbers
-            for (j = 0; j < skinNameLength; ++j)
-            {
-                // calculate the skin name index
-                skinNameIndex = (skinNameLength - 1) - j;
-
-                // is char empty or is a number?
-                if (skinName[skinNameIndex] == 0x0 ||
-                   (skinName[skinNameIndex] >= '0' && skinName[skinNameIndex] <= '9'))
-                {
-                    // erase it
-                    skinName[skinNameIndex] = 0x0;
-                    continue;
-                }
-
-                break;
-            }
-
-            // is previous skin name already initialized?
-            if (prevSkinName[0] == 0x0)
-                // no, initialize it
-                memcpy(prevSkinName, skinName, skinNameLength);
-
-            // do begin a new animation?
-            if (i == pHeader->m_FrameCount - 1 || memcmp(skinName, prevSkinName, skinNameLength) != 0)
-            {
-                // increase the memory to contain the new animation
-                pAnimation = (CSR_ModelAnimation*)csrMemoryAlloc(pMDL->m_pAnimation,
-                                                                 sizeof(CSR_ModelAnimation),
-                                                                 pMDL->m_AnimationCount + 1);
-
-                // succeeded?
-                if (!pAnimation)
-                {
-                    // release the MDL object used for the loading
-                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-
-                    // release the model
-                    csrMDLRelease(pMDL);
-
-                    return 0;
-                }
-
-                // update the model
-                pMDL->m_pAnimation = pAnimation;
-                ++pMDL->m_AnimationCount;
-
-                // get the animation name
-                memcpy(pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Name,
-                       prevSkinName,
-                       skinNameLength);
-
-                // only one frame?
-                if (pHeader->m_FrameCount == 1)
-                {
-                    // populate the animation
-                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Start = 0;
-                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_End   = 0;
-                }
-                else
-                {
-                    // populate the animation
-                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_Start = animationStartIndex;
-                    pMDL->m_pAnimation[pMDL->m_AnimationCount - 1].m_End   = i - 1;
-                }
-
-                // prepare the values for the next animation
-                animationStartIndex = i;
-                memset(prevSkinName, 0x0, skinNameLength);
-            }
-        }
-
-        // extract model from file content
-        csrMDLPopulateModel(pHeader,
-                           &pFrameGroup[i],
-                            pPolygon,
-                            pTexCoord,
-                            pVertexFormat,
-                            color,
-                           &pMDL->m_pModel[i]);
-    }
-
-    // release the MDL object used for the loading
-    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
-
-    return pMDL;
-}
-//---------------------------------------------------------------------------
-CSR_MDL* csrMDLOpen(const char*             pFileName,
-                    const CSR_Buffer*       pPalette,
-                          CSR_VertexFormat* pVertexFormat,
-                          unsigned          color)
-{
-    CSR_Buffer* pBuffer;
-    CSR_MDL*    pMDL;
-
-    // open the sound file
-    pBuffer = csrFileOpen(pFileName);
-
-    // succeeded?
-    if (!pBuffer || !pBuffer->m_Length)
-    {
-        csrBufferRelease(pBuffer);
-        return 0;
-    }
-
-    // create the MDL model from the file content
-    pMDL = csrMDLCreate(pBuffer, pPalette, pVertexFormat, color);
-
-    // release the file buffer (no longer required)
-    csrBufferRelease(pBuffer);
-
-    return pMDL;
 }
 //---------------------------------------------------------------------------
 void csrMDLReleaseObjects(CSR_MDLHeader*       pHeader,
@@ -2254,244 +2615,5 @@ void csrMDLReleaseObjects(CSR_MDLHeader*       pHeader,
     free(pTexCoord);
     free(pPolygon);
     free(pFrameGroup);
-}
-//---------------------------------------------------------------------------
-void csrMDLUpdateIndex(const CSR_MDL* pMDL,
-                             size_t   fps,
-                             size_t   animationIndex,
-                             size_t*  pTextureIndex,
-                             size_t*  pModelIndex,
-                             size_t*  pMeshIndex,
-                             double*  pTextureLastTime,
-                             double*  pModelLastTime,
-                             double*  pMeshLastTime,
-                             double   elapsedTime)
-{
-    size_t    animLength;
-    size_t    animIndex;
-    double    interval;
-    CSR_Mesh* pMesh;
-
-    // no MDL model to calculate from?
-    if (!pMDL)
-    {
-        // reset all values
-        *pTextureIndex    = 0;
-        *pModelIndex      = 0;
-        *pMeshIndex       = 0;
-        *pTextureLastTime = 0.0;
-        *pModelLastTime   = 0.0;
-        *pMeshLastTime    = 0.0;
-        return;
-    }
-
-    // are textures animated?
-    if (pMDL->m_TextureCount > 1)
-    {
-        // apply the elapsed time
-        *pTextureLastTime += elapsedTime;
-
-        // certify that the texture index is inside the limits
-        *pTextureIndex = (*pTextureIndex % pMDL->m_TextureCount);
-
-        // do get the next texture?
-        while (*pTextureLastTime >= (pMDL->m_pTexture[*pTextureIndex].m_Time))
-        {
-            // decrease the counted time
-            *pTextureLastTime -= pMDL->m_pTexture[*pTextureIndex].m_Time;
-
-            // go to next index
-            *pTextureIndex = ((*pTextureIndex + 1) % pMDL->m_TextureCount);
-        }
-    }
-
-    // get the current model mesh for which the index should be updated
-    pMesh = csrMDLGetMesh(pMDL, *pModelIndex, *pMeshIndex);
-
-    // found it?
-    if (!pMesh)
-    {
-        // reset all values
-        *pTextureIndex    = 0;
-        *pModelIndex      = 0;
-        *pMeshIndex       = 0;
-        *pTextureLastTime = 0.0;
-        *pModelLastTime   = 0.0;
-        *pMeshLastTime    = 0.0;
-        return;
-    }
-
-    // do animate current model frames? (NOTE the modelIndex value was indirectly validated while
-    // csrMDLGetMesh() was executed)
-    if (pMDL->m_pModel[*pModelIndex].m_MeshCount > 1 && pMesh->m_Time)
-    {
-        // apply the elapsed time
-        *pMeshLastTime += elapsedTime;
-
-        // certify that the mesh index is inside the limits
-        *pMeshIndex = (*pMeshIndex % pMDL->m_pModel[*pModelIndex].m_MeshCount);
-
-        // do get the next mesh?
-        while (*pMeshLastTime >= pMesh->m_Time)
-        {
-            // decrease the counted time
-            *pMeshLastTime -= pMesh->m_Time;
-
-            // go to next index
-            *pMeshIndex = ((*pMeshIndex + 1) % pMDL->m_pModel[*pModelIndex].m_MeshCount);
-        }
-
-        return;
-    }
-
-    // is animation index out of bounds?
-    if (animationIndex >= pMDL->m_AnimationCount)
-    {
-        // reset all values
-        *pTextureIndex    = 0;
-        *pModelIndex      = 0;
-        *pMeshIndex       = 0;
-        *pTextureLastTime = 0.0;
-        *pModelLastTime   = 0.0;
-        *pMeshLastTime    = 0.0;
-        return;
-    }
-
-    // no fps?
-    if (!fps)
-    {
-        // reset all values
-        *pTextureIndex    = 0;
-        *pModelIndex      = 0;
-        *pMeshIndex       = 0;
-        *pTextureLastTime = 0.0;
-        *pModelLastTime   = 0.0;
-        *pMeshLastTime    = 0.0;
-        return;
-    }
-
-    // calculate the running animation length
-    animLength = pMDL->m_pAnimation[animationIndex].m_End - pMDL->m_pAnimation[animationIndex].m_Start;
-
-    // is animation empty?
-    if (!animLength)
-    {
-        // reset all values
-        *pTextureIndex    = 0;
-        *pModelIndex      = 0;
-        *pMeshIndex       = 0;
-        *pTextureLastTime = 0.0;
-        *pModelLastTime   = 0.0;
-        *pMeshLastTime    = 0.0;
-        return;
-    }
-
-    // apply the elapsed time
-    *pModelLastTime += elapsedTime;
-
-    // calculate the frame interval
-    interval = 1.0 / fps;
-
-    // calculate the model animation index, and certify that is it inside the limits
-    animIndex = ((*pModelIndex - pMDL->m_pAnimation[animationIndex].m_Start) % animLength);
-
-    // do get the next model?
-    while (*pModelLastTime >= interval)
-    {
-        // decrease the counted time
-        *pModelLastTime -= interval;
-
-        // go to next index
-        animIndex = ((animIndex + 1) % animLength);
-    }
-
-    *pModelIndex = pMDL->m_pAnimation[animationIndex].m_Start + animIndex;
-}
-//---------------------------------------------------------------------------
-CSR_Mesh* csrMDLGetMesh(const CSR_MDL* pMDL, size_t modelIndex, size_t meshIndex)
-{
-    // no MDL model?
-    if (!pMDL)
-        return 0;
-
-    // is model index valid?
-    if (modelIndex >= pMDL->m_ModelCount)
-        return 0;
-
-    // determine how many meshes the model contains
-    if (!pMDL->m_pModel[modelIndex].m_MeshCount)
-        // no mesh, nothing to do
-        return 0;
-    else
-    if (pMDL->m_pModel[modelIndex].m_MeshCount == 1)
-        // one mesh, return it
-        return pMDL->m_pModel[modelIndex].m_pMesh;
-
-    // several meshes (i.e. meshes are animated), check if mesh index is out of bounds
-    if (meshIndex >= pMDL->m_pModel[modelIndex].m_MeshCount)
-        return 0;
-
-    // draw the model mesh
-    return &pMDL->m_pModel[modelIndex].m_pMesh[meshIndex];
-}
-//---------------------------------------------------------------------------
-void csrMDLRelease(CSR_MDL* pMDL)
-{
-    size_t i;
-    size_t j;
-    size_t k;
-
-    // no MDL model to release?
-    if (!pMDL)
-        return;
-
-    // do free the textures?
-    if (pMDL->m_pTexture)
-    {
-        // delete each texture
-        for (i = 0; i < pMDL->m_TextureCount; ++i)
-            if (pMDL->m_pTexture[i].m_TextureID != GL_INVALID_VALUE)
-                glDeleteTextures(1, &pMDL->m_pTexture[i].m_TextureID);
-
-        // free the textures
-        free(pMDL->m_pTexture);
-    }
-
-    // delete the animations
-    if (pMDL->m_pAnimation)
-        free(pMDL->m_pAnimation);
-
-    // do free the models content?
-    if (pMDL->m_pModel)
-    {
-        // iterate through models to free
-        for (i = 0; i < pMDL->m_ModelCount; ++i)
-            // do free the model content?
-            if (pMDL->m_pModel[i].m_pMesh)
-            {
-                // iterate through meshes to free
-                for (j = 0; j < pMDL->m_pModel[i].m_MeshCount; ++j)
-                    // do free the mesh vertex buffer?
-                    if (pMDL->m_pModel[i].m_pMesh[j].m_pVB)
-                    {
-                        // free the mesh vertex buffer content
-                        for (k = 0; k < pMDL->m_pModel[i].m_pMesh[j].m_Count; ++k)
-                            if (pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData)
-                                free(pMDL->m_pModel[i].m_pMesh[j].m_pVB[k].m_pData);
-
-                        // free the mesh vertex buffer
-                        free(pMDL->m_pModel[i].m_pMesh[j].m_pVB);
-                    }
-
-                // free the mesh
-                free(pMDL->m_pModel[i].m_pMesh);
-            }
-
-        // free the models
-        free(pMDL->m_pModel);
-    }
-
-    // free the MDL model
-    free(pMDL);
 }
 //---------------------------------------------------------------------------

@@ -56,6 +56,18 @@ typedef struct
         CSR_Shader* csrShaderCreate(void);
 
         /**
+        * Releases a shader
+        *@param pShader - shader to release
+        */
+        void csrShaderRelease(CSR_Shader* pShader);
+
+        /**
+        * Initializes a shader structure
+        *@param pShader - shader to initialize
+        */
+        void csrShaderInit(CSR_Shader* pShader);
+
+        /**
         * Loads, compiles and links a shader from vertex and fragment files
         *@param pVertex - vertex shader program file name
         *@param pFragment - fragment shader program file name
@@ -110,12 +122,6 @@ typedef struct
         *@param pShader - shader to enable, disable any previously enabled shader if 0
         */
         void csrShaderEnable(CSR_Shader* pShader);
-
-        /**
-        * Releases a shader
-        *@param pShader - shader to release
-        */
-        void csrShaderRelease(CSR_Shader* pShader);
 
 #ifdef __cplusplus
     }
