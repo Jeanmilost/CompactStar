@@ -41,7 +41,7 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     for (i = 0; i < pMesh->m_Count; ++i)
     {
         // configure the culling
-        switch (pMesh->m_pVB[i].m_Format.m_Culling.m_Type)
+        switch (pMesh->m_pVB[i].m_Culling.m_Type)
         {
             case CSR_CT_None:  glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
             case CSR_CT_Front: glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT);          break;
@@ -51,14 +51,14 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         }
 
         // configure the culling face
-        switch (pMesh->m_pVB[i].m_Format.m_Culling.m_Face)
+        switch (pMesh->m_pVB[i].m_Culling.m_Face)
         {
             case CSR_CF_CW:  glFrontFace(GL_CW);  break;
             case CSR_CF_CCW: glFrontFace(GL_CCW); break;
         }
 
-        // do use texture?
-        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+        // vertices have UV texture coordinates?
+        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
         {
             // a texture is defined for this mesh?
             if (pMesh->m_Shader.m_TextureID != GL_INVALID_VALUE)
@@ -91,15 +91,15 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         glEnableVertexAttribArray(pShader->m_VertexSlot);
 
         // enable normal slot
-        if (pMesh->m_pVB[i].m_Format.m_UseNormals)
+        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
             glEnableVertexAttribArray(pShader->m_NormalSlot);
 
         // enable texture slot
-        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
             glEnableVertexAttribArray(pShader->m_TexCoordSlot);
 
         // enable color slot
-        if (pMesh->m_pVB[i].m_Format.m_UseColors)
+        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
             glEnableVertexAttribArray(pShader->m_ColorSlot);
 
         offset = 0;
@@ -115,8 +115,8 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
 
         offset += 3;
 
-        // do use normals?
-        if (pMesh->m_pVB[i].m_Format.m_UseNormals)
+        // vertices have normals?
+        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
         {
             // send normals to shader
             pNormals = &pMesh->m_pVB[i].m_pData[offset];
@@ -130,8 +130,8 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             offset += 3;
         }
 
-        // do use textures?
-        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+        // vertices have UV texture coordinates?
+        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
         {
             // send textures to shader
             pTexCoords = &pMesh->m_pVB[i].m_pData[offset];
@@ -145,8 +145,8 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             offset += 2;
         }
 
-        // do use colors?
-        if (pMesh->m_pVB[i].m_Format.m_UseColors)
+        // vertices have color?
+        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
         {
             // send colors to shader
             pColors = &pMesh->m_pVB[i].m_pData[offset];
@@ -173,15 +173,15 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         glDisableVertexAttribArray(pShader->m_VertexSlot);
 
         // disable normal slot
-        if (pMesh->m_pVB[i].m_Format.m_UseNormals)
+        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
             glDisableVertexAttribArray(pShader->m_NormalSlot);
 
         // disable texture slot
-        if (pMesh->m_pVB[i].m_Format.m_UseTextures)
+        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
             glDisableVertexAttribArray(pShader->m_TexCoordSlot);
 
         // disable color slot
-        if (pMesh->m_pVB[i].m_Format.m_UseColors)
+        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
             glDisableVertexAttribArray(pShader->m_ColorSlot);
     }
 }
@@ -206,7 +206,7 @@ void csrSceneDrawMDL(const CSR_MDL*    pMDL,
         return;
 
     // can use texture?
-    if (pMesh->m_pVB->m_Format.m_UseTextures && textureIndex < pMDL->m_TextureCount &&
+    if (pMesh->m_pVB->m_Format.m_HasTexCoords && textureIndex < pMDL->m_TextureCount &&
             pMDL->m_pTexture[textureIndex].m_TextureID != GL_INVALID_VALUE)
         {
             // select the texture sampler to use (GL_TEXTURE0 for normal textures)

@@ -20,7 +20,7 @@
 #include "CSR_Common.h"
 
 //---------------------------------------------------------------------------
-// Structures
+// Enumerators
 //---------------------------------------------------------------------------
 
 /**
@@ -35,6 +35,10 @@ typedef enum
     CSR_PT_ARGB,
     CSR_PT_ABGR,
 } CSR_EPixelType;
+
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
 
 /**
 * Pixel buffer
@@ -70,6 +74,12 @@ typedef struct
         *@param pPB - pixel buffer to release
         */
         void csrPixelBufferRelease(CSR_PixelBuffer* pPB);
+
+        /**
+        * Initializes a pixel buffer structure
+        *@param pPB - pixel buffer to initialize
+        */
+        void csrPixelBufferInit(CSR_PixelBuffer* pPB);
 
 #ifdef __cplusplus
     }

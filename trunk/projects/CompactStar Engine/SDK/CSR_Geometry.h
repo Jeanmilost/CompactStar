@@ -23,7 +23,7 @@
 #include "CSR_Common.h"
 
 //---------------------------------------------------------------------------
-// Structures
+// Enumerators
 //---------------------------------------------------------------------------
 
 /**
@@ -40,7 +40,7 @@ typedef enum
 } CSR_EFigure2;
 
 /**
-* 2D geometric figure enumeration
+* 3D geometric figure enumeration
 */
 typedef enum
 {
@@ -52,6 +52,10 @@ typedef enum
     CSR_F3_Box,
     CSR_F3_Sphere
 } CSR_EFigure3;
+
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
 
 /**
 * 2D vector

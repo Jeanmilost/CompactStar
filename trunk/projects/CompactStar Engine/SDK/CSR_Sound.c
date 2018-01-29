@@ -44,6 +44,17 @@ int csrSoundInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALCont
     return 1;
 }
 //---------------------------------------------------------------------------
+void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
+{
+    // destroy OpenAL context
+    if (pOpenALContext)
+        alcDestroyContext(pOpenALContext);
+
+    // close the device
+    if (pOpenALDevice)
+        alcCloseDevice(pOpenALDevice);
+}
+//---------------------------------------------------------------------------
 CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
                           const ALCcontext* pOpenALContext,
                                 CSR_Buffer* pBuffer,
@@ -70,15 +81,17 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     if (!pSound)
         return 0;
 
+    // initialize the sound content
+    csrSoundInit(pSound);
+
     // grab a buffer ID from openAL
     alGenBuffers(1, &pSound->m_BufferID);
 
     // succeeded?
     if (alGetError() != AL_NO_ERROR)
     {
-        pSound->m_ID       = M_OPENAL_ERROR_ID;
-        pSound->m_BufferID = M_OPENAL_ERROR_ID;
-        return pSound;
+        csrSoundRelease(pSound);
+        return 0;
     }
 
     // jam the audio data into the new buffer
@@ -91,11 +104,8 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     // succeeded?
     if (alGetError() != AL_NO_ERROR)
     {
-        alDeleteBuffers(1, &pSound->m_BufferID);
-
-        pSound->m_ID       = M_OPENAL_ERROR_ID;
-        pSound->m_BufferID = M_OPENAL_ERROR_ID;
-        return pSound;
+        csrSoundRelease(pSound);
+        return 0;
     }
 
     // grab a source ID from openAL
@@ -104,11 +114,8 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     // succeeded?
     if (alGetError() != AL_NO_ERROR)
     {
-        alDeleteBuffers(1, &pSound->m_BufferID);
-
-        pSound->m_ID       = M_OPENAL_ERROR_ID;
-        pSound->m_BufferID = M_OPENAL_ERROR_ID;
-        return pSound;
+        csrSoundRelease(pSound);
+        return 0;
     }
 
     // attach the buffer to the source
@@ -117,12 +124,8 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     // succeeded?
     if (alGetError() != AL_NO_ERROR)
     {
-        alDeleteSources(1, &pSound->m_ID);
-        alDeleteBuffers(1, &pSound->m_BufferID);
-
-        pSound->m_ID       = M_OPENAL_ERROR_ID;
-        pSound->m_BufferID = M_OPENAL_ERROR_ID;
-        return pSound;
+        csrSoundRelease(pSound);
+        return 0;
     }
 
     // set some basic source preferences
@@ -130,6 +133,24 @@ CSR_Sound* csrSoundCreate(const ALCdevice*  pOpenALDevice,
     alSourcef(pSound->m_ID, AL_PITCH, 1.0f);
 
     return pSound;
+}
+//---------------------------------------------------------------------------
+void csrSoundRelease(CSR_Sound* pSound)
+{
+    // no sound to release?
+    if (!pSound)
+        return;
+
+    // delete source
+    if (pSound->m_ID != M_OPENAL_ERROR_ID)
+        alDeleteSources(1, &pSound->m_ID);
+
+    // delete buffer
+    if (pSound->m_BufferID != M_OPENAL_ERROR_ID)
+        alDeleteBuffers(1, &pSound->m_BufferID);
+
+    // free the sound
+    free(pSound);
 }
 //---------------------------------------------------------------------------
 CSR_Sound* csrSoundOpen(const ALCdevice*  pOpenALDevice,
@@ -157,6 +178,17 @@ CSR_Sound* csrSoundOpen(const ALCdevice*  pOpenALDevice,
     csrBufferRelease(pBuffer);
 
     return pSound;
+}
+//---------------------------------------------------------------------------
+void csrSoundInit(CSR_Sound* pSound)
+{
+    // no sound to initialize?
+    if (!pSound)
+        return;
+
+    // initialize the sound content
+    pSound->m_BufferID = M_OPENAL_ERROR_ID;
+    pSound->m_ID       = M_OPENAL_ERROR_ID;
 }
 //---------------------------------------------------------------------------
 int csrSoundPlay(CSR_Sound* pSound)
@@ -281,34 +313,5 @@ void csrSoundLoop(CSR_Sound* pSound, int value)
         alSourcei(pSound->m_ID, AL_LOOPING, AL_TRUE);
     else
         alSourcei(pSound->m_ID, AL_LOOPING, AL_FALSE);
-}
-//---------------------------------------------------------------------------
-void csrSoundRelease(CSR_Sound* pSound)
-{
-    // no sound to release?
-    if (!pSound)
-        return;
-
-    // delete source
-    if (pSound->m_ID != M_OPENAL_ERROR_ID)
-        alDeleteSources(1, &pSound->m_ID);
-
-    // delete buffer
-    if (pSound->m_BufferID != M_OPENAL_ERROR_ID)
-        alDeleteBuffers(1, &pSound->m_BufferID);
-
-    // free the sound
-    free(pSound);
-}
-//---------------------------------------------------------------------------
-void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext)
-{
-    // destroy OpenAL context
-    if (pOpenALContext)
-        alcDestroyContext(pOpenALContext);
-
-    // close the device
-    if (pOpenALDevice)
-        alcCloseDevice(pOpenALDevice);
 }
 //---------------------------------------------------------------------------

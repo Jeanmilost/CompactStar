@@ -126,40 +126,6 @@ void csrMathRoundToExp(float value, unsigned exp, float* pR)
 //---------------------------------------------------------------------------
 // Color functions
 //---------------------------------------------------------------------------
-void csrGetColorFromFloatRGBA(float r, float g, float b, float a, CSR_Color* pColor)
-{
-    if (!pColor)
-        return;
-
-    // limit the values between 0.0f and 1.0f
-    csrMathClamp(r, 0.0f, 1.0f, &r);
-    csrMathClamp(g, 0.0f, 1.0f, &g);
-    csrMathClamp(b, 0.0f, 1.0f, &b);
-    csrMathClamp(a, 0.0f, 1.0f, &a);
-
-    // convert to RGBA value
-    pColor->m_R = (unsigned char)(r * 255.0f);
-    pColor->m_G = (unsigned char)(g * 255.0f);
-    pColor->m_B = (unsigned char)(b * 255.0f);
-    pColor->m_A = (unsigned char)(a * 255.0f);
-}
-//---------------------------------------------------------------------------
-unsigned csrColorToUInt32RGBA(const CSR_Color* pColor)
-{
-    if (!pColor)
-        return 0;
-
-    return ((pColor->m_R << 24) | (pColor->m_G << 16) | (pColor->m_B << 8) | pColor->m_A);
-}
-//---------------------------------------------------------------------------
-unsigned csrColorToUInt32BGRA(const CSR_Color* pColor)
-{
-    if (!pColor)
-        return 0;
-
-    return ((pColor->m_B << 24) | (pColor->m_G << 16) | (pColor->m_R << 8) | pColor->m_A);
-}
-//---------------------------------------------------------------------------
 unsigned csrColorBGRToRGBA(unsigned color)
 {
     return (((color        & 0xff) << 24) |
@@ -188,8 +154,7 @@ CSR_Buffer* csrBufferCreate(void)
         return 0;
 
     // initialize the buffer content
-    pBuffer->m_pData  = 0;
-    pBuffer->m_Length = 0;
+    csrBufferInit(pBuffer);
 
     return pBuffer;
 }
@@ -206,6 +171,17 @@ void csrBufferRelease(CSR_Buffer* pBuffer)
 
     // free the buffer
     free(pBuffer);
+}
+//---------------------------------------------------------------------------
+void csrBufferInit(CSR_Buffer* pBuffer)
+{
+    // no buffer to initialize?
+    if (!pBuffer)
+        return;
+
+    // initialize the buffer content
+    pBuffer->m_pData  = 0;
+    pBuffer->m_Length = 0;
 }
 //---------------------------------------------------------------------------
 int csrBufferRead(const CSR_Buffer* pBuffer,

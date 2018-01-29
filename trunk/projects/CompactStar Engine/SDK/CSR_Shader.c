@@ -27,7 +27,41 @@ CSR_Shader* csrShaderCreate(void)
     if (!pShader)
         return 0;
 
-    // initialize the vertex buffer content
+    // initialize the shader content
+    csrShaderInit(pShader);
+
+    return pShader;
+}
+//---------------------------------------------------------------------------
+void csrShaderRelease(CSR_Shader* pShader)
+{
+    // no shader to release?
+    if (!pShader)
+        return;
+
+    // delete the fragment shader
+    if (pShader->m_FragmentID)
+        glDeleteShader(pShader->m_FragmentID);
+
+    // delete the vertex shader
+    if (pShader->m_VertexID)
+        glDeleteShader(pShader->m_VertexID);
+
+    // delete the shader program
+    if (pShader->m_ProgramID)
+        glDeleteProgram(pShader->m_ProgramID);
+
+    // free the shader
+    free(pShader);
+}
+//---------------------------------------------------------------------------
+void csrShaderInit(CSR_Shader* pShader)
+{
+    // no shader to initialize?
+    if (!pShader)
+        return;
+
+    // initialize the shader content
     pShader->m_ProgramID    =  0;
     pShader->m_VertexID     =  0;
     pShader->m_FragmentID   =  0;
@@ -38,8 +72,6 @@ CSR_Shader* csrShaderCreate(void)
     pShader->m_BumpMapSlot  = -1;
     pShader->m_ColorSlot    = -1;
     pShader->m_ModelSlot    = -1;
-
-    return pShader;
 }
 //---------------------------------------------------------------------------
 CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
@@ -246,27 +278,5 @@ void csrShaderEnable(CSR_Shader* pShader)
 
     // enable the shader
     glUseProgram(pShader->m_ProgramID);
-}
-//---------------------------------------------------------------------------
-void csrShaderRelease(CSR_Shader* pShader)
-{
-    // no shader to release?
-    if (!pShader)
-        return;
-
-    // delete the fragment shader
-    if (pShader->m_FragmentID)
-        glDeleteShader(pShader->m_FragmentID);
-
-    // delete the vertex shader
-    if (pShader->m_VertexID)
-        glDeleteShader(pShader->m_VertexID);
-
-    // delete the shader program
-    if (pShader->m_ProgramID)
-        glDeleteProgram(pShader->m_ProgramID);
-
-    // free the shader
-    free(pShader);
 }
 //---------------------------------------------------------------------------

@@ -28,13 +28,7 @@ CSR_PixelBuffer* csrPixelBufferCreate(void)
         return 0;
 
     // initialize the pixel buffer content
-    pPB->m_PixelType    = CSR_PT_RGBA;
-    pPB->m_Width        = 0;
-    pPB->m_Height       = 0;
-    pPB->m_Stride       = 0;
-    pPB->m_BytePerPixel = 0;
-    pPB->m_DataLength   = 0;
-    pPB->m_pData        = 0;
+    csrPixelBufferInit(pPB);
 
     return pPB;
 }
@@ -51,5 +45,21 @@ void csrPixelBufferRelease(CSR_PixelBuffer* pPB)
 
     // free the pixel buffer
     free(pPB);
+}
+//---------------------------------------------------------------------------
+void csrPixelBufferInit(CSR_PixelBuffer* pPB)
+{
+    // no pixel buffer to initialize?
+    if (!pPB)
+        return;
+
+    // initialize the pixel buffer content
+    pPB->m_PixelType    = CSR_PT_RGBA;
+    pPB->m_Width        = 0;
+    pPB->m_Height       = 0;
+    pPB->m_Stride       = 0;
+    pPB->m_BytePerPixel = 0;
+    pPB->m_DataLength   = 0;
+    pPB->m_pData        = 0;
 }
 //---------------------------------------------------------------------------

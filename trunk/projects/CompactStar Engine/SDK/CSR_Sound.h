@@ -67,6 +67,13 @@ typedef struct
         int csrSoundInitializeOpenAL(ALCdevice** pOpenALDevice, ALCcontext** pOpenALContext);
 
         /**
+        * Releases OpenAL
+        *@param pOpenALDevice - OpenAL device to release
+        *@param pOpenALContext - OpenAL context to release
+        */
+        void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext);
+
+        /**
         * Creates a sound form a wav buffer
         *@param pOpenALDevice - OpenAL device to use
         *@param pOpenALContext - OpenAL context to use
@@ -81,6 +88,12 @@ typedef struct
                                         unsigned    sampling);
 
         /**
+        * Releases a sound and frees his memory
+        *@param pSound - sound to release
+        */
+        void csrSoundRelease(CSR_Sound* pSound);
+
+        /**
         * Opens a sound from a file
         *@param pOpenALDevice - OpenAL device to use
         *@param pOpenALContext - OpenAL context to use
@@ -93,6 +106,12 @@ typedef struct
                                 const ALCcontext* pOpenALContext,
                                       const char* pFileName,
                                       unsigned    sampling);
+
+        /**
+        * Initializes a sound structure
+        *@param pSound - sound to initialize
+        */
+        void csrSoundInit(CSR_Sound* pSound);
 
         /**
         * Plays sound
@@ -169,19 +188,6 @@ typedef struct
         *@return 1 on success, otherwise 0
         */
         void csrSoundLoop(CSR_Sound* pSound, int value);
-
-        /**
-        * Releases a sound and frees his memory
-        *@param pSound - sound to release
-        */
-        void csrSoundRelease(CSR_Sound* pSound);
-
-        /**
-        * Releases OpenAL
-        *@param pOpenALDevice - OpenAL device to release
-        *@param pOpenALContext - OpenAL context to release
-        */
-        void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext);
 
 #ifdef __cplusplus
     }
