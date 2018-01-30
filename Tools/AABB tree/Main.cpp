@@ -243,6 +243,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     CSR_Material material;
     material.m_Color       = csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
     material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -788,6 +789,7 @@ void TMainForm::InitScene(int w, int h)
     CSR_Material material;
     material.m_Color       = 0xFFFF;
     material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -915,10 +917,6 @@ void TMainForm::DrawScene()
         // begin the scene
         csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
 
-        // restore normal drawing parameters
-        glDisable(GL_BLEND);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
         if (m_pMesh)
         {
             // enable the colored program
@@ -953,15 +951,6 @@ void TMainForm::DrawScene()
         // do show the AABB boxes?
         if (ckShowBoxes->Checked)
         {
-            // enable alpha blending
-            glEnable(GL_BLEND);
-            glBlendEquation(GL_FUNC_ADD);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            // do show the boxes in wireframe mode?
-            if (ckWireFrame->Checked)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
             // get the AABB tree index
             const std::size_t treeIndex = GetAABBTreeIndex();
 
@@ -1157,12 +1146,13 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
     {
         CSR_Material material;
         material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
-        material.m_Transparent = 0;
+        material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
+        material.m_Wireframe   = ckWireFrame->Checked;
 
         CSR_VertexFormat vf;
         vf.m_HasNormal         = 0;
         vf.m_HasTexCoords      = 0;
-        vf.m_HasPerVertexColor = 1;
+        vf.m_HasPerVertexColor = 0;
 
         // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
         // create a generic box
@@ -1419,5 +1409,36 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
     OnDrawScene(false);
+}
+//---------------------------------------------------------------------------
+GLuint TMainForm::CreateStaticVertexBufferObject(const CSR_Shader*          pShader,
+                                                 const CSR_ShaderAttribute* pSA,
+                                                 const CSR_VertexBuffer*    pVB)
+{
+    if (!pVB)
+        return 0;
+
+    GLuint vbo;
+
+    // allocate and assign a Vertex Buffer Objects to the currently selected OpenGL handle
+    glGenBuffers(1, &vbo);
+
+    // bind the newly created VBO as being the active buffer and storing vertex attributes
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    // copy the buffer data content to the graphic memory
+    glBufferData(GL_ARRAY_BUFFER, pVB->m_Count * sizeof(float), pVB->m_pData, GL_STATIC_DRAW);
+
+    // set an index for the shader attribute and reserve memory on the GPU for the content
+    glVertexAttribPointer(pSA->m_Index, pSA->m_Length, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // bind attribute index to shader name. BE CAREFUL, attribute locations must be set before
+    // calling glLinkProgram
+    glBindAttribLocation(pShader->m_ProgramID, pSA->m_Index, pSA->m_pName);
+
+    // enable attribute index
+    glEnableVertexAttribArray(pSA->m_Index);
+
+    return vbo;
 }
 //---------------------------------------------------------------------------

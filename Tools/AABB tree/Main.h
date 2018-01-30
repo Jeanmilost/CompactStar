@@ -259,6 +259,16 @@ class TMainForm : public TForm
         *@param[in, out] done - if true, event is done and will no longer be called
         */
         void __fastcall OnIdle(TObject* pSender, bool& done);
+
+        typedef struct
+        {
+            std::size_t m_Index;
+            std::size_t m_Length;
+            char*       m_pName;
+        } CSR_ShaderAttribute;
+        GLuint CreateStaticVertexBufferObject(const CSR_Shader*          pShader,
+                                              const CSR_ShaderAttribute* pSA,
+                                              const CSR_VertexBuffer*    pVB);
 };
 extern PACKAGE TMainForm* MainForm;
 #endif

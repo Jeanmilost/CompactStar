@@ -30,6 +30,7 @@ typedef struct
 {
     unsigned m_Color;       // vertex color, applied to all vertices if per-vertex color is disabled
     int      m_Transparent; // whether or not the alpha blending should be activated
+    int      m_Wireframe;   // whether or not the vertex buffer should be drawn in wireframe
 } CSR_Material;
 
 #ifdef __cplusplus

@@ -27,5 +27,6 @@ void csrMaterialInit(CSR_Material* pMaterial)
     // initialize the material content
     pMaterial->m_Color       = 0xFFFFFFFF;
     pMaterial->m_Transparent = 0;
+    pMaterial->m_Wireframe   = 0;
 }
 //---------------------------------------------------------------------------
