@@ -18,6 +18,8 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
+#include "CSR_Texture.h"
+#include "CSR_Lighting.h"
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -60,15 +62,6 @@ typedef enum
 //---------------------------------------------------------------------------
 
 /**
-* Vertex properties
-*/
-typedef struct
-{
-    unsigned m_Color;       // vertex color, applied to all vertices if per-vertex color is disabled
-    int      m_Transparent; // whether or not the alpha blending should be activated
-} CSR_VertexProps;
-
-/**
 * Vertex format
 */
 typedef struct
@@ -94,29 +87,20 @@ typedef struct
 */
 typedef struct
 {
-    CSR_VertexProps   m_Properties;
     CSR_VertexFormat  m_Format;
     CSR_VertexCulling m_Culling;
+    CSR_Material      m_Material;
     float*            m_pData;
     size_t            m_Count;
     double            m_Time;
 } CSR_VertexBuffer;
 
 /**
-* Mesh shader (i.e. the elements that should be connected to shader for this mesh)
-*/
-typedef struct
-{
-    GLuint m_TextureID;
-    GLuint m_BumpMapID;
-} CSR_MeshShader;
-
-/**
 * Mesh
 */
 typedef struct
 {
-    CSR_MeshShader    m_Shader;
+    CSR_TextureShader m_Shader;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
     double            m_Time;
@@ -158,16 +142,6 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR
     extern "C"
     {
 #endif
-        //-------------------------------------------------------------------
-        // Vertex properties functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Initializes a vertex properties structure
-        *@param pVertexProps - vertex properties to initialize
-        */
-        void csrVertexPropsInit(CSR_VertexProps* pVertexProps);
-
         //-------------------------------------------------------------------
         // Vertex format functions
         //-------------------------------------------------------------------
@@ -231,16 +205,6 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR
                                CSR_Vector2*          pUV,
                                CSR_fOnGetVertexColor fOnGetVertexColor,
                                CSR_VertexBuffer*     pVB);
-
-        //-------------------------------------------------------------------
-        // Mesh shader functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Initializes a mesh shader structure
-        *@param pMeshShader - mesh shader to initialize
-        */
-        void csrMeshShaderInit(CSR_MeshShader* pMeshShader);
 
         //-------------------------------------------------------------------
         // Mesh functions

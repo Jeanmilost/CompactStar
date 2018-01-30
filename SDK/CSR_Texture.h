@@ -54,6 +54,15 @@ typedef struct
     void*          m_pData;
 } CSR_PixelBuffer;
 
+/**
+* Texture shader (i.e. the GPU loaded textures that should be connected to the shader)
+*/
+typedef struct
+{
+    GLuint m_TextureID;
+    GLuint m_BumpMapID;
+} CSR_TextureShader;
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -80,6 +89,16 @@ typedef struct
         *@param pPB - pixel buffer to initialize
         */
         void csrPixelBufferInit(CSR_PixelBuffer* pPB);
+
+        //-------------------------------------------------------------------
+        // Texture shader functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a texture shader structure
+        *@param pTextureShader - texture shader to initialize
+        */
+        void csrTextureShaderInit(CSR_TextureShader* pTextureShader);
 
 #ifdef __cplusplus
     }
