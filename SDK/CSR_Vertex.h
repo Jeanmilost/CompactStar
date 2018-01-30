@@ -132,11 +132,14 @@ typedef struct
 * Called when a vertex color should be get
 *@param pVB - vertex buffer that will contain the vertex for which the color should be get
 *@param pNormal - vertex normal
+*@param groupIndex - the vertex group index (e.g. the inner and outer vertices of a ring)
 *@return RGBA color to apply to the vertex
 *@note This callback will be called only if the per-vertex color option is activated in the vertex
 *      buffer
 */
-typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR_Vector3* pNormal);
+typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
+                                          const CSR_Vector3*      pNormal,
+                                                size_t            groupIndex);
 
 #ifdef __cplusplus
     extern "C"
@@ -196,6 +199,7 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR
         *@param pVertex - vertex
         *@param pNormal - normal
         *@param pUV - texture coordinate
+        *@param groupIndex - the vertex group index (e.g. the inner and outer vertices of a ring)
         *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
         *@param[in, out] pVB - vertex buffer to add to
         *@return 1 on success, otherwise 0
@@ -203,6 +207,7 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB, const CSR
         int csrVertexBufferAdd(CSR_Vector3*          pVertex,
                                CSR_Vector3*          pNormal,
                                CSR_Vector2*          pUV,
+                               size_t                groupIndex,
                                CSR_fOnGetVertexColor fOnGetVertexColor,
                                CSR_VertexBuffer*     pVB);
 
