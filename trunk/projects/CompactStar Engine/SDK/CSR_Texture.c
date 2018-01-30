@@ -63,3 +63,16 @@ void csrPixelBufferInit(CSR_PixelBuffer* pPB)
     pPB->m_pData        = 0;
 }
 //---------------------------------------------------------------------------
+// Texture shader functions
+//---------------------------------------------------------------------------
+void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
+{
+    // no texture shader to initialize?
+    if (!pTextureShader)
+        return;
+
+    // initialize the texture shader content
+    pTextureShader->m_TextureID = GL_INVALID_VALUE;
+    pTextureShader->m_BumpMapID = GL_INVALID_VALUE;
+}
+//---------------------------------------------------------------------------

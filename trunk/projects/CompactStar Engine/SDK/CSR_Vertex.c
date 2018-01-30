@@ -16,19 +16,6 @@
 #include "CSR_Vertex.h"
 
 //---------------------------------------------------------------------------
-// Vertex properties functions
-//---------------------------------------------------------------------------
-void csrVertexPropsInit(CSR_VertexProps* pVertexProps)
-{
-    // no vertex props to initialize?
-    if (!pVertexProps)
-        return;
-
-    // initialize the vertex properties content
-    pVertexProps->m_Color       = 0xFFFFFFFF;
-    pVertexProps->m_Transparent = 0;
-}
-//---------------------------------------------------------------------------
 // Vertex format functions
 //---------------------------------------------------------------------------
 void csrVertexFormatInit(CSR_VertexFormat* pVertexFormat)
@@ -116,14 +103,14 @@ void csrVertexBufferInit(CSR_VertexBuffer* pVB)
     if (!pVB)
         return;
 
-    // initialize the vertex properties content
-    csrVertexPropsInit(&pVB->m_Properties);
-
     // initialize the vertex format content
     csrVertexFormatInit(&pVB->m_Format);
 
     // initialize the vertex culling content
     csrVertexCullingInit(&pVB->m_Culling);
+
+    // initialize the vertex material content
+    csrMaterialInit(&pVB->m_Material);
 
     // initialize the vertex buffer content
     pVB->m_pData = 0;
@@ -226,7 +213,7 @@ int csrVertexBufferAdd(CSR_Vector3*          pVertex,
         if (fOnGetVertexColor)
             color = fOnGetVertexColor(pVB, pNormal);
         else
-            color = pVB->m_Properties.m_Color;
+            color = pVB->m_Material.m_Color;
 
         // set color data
         pVB->m_pData[offset]     = (float)((color >> 24) & 0xFF) / 255.0f;
@@ -239,19 +226,6 @@ int csrVertexBufferAdd(CSR_Vector3*          pVertex,
     pVB->m_Count += pVB->m_Format.m_Stride;
 
     return 1;
-}
-//---------------------------------------------------------------------------
-// Mesh shader functions
-//---------------------------------------------------------------------------
-void csrMeshShaderInit(CSR_MeshShader* pMeshShader)
-{
-    // no mesh shader to initialize?
-    if (!pMeshShader)
-        return;
-
-    // initialize the mesh shader content
-    pMeshShader->m_TextureID = GL_INVALID_VALUE;
-    pMeshShader->m_BumpMapID = GL_INVALID_VALUE;
 }
 //---------------------------------------------------------------------------
 // Mesh functions
@@ -310,8 +284,8 @@ void csrMeshInit(CSR_Mesh* pMesh)
     if (!pMesh)
         return;
 
-    // initialize the mesh shader content
-    csrMeshShaderInit(&pMesh->m_Shader);
+    // initialize the texture shader content
+    csrTextureShaderInit(&pMesh->m_Shader);
 
     // initialize the mesh content
     pMesh->m_pVB   = 0;

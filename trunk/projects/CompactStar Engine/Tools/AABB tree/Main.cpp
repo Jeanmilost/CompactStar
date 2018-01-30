@@ -240,9 +240,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // clear all the previous models and meshes
     ClearModelsAndMeshes();
 
-    CSR_VertexProps vp;
-    vp.m_Color       = csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
-    vp.m_Transparent = 0;
+    CSR_Material material;
+    material.m_Color       = csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
+    material.m_Transparent = 0;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -259,7 +259,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateSurface(1.0f, 1.0f, &vp, &vf, 0, 0);
+            m_pMesh = csrShapeCreateSurface(1.0f, 1.0f, &vf, 0, &material, 0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -290,7 +290,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             csrShaderEnable(m_pShader_ColoredMesh);
 
             // create the shape to show
-            m_pMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vp, &vf, 0, 0);
+            m_pMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, &material, 0);
 
             // create the AABB tree from the mesh
             CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -324,9 +324,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             m_pMesh = csrShapeCreateSphere(0.5f,
                                          ::StrToInt(pModelSelection->edSlices->Text),
                                          ::StrToInt(pModelSelection->edStacks->Text),
-                                          &vp,
                                           &vf,
                                            0,
+                                          &material,
                                            0);
 
             // create the AABB tree from the mesh
@@ -362,9 +362,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             m_pMesh = csrShapeCreateCylinder(0.5f,
                                              1.0f,
                                            ::StrToInt(pModelSelection->edFaces->Text),
-                                            &vp,
                                             &vf,
                                             &vc,
+                                            &material,
                                              0);
 
             // create the AABB tree from the mesh
@@ -397,9 +397,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                          0.0f,
                                          0.5f,
                                        ::StrToInt(pModelSelection->edSlices->Text),
-                                        &vp,
                                         &vf,
                                          0,
+                                        &material,
                                          0);
 
             // create the AABB tree from the mesh
@@ -436,9 +436,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                          0.25f,
                                          0.5f,
                                        ::StrToInt(pModelSelection->edSlices->Text),
-                                        &vp,
                                         &vf,
                                          0,
+                                        &material,
                                          0);
 
             // create the AABB tree from the mesh
@@ -479,9 +479,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                            0.1f,
                                          ::StrToInt(pModelSelection->edSlices->Text),
                                          ::StrToInt(pModelSelection->edStacks->Text),
-                                          &vp,
                                           &vf,
                                            0,
+                                          &material,
                                            0);
 
             // create the AABB tree from the mesh
@@ -528,8 +528,8 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 // load MDL model
                 pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
                                              0,
-                                             0,
                                             &vertexFormat,
+                                             0,
                                              0,
                                              0);
 
@@ -785,9 +785,9 @@ void TMainForm::InitScene(int w, int h)
     // enable the colored program
     csrShaderEnable(m_pShader_ColoredMesh);
 
-    CSR_VertexProps vp;
-    vp.m_Color       = 0xFFFF;
-    vp.m_Transparent = 0;
+    CSR_Material material;
+    material.m_Color       = 0xFFFF;
+    material.m_Transparent = 0;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -795,7 +795,7 @@ void TMainForm::InitScene(int w, int h)
     vf.m_HasPerVertexColor = 1;
 
     // create a default sphere
-    m_pMesh = csrShapeCreateSphere(0.5f, 10, 10, &vp, &vf, 0, 0);
+    m_pMesh = csrShapeCreateSphere(0.5f, 10, 10, &vf, 0, &material, 0);
 
     // create the AABB tree for the sphere mesh
     CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
@@ -1155,9 +1155,9 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 
     try
     {
-        CSR_VertexProps vp;
-        vp.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
-        vp.m_Transparent = 0;
+        CSR_Material material;
+        material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
+        material.m_Transparent = 0;
 
         CSR_VertexFormat vf;
         vf.m_HasNormal         = 0;
@@ -1170,9 +1170,9 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
                                   1.0f,
                                   1.0f,
                                   0,
-                                 &vp,
                                  &vf,
                                   0,
+                                 &material,
                                   0);
 
         CSR_Vector3 t;

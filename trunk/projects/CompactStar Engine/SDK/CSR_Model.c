@@ -285,9 +285,9 @@ unsigned char g_ColorTable[] =
 //---------------------------------------------------------------------------
 CSR_Mesh* csrShapeCreateSurface(      float                 width,
                                       float                 height,
-                                const CSR_VertexProps*      pVertProps,
                                 const CSR_VertexFormat*     pVertFormat,
                                 const CSR_VertexCulling*    pVertCulling,
+                                const CSR_Material*         pMaterial,
                                       CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
@@ -327,10 +327,6 @@ CSR_Mesh* csrShapeCreateSurface(      float                 width,
     // initialize the newly created vertex buffer
     csrVertexBufferInit(pMesh->m_pVB);
 
-    // apply the user wished vertex properties
-    if (pVertProps)
-        pMesh->m_pVB->m_Properties = *pVertProps;
-
     // apply the user wished vertex format
     if (pVertFormat)
         pMesh->m_pVB->m_Format = *pVertFormat;
@@ -344,6 +340,10 @@ CSR_Mesh* csrShapeCreateSurface(      float                 width,
         pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
         pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
     }
+
+    // apply the user wished material
+    if (pMaterial)
+        pMesh->m_pVB->m_Material = *pMaterial;
 
     // set the vertex format type
     pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -405,9 +405,9 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
                                   float                 height,
                                   float                 depth,
                                   int                   repeatTexOnEachFace,
-                            const CSR_VertexProps*      pVertProps,
                             const CSR_VertexFormat*     pVertFormat,
                             const CSR_VertexCulling*    pVertCulling,
+                            const CSR_Material*         pMaterial,
                                   CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    color;
@@ -446,10 +446,6 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
         // initialize the vertex buffer
         csrVertexBufferInit(&pMesh->m_pVB[i]);
 
-        // apply the user wished vertex properties
-        if (pVertProps)
-            pMesh->m_pVB[i].m_Properties = *pVertProps;
-
         // apply the user wished vertex format
         if (pVertFormat)
             pMesh->m_pVB[i].m_Format = *pVertFormat;
@@ -457,6 +453,10 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
         // apply the user wished vertex culling
         if (pVertCulling)
             pMesh->m_pVB[i].m_Culling = *pVertCulling;
+
+        // apply the user wished material
+        if (pMaterial)
+            pMesh->m_pVB[i].m_Material = *pMaterial;
 
         // set the vertex format type
         pMesh->m_pVB[i].m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -618,9 +618,9 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
 CSR_Mesh* csrShapeCreateSphere(      float                 radius,
                                      int                   slices,
                                      int                   stacks,
-                               const CSR_VertexProps*      pVertProps,
                                const CSR_VertexFormat*     pVertFormat,
                                const CSR_VertexCulling*    pVertCulling,
+                               const CSR_Material*         pMaterial,
                                      CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int               i;
@@ -678,10 +678,6 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
         // initialize the newly created vertex buffer
         csrVertexBufferInit(&pMesh->m_pVB[index]);
 
-        // apply the user wished vertex properties
-        if (pVertProps)
-            pMesh->m_pVB[index].m_Properties = *pVertProps;
-
         // apply the user wished vertex format
         if (pVertFormat)
             pMesh->m_pVB[index].m_Format = *pVertFormat;
@@ -689,6 +685,10 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
         // apply the user wished vertex culling
         if (pVertCulling)
             pMesh->m_pVB[index].m_Culling = *pVertCulling;
+
+        // apply the user wished material
+        if (pMaterial)
+            pMesh->m_pVB[index].m_Material = *pMaterial;
 
         // set the vertex format type
         pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -765,9 +765,9 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
 CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
                                        float                 height,
                                        int                   faces,
-                                 const CSR_VertexProps*      pVertProps,
                                  const CSR_VertexFormat*     pVertFormat,
                                  const CSR_VertexCulling*    pVertCulling,
+                                 const CSR_Material*         pMaterial,
                                        CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
@@ -799,10 +799,6 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
     // initialize the newly created vertex buffer
     csrVertexBufferInit(pMesh->m_pVB);
 
-    // apply the user wished vertex properties
-    if (pVertProps)
-        pMesh->m_pVB->m_Properties = *pVertProps;
-
     // apply the user wished vertex format
     if (pVertFormat)
         pMesh->m_pVB->m_Format = *pVertFormat;
@@ -810,6 +806,10 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
     // apply the user wished vertex culling
     if (pVertCulling)
         pMesh->m_pVB->m_Culling = *pVertCulling;
+
+    // apply the user wished material
+    if (pMaterial)
+        pMesh->m_pVB->m_Material = *pMaterial;
 
     // set the vertex format type
     pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -884,9 +884,9 @@ CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
                                    float                 centerY,
                                    float                 radius,
                                    unsigned              slices,
-                             const CSR_VertexProps*      pVertProps,
                              const CSR_VertexFormat*     pVertFormat,
                              const CSR_VertexCulling*    pVertCulling,
+                             const CSR_Material*         pMaterial,
                                    CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
@@ -920,10 +920,6 @@ CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
     // initialize the newly created vertex buffer
     csrVertexBufferInit(pMesh->m_pVB);
 
-    // apply the user wished vertex properties
-    if (pVertProps)
-        pMesh->m_pVB->m_Properties = *pVertProps;
-
     // apply the user wished vertex format
     if (pVertFormat)
         pMesh->m_pVB->m_Format = *pVertFormat;
@@ -937,6 +933,10 @@ CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
         pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
         pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
     }
+
+    // apply the user wished material
+    if (pMaterial)
+        pMesh->m_pVB->m_Material = *pMaterial;
 
     // set the vertex format type
     pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleFan;
@@ -1007,9 +1007,9 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
                                    float                 minRadius,
                                    float                 maxRadius,
                                    unsigned              slices,
-                             const CSR_VertexProps*      pVertProps,
                              const CSR_VertexFormat*     pVertFormat,
                              const CSR_VertexCulling*    pVertCulling,
+                             const CSR_Material*         pMaterial,
                                    CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
@@ -1046,10 +1046,6 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
     // initialize the newly created vertex buffer
     csrVertexBufferInit(pMesh->m_pVB);
 
-    // apply the user wished vertex properties
-    if (pVertProps)
-        pMesh->m_pVB->m_Properties = *pVertProps;
-
     // apply the user wished vertex format
     if (pVertFormat)
         pMesh->m_pVB->m_Format = *pVertFormat;
@@ -1063,6 +1059,10 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
         pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
         pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
     }
+
+    // apply the user wished material
+    if (pMaterial)
+        pMesh->m_pVB->m_Material = *pMaterial;
 
     // set the vertex format type
     pMesh->m_pVB->m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -1159,9 +1159,9 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
                                      float                 deltaZ,
                                      unsigned              slices,
                                      unsigned              stacks,
-                               const CSR_VertexProps*      pVertProps,
                                const CSR_VertexFormat*     pVertFormat,
                                const CSR_VertexCulling*    pVertCulling,
+                               const CSR_Material*         pMaterial,
                                      CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned          i;
@@ -1217,10 +1217,6 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
         // initialize the newly created vertex buffer
         csrVertexBufferInit(&pMesh->m_pVB[index]);
 
-        // apply the user wished vertex properties
-        if (pVertProps)
-            pMesh->m_pVB[index].m_Properties = *pVertProps;
-
         // apply the user wished vertex format
         if (pVertFormat)
             pMesh->m_pVB[index].m_Format = *pVertFormat;
@@ -1234,6 +1230,10 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
             pMesh->m_pVB[index].m_Culling.m_Type = CSR_CT_None;
             pMesh->m_pVB[index].m_Culling.m_Face = CSR_CF_CW;
         }
+
+        // apply the user wished material
+        if (pMaterial)
+            pMesh->m_pVB[index].m_Material = *pMaterial;
 
         // set the vertex format type
         pMesh->m_pVB[index].m_Format.m_Type = CSR_VT_TriangleStrip;
@@ -1424,9 +1424,9 @@ void csrModelInit(CSR_Model* pModel)
 //---------------------------------------------------------------------------
 CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                       const CSR_Buffer*           pPalette,
-                      const CSR_VertexProps*      pVertProps,
                       const CSR_VertexFormat*     pVertFormat,
                       const CSR_VertexCulling*    pVertCulling,
+                      const CSR_Material*         pMaterial,
                             CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     CSR_MDLHeader*       pHeader;
@@ -1616,11 +1616,17 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                     return 0;
                 }
 
-                // get the texture color
-                if (pVertProps)
-                    color = pVertProps->m_Color;
+                // get the texture color from material
+                if (pMaterial)
+                    color = pMaterial->m_Color;
                 else
-                    color = 0xFFFFFFFF;
+                {
+                    // create a default material (because the model vertex buffer is still not created)
+                    CSR_Material material;
+                    csrMaterialInit(&material);
+
+                    color = material.m_Color;
+                }
 
                 // initialize the buffer
                 for (j = 0; j < 16; ++j)
@@ -1766,9 +1772,9 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                            &pFrameGroup[i],
                             pPolygon,
                             pTexCoord,
-                            pVertProps,
                             pVertFormat,
                             pVertCulling,
+                            pMaterial,
                             fOnGetVertexColor,
                            &pMDL->m_pModel[i]);
     }
@@ -1781,9 +1787,9 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
 //---------------------------------------------------------------------------
 CSR_MDL* csrMDLOpen(const char*                 pFileName,
                     const CSR_Buffer*           pPalette,
-                    const CSR_VertexProps*      pVertProps,
                     const CSR_VertexFormat*     pVertFormat,
                     const CSR_VertexCulling*    pVertCulling,
+                    const CSR_Material*         pMaterial,
                           CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     CSR_Buffer* pBuffer;
@@ -1802,9 +1808,9 @@ CSR_MDL* csrMDLOpen(const char*                 pFileName,
     // create the MDL model from the file content
     pMDL = csrMDLCreate(pBuffer,
                         pPalette,
-                        pVertProps,
                         pVertFormat,
                         pVertCulling,
+                        pMaterial,
                         fOnGetVertexColor);
 
     // release the file buffer (no longer required)
@@ -2441,9 +2447,9 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
                          const CSR_MDLFrameGroup*    pFrameGroup,
                          const CSR_MDLPolygon*       pPolygon,
                          const CSR_MDLTextureCoord*  pTexCoord,
-                         const CSR_VertexProps*      pVertProps,
                          const CSR_VertexFormat*     pVertFormat,
                          const CSR_VertexCulling*    pVertCulling,
+                         const CSR_Material*         pMaterial,
                                CSR_fOnGetVertexColor fOnGetVertexColor,
                                CSR_Model*            pModel)
 {
@@ -2487,10 +2493,6 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
         // prepare the next vertex buffer format
         csrVertexBufferInit(pModel->m_pMesh[i].m_pVB);
 
-        // apply the user wished vertex properties
-        if (pVertProps)
-            pModel->m_pMesh[i].m_pVB->m_Properties = *pVertProps;
-
         // apply the user wished vertex format
         if (pVertFormat)
             pModel->m_pMesh[i].m_pVB->m_Format = *pVertFormat;
@@ -2507,6 +2509,10 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
         else
             // otherwise configure the default culling
             pModel->m_pMesh[i].m_pVB->m_Culling.m_Face = CSR_CF_CW;
+
+        // apply the user wished material
+        if (pMaterial)
+            pModel->m_pMesh[i].m_pVB->m_Material = *pMaterial;
 
         // set the vertex format type
         pModel->m_pMesh[i].m_pVB->m_Format.m_Type = CSR_VT_Triangles;
