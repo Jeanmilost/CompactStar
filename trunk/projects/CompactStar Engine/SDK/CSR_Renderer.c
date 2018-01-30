@@ -37,6 +37,14 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     size_t  offset;
     size_t  vertexCount;
 
+    // no mesh to draw?
+    if (!pMesh)
+        return;
+
+    // no shader?
+    if (!pShader)
+        return;
+
     // iterate through the vertex buffers composing the mesh to draw
     for (i = 0; i < pMesh->m_Count; ++i)
     {
@@ -56,6 +64,22 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             case CSR_CF_CW:  glFrontFace(GL_CW);  break;
             case CSR_CF_CCW: glFrontFace(GL_CCW); break;
         }
+
+        // configure the alpha blending
+        if (pMesh->m_pVB[i].m_Material.m_Transparent)
+        {
+            glEnable(GL_BLEND);
+            glBlendEquation(GL_FUNC_ADD);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        else
+            glDisable(GL_BLEND);
+
+        // configure the wireframe mode
+        if (pMesh->m_pVB[i].m_Material.m_Wireframe)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // vertices have UV texture coordinates?
         if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
@@ -145,7 +169,7 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             offset += 2;
         }
 
-        // vertices have color?
+        // vertices have per-vertex color?
         if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
         {
             // send colors to shader
@@ -156,6 +180,18 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
                                   GL_FALSE,
                                   pMesh->m_pVB[i].m_Format.m_Stride * sizeof(float),
                                   pColors);
+        }
+        else
+        if (pShader->m_ColorSlot != -1)
+        {
+            // get the color component values
+            const float r = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 24) & 0xFF) / 255.0f;
+            const float g = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 16) & 0xFF) / 255.0f;
+            const float b = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 8)  & 0xFF) / 255.0f;
+            const float a = (float) (pMesh->m_pVB[i].m_Material.m_Color        & 0xFF) / 255.0f;
+
+            // connect the vertex color to the shader
+            glVertexAttrib4f(pShader->m_ColorSlot, r, g, b, a);
         }
 
         // calculate the vertex count
@@ -184,6 +220,16 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
             glDisableVertexAttribArray(pShader->m_ColorSlot);
     }
+}
+//---------------------------------------------------------------------------
+void csrSceneDrawModel(const CSR_Model* pModel, size_t index, CSR_Shader* pShader)
+{
+    // no model to draw?
+    if (!pModel)
+        return;
+
+    // draw the model mesh
+    csrSceneDrawMesh(&pModel->m_pMesh[index % pModel->m_MeshCount], pShader);
 }
 //---------------------------------------------------------------------------
 void csrSceneDrawMDL(const CSR_MDL*    pMDL,

@@ -50,6 +50,14 @@
         void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader);
 
         /**
+        * Draws a model in a scene
+        *@param pModel - model to draw
+        *@param index - model mesh index
+        *@param pShader - shader to use to draw the mesh
+        */
+        void csrSceneDrawModel(const CSR_Model* pModel, size_t index, CSR_Shader* pShader);
+
+        /**
         * Draws a MDL model in a scene
         *@param pMDL - MDL model to draw
         *@param pShader - shader to use to draw the model
