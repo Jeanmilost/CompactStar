@@ -121,6 +121,7 @@ void csrVertexBufferInit(CSR_VertexBuffer* pVB)
 int csrVertexBufferAdd(CSR_Vector3*          pVertex,
                        CSR_Vector3*          pNormal,
                        CSR_Vector2*          pUV,
+                       size_t                groupIndex,
                        CSR_fOnGetVertexColor fOnGetVertexColor,
                        CSR_VertexBuffer*     pVB)
 {
@@ -211,7 +212,7 @@ int csrVertexBufferAdd(CSR_Vector3*          pVertex,
 
         // get the vertex color
         if (fOnGetVertexColor)
-            color = fOnGetVertexColor(pVB, pNormal);
+            color = fOnGetVertexColor(pVB, pNormal, groupIndex);
         else
             color = pVB->m_Material.m_Color;
 

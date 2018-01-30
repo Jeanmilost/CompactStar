@@ -395,7 +395,7 @@ CSR_Mesh* csrShapeCreateSurface(      float                 width,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, i, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
@@ -577,40 +577,40 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
     }
 
     // create box edge 1
-    csrVertexBufferAdd(&vertices[1], &normals[0], &texCoords[4], fOnGetVertexColor, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[0], &normals[0], &texCoords[5], fOnGetVertexColor, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[3], &normals[0], &texCoords[6], fOnGetVertexColor, &pMesh->m_pVB[0]);
-    csrVertexBufferAdd(&vertices[2], &normals[0], &texCoords[7], fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[1], &normals[0], &texCoords[4], 0, fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[0], &normals[0], &texCoords[5], 1, fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[3], &normals[0], &texCoords[6], 2, fOnGetVertexColor, &pMesh->m_pVB[0]);
+    csrVertexBufferAdd(&vertices[2], &normals[0], &texCoords[7], 3, fOnGetVertexColor, &pMesh->m_pVB[0]);
 
     // create box edge 2
-    csrVertexBufferAdd(&vertices[3], &normals[5], &texCoords[8],  fOnGetVertexColor, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[2], &normals[5], &texCoords[9],  fOnGetVertexColor, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[7], &normals[5], &texCoords[10], fOnGetVertexColor, &pMesh->m_pVB[1]);
-    csrVertexBufferAdd(&vertices[6], &normals[5], &texCoords[11], fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[3], &normals[5], &texCoords[8],  0, fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[2], &normals[5], &texCoords[9],  1, fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[7], &normals[5], &texCoords[10], 2, fOnGetVertexColor, &pMesh->m_pVB[1]);
+    csrVertexBufferAdd(&vertices[6], &normals[5], &texCoords[11], 3, fOnGetVertexColor, &pMesh->m_pVB[1]);
 
     // create box edge 3
-    csrVertexBufferAdd(&vertices[7], &normals[1], &texCoords[12], fOnGetVertexColor, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[6], &normals[1], &texCoords[13], fOnGetVertexColor, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[5], &normals[1], &texCoords[14], fOnGetVertexColor, &pMesh->m_pVB[2]);
-    csrVertexBufferAdd(&vertices[4], &normals[1], &texCoords[15], fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[7], &normals[1], &texCoords[12], 0, fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[6], &normals[1], &texCoords[13], 1, fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[5], &normals[1], &texCoords[14], 2, fOnGetVertexColor, &pMesh->m_pVB[2]);
+    csrVertexBufferAdd(&vertices[4], &normals[1], &texCoords[15], 3, fOnGetVertexColor, &pMesh->m_pVB[2]);
 
     // create box edge 4
-    csrVertexBufferAdd(&vertices[5], &normals[4], &texCoords[16], fOnGetVertexColor, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[4], &normals[4], &texCoords[17], fOnGetVertexColor, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[1], &normals[4], &texCoords[18], fOnGetVertexColor, &pMesh->m_pVB[3]);
-    csrVertexBufferAdd(&vertices[0], &normals[4], &texCoords[19], fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[5], &normals[4], &texCoords[16], 0, fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[4], &normals[4], &texCoords[17], 1, fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[1], &normals[4], &texCoords[18], 2, fOnGetVertexColor, &pMesh->m_pVB[3]);
+    csrVertexBufferAdd(&vertices[0], &normals[4], &texCoords[19], 3, fOnGetVertexColor, &pMesh->m_pVB[3]);
 
     // create box edge 5
-    csrVertexBufferAdd(&vertices[1], &normals[3], &texCoords[0], fOnGetVertexColor, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[3], &normals[3], &texCoords[1], fOnGetVertexColor, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[5], &normals[3], &texCoords[2], fOnGetVertexColor, &pMesh->m_pVB[4]);
-    csrVertexBufferAdd(&vertices[7], &normals[3], &texCoords[3], fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[1], &normals[3], &texCoords[0], 0, fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[3], &normals[3], &texCoords[1], 1, fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[5], &normals[3], &texCoords[2], 2, fOnGetVertexColor, &pMesh->m_pVB[4]);
+    csrVertexBufferAdd(&vertices[7], &normals[3], &texCoords[3], 3, fOnGetVertexColor, &pMesh->m_pVB[4]);
 
     // create box edge 6
-    csrVertexBufferAdd(&vertices[2], &normals[2], &texCoords[20], fOnGetVertexColor, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[0], &normals[2], &texCoords[21], fOnGetVertexColor, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[6], &normals[2], &texCoords[22], fOnGetVertexColor, &pMesh->m_pVB[5]);
-    csrVertexBufferAdd(&vertices[4], &normals[2], &texCoords[23], fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[2], &normals[2], &texCoords[20], 0, fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[0], &normals[2], &texCoords[21], 1, fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[6], &normals[2], &texCoords[22], 2, fOnGetVertexColor, &pMesh->m_pVB[5]);
+    csrVertexBufferAdd(&vertices[4], &normals[2], &texCoords[23], 3, fOnGetVertexColor, &pMesh->m_pVB[5]);
 
     return pMesh;
 }
@@ -732,7 +732,12 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex,
+                               &normal,
+                               &uv,
+                                j * 2,
+                                fOnGetVertexColor,
+                               &pMesh->m_pVB[index]);
 
             // calculate vertex
             vertex.m_X = x * r1;
@@ -755,7 +760,12 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex,
+                               &normal,
+                               &uv,
+                               (j * 2) + 1,
+                                fOnGetVertexColor,
+                               &pMesh->m_pVB[index]);
         }
     }
 
@@ -849,7 +859,7 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, i * 2, fOnGetVertexColor, pMesh->m_pVB);
 
         // set vertex data
         vertex.m_X =  radius * cosf(angle);
@@ -874,7 +884,7 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, (i * 2) + 1, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
@@ -996,7 +1006,7 @@ CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
             }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, i, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
@@ -1119,7 +1129,7 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, i * 2, fOnGetVertexColor, pMesh->m_pVB);
 
         // add max point in the buffer
         vertex.m_X = xB;
@@ -1144,7 +1154,7 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
         }
 
         // add the vertex to the buffer
-        csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, pMesh->m_pVB);
+        csrVertexBufferAdd(&vertex, &normal, &uv, (i * 2) + 1, fOnGetVertexColor, pMesh->m_pVB);
     }
 
     return pMesh;
@@ -1294,7 +1304,12 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex,
+                               &normal,
+                               &uv,
+                                j * 2,
+                                fOnGetVertexColor,
+                               &pMesh->m_pVB[index]);
 
             // add max point in the buffer
             vertex.m_X = xB;
@@ -1319,7 +1334,12 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
             }
 
             // add the vertex to the buffer
-            csrVertexBufferAdd(&vertex, &normal, &uv, fOnGetVertexColor, &pMesh->m_pVB[index]);
+            csrVertexBufferAdd(&vertex,
+                               &normal,
+                               &uv,
+                               (j * 2) + 1,
+                                fOnGetVertexColor,
+                               &pMesh->m_pVB[index]);
         }
 
         // correct the last values otherwise the spiral will appears broken
@@ -2566,6 +2586,7 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
                 if (!csrVertexBufferAdd(&vertex,
                                         &normal,
                                         &uv,
+                                        (j * 3) + k,
                                          fOnGetVertexColor,
                                          pModel->m_pMesh[i].m_pVB))
                     return;
