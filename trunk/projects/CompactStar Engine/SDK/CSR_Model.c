@@ -288,7 +288,7 @@ CSR_Mesh* csrShapeCreateSurface(      float                 width,
                                 const CSR_VertexFormat*     pVertFormat,
                                 const CSR_VertexCulling*    pVertCulling,
                                 const CSR_Material*         pMaterial,
-                                      CSR_fOnGetVertexColor fOnGetVertexColor)
+                                const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
     int         index;
@@ -408,7 +408,7 @@ CSR_Mesh* csrShapeCreateBox(      float                 width,
                             const CSR_VertexFormat*     pVertFormat,
                             const CSR_VertexCulling*    pVertCulling,
                             const CSR_Material*         pMaterial,
-                                  CSR_fOnGetVertexColor fOnGetVertexColor)
+                            const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    color;
     size_t      i;
@@ -621,7 +621,7 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
                                const CSR_VertexFormat*     pVertFormat,
                                const CSR_VertexCulling*    pVertCulling,
                                const CSR_Material*         pMaterial,
-                                     CSR_fOnGetVertexColor fOnGetVertexColor)
+                               const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int               i;
     int               j;
@@ -778,7 +778,7 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
                                  const CSR_VertexFormat*     pVertFormat,
                                  const CSR_VertexCulling*    pVertCulling,
                                  const CSR_Material*         pMaterial,
-                                       CSR_fOnGetVertexColor fOnGetVertexColor)
+                                 const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     int         i;
     float       angle;
@@ -897,7 +897,7 @@ CSR_Mesh* csrShapeCreateDisk(      float                 centerX,
                              const CSR_VertexFormat*     pVertFormat,
                              const CSR_VertexCulling*    pVertCulling,
                              const CSR_Material*         pMaterial,
-                                   CSR_fOnGetVertexColor fOnGetVertexColor)
+                             const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
     float       x;
@@ -1020,7 +1020,7 @@ CSR_Mesh* csrShapeCreateRing(      float                 centerX,
                              const CSR_VertexFormat*     pVertFormat,
                              const CSR_VertexCulling*    pVertCulling,
                              const CSR_Material*         pMaterial,
-                                   CSR_fOnGetVertexColor fOnGetVertexColor)
+                             const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned    i;
     float       xA;
@@ -1172,7 +1172,7 @@ CSR_Mesh* csrShapeCreateSpiral(      float                 centerX,
                                const CSR_VertexFormat*     pVertFormat,
                                const CSR_VertexCulling*    pVertCulling,
                                const CSR_Material*         pMaterial,
-                                     CSR_fOnGetVertexColor fOnGetVertexColor)
+                               const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     unsigned          i;
     unsigned          j;
@@ -1384,25 +1384,25 @@ void csrModelRelease(CSR_Model* pModel)
         for (i = 0; i < pModel->m_MeshCount; ++i)
         {
             // delete the texture
-            if (pModel->m_pMesh[i].m_Shader.m_TextureID != GL_INVALID_VALUE)
+            if (pModel->m_pMesh[i].m_Shader.m_TextureID != M_CSR_Error_Code)
             {
                 // check if the same texture is assigned to several meshes
                 for (j = i + 1; j < pModel->m_MeshCount; ++j)
                     if (pModel->m_pMesh[i].m_Shader.m_TextureID == pModel->m_pMesh[j].m_Shader.m_TextureID)
                         // reset the identifier to avoid to delete it twice
-                        pModel->m_pMesh[j].m_Shader.m_TextureID = GL_INVALID_VALUE;
+                        pModel->m_pMesh[j].m_Shader.m_TextureID = M_CSR_Error_Code;
 
                 glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_TextureID);
             }
 
             // delete the bump map
-            if (pModel->m_pMesh[i].m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+            if (pModel->m_pMesh[i].m_Shader.m_BumpMapID != M_CSR_Error_Code)
             {
                 // check if the same bump map is assigned to several meshes
                 for (j = i + 1; j < pModel->m_MeshCount; ++j)
                     if (pModel->m_pMesh[i].m_Shader.m_BumpMapID == pModel->m_pMesh[j].m_Shader.m_BumpMapID)
                         // reset the identifier to avoid to delete it twice
-                        pModel->m_pMesh[j].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
+                        pModel->m_pMesh[j].m_Shader.m_BumpMapID = M_CSR_Error_Code;
 
                 glDeleteTextures(1, &pModel->m_pMesh[i].m_Shader.m_BumpMapID);
             }
@@ -1447,7 +1447,7 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                       const CSR_VertexFormat*     pVertFormat,
                       const CSR_VertexCulling*    pVertCulling,
                       const CSR_Material*         pMaterial,
-                            CSR_fOnGetVertexColor fOnGetVertexColor)
+                      const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     CSR_MDLHeader*       pHeader;
     CSR_MDLSkin*         pSkin;
@@ -1810,7 +1810,7 @@ CSR_MDL* csrMDLOpen(const char*                 pFileName,
                     const CSR_VertexFormat*     pVertFormat,
                     const CSR_VertexCulling*    pVertCulling,
                     const CSR_Material*         pMaterial,
-                          CSR_fOnGetVertexColor fOnGetVertexColor)
+                    const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
     CSR_Buffer* pBuffer;
     CSR_MDL*    pMDL;
@@ -1854,7 +1854,7 @@ void csrMDLRelease(CSR_MDL* pMDL)
     {
         // delete each texture
         for (i = 0; i < pMDL->m_TextureCount; ++i)
-            if (pMDL->m_pTexture[i].m_TextureID != GL_INVALID_VALUE)
+            if (pMDL->m_pTexture[i].m_TextureID != M_CSR_Error_Code)
                 glDeleteTextures(1, &pMDL->m_pTexture[i].m_TextureID);
 
         // free the textures
@@ -2470,7 +2470,7 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
                          const CSR_VertexFormat*     pVertFormat,
                          const CSR_VertexCulling*    pVertCulling,
                          const CSR_Material*         pMaterial,
-                               CSR_fOnGetVertexColor fOnGetVertexColor,
+                         const CSR_fOnGetVertexColor fOnGetVertexColor,
                                CSR_Model*            pModel)
 {
     int            i;
@@ -2541,8 +2541,8 @@ void csrMDLPopulateModel(const CSR_MDLHeader*        pHeader,
         csrVertexFormatCalculateStride(&pModel->m_pMesh[i].m_pVB->m_Format);
 
         // configure the model texture
-        pModel->m_pMesh[i].m_Shader.m_TextureID = GL_INVALID_VALUE;
-        pModel->m_pMesh[i].m_Shader.m_BumpMapID = GL_INVALID_VALUE;
+        pModel->m_pMesh[i].m_Shader.m_TextureID = M_CSR_Error_Code;
+        pModel->m_pMesh[i].m_Shader.m_BumpMapID = M_CSR_Error_Code;
 
         // configure the frame time
         if (pFrameGroup->m_pTime)

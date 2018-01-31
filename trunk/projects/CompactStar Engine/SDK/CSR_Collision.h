@@ -80,14 +80,14 @@ struct CSR_AABBNode
 
         /**
         * Releases an AABB tree node content
-        *@param pNode - node for which content should be released
+        *@param[in, out] pNode - node for which content should be released
         *@note Only the node content is released, the node itself is not released
         */
         void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
 
         /**
         * Releases an AABB tree
-        *@param pNode - AABB tree root node to release from
+        *@param[in, out] pNode - AABB tree root node to release from
         */
         void csrAABBTreeRelease(CSR_AABBNode* pNode);
 

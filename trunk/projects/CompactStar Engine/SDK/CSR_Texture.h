@@ -80,13 +80,13 @@ typedef struct
 
         /**
         * Releases a pixel buffer
-        *@param pPB - pixel buffer to release
+        *@param[in, out] pPB - pixel buffer to release
         */
         void csrPixelBufferRelease(CSR_PixelBuffer* pPB);
 
         /**
         * Initializes a pixel buffer structure
-        *@param pPB - pixel buffer to initialize
+        *@param[in, out] pPB - pixel buffer to initialize
         */
         void csrPixelBufferInit(CSR_PixelBuffer* pPB);
 
@@ -96,7 +96,7 @@ typedef struct
 
         /**
         * Initializes a texture shader structure
-        *@param pTextureShader - texture shader to initialize
+        *@param[in, out] pTextureShader - texture shader to initialize
         */
         void csrTextureShaderInit(CSR_TextureShader* pTextureShader);
 

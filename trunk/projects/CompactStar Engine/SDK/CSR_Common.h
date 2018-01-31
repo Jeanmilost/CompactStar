@@ -39,8 +39,9 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-#define M_COMPACTSTAR_VERSION 0.1
-#define M_CSR_Epsilon         1.0E-3 // epsilon value used for tolerance
+#define M_CSR_Version    0.1
+#define M_CSR_Error_Code 0xFFFFFFFF // yes this is a 32 bit error code, but enough for this engine
+#define M_CSR_Epsilon    1.0E-3     // epsilon value used for tolerance
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -187,13 +188,13 @@ typedef struct
 
         /**
         * Releases a buffer and frees his memory
-        *@param pBuffer - buffer to release
+        *@param[in, out] pBuffer - buffer to release
         */
         void csrBufferRelease(CSR_Buffer* pBuffer);
 
         /**
         * Initializes a buffer structure
-        *@param pBuffer - buffer to initialize
+        *@param[in, out] pBuffer - buffer to initialize
         */
         void csrBufferInit(CSR_Buffer* pBuffer);
 

@@ -40,6 +40,25 @@ typedef struct
     GLint  m_ModelSlot;
 } CSR_Shader;
 
+/**
+* Shader attribute. Used to declare a static attribute, like e.g. a vertex buffer, in a shader
+*/
+typedef struct
+{
+    char*  m_pName;
+    size_t m_Index;
+    size_t m_Length;
+} CSR_ShaderAttribute;
+
+/**
+* Shader attributes
+*/
+typedef struct
+{
+    CSR_ShaderAttribute* m_pAttribute;
+    size_t               m_Count;
+} CSR_ShaderAttributes;
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -57,13 +76,13 @@ typedef struct
 
         /**
         * Releases a shader
-        *@param pShader - shader to release
+        *@param[in, out] pShader - shader to release
         */
         void csrShaderRelease(CSR_Shader* pShader);
 
         /**
         * Initializes a shader structure
-        *@param pShader - shader to initialize
+        *@param[in, out] pShader - shader to initialize
         */
         void csrShaderInit(CSR_Shader* pShader);
 
@@ -122,6 +141,26 @@ typedef struct
         *@param pShader - shader to enable, disable any previously enabled shader if 0
         */
         void csrShaderEnable(CSR_Shader* pShader);
+
+        //-------------------------------------------------------------------
+        // Shader attribute functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a shader attribute structure
+        *@param[in, out] pSA - shader attribute to initialize
+        */
+        void csrShaderAttributeInit(CSR_ShaderAttribute* pSA);
+
+        //-------------------------------------------------------------------
+        // Shader attributes functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a shader attributes structure
+        *@param[in, out] pSA - shader attributes to initialize
+        */
+        void csrShaderAttributesInit(CSR_ShaderAttributes* pSA);
 
 #ifdef __cplusplus
     }

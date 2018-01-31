@@ -185,7 +185,7 @@ typedef struct
                                         const CSR_VertexFormat*     pVertFormat,
                                         const CSR_VertexCulling*    pVertCulling,
                                         const CSR_Material*         pMaterial,
-                                              CSR_fOnGetVertexColor fOnGetVertexColor);
+                                        const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a box
@@ -207,7 +207,7 @@ typedef struct
                                     const CSR_VertexFormat*     pVertFormat,
                                     const CSR_VertexCulling*    pVertCulling,
                                     const CSR_Material*         pMaterial,
-                                          CSR_fOnGetVertexColor fOnGetVertexColor);
+                                    const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a sphere
@@ -227,7 +227,7 @@ typedef struct
                                        const CSR_VertexFormat*     pVertFormat,
                                        const CSR_VertexCulling*    pVertCulling,
                                        const CSR_Material*         pMaterial,
-                                             CSR_fOnGetVertexColor fOnGetVertexColor);
+                                       const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a cylinder
@@ -247,7 +247,7 @@ typedef struct
                                          const CSR_VertexFormat*     pVertFormat,
                                          const CSR_VertexCulling*    pVertCulling,
                                          const CSR_Material*         pMaterial,
-                                               CSR_fOnGetVertexColor fOnGetVertexColor);
+                                         const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a disk
@@ -269,7 +269,7 @@ typedef struct
                                      const CSR_VertexFormat*     pVertFormat,
                                      const CSR_VertexCulling*    pVertCulling,
                                      const CSR_Material*         pMaterial,
-                                           CSR_fOnGetVertexColor fOnGetVertexColor);
+                                     const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a ring
@@ -293,7 +293,7 @@ typedef struct
                                      const CSR_VertexFormat*     pVertFormat,
                                      const CSR_VertexCulling*    pVertCulling,
                                      const CSR_Material*         pMaterial,
-                                           CSR_fOnGetVertexColor fOnGetVertexColor);
+                                     const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Creates a spiral
@@ -325,7 +325,7 @@ typedef struct
                                        const CSR_VertexFormat*     pVertFormat,
                                        const CSR_VertexCulling*    pVertCulling,
                                        const CSR_Material*         pMaterial,
-                                             CSR_fOnGetVertexColor fOnGetVertexColor);
+                                       const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         //-------------------------------------------------------------------
         // Model functions
@@ -340,13 +340,13 @@ typedef struct
 
         /**
         * Releases a model
-        *@param pModel - model to release
+        *@param[in, out] pModel - model to release
         */
         void csrModelRelease(CSR_Model* pModel);
 
         /**
         * Initializes a model structure
-        *@param pModel - model to initialize
+        *@param[in, out] pModel - model to initialize
         */
         void csrModelInit(CSR_Model* pModel);
 
@@ -370,7 +370,7 @@ typedef struct
                               const CSR_VertexFormat*     pVertFormat,
                               const CSR_VertexCulling*    pVertCulling,
                               const CSR_Material*         pMaterial,
-                                    CSR_fOnGetVertexColor fOnGetVertexColor);
+                              const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Opens a MDL model from a file
@@ -388,17 +388,17 @@ typedef struct
                             const CSR_VertexFormat*     pVertFormat,
                             const CSR_VertexCulling*    pVertCulling,
                             const CSR_Material*         pMaterial,
-                                  CSR_fOnGetVertexColor fOnGetVertexColor);
+                            const CSR_fOnGetVertexColor fOnGetVertexColor);
 
         /**
         * Releases a MDL model
-        *@param pMDL - MDL model to release
+        *@param[in, out] pMDL - MDL model to release
         */
         void csrMDLRelease(CSR_MDL* pMDL);
 
         /**
         * Initializes a MDL model structure
-        *@param pMDL - MDL model to initialize
+        *@param[in, out] pMDL - MDL model to initialize
         */
         void csrMDLInit(CSR_MDL* pMDL);
 
@@ -558,7 +558,7 @@ typedef struct
                                  const CSR_VertexFormat*     pVertFormat,
                                  const CSR_VertexCulling*    pVertCulling,
                                  const CSR_Material*         pMaterial,
-                                       CSR_fOnGetVertexColor fOnGetVertexColor,
+                                 const CSR_fOnGetVertexColor fOnGetVertexColor,
                                        CSR_Model*            pModel);
 
         /**
