@@ -280,3 +280,26 @@ void csrShaderEnable(CSR_Shader* pShader)
     glUseProgram(pShader->m_ProgramID);
 }
 //---------------------------------------------------------------------------
+void csrShaderAttributeInit(CSR_ShaderAttribute* pSA)
+{
+    // no shader attribute to initialize?
+    if (!pSA)
+        return;
+
+    // initialize the shader attribute content
+    pSA->m_pName  = 0;
+    pSA->m_Index  = 0;
+    pSA->m_Length = 0;
+}
+//---------------------------------------------------------------------------
+void csrShaderAttributesInit(CSR_ShaderAttributes* pSA)
+{
+    // no shader attributes to initialize?
+    if (!pSA)
+        return;
+
+    // initialize the shader attributes content
+    pSA->m_pAttribute = 0;
+    pSA->m_Count      = 0;
+}
+//---------------------------------------------------------------------------

@@ -68,8 +68,8 @@ typedef struct
 
         /**
         * Releases OpenAL
-        *@param pOpenALDevice - OpenAL device to release
-        *@param pOpenALContext - OpenAL context to release
+        *@param[in, out] pOpenALDevice - OpenAL device to release
+        *@param[in, out] pOpenALContext - OpenAL context to release
         */
         void csrSoundReleaseOpenAL(ALCdevice* pOpenALDevice, ALCcontext* pOpenALContext);
 
@@ -89,7 +89,7 @@ typedef struct
 
         /**
         * Releases a sound and frees his memory
-        *@param pSound - sound to release
+        *@param[in, out] pSound - sound to release
         */
         void csrSoundRelease(CSR_Sound* pSound);
 
@@ -109,7 +109,7 @@ typedef struct
 
         /**
         * Initializes a sound structure
-        *@param pSound - sound to initialize
+        *@param[in, out] pSound - sound to initialize
         */
         void csrSoundInit(CSR_Sound* pSound);
 

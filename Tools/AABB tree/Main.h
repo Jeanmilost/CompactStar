@@ -128,6 +128,7 @@ class TMainForm : public TForm
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
+        CSR_Mesh*        m_pBox;
         CSR_Mesh*        m_pMesh;
         CSR_MDL*         m_pMDL;
         IAABBTrees       m_AABBTrees;
@@ -259,16 +260,6 @@ class TMainForm : public TForm
         *@param[in, out] done - if true, event is done and will no longer be called
         */
         void __fastcall OnIdle(TObject* pSender, bool& done);
-
-        typedef struct
-        {
-            std::size_t m_Index;
-            std::size_t m_Length;
-            char*       m_pName;
-        } CSR_ShaderAttribute;
-        GLuint CreateStaticVertexBufferObject(const CSR_Shader*          pShader,
-                                              const CSR_ShaderAttribute* pSA,
-                                              const CSR_VertexBuffer*    pVB);
 };
 extern PACKAGE TMainForm* MainForm;
 #endif

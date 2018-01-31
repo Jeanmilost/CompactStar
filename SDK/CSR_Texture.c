@@ -72,7 +72,7 @@ void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
         return;
 
     // initialize the texture shader content
-    pTextureShader->m_TextureID = GL_INVALID_VALUE;
-    pTextureShader->m_BumpMapID = GL_INVALID_VALUE;
+    pTextureShader->m_TextureID = M_CSR_Error_Code;
+    pTextureShader->m_BumpMapID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------

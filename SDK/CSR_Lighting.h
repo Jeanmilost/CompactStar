@@ -43,7 +43,7 @@ typedef struct
 
         /**
         * Initializes a material structure
-        *@param pMaterial - material to initialize
+        *@param[in, out] pMaterial - material to initialize
         */
         void csrMaterialInit(CSR_Material* pMaterial);
 

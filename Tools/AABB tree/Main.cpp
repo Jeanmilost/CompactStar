@@ -131,6 +131,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hRC(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
+    m_pBox(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
     m_LastSelectedModel(-1),
@@ -806,6 +807,14 @@ void TMainForm::InitScene(int w, int h)
     if (pTree)
         m_AABBTrees.push_back(pTree);
 
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 0;
+    vf.m_HasPerVertexColor = 0;
+
+    // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
+    // create a generic box
+    m_pBox = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, 0, 0);
+
     // set the initial values
     m_pTextureLastTime = 0.0;
     m_pModelLastTime   = 0.0;
@@ -827,6 +836,9 @@ void TMainForm::DeleteScene()
 {
     // clear all the models and meshes composing the scene
     ClearModelsAndMeshes();
+
+    // release the box model
+    csrMeshRelease(m_pBox);
 
     // release the shaders
     csrShaderRelease(m_pShader_TexturedMesh);
@@ -1039,8 +1051,8 @@ void TMainForm::ResolveTreeAndDrawPolygons()
 
         // create and configure a mesh for the polygons
         mesh.m_Count                             =  1;
-        mesh.m_Shader.m_TextureID                =  GL_INVALID_VALUE;
-        mesh.m_Shader.m_BumpMapID                =  GL_INVALID_VALUE;
+        mesh.m_Shader.m_TextureID                =  M_CSR_Error_Code;
+        mesh.m_Shader.m_BumpMapID                =  M_CSR_Error_Code;
         mesh.m_pVB                               = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
         mesh.m_pVB->m_Format.m_Type              =  CSR_VT_Triangles;
         mesh.m_pVB->m_Format.m_HasNormal         =  0;
@@ -1099,6 +1111,10 @@ void TMainForm::ResolveTreeAndDrawPolygons()
 //---------------------------------------------------------------------------
 void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 {
+    // no box model to show?
+    if (!m_pBox)
+        return;
+
     // node contains left children?
     if (pTree->m_pLeft)
         DrawTreeBoxes(pTree->m_pLeft);
@@ -1140,73 +1156,49 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
         color = 0xFF000000;
     }
 
-    CSR_Mesh* pMesh = NULL;
+    CSR_Vector3 t;
+    CSR_Vector3 s;
+    CSR_Matrix4 translateMatrix;
+    CSR_Matrix4 scaleMatrix;
+    CSR_Matrix4 buildMatrix;
+    CSR_Matrix4 modelViewMatrix;
 
-    try
+    // set translation
+    t.m_X = (pTree->m_pBox->m_Max.m_X + pTree->m_pBox->m_Min.m_X) / 2.0f;
+    t.m_Y = (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
+    t.m_Z = (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
+
+    // build the translation matrix
+    csrMat4Translate(&t, &translateMatrix);
+
+    // set scaling
+    csrVec3Sub(&pTree->m_pBox->m_Max, &pTree->m_pBox->m_Min, &s);
+
+    // build the scale matrix
+    csrMat4Scale(&s, &scaleMatrix);
+
+    // build the model view matrix
+    csrMat4Multiply(&scaleMatrix, &translateMatrix, &buildMatrix);
+    csrMat4Multiply(&buildMatrix, &m_ModelMatrix,   &modelViewMatrix);
+
+    // enable the colored program
+    csrShaderEnable(m_pShader_ColoredMesh);
+
+    // connect the model view matrix to shader
+    GLint shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
+    glUniformMatrix4fv(shaderSlot, 1, 0, &modelViewMatrix.m_Table[0][0]);
+
+    // update the box material
+    for (std::size_t i = 0; i < m_pBox->m_Count; ++i)
     {
-        CSR_Material material;
-        material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
-        material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
-        material.m_Wireframe   = ckWireFrame->Checked;
-
-        CSR_VertexFormat vf;
-        vf.m_HasNormal         = 0;
-        vf.m_HasTexCoords      = 0;
-        vf.m_HasPerVertexColor = 0;
-
-        // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
-        // create a generic box
-        pMesh = csrShapeCreateBox(1.0f,
-                                  1.0f,
-                                  1.0f,
-                                  0,
-                                 &vf,
-                                  0,
-                                 &material,
-                                  0);
-
-        CSR_Vector3 t;
-        CSR_Vector3 s;
-        CSR_Matrix4 translateMatrix;
-        CSR_Matrix4 scaleMatrix;
-        CSR_Matrix4 buildMatrix;
-        CSR_Matrix4 modelViewMatrix;
-
-        // set translation
-        t.m_X = (pTree->m_pBox->m_Max.m_X + pTree->m_pBox->m_Min.m_X) / 2.0f;
-        t.m_Y = (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
-        t.m_Z = (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
-
-        // build the translation matrix
-        csrMat4Translate(&t, &translateMatrix);
-
-        // set scaling
-        csrVec3Sub(&pTree->m_pBox->m_Max, &pTree->m_pBox->m_Min, &s);
-
-        // build the scale matrix
-        csrMat4Scale(&s, &scaleMatrix);
-
-        // build the model view matrix
-        csrMat4Multiply(&scaleMatrix, &translateMatrix, &buildMatrix);
-        csrMat4Multiply(&buildMatrix, &m_ModelMatrix,   &modelViewMatrix);
-
-        // enable the colored program
-        csrShaderEnable(m_pShader_ColoredMesh);
-
-        // connect the model view matrix to shader
-        GLint shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
-        glUniformMatrix4fv(shaderSlot, 1, 0, &modelViewMatrix.m_Table[0][0]);
-
-        // draw the AABB box
-        if (pMesh)
-            csrSceneDrawMesh(pMesh, m_pShader_ColoredMesh);
+        m_pBox->m_pVB[i].m_Material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
+        m_pBox->m_pVB[i].m_Material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
+        m_pBox->m_pVB[i].m_Material.m_Wireframe   = ckWireFrame->Checked;
     }
-    __finally
-    {
-        // delete the mesh
-        if (pMesh)
-            csrMeshRelease(pMesh);
-    }
+
+    // draw the AABB box
+    if (m_pBox)
+        csrSceneDrawMesh(m_pBox, m_pShader_ColoredMesh);
 }
 //---------------------------------------------------------------------------
 CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
@@ -1409,36 +1401,5 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
     OnDrawScene(false);
-}
-//---------------------------------------------------------------------------
-GLuint TMainForm::CreateStaticVertexBufferObject(const CSR_Shader*          pShader,
-                                                 const CSR_ShaderAttribute* pSA,
-                                                 const CSR_VertexBuffer*    pVB)
-{
-    if (!pVB)
-        return 0;
-
-    GLuint vbo;
-
-    // allocate and assign a Vertex Buffer Objects to the currently selected OpenGL handle
-    glGenBuffers(1, &vbo);
-
-    // bind the newly created VBO as being the active buffer and storing vertex attributes
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    // copy the buffer data content to the graphic memory
-    glBufferData(GL_ARRAY_BUFFER, pVB->m_Count * sizeof(float), pVB->m_pData, GL_STATIC_DRAW);
-
-    // set an index for the shader attribute and reserve memory on the GPU for the content
-    glVertexAttribPointer(pSA->m_Index, pSA->m_Length, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // bind attribute index to shader name. BE CAREFUL, attribute locations must be set before
-    // calling glLinkProgram
-    glBindAttribLocation(pShader->m_ProgramID, pSA->m_Index, pSA->m_pName);
-
-    // enable attribute index
-    glEnableVertexAttribArray(pSA->m_Index);
-
-    return vbo;
 }
 //---------------------------------------------------------------------------

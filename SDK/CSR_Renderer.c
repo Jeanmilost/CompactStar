@@ -85,7 +85,7 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
         if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
         {
             // a texture is defined for this mesh?
-            if (pMesh->m_Shader.m_TextureID != GL_INVALID_VALUE)
+            if (pMesh->m_Shader.m_TextureID != M_CSR_Error_Code)
             {
                 // select the texture sampler to use (GL_TEXTURE0 for normal textures)
                 glActiveTexture(GL_TEXTURE0);
@@ -96,7 +96,7 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             }
 
             // a bump map is defined for this mesh?
-            if (pMesh->m_Shader.m_BumpMapID != GL_INVALID_VALUE)
+            if (pMesh->m_Shader.m_BumpMapID != M_CSR_Error_Code)
             {
                 // select the texture sampler to use (GL_TEXTURE1 for bump map textures)
                 glActiveTexture(GL_TEXTURE1);
@@ -253,7 +253,7 @@ void csrSceneDrawMDL(const CSR_MDL*    pMDL,
 
     // can use texture?
     if (pMesh->m_pVB->m_Format.m_HasTexCoords && textureIndex < pMDL->m_TextureCount &&
-            pMDL->m_pTexture[textureIndex].m_TextureID != GL_INVALID_VALUE)
+            pMDL->m_pTexture[textureIndex].m_TextureID != M_CSR_Error_Code)
         {
             // select the texture sampler to use (GL_TEXTURE0 for normal textures)
             glActiveTexture(GL_TEXTURE0);

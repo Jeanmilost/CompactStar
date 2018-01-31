@@ -20,6 +20,7 @@
 #include "CSR_Geometry.h"
 #include "CSR_Texture.h"
 #include "CSR_Lighting.h"
+#include "CSR_Shader.h"
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -96,6 +97,18 @@ typedef struct
 } CSR_VertexBuffer;
 
 /**
+* Static vertex buffer, i.e. a vertex buffer where the data were moved on the GPU
+*/
+typedef struct
+{
+    CSR_VertexFormat  m_Format;
+    CSR_VertexCulling m_Culling;
+    CSR_Material      m_Material;
+    GLuint            m_BufferID;
+    double            m_Time;
+} CSR_StaticVertexBuffer;
+
+/**
 * Mesh
 */
 typedef struct
@@ -105,6 +118,17 @@ typedef struct
     size_t            m_Count;
     double            m_Time;
 } CSR_Mesh;
+
+/**
+* Static mesh, i.e. a mesh where the vertex buffer data were moved on the GPU
+*/
+typedef struct
+{
+    CSR_TextureShader       m_Shader;
+    CSR_StaticVertexBuffer* m_pVB;
+    size_t                  m_Count;
+    double                  m_Time;
+} CSR_StaticMesh;
 
 /**
 * Indexed polygon
@@ -151,7 +175,7 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Initializes a vertex format structure
-        *@param pVertexFormat - vertex format to initialize
+        *@param[in, out] pVertexFormat - vertex format to initialize
         */
         void csrVertexFormatInit(CSR_VertexFormat* pVertexFormat);
 
@@ -167,7 +191,7 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Initializes a vertex culling structure
-        *@param pVertexCulling - vertex culling to initialize
+        *@param[in, out] pVertexCulling - vertex culling to initialize
         */
         void csrVertexCullingInit(CSR_VertexCulling* pVertexCulling);
 
@@ -184,13 +208,13 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Releases a vertex buffer
-        *@param pVB - vertex buffer to release
+        *@param[in, out] pVB - vertex buffer to release
         */
         void csrVertexBufferRelease(CSR_VertexBuffer* pVB);
 
         /**
         * Initializes a vertex buffer structure
-        *@param pVB - vertex buffer to initialize
+        *@param[in, out] pVB - vertex buffer to initialize
         */
         void csrVertexBufferInit(CSR_VertexBuffer* pVB);
 
@@ -204,12 +228,53 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
         *@param[in, out] pVB - vertex buffer to add to
         *@return 1 on success, otherwise 0
         */
-        int csrVertexBufferAdd(CSR_Vector3*          pVertex,
-                               CSR_Vector3*          pNormal,
-                               CSR_Vector2*          pUV,
-                               size_t                groupIndex,
-                               CSR_fOnGetVertexColor fOnGetVertexColor,
-                               CSR_VertexBuffer*     pVB);
+        int csrVertexBufferAdd(const CSR_Vector3*          pVertex,
+                               const CSR_Vector3*          pNormal,
+                               const CSR_Vector2*          pUV,
+                                     size_t                groupIndex,
+                               const CSR_fOnGetVertexColor fOnGetVertexColor,
+                                     CSR_VertexBuffer*     pVB);
+
+        /**
+        * Set a vertex buffer static by moving his data on the GPU
+        *@param pShader - shader in which the vertex buffer should be linked
+        *@param pSA - shader attribute to create
+        *@param pVB - vertex buffer to set static
+        *@return static vertex buffer, 0 on error
+        *@note A vertex buffer can only be set static while the shader is compiled. Trying to do
+        *      that after the shader is compiled may produce a random result
+        *@note After static buffer is created, the source vertex buffer is no longer required and
+        *      may be released, or used for another task
+        *@note The static vertex buffer must be released when no longer used, see
+        *      csrStaticVertexBufferRelease()
+        */
+        CSR_StaticVertexBuffer* csrVertexBufferSetStatic(const CSR_Shader*          pShader,
+                                                         const CSR_ShaderAttribute* pSA,
+                                                         const CSR_VertexBuffer*    pVB);
+
+        //-------------------------------------------------------------------
+        // Static vertex buffer functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a static vertex buffer
+        *@return newly created static vertex buffer, 0 on error
+        *@note The static vertex buffer must be released when no longer used, see
+        *      csrStaticVertexBufferRelease()
+        */
+        CSR_StaticVertexBuffer* csrStaticVertexBufferCreate(void);
+
+        /**
+        * Releases a static vertex buffer
+        *@param[in, out] pSVB - static vertex buffer to release
+        */
+        void csrStaticVertexBufferRelease(CSR_StaticVertexBuffer* pSVB);
+
+        /**
+        * Initializes a static vertex buffer structure
+        *@param[in, out] pSVB - static vertex buffer to initialize
+        */
+        void csrStaticVertexBufferInit(CSR_StaticVertexBuffer* pSVB);
 
         //-------------------------------------------------------------------
         // Mesh functions
@@ -224,15 +289,60 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Releases a mesh
-        *@param pMesh - mesh to release
+        *@param[in, out] pMesh - mesh to release
         */
         void csrMeshRelease(CSR_Mesh* pMesh);
 
         /**
         * Initializes a mesh structure
-        *@param pMesh - mesh to initialize
+        *@param[in, out] pMesh - mesh to initialize
         */
         void csrMeshInit(CSR_Mesh* pMesh);
+
+        /**
+        * Set a mesh static by moving his data on the GPU
+        *@param pShader - shader in which the mesh should be linked
+        *@param pSA - shader attributes to create
+        *@param[in, out] pMesh - mesh to set static
+        *@param keepTexturesOnSource - if 1 the textures will be kept on the source mesh, see notes
+        *@return static mesh, 0 on error
+        *@note A mesh can only be set static while the shader is compiled. Trying to do that after
+        *      the shader is compiled may produce a random result
+        *@note After static mesh is created, the source mesh is no longer required and may be
+        *      released, or used for another task. Be aware however that the textures are kept once,
+        *      either in the source or destination mesh, depending on the keepTexturesOnSource
+        *      value. These textures should be assigned manually if they are planned to be used on
+        *      the both objects together, however be careful on the release time, they must be
+        *      deleted only once
+        *@note The static mesh must be released when no longer used, see csrStaticMeshRelease()
+        */
+        CSR_StaticMesh* csrMeshSetStatic(const CSR_Shader*           pShader,
+                                         const CSR_ShaderAttributes* pSA,
+                                               CSR_Mesh*             pMesh,
+                                               int                   keepTexturesOnSource);
+
+        //-------------------------------------------------------------------
+        // Static mesh functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a static mesh
+        *@return newly created static mesh, 0 on error
+        *@note The static mesh must be released when no longer used, see csrStaticMeshRelease()
+        */
+        CSR_StaticMesh* csrStaticMeshCreate(void);
+
+        /**
+        * Releases a static mesh
+        *@param[in, out] pStaticMesh - static mesh to release
+        */
+        void csrStaticMeshRelease(CSR_StaticMesh* pStaticMesh);
+
+        /**
+        * Initializes a mesh structure
+        *@param[in, out] pStaticMesh - static mesh to initialize
+        */
+        void csrStaticMeshInit(CSR_StaticMesh* pStaticMesh);
 
         //-------------------------------------------------------------------
         // Indexed polygon functions
@@ -240,7 +350,7 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Initializes an indexed polygon structure
-        *@param pIndexedPolygon - indexed polygon to initialize
+        *@param[in, out] pIndexedPolygon - indexed polygon to initialize
         */
         void csrIndexedPolygonInit(CSR_IndexedPolygon* pIndexedPolygon);
 
@@ -267,13 +377,13 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
 
         /**
         * Releases an indexed polygon buffer
-        *@param pIPB - indexed polygon buffer to release
+        *@param[in, out] pIPB - indexed polygon buffer to release
         */
         void csrIndexedPolygonBufferRelease(CSR_IndexedPolygonBuffer* pIPB);
 
         /**
         * Initializes an indexed polygon buffer structure
-        *@param pIPB - indexed polygon buffer to initialize
+        *@param[in, out] pIPB - indexed polygon buffer to initialize
         */
         void csrIndexedPolygonBufferInit(CSR_IndexedPolygonBuffer* pIPB);
 
