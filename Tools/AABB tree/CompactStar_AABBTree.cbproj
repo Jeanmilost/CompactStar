@@ -104,64 +104,64 @@
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
-            <BuildOrder>3</BuildOrder>
+            <BuildOrder>4</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Collision.h">
-            <BuildOrder>4</BuildOrder>
+            <BuildOrder>5</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Common.c">
-            <BuildOrder>5</BuildOrder>
+            <BuildOrder>6</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Common.h">
-            <BuildOrder>6</BuildOrder>
+            <BuildOrder>7</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Geometry.c">
-            <BuildOrder>7</BuildOrder>
+            <BuildOrder>8</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Geometry.h">
-            <BuildOrder>8</BuildOrder>
+            <BuildOrder>9</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Lighting.c">
-            <BuildOrder>22</BuildOrder>
+            <BuildOrder>10</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Lighting.h">
-            <BuildOrder>23</BuildOrder>
+            <BuildOrder>11</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Model.c">
-            <BuildOrder>9</BuildOrder>
+            <BuildOrder>12</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Model.h">
-            <BuildOrder>10</BuildOrder>
+            <BuildOrder>13</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Renderer.c">
-            <BuildOrder>11</BuildOrder>
+            <BuildOrder>14</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Renderer.h">
-            <BuildOrder>12</BuildOrder>
+            <BuildOrder>15</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>13</BuildOrder>
+            <BuildOrder>16</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>14</BuildOrder>
+            <BuildOrder>17</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
-            <BuildOrder>15</BuildOrder>
+            <BuildOrder>18</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Sound.h">
-            <BuildOrder>16</BuildOrder>
+            <BuildOrder>19</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Texture.c">
-            <BuildOrder>17</BuildOrder>
+            <BuildOrder>20</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Texture.h">
-            <BuildOrder>18</BuildOrder>
+            <BuildOrder>21</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Vertex.c">
-            <BuildOrder>19</BuildOrder>
+            <BuildOrder>22</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Vertex.h">
-            <BuildOrder>20</BuildOrder>
+            <BuildOrder>23</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_AABBTree.cpp">
             <BuildOrder>0</BuildOrder>
@@ -229,12 +229,6 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="File1.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
