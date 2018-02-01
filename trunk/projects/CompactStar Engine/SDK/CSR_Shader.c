@@ -74,7 +74,9 @@ void csrShaderInit(CSR_Shader* pShader)
     pShader->m_ModelSlot    = -1;
 }
 //---------------------------------------------------------------------------
-CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
+CSR_Shader* csrShaderLoadFromFile(const char*               pVertex,
+                                  const char*               pFragment,
+                                  const CSR_fOnLinkStaticVB fOnLinkStaticVB)
 {
     CSR_Buffer* pVertexProgram;
     CSR_Buffer* pFragmentProgram;
@@ -98,7 +100,7 @@ CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
     }
 
     // load the shader from opened vertex and fragment programs
-    pShader = csrShaderLoadFromBuffer(pVertexProgram, pFragmentProgram);
+    pShader = csrShaderLoadFromBuffer(pVertexProgram, pFragmentProgram, fOnLinkStaticVB);
 
     // release the program buffers
     csrBufferRelease(pVertexProgram);
@@ -107,10 +109,11 @@ CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment)
     return pShader;
 }
 //------------------------------------------------------------------------------
-CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
-                                 size_t      vertexLength,
-                                 const char* pFragment,
-                                 size_t      fragmentLength)
+CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
+                                 size_t                    vertexLength,
+                                 const char*               pFragment,
+                                 size_t                    fragmentLength,
+                                 const CSR_fOnLinkStaticVB fOnLinkStaticVB)
 {
     CSR_Buffer* pVS;
     CSR_Buffer* pFS;
@@ -137,7 +140,7 @@ CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
     pFS->m_pData[pFS->m_Length] = 0x0;
 
     // compile and build the shader
-    pShader = csrShaderLoadFromBuffer(pVS, pFS);
+    pShader = csrShaderLoadFromBuffer(pVS, pFS, fOnLinkStaticVB);
 
     // release the buffers
     csrBufferRelease(pVS);
@@ -146,7 +149,9 @@ CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
     return pShader;
 }
 //---------------------------------------------------------------------------
-CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment)
+CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer*         pVertex,
+                                    const CSR_Buffer*         pFragment,
+                                    const CSR_fOnLinkStaticVB fOnLinkStaticVB)
 {
     CSR_Shader* pShader;
 
@@ -188,6 +193,10 @@ CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer* pVertex, const CSR_Buffer*
     // attach compiled programs with shader
     glAttachShader(pShader->m_ProgramID, pShader->m_VertexID);
     glAttachShader(pShader->m_ProgramID, pShader->m_FragmentID);
+
+    // let the user attach static vertex buffers if he wants
+    if (fOnLinkStaticVB)
+        fOnLinkStaticVB(pShader);
 
     // link shader
     if (!csrShaderLink(pShader))
@@ -280,6 +289,8 @@ void csrShaderEnable(CSR_Shader* pShader)
     glUseProgram(pShader->m_ProgramID);
 }
 //---------------------------------------------------------------------------
+// Shader attribute functions
+//---------------------------------------------------------------------------
 void csrShaderAttributeInit(CSR_ShaderAttribute* pSA)
 {
     // no shader attribute to initialize?
@@ -292,14 +303,76 @@ void csrShaderAttributeInit(CSR_ShaderAttribute* pSA)
     pSA->m_Length = 0;
 }
 //---------------------------------------------------------------------------
-void csrShaderAttributesInit(CSR_ShaderAttributes* pSA)
+// Static buffer functions
+//---------------------------------------------------------------------------
+CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
+                                        const CSR_ShaderAttribute* pSA,
+                                        const float*               pBuffer,
+                                              size_t               length)
 {
-    // no shader attributes to initialize?
+    CSR_StaticBuffer* pSB;
+
+    // no shader?
+    if (!pShader)
+        return 0;
+
+    // no shader attribute?
     if (!pSA)
+        return 0;
+
+    // validate the input
+    if (!pBuffer || !length)
+        return 0;
+
+    // create a static buffer
+    pSB = (CSR_StaticBuffer*)malloc(sizeof(CSR_StaticBuffer));
+
+    // succeeded?
+    if (!pSB)
+        return 0;
+
+    // create a Vertex Buffer Object (VBO) on the GPU size
+    glGenBuffers(1, &pSB->m_BufferID);
+
+    // bind the newly created VBO
+    glBindBuffer(GL_ARRAY_BUFFER, pSB->m_BufferID);
+
+    // copy the buffer data content in the VBO
+    glBufferData(GL_ARRAY_BUFFER, length * sizeof(float), pBuffer, GL_STATIC_DRAW);
+
+    // assign a pointer for the buffer in the shader
+    glVertexAttribPointer(pSA->m_Index, pSA->m_Length, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // bind the buffer pointer to a shader attribute name
+    glBindAttribLocation(pShader->m_ProgramID, pSA->m_Index, pSA->m_pName);
+
+    // enable attribute index
+    glEnableVertexAttribArray(pSA->m_Index);
+
+    return pSB;
+}
+//---------------------------------------------------------------------------
+void csrStaticBufferRelease(CSR_StaticBuffer* pSB)
+{
+    // no static buffer to release?
+    if (!pSB)
         return;
 
-    // initialize the shader attributes content
-    pSA->m_pAttribute = 0;
-    pSA->m_Count      = 0;
+    // free the static buffer content
+    if (pSB->m_BufferID != M_CSR_Error_Code)
+        glDeleteBuffers(1, &pSB->m_BufferID);
+
+    // free the static buffer
+    free(pSB);
+}
+//---------------------------------------------------------------------------
+void csrStaticBufferInit(CSR_StaticBuffer* pSB)
+{
+    // no static buffer to initialize?
+    if (!pSB)
+        return;
+
+    // initialize the static buffer content
+    pSB->m_BufferID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------

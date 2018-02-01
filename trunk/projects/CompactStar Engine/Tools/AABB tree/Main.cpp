@@ -41,6 +41,34 @@
 
 //----------------------------------------------------------------------------
 /**
+* Vertex shader program to show the AABB tree boxes
+*@note The view matrix is implicitly set to identity and combined to the model one
+*/
+const char g_VertexProgram_Box[] =
+    "precision mediump float;"
+    "attribute vec4 csr_vVertex;"
+    "attribute vec4 csr_vColor;"
+    "uniform   mat4 csr_uProjection;"
+    "uniform   mat4 csr_uModelView;"
+    "varying   vec4 csr_fColor;"
+    "void main(void)"
+    "{"
+    "    csr_fColor   = csr_vColor;"
+    "    gl_Position  = csr_uProjection * csr_uModelView * csr_vVertex;"
+    "}";
+//----------------------------------------------------------------------------
+/**
+* Fragment shader program to show the AABB tree boxes
+*/
+const char g_FragmentProgram_Box[] =
+    "precision mediump float;"
+    "varying lowp vec4 csr_fColor;"
+    "void main(void)"
+    "{"
+    "    gl_FragColor = csr_fColor;"
+    "}";
+//----------------------------------------------------------------------------
+/**
 * Vertex shader program to show a colored mesh
 *@note The view matrix is implicitly set to identity and combined to the model one
 */
@@ -749,11 +777,13 @@ void TMainForm::InitScene(int w, int h)
     m_pShader_ColoredMesh  = csrShaderLoadFromStr(g_VertexProgram_ColoredMesh,
                                                   sizeof(g_VertexProgram_ColoredMesh),
                                                   g_FragmentProgram_ColoredMesh,
-                                                  sizeof(g_FragmentProgram_ColoredMesh));
+                                                  sizeof(g_FragmentProgram_ColoredMesh),
+                                                  0);
     m_pShader_TexturedMesh = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
                                                   sizeof(g_VertexProgram_TexturedMesh),
                                                   g_FragmentProgram_TexturedMesh,
-                                                  sizeof(g_FragmentProgram_TexturedMesh));
+                                                  sizeof(g_FragmentProgram_TexturedMesh),
+                                                  0);
 
     // succeeded?
     if (!m_pShader_ColoredMesh || !m_pShader_TexturedMesh)
@@ -1345,6 +1375,23 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
 
     // calculate the y position from the z axis
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnLinkStaticVBCallback(const CSR_Shader* pShader)
+{
+    // get the original application main form
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    // found it?
+    if (!pMainForm)
+        return;
+
+    // redirect the callback to the main form
+    pMainForm->OnLinkStaticVB(pShader);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnLinkStaticVB(const CSR_Shader* pShader)
+{
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)

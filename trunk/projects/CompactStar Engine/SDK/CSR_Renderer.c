@@ -45,6 +45,9 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     if (!pShader)
         return;
 
+    // enable the shader to use for drawing
+    csrShaderEnable(pShader);
+
     // iterate through the vertex buffers composing the mesh to draw
     for (i = 0; i < pMesh->m_Count; ++i)
     {

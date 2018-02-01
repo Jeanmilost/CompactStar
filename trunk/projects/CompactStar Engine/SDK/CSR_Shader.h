@@ -41,7 +41,7 @@ typedef struct
 } CSR_Shader;
 
 /**
-* Shader attribute. Used to declare a static attribute, like e.g. a vertex buffer, in a shader
+* Shader attribute. Used to declare a static attribute, like e.g. a static buffer, in a shader
 */
 typedef struct
 {
@@ -51,13 +51,22 @@ typedef struct
 } CSR_ShaderAttribute;
 
 /**
-* Shader attributes
+* Static buffer, it's a buffer which the content was moved to a shader, i.e. on the GPU side
 */
 typedef struct
 {
-    CSR_ShaderAttribute* m_pAttribute;
-    size_t               m_Count;
-} CSR_ShaderAttributes;
+    GLuint m_BufferID;
+} CSR_StaticBuffer;
+
+//---------------------------------------------------------------------------
+// Callbacks
+//---------------------------------------------------------------------------
+
+/**
+* Called when static vertex buffers may be linked to the shader
+*@param pShader - shader about to be linked
+*/
+typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
 
 #ifdef __cplusplus
     extern "C"
@@ -90,10 +99,13 @@ typedef struct
         * Loads, compiles and links a shader from vertex and fragment files
         *@param pVertex - vertex shader program file name
         *@param pFragment - fragment shader program file name
+        *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
-        CSR_Shader* csrShaderLoadFromFile(const char* pVertex, const char* pFragment);
+        CSR_Shader* csrShaderLoadFromFile(const char*               pVertex,
+                                          const char*               pFragment,
+                                          const CSR_fOnLinkStaticVB fOnLinkStaticVB);
 
         /**
         * Loads, compiles and links a shader from strings containing the vertex and fragment programs
@@ -101,22 +113,27 @@ typedef struct
         *@param vertexLength - vertex shader program string length
         *@param pFragment - string containing the fragment shader program to load
         *@param fragmentLength - fragment shader program string length
+        *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
-        CSR_Shader* csrShaderLoadFromStr(const char* pVertex,
-                                         size_t      vertexLength,
-                                         const char* pFragment,
-                                         size_t      fragmentLength);
+        CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
+                                         size_t                    vertexLength,
+                                         const char*               pFragment,
+                                         size_t                    fragmentLength,
+                                         const CSR_fOnLinkStaticVB fOnLinkStaticVB);
 
         /**
         * Loads, compiles and links a shader from vertex and fragment buffers
         *@param pVertex - buffer containing the vertex shader program to load
         *@param pFragment - buffer containing the fragment shader program to load
+        *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
-        CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer* pVertex, const CSR_Buffer* pFragment);
+        CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer*         pVertex,
+                                            const CSR_Buffer*         pFragment,
+                                            const CSR_fOnLinkStaticVB fOnLinkStaticVB);
 
         /**
         * Compiles a shader program
@@ -153,14 +170,30 @@ typedef struct
         void csrShaderAttributeInit(CSR_ShaderAttribute* pSA);
 
         //-------------------------------------------------------------------
-        // Shader attributes functions
+        // Static buffer functions
         //-------------------------------------------------------------------
 
         /**
-        * Initializes a shader attributes structure
-        *@param[in, out] pSA - shader attributes to initialize
+        * Creates a static buffer
+        *@return newly created static buffer, 0 on error
+        *@note The static buffer must be released when no longer used, see csrStaticBufferRelease()
         */
-        void csrShaderAttributesInit(CSR_ShaderAttributes* pSA);
+        CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
+                                                const CSR_ShaderAttribute* pSA,
+                                                const float*               pBuffer,
+                                                      size_t               length);
+
+        /**
+        * Releases a static buffer
+        *@param[in, out] pSB - static buffer to release
+        */
+        void csrStaticBufferRelease(CSR_StaticBuffer* pSB);
+
+        /**
+        * Initializes a static buffer structure
+        *@param[in, out] pSB - static buffer to initialize
+        */
+        void csrStaticBufferInit(CSR_StaticBuffer* pSB);
 
 #ifdef __cplusplus
     }

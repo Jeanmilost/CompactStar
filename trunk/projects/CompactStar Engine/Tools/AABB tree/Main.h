@@ -249,6 +249,18 @@ class TMainForm : public TForm
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
         /**
+        * Called when static vertex buffers may be linked to the shader
+        *@param pShader - shader about to be linked
+        */
+        static void OnLinkStaticVBCallback(const CSR_Shader* pShader);
+
+        /**
+        * Called when static vertex buffers may be linked to the shader
+        *@param pShader - shader about to be linked
+        */
+        void OnLinkStaticVB(const CSR_Shader* pShader);
+
+        /**
         * Called when the scene should be drawn
         *@param resize - if true, the scene should be repainted during a resize
         */
