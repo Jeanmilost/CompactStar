@@ -128,7 +128,7 @@ class TMainForm : public TForm
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
-        CSR_Mesh*        m_pBox;
+        CSR_Mesh*        m_pBoxMesh;
         CSR_Mesh*        m_pMesh;
         CSR_MDL*         m_pMDL;
         IAABBTrees       m_AABBTrees;
@@ -247,18 +247,6 @@ class TMainForm : public TForm
         *@return the y position
         */
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
-
-        /**
-        * Called when static vertex buffers may be linked to the shader
-        *@param pShader - shader about to be linked
-        */
-        static void OnLinkStaticVBCallback(const CSR_Shader* pShader);
-
-        /**
-        * Called when static vertex buffers may be linked to the shader
-        *@param pShader - shader about to be linked
-        */
-        void OnLinkStaticVB(const CSR_Shader* pShader);
 
         /**
         * Called when the scene should be drawn
