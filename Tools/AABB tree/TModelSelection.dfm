@@ -66,7 +66,7 @@ object ModelSelection: TModelSelection
         Left = 0
         Top = 0
         Width = 26
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -75,7 +75,6 @@ object ModelSelection: TModelSelection
         Caption = 'Slices'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edSlices: TEdit
         AlignWithMargins = True
@@ -119,7 +118,7 @@ object ModelSelection: TModelSelection
         Left = 0
         Top = 0
         Width = 31
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -128,7 +127,6 @@ object ModelSelection: TModelSelection
         Caption = 'Stacks'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edStacks: TEdit
         AlignWithMargins = True
@@ -173,7 +171,7 @@ object ModelSelection: TModelSelection
         Left = 0
         Top = 0
         Width = 28
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -182,7 +180,6 @@ object ModelSelection: TModelSelection
         Caption = 'Faces'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object edFaces: TEdit
         AlignWithMargins = True
@@ -227,12 +224,11 @@ object ModelSelection: TModelSelection
         Left = 3
         Top = 2
         Width = 92
-        Height = 20
+        Height = 13
         Margins.Top = 2
         Align = alLeft
         Caption = 'Select a MDL model'
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object btOpenFile: TButton
         Left = 351
@@ -273,7 +269,7 @@ object ModelSelection: TModelSelection
         Left = 0
         Top = 0
         Width = 25
-        Height = 20
+        Height = 13
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
@@ -282,7 +278,6 @@ object ModelSelection: TModelSelection
         Caption = 'Color'
         Transparent = True
         Layout = tlCenter
-        ExplicitHeight = 13
       end
       object paSelectedColor: TPanel
         AlignWithMargins = True

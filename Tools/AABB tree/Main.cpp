@@ -226,7 +226,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         pModelSelection->rgShapes->ItemIndex = m_LastSelectedModel;
 
         if (m_LastSelectedModel == 7 && !m_LastSelectedFile.empty())
-            pModelSelection->edMDLFilelName->Text = UnicodeString(m_LastSelectedFile.c_str());
+            pModelSelection->SetModelFileName(m_LastSelectedFile);
     }
 
     // show the dialog box

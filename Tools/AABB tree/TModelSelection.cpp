@@ -179,6 +179,12 @@ std::wstring TModelSelection::GetModelFileName() const
     return m_ModelFileName;
 }
 //---------------------------------------------------------------------------
+void TModelSelection::SetModelFileName(const std::wstring& fileName)
+{
+    m_ModelFileName      = fileName;
+    edMDLFilelName->Text = UnicodeString(fileName.c_str());
+}
+//---------------------------------------------------------------------------
 void TModelSelection::SelectModelColor()
 {
     // select the current color
