@@ -82,6 +82,12 @@ class TModelSelection : public TForm
         */
         std::wstring GetModelFileName() const;
 
+        /**
+        * Gets the model file name
+        *@return model file name
+        */
+        void SetModelFileName(const std::wstring& fileName);
+
     private:
         typedef std::vector<TControl*> IControls;
 
