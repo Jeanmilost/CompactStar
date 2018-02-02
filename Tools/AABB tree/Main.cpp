@@ -41,34 +41,6 @@
 
 //----------------------------------------------------------------------------
 /**
-* Vertex shader program to show the AABB tree boxes
-*@note The view matrix is implicitly set to identity and combined to the model one
-*/
-const char g_VertexProgram_Box[] =
-    "precision mediump float;"
-    "attribute vec4 csr_vVertex;"
-    "attribute vec4 csr_vColor;"
-    "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uModelView;"
-    "varying   vec4 csr_fColor;"
-    "void main(void)"
-    "{"
-    "    csr_fColor   = csr_vColor;"
-    "    gl_Position  = csr_uProjection * csr_uModelView * csr_vVertex;"
-    "}";
-//----------------------------------------------------------------------------
-/**
-* Fragment shader program to show the AABB tree boxes
-*/
-const char g_FragmentProgram_Box[] =
-    "precision mediump float;"
-    "varying lowp vec4 csr_fColor;"
-    "void main(void)"
-    "{"
-    "    gl_FragColor = csr_fColor;"
-    "}";
-//----------------------------------------------------------------------------
-/**
 * Vertex shader program to show a colored mesh
 *@note The view matrix is implicitly set to identity and combined to the model one
 */
@@ -159,7 +131,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hRC(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
-    m_pBox(NULL),
+    m_pBoxMesh(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
     m_LastSelectedModel(-1),
@@ -277,7 +249,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 0;
-    vf.m_HasPerVertexColor = 1;
+    vf.m_HasPerVertexColor = 0;
 
     // select the model to build
     switch (pModelSelection->rgShapes->ItemIndex)
@@ -550,17 +522,17 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                 // enable the textured program
                 csrShaderEnable(m_pShader_TexturedMesh);
 
-                CSR_VertexFormat vertexFormat;
-                vertexFormat.m_HasNormal         = 0;
-                vertexFormat.m_HasTexCoords      = 1;
-                vertexFormat.m_HasPerVertexColor = 1;
+                // configure the MDL model vertex format
+                vf.m_HasNormal         = 0;
+                vf.m_HasTexCoords      = 1;
+                vf.m_HasPerVertexColor = 0;
 
                 // load MDL model
                 pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
                                              0,
-                                            &vertexFormat,
+                                            &vf,
                                              0,
-                                             0,
+                                            &material,
                                              0);
 
                 // succeeded?
@@ -825,7 +797,7 @@ void TMainForm::InitScene(int w, int h)
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 0;
-    vf.m_HasPerVertexColor = 1;
+    vf.m_HasPerVertexColor = 0;
 
     // create a default sphere
     m_pMesh = csrShapeCreateSphere(0.5f, 10, 10, &vf, 0, &material, 0);
@@ -841,9 +813,8 @@ void TMainForm::InitScene(int w, int h)
     vf.m_HasTexCoords      = 0;
     vf.m_HasPerVertexColor = 0;
 
-    // todo FIXME -cImprovement -oJean: this should be declared in the shader as a static object
     // create a generic box
-    m_pBox = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, 0, 0);
+    m_pBoxMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, 0, 0);
 
     // set the initial values
     m_pTextureLastTime = 0.0;
@@ -868,7 +839,7 @@ void TMainForm::DeleteScene()
     ClearModelsAndMeshes();
 
     // release the box model
-    csrMeshRelease(m_pBox);
+    csrMeshRelease(m_pBoxMesh);
 
     // release the shaders
     csrShaderRelease(m_pShader_TexturedMesh);
@@ -1142,7 +1113,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
 void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
 {
     // no box model to show?
-    if (!m_pBox)
+    if (!m_pBoxMesh)
         return;
 
     // node contains left children?
@@ -1218,17 +1189,20 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
     GLint shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
     glUniformMatrix4fv(shaderSlot, 1, 0, &modelViewMatrix.m_Table[0][0]);
 
-    // update the box material
-    for (std::size_t i = 0; i < m_pBox->m_Count; ++i)
+    // can draw the AABB box?
+    if (m_pBoxMesh)
     {
-        m_pBox->m_pVB[i].m_Material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
-        m_pBox->m_pVB[i].m_Material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
-        m_pBox->m_pVB[i].m_Material.m_Wireframe   = ckWireFrame->Checked;
-    }
+        // update the box material
+        for (std::size_t i = 0; i < m_pBoxMesh->m_Count; ++i)
+        {
+            m_pBoxMesh->m_pVB[i].m_Material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
+            m_pBoxMesh->m_pVB[i].m_Material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
+            m_pBoxMesh->m_pVB[i].m_Material.m_Wireframe   = ckWireFrame->Checked;
+        }
 
-    // draw the AABB box
-    if (m_pBox)
-        csrSceneDrawMesh(m_pBox, m_pShader_ColoredMesh);
+        // draw the AABB box
+        csrSceneDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh);
+    }
 }
 //---------------------------------------------------------------------------
 CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
@@ -1375,23 +1349,6 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
 
     // calculate the y position from the z axis
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
-}
-//---------------------------------------------------------------------------
-void TMainForm::OnLinkStaticVBCallback(const CSR_Shader* pShader)
-{
-    // get the original application main form
-    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
-
-    // found it?
-    if (!pMainForm)
-        return;
-
-    // redirect the callback to the main form
-    pMainForm->OnLinkStaticVB(pShader);
-}
-//---------------------------------------------------------------------------
-void TMainForm::OnLinkStaticVB(const CSR_Shader* pShader)
-{
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
