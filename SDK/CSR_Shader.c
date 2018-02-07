@@ -15,6 +15,9 @@
 
 #include "CSR_Shader.h"
 
+// std
+#include <stdlib.h>
+
 //---------------------------------------------------------------------------
 // Shader functions
 //---------------------------------------------------------------------------
@@ -76,7 +79,8 @@ void csrShaderInit(CSR_Shader* pShader)
 //---------------------------------------------------------------------------
 CSR_Shader* csrShaderLoadFromFile(const char*               pVertex,
                                   const char*               pFragment,
-                                  const CSR_fOnLinkStaticVB fOnLinkStaticVB)
+                                  const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                  const void*               pCustomData)
 {
     CSR_Buffer* pVertexProgram;
     CSR_Buffer* pFragmentProgram;
@@ -100,7 +104,7 @@ CSR_Shader* csrShaderLoadFromFile(const char*               pVertex,
     }
 
     // load the shader from opened vertex and fragment programs
-    pShader = csrShaderLoadFromBuffer(pVertexProgram, pFragmentProgram, fOnLinkStaticVB);
+    pShader = csrShaderLoadFromBuffer(pVertexProgram, pFragmentProgram, fOnLinkStaticVB, pCustomData);
 
     // release the program buffers
     csrBufferRelease(pVertexProgram);
@@ -113,7 +117,8 @@ CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
                                  size_t                    vertexLength,
                                  const char*               pFragment,
                                  size_t                    fragmentLength,
-                                 const CSR_fOnLinkStaticVB fOnLinkStaticVB)
+                                 const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                 const void*               pCustomData)
 {
     CSR_Buffer* pVS;
     CSR_Buffer* pFS;
@@ -131,16 +136,16 @@ CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
     pVS->m_Length = vertexLength;
     pVS->m_pData  = (unsigned char*)malloc(pVS->m_Length + 1);
     memcpy(pVS->m_pData, pVertex, pVS->m_Length);
-    pVS->m_pData[pVS->m_Length] = 0x0;
+    ((unsigned char*)pVS->m_pData)[pVS->m_Length] = 0x0;
 
     // copy the fragment program to read
     pFS->m_Length = fragmentLength;
     pFS->m_pData  = (unsigned char*)malloc(pFS->m_Length + 1);
     memcpy(pFS->m_pData, pFragment, pFS->m_Length);
-    pFS->m_pData[pFS->m_Length] = 0x0;
+    ((unsigned char*)pFS->m_pData)[pFS->m_Length] = 0x0;
 
     // compile and build the shader
-    pShader = csrShaderLoadFromBuffer(pVS, pFS, fOnLinkStaticVB);
+    pShader = csrShaderLoadFromBuffer(pVS, pFS, fOnLinkStaticVB, pCustomData);
 
     // release the buffers
     csrBufferRelease(pVS);
@@ -151,7 +156,8 @@ CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
 //---------------------------------------------------------------------------
 CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer*         pVertex,
                                     const CSR_Buffer*         pFragment,
-                                    const CSR_fOnLinkStaticVB fOnLinkStaticVB)
+                                    const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                    const void*               pCustomData)
 {
     CSR_Shader* pShader;
 
@@ -196,7 +202,7 @@ CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer*         pVertex,
 
     // let the user attach static vertex buffers if he wants
     if (fOnLinkStaticVB)
-        fOnLinkStaticVB(pShader);
+        fOnLinkStaticVB(pShader, pCustomData);
 
     // link shader
     if (!csrShaderLink(pShader))
@@ -275,7 +281,7 @@ int csrShaderLink(CSR_Shader* pShader)
     return 1;
 }
 //---------------------------------------------------------------------------
-void csrShaderEnable(CSR_Shader* pShader)
+void csrShaderEnable(const CSR_Shader* pShader)
 {
     // no shader to enable?
     if (!pShader)
@@ -289,26 +295,9 @@ void csrShaderEnable(CSR_Shader* pShader)
     glUseProgram(pShader->m_ProgramID);
 }
 //---------------------------------------------------------------------------
-// Shader attribute functions
-//---------------------------------------------------------------------------
-void csrShaderAttributeInit(CSR_ShaderAttribute* pSA)
-{
-    // no shader attribute to initialize?
-    if (!pSA)
-        return;
-
-    // initialize the shader attribute content
-    pSA->m_pName  = 0;
-    pSA->m_Index  = 0;
-    pSA->m_Length = 0;
-}
-//---------------------------------------------------------------------------
 // Static buffer functions
 //---------------------------------------------------------------------------
-CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
-                                        const CSR_ShaderAttribute* pSA,
-                                        const float*               pBuffer,
-                                              size_t               length)
+CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader* pShader, const CSR_Buffer* pBuffer)
 {
     CSR_StaticBuffer* pSB;
 
@@ -316,12 +305,8 @@ CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
     if (!pShader)
         return 0;
 
-    // no shader attribute?
-    if (!pSA)
-        return 0;
-
     // validate the input
-    if (!pBuffer || !length)
+    if (!pBuffer || !pBuffer->m_Length)
         return 0;
 
     // create a static buffer
@@ -331,6 +316,9 @@ CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
     if (!pSB)
         return 0;
 
+    // initialize the static buffer
+    csrStaticBufferInit(pSB);
+
     // create a Vertex Buffer Object (VBO) on the GPU size
     glGenBuffers(1, &pSB->m_BufferID);
 
@@ -338,16 +326,13 @@ CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
     glBindBuffer(GL_ARRAY_BUFFER, pSB->m_BufferID);
 
     // copy the buffer data content in the VBO
-    glBufferData(GL_ARRAY_BUFFER, length * sizeof(float), pBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 pBuffer->m_Length * sizeof(float),
+                 ((float*)pBuffer->m_pData),
+                 GL_STATIC_DRAW);
 
-    // assign a pointer for the buffer in the shader
-    glVertexAttribPointer(pSA->m_Index, pSA->m_Length, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // bind the buffer pointer to a shader attribute name
-    glBindAttribLocation(pShader->m_ProgramID, pSA->m_Index, pSA->m_pName);
-
-    // enable attribute index
-    glEnableVertexAttribArray(pSA->m_Index);
+    // unbind the VBO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return pSB;
 }
@@ -374,5 +359,6 @@ void csrStaticBufferInit(CSR_StaticBuffer* pSB)
 
     // initialize the static buffer content
     pSB->m_BufferID = M_CSR_Error_Code;
+    pSB->m_Stride   = 0;
 }
 //---------------------------------------------------------------------------

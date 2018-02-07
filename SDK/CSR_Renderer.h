@@ -20,20 +20,95 @@
 #include "CSR_Model.h"
 #include "CSR_Shader.h"
 
+//---------------------------------------------------------------------------
+// Structures
+//---------------------------------------------------------------------------
+
+/**
+* Multisampling antialiasing
+*/
+typedef struct
+{
+    CSR_Shader*       m_pShader;
+    CSR_StaticBuffer* m_pStaticBuffer;
+    GLuint            m_FrameBufferID;
+    GLuint            m_RenderBufferID;
+    GLuint            m_TextureBufferID;
+    GLuint            m_TextureID;
+    size_t            m_SceneWidth;
+    size_t            m_SceneHeight;
+    size_t            m_Factor;
+} CSR_MSAA;
+
 #ifdef __cplusplus
     extern "C"
     {
 #endif
+        //-------------------------------------------------------------------
+        // Multisampling antialiasing functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a multisample antialiasing
+        *@param width - viewport width on which the antialiasing will be applied
+        *@param height - viewport height on which the antialiasing will be applied
+        *@param factor - antialiasing factor to apply, may be 2x, 4x or 8x
+        *@return newly created multisample antialiasing, 0 on error
+        *@note The multisample antialiasing must be released when no longer used, see csrMSAARelease()
+        */
+        CSR_MSAA* csrMSAACreate(size_t width, size_t height, size_t factor);
+
+        /**
+        * Releases a multisample antialiasing
+        *@param[in, out] pMSAA - multisample antialiasing to release
+        */
+        void csrMSAARelease(CSR_MSAA* pMSAA);
+
+        /**
+        * Initializes a multisample antialiasing structure
+        *@param width - viewport width on which the antialiasing will be applied
+        *@param height - viewport height on which the antialiasing will be applied
+        *@param factor - antialiasing factor to apply, may be 2x, 4x or 8x
+        *@param[in, out] pMSAA - multisample antialiasing to initialize
+        *@return 1 on success, otherwise 0
+        */
+        int csrMSAAInit(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA);
+
+        /**
+        * Changes the size of a multisample antialiasing
+        *@param width - new width to apply
+        *@param height - new height to apply
+        *@param[in, out] pMSAA - multisample antialiasing for which the size should change
+        *@return 1 on success, otherwise 0
+        */
+        int csrMSAAChangeSize(size_t width, size_t height, CSR_MSAA* pMSAA);
+
+        /**
+        * Begins to draw an antialiased scene
+        *@param r - scene background color red component in percent (between 0.0f and 1.0f)
+        *@param g - scene background color green component in percent (between 0.0f and 1.0f)
+        *@param b - scene background color blue component in percent (between 0.0f and 1.0f)
+        *@param a - scene background color alpha component in percent (between 0.0f and 1.0f)
+        *@param pMSAA - multisample antialiasing to apply
+        */
+        void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA);
+
+        /**
+        * Ends to draw an antialiased scene
+        *@param pMSAA - applied multisample antialiasing
+        */
+        void csrMSAASceneEnd(const CSR_MSAA* pMSAA);
+
         //-------------------------------------------------------------------
         // Scene functions
         //-------------------------------------------------------------------
 
         /**
         * Begins to draw a scene
-        *@param r - scene background color red component
-        *@param g - scene background color green component
-        *@param b - scene background color blue component
-        *@param a - scene background color alpha component
+        *@param r - scene background color red component in percent (between 0.0f and 1.0f)
+        *@param g - scene background color green component in percent (between 0.0f and 1.0f)
+        *@param b - scene background color blue component in percent (between 0.0f and 1.0f)
+        *@param a - scene background color alpha component in percent (between 0.0f and 1.0f)
         */
         void csrSceneBegin(float r, float g, float b, float a);
 

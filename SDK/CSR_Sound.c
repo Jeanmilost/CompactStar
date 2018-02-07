@@ -16,8 +16,8 @@
 #include "CSR_Sound.h"
 
 // std
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 //---------------------------------------------------------------------------
 // Sound functions
