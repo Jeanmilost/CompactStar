@@ -215,7 +215,7 @@ int csrBufferRead(const CSR_Buffer* pBuffer,
     }
 
     // read the data
-    memcpy(pData, pBuffer->m_pData + *pOffset, lengthToRead);
+    memcpy(pData, ((unsigned char*)pBuffer->m_pData) + *pOffset, lengthToRead);
 
     // update the offset position
     *pOffset += lengthToRead;
@@ -291,7 +291,7 @@ CSR_Buffer* csrFileOpen(const char* pFileName)
     }
 
     // certify that the buffer content is well terminated (useful in case the data is a text)
-    pBuffer->m_pData[pBuffer->m_Length] = '\0';
+    ((unsigned char*)pBuffer->m_pData)[pBuffer->m_Length] = '\0';
 
     // reset cursor position on the file start
     fseek(pFile, 0, SEEK_SET);

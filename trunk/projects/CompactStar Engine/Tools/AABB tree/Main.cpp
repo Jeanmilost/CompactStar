@@ -24,7 +24,6 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
-#include "CSR_Renderer.h"
 #include "CSR_Sound.h"
 
 // interface
@@ -46,7 +45,7 @@
 */
 const char g_VertexProgram_ColoredMesh[] =
     "precision mediump float;"
-    "attribute vec4 csr_vVertex;"
+    "attribute vec3 csr_vVertex;"
     "attribute vec4 csr_vColor;"
     "uniform   mat4 csr_uProjection;"
     "uniform   mat4 csr_uModelView;"
@@ -54,7 +53,7 @@ const char g_VertexProgram_ColoredMesh[] =
     "void main(void)"
     "{"
     "    csr_fColor   = csr_vColor;"
-    "    gl_Position  = csr_uProjection * csr_uModelView * csr_vVertex;"
+    "    gl_Position  = csr_uProjection * csr_uModelView * vec4(csr_vVertex, 1.0);"
     "}";
 //----------------------------------------------------------------------------
 /**
@@ -74,7 +73,7 @@ const char g_FragmentProgram_ColoredMesh[] =
 */
 const char g_VertexProgram_TexturedMesh[] =
     "precision mediump float;"
-    "attribute vec4 csr_vVertex;"
+    "attribute vec3 csr_vVertex;"
     "attribute vec4 csr_vColor;"
     "attribute vec2 csr_vTexCoord;"
     "uniform   mat4 csr_uProjection;"
@@ -85,7 +84,7 @@ const char g_VertexProgram_TexturedMesh[] =
     "{"
     "    csr_fColor    = csr_vColor;"
     "    csr_fTexCoord = csr_vTexCoord;"
-    "    gl_Position   = csr_uProjection * csr_uModelView * csr_vVertex;"
+    "    gl_Position   = csr_uProjection * csr_uModelView * vec4(csr_vVertex, 1.0);"
     "}";
 //----------------------------------------------------------------------------
 /**
@@ -131,6 +130,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hRC(NULL),
     m_pShader_ColoredMesh(NULL),
     m_pShader_TexturedMesh(NULL),
+    m_pMSAA(NULL),
     m_pBoxMesh(NULL),
     m_pMesh(NULL),
     m_pMDL(NULL),
@@ -257,9 +257,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // surface
         case 0:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateSurface(1.0f, 1.0f, &vf, 0, &material, 0);
 
@@ -288,9 +285,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // box
         case 1:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, &material, 0);
 
@@ -319,9 +313,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // sphere
         case 2:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateSphere(0.5f,
                                          ::StrToInt(pModelSelection->edSlices->Text),
@@ -353,9 +344,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // cylinder
         case 3:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             CSR_VertexCulling vc;
             vc.m_Type = CSR_CT_None;
             vc.m_Face = CSR_CF_CW;
@@ -391,9 +379,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // disk
         case 4:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateDisk(0.0f,
                                          0.0f,
@@ -429,9 +414,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // ring
         case 5:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateRing(0.0f,
                                          0.0f,
@@ -468,9 +450,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         // spiral
         case 6:
         {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // create the shape to show
             m_pMesh = csrShapeCreateSpiral(0.0f,
                                            0.0f,
@@ -519,9 +498,6 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             try
             {
-                // enable the textured program
-                csrShaderEnable(m_pShader_TexturedMesh);
-
                 // configure the MDL model vertex format
                 vf.m_HasNormal         = 0;
                 vf.m_HasTexCoords      = 1;
@@ -728,19 +704,27 @@ void TMainForm::CreateViewport(float w, float h)
     csrShaderEnable(m_pShader_ColoredMesh);
 
     // connect projection matrix to colored shader
-    GLint projectionUniform = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
+    GLint projectionSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uProjection");
+    glUniformMatrix4fv(projectionSlot, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 
     // enable the textured program
     csrShaderEnable(m_pShader_TexturedMesh);
 
     // connect projection matrix to textured shader
-    projectionUniform = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionUniform, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
+    projectionSlot = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_uProjection");
+    glUniformMatrix4fv(projectionSlot, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 
     // create a default view matrix (set implicitly to identity in the shader but used later for
     // unprojection in the CalculateMouseRay() function)
     csrMat4Identity(&m_ViewMatrix);
+
+    // multisampling antialiasing was already created?
+    if (!m_pMSAA)
+        // create the multisampling antialiasing
+        m_pMSAA = csrMSAACreate(w, h, 4);
+    else
+        // change his size
+        csrMSAAChangeSize(w, h, m_pMSAA);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -750,11 +734,13 @@ void TMainForm::InitScene(int w, int h)
                                                   sizeof(g_VertexProgram_ColoredMesh),
                                                   g_FragmentProgram_ColoredMesh,
                                                   sizeof(g_FragmentProgram_ColoredMesh),
+                                                  0,
                                                   0);
     m_pShader_TexturedMesh = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
                                                   sizeof(g_VertexProgram_TexturedMesh),
                                                   g_FragmentProgram_TexturedMesh,
                                                   sizeof(g_FragmentProgram_TexturedMesh),
+                                                  0,
                                                   0);
 
     // succeeded?
@@ -784,10 +770,7 @@ void TMainForm::InitScene(int w, int h)
     m_pShader_TexturedMesh->m_VertexSlot   = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vVertex");
     m_pShader_TexturedMesh->m_ColorSlot    = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vColor");
     m_pShader_TexturedMesh->m_TexCoordSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vTexCoord");
-    m_pShader_TexturedMesh->m_TextureSlot  = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sTexture");
-
-    // enable the colored program
-    csrShaderEnable(m_pShader_ColoredMesh);
+    m_pShader_TexturedMesh->m_TextureSlot  = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sTexture");
 
     CSR_Material material;
     material.m_Color       = 0xFFFF;
@@ -824,12 +807,6 @@ void TMainForm::InitScene(int w, int h)
     m_ModelIndex       = 0;
     m_MeshIndex        = 0;
 
-    // configure OpenGL depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDepthRangef(0.0f, 1.0f);
-
     m_Initialized = true;
 }
 //------------------------------------------------------------------------------
@@ -844,6 +821,9 @@ void TMainForm::DeleteScene()
     // release the shaders
     csrShaderRelease(m_pShader_TexturedMesh);
     csrShaderRelease(m_pShader_ColoredMesh);
+
+    // release the multisampling antialiasing
+    csrMSAARelease(m_pMSAA);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
@@ -928,34 +908,21 @@ void TMainForm::DrawScene()
     try
     {
         // begin the scene
-        csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
+        csrMSAASceneBegin(0.0f, 0.0f, 0.0f, 1.0f, m_pMSAA);
 
         if (m_pMesh)
-        {
-            // enable the colored program
-            csrShaderEnable(m_pShader_ColoredMesh);
-
             // draw the mesh
             csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh);
-        }
         else
         if (m_pMDL)
-        {
-            // enable the textured program
-            csrShaderEnable(m_pShader_TexturedMesh);
-
             // draw the MDL model
             csrSceneDrawMDL(m_pMDL,
                             m_pShader_TexturedMesh,
                             m_TextureIndex,
                             m_ModelIndex,
                             m_MeshIndex);
-        }
         else
             return;
-
-        // enable the colored program
-        csrShaderEnable(m_pShader_ColoredMesh);
 
         // show the polygon intersections (with the mouse ray)
         if (ckShowCollidingPolygons->Checked)
@@ -976,7 +943,7 @@ void TMainForm::DrawScene()
     __finally
     {
         // end the scene
-        csrSceneEnd();
+        csrMSAASceneEnd(m_pMSAA);
     }
 }
 //---------------------------------------------------------------------------

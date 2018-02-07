@@ -41,21 +41,12 @@ typedef struct
 } CSR_Shader;
 
 /**
-* Shader attribute. Used to declare a static attribute, like e.g. a static buffer, in a shader
-*/
-typedef struct
-{
-    char*  m_pName;
-    size_t m_Index;
-    size_t m_Length;
-} CSR_ShaderAttribute;
-
-/**
 * Static buffer, it's a buffer which the content was moved to a shader, i.e. on the GPU side
 */
 typedef struct
 {
     GLuint m_BufferID;
+    size_t m_Stride;
 } CSR_StaticBuffer;
 
 //---------------------------------------------------------------------------
@@ -65,8 +56,9 @@ typedef struct
 /**
 * Called when static vertex buffers may be linked to the shader
 *@param pShader - shader about to be linked
+*@aram pCustomData - custom data
 */
-typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
+typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader, const void* pCustomData);
 
 #ifdef __cplusplus
     extern "C"
@@ -100,12 +92,14 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
         *@param pVertex - vertex shader program file name
         *@param pFragment - fragment shader program file name
         *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
+        *@param pCustomData - custom data to send to fOnLinkStaticVB, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
         CSR_Shader* csrShaderLoadFromFile(const char*               pVertex,
                                           const char*               pFragment,
-                                          const CSR_fOnLinkStaticVB fOnLinkStaticVB);
+                                          const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                          const void*               pCustomData);
 
         /**
         * Loads, compiles and links a shader from strings containing the vertex and fragment programs
@@ -114,6 +108,7 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
         *@param pFragment - string containing the fragment shader program to load
         *@param fragmentLength - fragment shader program string length
         *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
+        *@param pCustomData - custom data to send to fOnLinkStaticVB, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
@@ -121,19 +116,22 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
                                          size_t                    vertexLength,
                                          const char*               pFragment,
                                          size_t                    fragmentLength,
-                                         const CSR_fOnLinkStaticVB fOnLinkStaticVB);
+                                         const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                         const void*               pCustomData);
 
         /**
         * Loads, compiles and links a shader from vertex and fragment buffers
         *@param pVertex - buffer containing the vertex shader program to load
         *@param pFragment - buffer containing the fragment shader program to load
         *@param fOnLinkStaticVB - get link static VB callback function to use, 0 if not used
+        *@param pCustomData - custom data to send to fOnLinkStaticVB, 0 if not used
         *@return newly created shader, 0 on error
         *@note The shader must be released when no longer used, see csrShaderRelease()
         */
         CSR_Shader* csrShaderLoadFromBuffer(const CSR_Buffer*         pVertex,
                                             const CSR_Buffer*         pFragment,
-                                            const CSR_fOnLinkStaticVB fOnLinkStaticVB);
+                                            const CSR_fOnLinkStaticVB fOnLinkStaticVB,
+                                            const void*               pCustomData);
 
         /**
         * Compiles a shader program
@@ -157,17 +155,7 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
         * Enables a shader (i.e. notify that from now this shader will be used)
         *@param pShader - shader to enable, disable any previously enabled shader if 0
         */
-        void csrShaderEnable(CSR_Shader* pShader);
-
-        //-------------------------------------------------------------------
-        // Shader attribute functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Initializes a shader attribute structure
-        *@param[in, out] pSA - shader attribute to initialize
-        */
-        void csrShaderAttributeInit(CSR_ShaderAttribute* pSA);
+        void csrShaderEnable(const CSR_Shader* pShader);
 
         //-------------------------------------------------------------------
         // Static buffer functions
@@ -175,13 +163,15 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader);
 
         /**
         * Creates a static buffer
+        *@param pShader - shader that will contain the buffer
+        *@param pSA - shader attributes
+        *@aram pBuffer - buffer to make static
         *@return newly created static buffer, 0 on error
+        *@note Once the static buffer is created, the source buffer may be deleted or reused for
+        *      another task
         *@note The static buffer must be released when no longer used, see csrStaticBufferRelease()
         */
-        CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader*          pShader,
-                                                const CSR_ShaderAttribute* pSA,
-                                                const float*               pBuffer,
-                                                      size_t               length);
+        CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader* pShader, const CSR_Buffer* pBuffer);
 
         /**
         * Releases a static buffer

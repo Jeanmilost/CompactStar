@@ -27,6 +27,7 @@
     #include <OpenGLES/ES2/gl.h>
     #include <OpenGLES/ES2/glext.h>
 #elif defined(__CODEGEARC__) || defined(__GNUC__)
+    #define WIN32_LEAN_AND_MEAN
     #include <Windows.h>
     #define GLEW_STATIC
     #include <gl/glew.h>
@@ -34,6 +35,8 @@
 
     // missing in RAD studio OpenGL header
     #define GL_CLAMP_TO_EDGE 0x812F
+#else
+    #error "The target system isn't supported for now"
 #endif
 
 //---------------------------------------------------------------------------
@@ -65,8 +68,8 @@ typedef enum
 */
 typedef struct
 {
-    unsigned char* m_pData;
-    size_t         m_Length;
+    void*  m_pData;
+    size_t m_Length;
 } CSR_Buffer;
 
 #ifdef __cplusplus

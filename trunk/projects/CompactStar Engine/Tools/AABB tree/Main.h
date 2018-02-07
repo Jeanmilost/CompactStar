@@ -32,6 +32,7 @@
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
+#include "CSR_Renderer.h"
 
 /**
 * AABB Tree tool main form
@@ -128,6 +129,7 @@ class TMainForm : public TForm
         ITreeStats       m_Stats;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
+        CSR_MSAA*        m_pMSAA;
         CSR_Mesh*        m_pBoxMesh;
         CSR_Mesh*        m_pMesh;
         CSR_MDL*         m_pMDL;
