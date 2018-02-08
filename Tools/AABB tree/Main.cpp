@@ -767,9 +767,9 @@ void TMainForm::InitScene(int w, int h)
     csrShaderEnable(m_pShader_TexturedMesh);
 
     // get shader attributes
-    m_pShader_TexturedMesh->m_VertexSlot   = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vVertex");
-    m_pShader_TexturedMesh->m_ColorSlot    = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vColor");
-    m_pShader_TexturedMesh->m_TexCoordSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_vTexCoord");
+    m_pShader_TexturedMesh->m_VertexSlot   = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID,  "csr_vVertex");
+    m_pShader_TexturedMesh->m_ColorSlot    = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID,  "csr_vColor");
+    m_pShader_TexturedMesh->m_TexCoordSlot = glGetAttribLocation(m_pShader_TexturedMesh->m_ProgramID,  "csr_vTexCoord");
     m_pShader_TexturedMesh->m_TextureSlot  = glGetUniformLocation(m_pShader_TexturedMesh->m_ProgramID, "csr_sTexture");
 
     CSR_Material material;
@@ -908,7 +908,7 @@ void TMainForm::DrawScene()
     try
     {
         // begin the scene
-        csrMSAASceneBegin(0.0f, 0.0f, 0.0f, 1.0f, m_pMSAA);
+        csrMSAASceneBegin(0.0f, 0.0f, 0.0f, 1.0f, ckAntialiasing->Checked ? m_pMSAA : NULL);
 
         if (m_pMesh)
             // draw the mesh
@@ -943,7 +943,7 @@ void TMainForm::DrawScene()
     __finally
     {
         // end the scene
-        csrMSAASceneEnd(m_pMSAA);
+        csrMSAASceneEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
     }
 }
 //---------------------------------------------------------------------------
