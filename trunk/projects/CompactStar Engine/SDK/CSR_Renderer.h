@@ -27,18 +27,20 @@
 /**
 * Multisampling antialiasing
 */
-typedef struct
-{
-    CSR_Shader*       m_pShader;
-    CSR_StaticBuffer* m_pStaticBuffer;
-    GLuint            m_FrameBufferID;
-    GLuint            m_RenderBufferID;
-    GLuint            m_TextureBufferID;
-    GLuint            m_TextureID;
-    size_t            m_SceneWidth;
-    size_t            m_SceneHeight;
-    size_t            m_Factor;
-} CSR_MSAA;
+#ifndef CSR_OPENGL_2_ONLY
+    typedef struct
+    {
+        CSR_Shader*       m_pShader;
+        CSR_StaticBuffer* m_pStaticBuffer;
+        GLuint            m_FrameBufferID;
+        GLuint            m_RenderBufferID;
+        GLuint            m_TextureBufferID;
+        GLuint            m_TextureID;
+        size_t            m_Width;
+        size_t            m_Height;
+        size_t            m_Factor;
+    } CSR_MSAA;
+#endif
 
 #ifdef __cplusplus
     extern "C"
@@ -56,13 +58,17 @@ typedef struct
         *@return newly created multisample antialiasing, 0 on error
         *@note The multisample antialiasing must be released when no longer used, see csrMSAARelease()
         */
-        CSR_MSAA* csrMSAACreate(size_t width, size_t height, size_t factor);
+        #ifndef CSR_OPENGL_2_ONLY
+            CSR_MSAA* csrMSAACreate(size_t width, size_t height, size_t factor);
+        #endif
 
         /**
         * Releases a multisample antialiasing
         *@param[in, out] pMSAA - multisample antialiasing to release
         */
-        void csrMSAARelease(CSR_MSAA* pMSAA);
+        #ifndef CSR_OPENGL_2_ONLY
+            void csrMSAARelease(CSR_MSAA* pMSAA);
+        #endif
 
         /**
         * Initializes a multisample antialiasing structure
@@ -72,7 +78,9 @@ typedef struct
         *@param[in, out] pMSAA - multisample antialiasing to initialize
         *@return 1 on success, otherwise 0
         */
-        int csrMSAAInit(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA);
+        #ifndef CSR_OPENGL_2_ONLY
+            int csrMSAAInit(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA);
+        #endif
 
         /**
         * Changes the size of a multisample antialiasing
@@ -81,7 +89,9 @@ typedef struct
         *@param[in, out] pMSAA - multisample antialiasing for which the size should change
         *@return 1 on success, otherwise 0
         */
-        int csrMSAAChangeSize(size_t width, size_t height, CSR_MSAA* pMSAA);
+        #ifndef CSR_OPENGL_2_ONLY
+            int csrMSAAChangeSize(size_t width, size_t height, CSR_MSAA* pMSAA);
+        #endif
 
         /**
         * Begins to draw an antialiased scene
@@ -91,13 +101,17 @@ typedef struct
         *@param a - scene background color alpha component in percent (between 0.0f and 1.0f)
         *@param pMSAA - multisample antialiasing to apply
         */
-        void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA);
+        #ifndef CSR_OPENGL_2_ONLY
+            void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA);
+        #endif
 
         /**
         * Ends to draw an antialiased scene
         *@param pMSAA - applied multisample antialiasing
         */
-        void csrMSAASceneEnd(const CSR_MSAA* pMSAA);
+        #ifndef CSR_OPENGL_2_ONLY
+            void csrMSAASceneEnd(const CSR_MSAA* pMSAA);
+        #endif
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -115,7 +129,7 @@ typedef struct
         /**
         * Ends to draw a scene
         */
-        void csrSceneEnd();
+        void csrSceneEnd(void);
 
         /**
         * Draws a mesh in a scene

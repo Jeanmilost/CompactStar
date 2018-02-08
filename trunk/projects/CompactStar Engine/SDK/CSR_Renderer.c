@@ -21,483 +21,417 @@
 //---------------------------------------------------------------------------
 // Multisample antialiasing shader
 //---------------------------------------------------------------------------
-const char g_MSAA_VertexProgram[] =
-    "attribute vec2 csr_vVertex;"
-    "attribute vec2 csr_vTexCoord;"
-    "varying   vec2 csr_fTexCoord;"
-    "void main()"
-    "{"
-    "    gl_Position   = vec4(csr_vVertex.x, csr_vVertex.y, 0.0f, 1.0f);"
-    "    csr_fTexCoord = csr_vTexCoord;"
-    "}";
+#ifndef CSR_OPENGL_2_ONLY
+    const char g_MSAA_VertexProgram[] =
+        "attribute vec2 csr_vVertex;"
+        "attribute vec2 csr_vTexCoord;"
+        "varying   vec2 csr_fTexCoord;"
+        "void main()"
+        "{"
+        "    gl_Position   = vec4(csr_vVertex.x, csr_vVertex.y, 0.0f, 1.0f);"
+        "    csr_fTexCoord = csr_vTexCoord;"
+        "}";
+#endif
 //---------------------------------------------------------------------------
-const char g_MSAA_FragmentProgram[] =
-    "uniform sampler2D csr_sTexture;"
-    "varying vec2      csr_fTexCoord;"
-    "void main()"
-    "{"
-    "    gl_FragColor = texture(csr_sTexture, csr_fTexCoord);"//vec4(csr_fTexCoord, 0.0, 1.0);"//texture(csr_sTexture, csr_fTexCoord);"
-    "}";
-/*REM
-const char g_FragmentProgram_TexturedMesh[] =
-    "precision mediump float;"
-    "uniform sampler2D csr_sTexture;"
-    "varying lowp vec4 csr_fColor;"
-    "varying      vec2 csr_fTexCoord;"
-    "void main(void)"
-    "{"
-    "    gl_FragColor = csr_fColor * texture2D(csr_sTexture, csr_fTexCoord);"
-    "}";
-*/
+#ifndef CSR_OPENGL_2_ONLY
+    const char g_MSAA_FragmentProgram[] =
+        "uniform sampler2D csr_sTexture;"
+        "varying vec2      csr_fTexCoord;"
+        "void main()"
+        "{"
+        "    gl_FragColor = texture(csr_sTexture, csr_fTexCoord);"
+        "}";
+#endif
 //---------------------------------------------------------------------------
 // Multisample antialiasing constants
 //---------------------------------------------------------------------------
-const float g_MSAA_VB[] =
-{
-    // x,   y,    tu,   tv
-    -1.0f,  1.0f, 0.0f, 1.0f,
-    -1.0f, -1.0f, 0.0f, 0.0f,
-     1.0f,  1.0f, 1.0f, 1.0f,
-     1.0f, -1.0f, 1.0f, 0.0f
-};
+#ifndef CSR_OPENGL_2_ONLY
+    const float g_MSAA_VB[] =
+    {
+        // x,   y,    tu,   tv
+        -1.0f,  1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+         1.0f, -1.0f, 1.0f, 0.0f
+    };
+#endif
 //---------------------------------------------------------------------------
 // Multisample antialiasing private functions
 //---------------------------------------------------------------------------
-void csrMSAALinkStaticVB(const CSR_Shader* pShader, const void* pCustomData)
-{
-    CSR_Buffer buffer;
-
-    // get the multisampling antialiasing sent in custom data
-    CSR_MSAA* pMSAA = (CSR_MSAA*)pCustomData;
-
-    // found it?
-    if (!pMSAA)
-        return;
-
-    // configure the vertex buffer
-    buffer.m_pData  = g_MSAA_VB;
-    buffer.m_Length = sizeof(g_MSAA_VB);
-
-    // create the shape on which the final texture will be drawn
-    pMSAA->m_pStaticBuffer           = csrStaticBufferCreate(pShader, &buffer);
-    pMSAA->m_pStaticBuffer->m_Stride = 4;
-}
-//---------------------------------------------------------------------------
-// Multisample antialiasing functions
-//---------------------------------------------------------------------------
-CSR_MSAA* csrMSAACreate(size_t width, size_t height, size_t factor)
-{
-    // create a new multisample antialiasing
-    CSR_MSAA* pMSAA = (CSR_MSAA*)malloc(sizeof(CSR_MSAA));
-
-    // succeeded?
-    if (!pMSAA)
-        return 0;
-
-    // initialize the multisample antialiasing content
-    if (!csrMSAAInit(width, height, factor, pMSAA))
+#ifndef CSR_OPENGL_2_ONLY
+    void csrMSAALinkStaticVB(const CSR_Shader* pShader, const void* pCustomData)
     {
-        csrMSAARelease(pMSAA);
-        return 0;
+        CSR_Buffer buffer;
+
+        // get the multisampling antialiasing sent in custom data
+        CSR_MSAA* pMSAA = (CSR_MSAA*)pCustomData;
+
+        // found it?
+        if (!pMSAA)
+            return;
+
+        // configure the vertex buffer
+        buffer.m_pData  = g_MSAA_VB;
+        buffer.m_Length = sizeof(g_MSAA_VB);
+
+        // create the shape on which the final texture will be drawn
+        pMSAA->m_pStaticBuffer           = csrStaticBufferCreate(pShader, &buffer);
+        pMSAA->m_pStaticBuffer->m_Stride = 4;
     }
-
-    return pMSAA;
-}
+#endif
 //---------------------------------------------------------------------------
-void csrMSAARelease(CSR_MSAA* pMSAA)
-{
-    // no multisampling antialiasing to release?
-    if (!pMSAA)
-        return;
-
-    // enable the MSAA shader
-    if (pMSAA->m_pShader)
-        csrShaderEnable(pMSAA->m_pShader);
-
-    // delete the multisampled texture
-    if (pMSAA->m_TextureID)
-        glDeleteTextures(1, &pMSAA->m_TextureID);
-
-    // delete the multisampled texture buffer
-    if (pMSAA->m_TextureBufferID)
-        glDeleteFramebuffers(1, &pMSAA->m_TextureBufferID);
-
-    // delete the render buffer
-    if (pMSAA->m_RenderBufferID)
-        glDeleteRenderbuffers(1, &pMSAA->m_RenderBufferID);
-
-    // delete the frame buffer
-    if (pMSAA->m_FrameBufferID)
-        glDeleteFramebuffers(1, &pMSAA->m_FrameBufferID);
-
-    // delete the shader
-    if (pMSAA->m_pShader)
-        csrShaderRelease(pMSAA->m_pShader);
-
-    // delete the static buffer
-    if (pMSAA->m_pStaticBuffer)
-        csrStaticBufferRelease(pMSAA->m_pStaticBuffer);
-
-    // delete the multisampling antialiasing
-    free(pMSAA);
-}
-//---------------------------------------------------------------------------
-int csrMSAAInit(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA)
-{
-    GLuint msTexture;
-    GLuint texture;
-
-    // no multisample antialiasing to initialize?
-    if (!pMSAA)
-        return 0;
-
-    // validate input
-    if (factor != 2 && factor != 4 && factor != 8)
-        return 0;
-
-    // load the shader used for MSAA
-    pMSAA->m_pShader = csrShaderLoadFromStr(g_MSAA_VertexProgram,
-                                            sizeof(g_MSAA_VertexProgram),
-                                            g_MSAA_FragmentProgram,
-                                            sizeof(g_MSAA_FragmentProgram),
-                                            csrMSAALinkStaticVB,
-                                            pMSAA);
-
-    // succeeded?
-    if (!pMSAA->m_pShader)
-        return 0;
-
-    // the static buffer containing the final surface to show was generated successfully?
-    if (!pMSAA->m_pStaticBuffer)
-        return 0;
-
-    // enable the MSAA shader
-    csrShaderEnable(pMSAA->m_pShader);
-
-    // get the vertex slot
-    pMSAA->m_pShader->m_VertexSlot =
-            glGetAttribLocation(pMSAA->m_pShader->m_ProgramID, "csr_vVertex");
-
-    // found it?
-    if (pMSAA->m_pShader->m_VertexSlot == -1)
-        return 0;
-
-    // get the texture coordinates slot
-    pMSAA->m_pShader->m_TexCoordSlot =
-            glGetAttribLocation(pMSAA->m_pShader->m_ProgramID, "csr_vTexCoord");
-
-    // found it?
-    if (pMSAA->m_pShader->m_TexCoordSlot == -1)
-        return 0;
-
-    // get the texture sampler slot
-    pMSAA->m_pShader->m_TextureSlot =
-            glGetUniformLocation(pMSAA->m_pShader->m_ProgramID, "csr_sTexture");
-
-    // found it?
-    if (pMSAA->m_pShader->m_TextureSlot == -1)
-        return 0;
-
-    // enable multisampling
-    glEnable(GL_MULTISAMPLE);
-
-    // create frame buffer
-    glGenFramebuffers(1, &pMSAA->m_FrameBufferID);
-    glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_FrameBufferID);
-
-    // create a new texture
-    glGenTextures(1, &msTexture);
-
-    // bind texture to sampler
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msTexture);
-    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, factor, GL_RGB, width, height, GL_TRUE);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-
-    // add texture to the frame buffer
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                           GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D_MULTISAMPLE,
-                           msTexture,
-                           0);
-
-    // create a render buffer object for depth and stencil attachments
-    glGenRenderbuffers(1, &pMSAA->m_RenderBufferID);
-    glBindRenderbuffer(GL_RENDERBUFFER, pMSAA->m_RenderBufferID);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER,
-                                     factor,
-                                     GL_DEPTH24_STENCIL8,
-                                     width,
-                                     height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER,
-                              GL_DEPTH_STENCIL_ATTACHMENT,
-                              GL_RENDERBUFFER,
-                              pMSAA->m_RenderBufferID);
-
-    // build the render buffer object
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        return 0;
-
-    // bind the frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // create multisampled output texture
-    glGenTextures(1, &pMSAA->m_TextureID);
-    glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-    // configure texture filters to use and bind texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // create a multisampled texture buffer
-    glGenFramebuffers(1, &pMSAA->m_TextureBufferID);
-    glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_TextureBufferID);
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                           GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D,
-                           pMSAA->m_TextureID,
-                           0);
-
-    // build the multisampled texture buffer
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        return 0;
-
-    // unbind the frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // set the scene size
-    pMSAA->m_SceneWidth  = width;
-    pMSAA->m_SceneHeight = height;
-    pMSAA->m_Factor      = factor;
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-int csrMSAAChangeSize(size_t width, size_t height, CSR_MSAA* pMSAA)
-{
-    GLuint msTexture;
-    GLuint texture;
-
-    // validate the input
-    if (!pMSAA)
-        return 0;
-
-    // delete the multisampled texture
-    if (pMSAA->m_TextureID)
+#ifndef CSR_OPENGL_2_ONLY
+    int csrMSAAConfigure(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA)
     {
-        glDeleteTextures(1, &pMSAA->m_TextureID);
-        pMSAA->m_TextureID = M_CSR_Error_Code;
-    }
-
-    // delete the multisampled texture buffer
-    if (pMSAA->m_TextureBufferID)
-    {
-        glDeleteFramebuffers(1, &pMSAA->m_TextureBufferID);
-        pMSAA->m_TextureBufferID = M_CSR_Error_Code;
-    }
-
-    // delete the render buffer
-    if (pMSAA->m_RenderBufferID)
-    {
-        glDeleteRenderbuffers(1, &pMSAA->m_RenderBufferID);
-        pMSAA->m_RenderBufferID = M_CSR_Error_Code;
-    }
-
-    // delete the frame buffer
-    if (pMSAA->m_FrameBufferID)
-    {
-        glDeleteFramebuffers(1, &pMSAA->m_FrameBufferID);
-        pMSAA->m_FrameBufferID = M_CSR_Error_Code;
-    }
-
-    // enable multisampling
-    glEnable(GL_MULTISAMPLE);
-
-    // recreate the frame buffer
-    glGenFramebuffers(1, &pMSAA->m_FrameBufferID);
-    glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_FrameBufferID);
-
-    // recreate the texture
-    glGenTextures(1, &msTexture);
-
-    // bind texture to sampler
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msTexture);
-    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
-                            pMSAA->m_Factor,
-                            GL_RGB,
-                            width,
-                            height,
-                            GL_TRUE);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-
-    // add texture to the frame buffer
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                           GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D_MULTISAMPLE,
-                           msTexture,
-                           0);
-
-    // recreate the render buffer
-    glGenRenderbuffers(1, &pMSAA->m_RenderBufferID);
-    glBindRenderbuffer(GL_RENDERBUFFER, pMSAA->m_RenderBufferID);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER,
-                                     pMSAA->m_Factor,
-                                     GL_DEPTH24_STENCIL8,
-                                     width,
-                                     height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER,
-                              GL_DEPTH_STENCIL_ATTACHMENT,
-                              GL_RENDERBUFFER,
-                              pMSAA->m_RenderBufferID);
-
-    // build the render buffer object
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        return 0;
-
-    // bind the frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // recreate the multisampled output texture
-    glGenTextures(1, &pMSAA->m_TextureID);
-    glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-    // configure texture filters to use and bind texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // recreate the multisampled texture buffer
-    glGenFramebuffers(1, &pMSAA->m_TextureBufferID);
-    glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_TextureBufferID);
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                           GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D,
-                           pMSAA->m_TextureID,
-                           0);
-
-    // build the multisampled texture buffer
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        return 0;
-
-    // unbind the frame buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // update the scene size
-    pMSAA->m_SceneWidth  = width;
-    pMSAA->m_SceneHeight = height;
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA)
-{
-    // do apply a multisample antialiasing on the scene
-    if (pMSAA && pMSAA->m_pShader)
-    {
-        // enable the MSAA shader
-        csrShaderEnable(pMSAA->m_pShader);
+        GLuint msTexture;
+        GLuint texture;
 
         // enable multisampling
         glEnable(GL_MULTISAMPLE);
 
-        // bind the frame buffer on which the scene should be drawn
+        // create and bind the frame buffer
+        glGenFramebuffers(1, &pMSAA->m_FrameBufferID);
         glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_FrameBufferID);
+
+        // create a new texture
+        glGenTextures(1, &msTexture);
+
+        // bind texture to sampler
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msTexture);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, factor, GL_RGB, width, height, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+        // add texture to the frame buffer
+        glFramebufferTexture2D(GL_FRAMEBUFFER,
+                               GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D_MULTISAMPLE,
+                               msTexture,
+                               0);
+
+        // create and bind the render buffer for depth and stencil attachments
+        glGenRenderbuffers(1, &pMSAA->m_RenderBufferID);
+        glBindRenderbuffer(GL_RENDERBUFFER, pMSAA->m_RenderBufferID);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER,
+                                         factor,
+                                         GL_DEPTH24_STENCIL8,
+                                         width,
+                                         height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                  GL_DEPTH_STENCIL_ATTACHMENT,
+                                  GL_RENDERBUFFER,
+                                  pMSAA->m_RenderBufferID);
+
+        // build the render buffer
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            return 0;
+
+        // unbind the frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // create multisampled output texture
+        glGenTextures(1, &pMSAA->m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+        // configure texture filters to use and bind texture
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // create and bind a multisampled texture buffer
+        glGenFramebuffers(1, &pMSAA->m_TextureBufferID);
+        glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_TextureBufferID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER,
+                               GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D,
+                               pMSAA->m_TextureID,
+                               0);
+
+        // build the multisampled texture buffer
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            return 0;
+
+        // unbind the texture buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // set the scene size
+        pMSAA->m_Width  = width;
+        pMSAA->m_Height = height;
+        pMSAA->m_Factor = factor;
+
+        return 1;
     }
-
-    // clear scene background and depth buffer
-    glClearColor(r, g, b, a);
-    glClearDepthf(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // configure the OpenGL depth testing for the scene
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDepthRangef(0.0f, 1.0f);
-}
+#endif
 //---------------------------------------------------------------------------
-void csrMSAASceneEnd(const CSR_MSAA* pMSAA)
-{
-    // do finalize the multisampling antialiasing effect?
-    if (pMSAA && pMSAA->m_pShader && pMSAA->m_pStaticBuffer)
+// Multisample antialiasing functions
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    CSR_MSAA* csrMSAACreate(size_t width, size_t height, size_t factor)
     {
-        // configure the culling
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glFrontFace(GL_CW);
+        // create a new multisample antialiasing
+        CSR_MSAA* pMSAA = (CSR_MSAA*)malloc(sizeof(CSR_MSAA));
 
-        // disable the alpha blending
-        glDisable(GL_BLEND);
+        // succeeded?
+        if (!pMSAA)
+            return 0;
 
-        // set polygon mode to fill
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // initialize the multisample antialiasing content
+        if (!csrMSAAInit(width, height, factor, pMSAA))
+        {
+            csrMSAARelease(pMSAA);
+            return 0;
+        }
+
+        return pMSAA;
+    }
+#endif
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    void csrMSAARelease(CSR_MSAA* pMSAA)
+    {
+        // no multisampling antialiasing to release?
+        if (!pMSAA)
+            return;
+
+        // enable the MSAA shader
+        if (pMSAA->m_pShader)
+            csrShaderEnable(pMSAA->m_pShader);
+
+        // delete the multisampled texture
+        if (pMSAA->m_TextureID)
+            glDeleteTextures(1, &pMSAA->m_TextureID);
+
+        // delete the multisampled texture buffer
+        if (pMSAA->m_TextureBufferID)
+            glDeleteFramebuffers(1, &pMSAA->m_TextureBufferID);
+
+        // delete the render buffer
+        if (pMSAA->m_RenderBufferID)
+            glDeleteRenderbuffers(1, &pMSAA->m_RenderBufferID);
+
+        // delete the frame buffer
+        if (pMSAA->m_FrameBufferID)
+            glDeleteFramebuffers(1, &pMSAA->m_FrameBufferID);
+
+        // delete the shader
+        if (pMSAA->m_pShader)
+            csrShaderRelease(pMSAA->m_pShader);
+
+        // delete the static buffer
+        if (pMSAA->m_pStaticBuffer)
+            csrStaticBufferRelease(pMSAA->m_pStaticBuffer);
+
+        // delete the multisampling antialiasing
+        free(pMSAA);
+    }
+#endif
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    int csrMSAAInit(size_t width, size_t height, size_t factor, CSR_MSAA* pMSAA)
+    {
+        // no multisample antialiasing to initialize?
+        if (!pMSAA)
+            return 0;
+
+        // validate input
+        if (factor != 2 && factor != 4 && factor != 8)
+            return 0;
+
+        // load the shader to use for MSAA
+        pMSAA->m_pShader = csrShaderLoadFromStr(g_MSAA_VertexProgram,
+                                                sizeof(g_MSAA_VertexProgram),
+                                                g_MSAA_FragmentProgram,
+                                                sizeof(g_MSAA_FragmentProgram),
+                                                csrMSAALinkStaticVB,
+                                                pMSAA);
+
+        // succeeded?
+        if (!pMSAA->m_pShader)
+            return 0;
+
+        // the static buffer containing the final surface to show was generated successfully?
+        if (!pMSAA->m_pStaticBuffer)
+            return 0;
 
         // enable the MSAA shader
         csrShaderEnable(pMSAA->m_pShader);
 
-        // blit the multisampled buffer containing the drawn scene to the output texture buffer
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, pMSAA->m_FrameBufferID);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pMSAA->m_TextureBufferID);
-        glBlitFramebuffer(0,
-                          0,
-                          pMSAA->m_SceneWidth,
-                          pMSAA->m_SceneHeight,
-                          0,
-                          0,
-                          pMSAA->m_SceneWidth,
-                          pMSAA->m_SceneHeight,
-                          GL_COLOR_BUFFER_BIT,
-                          GL_NEAREST);
+        // get the vertex slot
+        pMSAA->m_pShader->m_VertexSlot =
+                glGetAttribLocation(pMSAA->m_pShader->m_ProgramID, "csr_vVertex");
 
-        // draw a surface on which the scene texture will be wrapped
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
+        // found it?
+        if (pMSAA->m_pShader->m_VertexSlot == -1)
+            return 0;
 
-        // select the texture sampler to use (GL_TEXTURE0 for normal textures)
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(pMSAA->m_pShader->m_TextureSlot, GL_TEXTURE0);
+        // get the texture coordinates slot
+        pMSAA->m_pShader->m_TexCoordSlot =
+                glGetAttribLocation(pMSAA->m_pShader->m_ProgramID, "csr_vTexCoord");
 
-        // bind the texure to use
-        glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
+        // found it?
+        if (pMSAA->m_pShader->m_TexCoordSlot == -1)
+            return 0;
 
-        // bind the VBO containing the shape to draw
-        glBindBuffer(GL_ARRAY_BUFFER, pMSAA->m_pStaticBuffer->m_BufferID);
+        // get the texture sampler slot
+        pMSAA->m_pShader->m_TextureSlot =
+                glGetUniformLocation(pMSAA->m_pShader->m_ProgramID, "csr_sTexture");
 
-        // enable the vertices
-        glEnableVertexAttribArray(pMSAA->m_pShader->m_VertexSlot);
-        glVertexAttribPointer(pMSAA->m_pShader->m_VertexSlot,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
-                              0);
+        // found it?
+        if (pMSAA->m_pShader->m_TextureSlot == -1)
+            return 0;
 
-        // enable the texture coordinates
-        glEnableVertexAttribArray(pMSAA->m_pShader->m_TexCoordSlot);
-        glVertexAttribPointer(pMSAA->m_pShader->m_TexCoordSlot,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
-                              (void*)(2 * sizeof(float)));
-
-        // draw the final surface
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-        // disable the vertex attribute arrays
-        glDisableVertexAttribArray(pMSAA->m_pShader->m_TexCoordSlot);
-        glDisableVertexAttribArray(pMSAA->m_pShader->m_VertexSlot);
-
-        // unbind the VBO
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // configure the multisample antialiasing
+        return csrMSAAConfigure(width, height, factor, pMSAA);
     }
-}
+#endif
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    int csrMSAAChangeSize(size_t width, size_t height, CSR_MSAA* pMSAA)
+    {
+        // validate the input
+        if (!pMSAA)
+            return 0;
+
+        // delete the multisampled texture
+        if (pMSAA->m_TextureID)
+        {
+            glDeleteTextures(1, &pMSAA->m_TextureID);
+            pMSAA->m_TextureID = M_CSR_Error_Code;
+        }
+
+        // delete the multisampled texture buffer
+        if (pMSAA->m_TextureBufferID)
+        {
+            glDeleteFramebuffers(1, &pMSAA->m_TextureBufferID);
+            pMSAA->m_TextureBufferID = M_CSR_Error_Code;
+        }
+
+        // delete the render buffer
+        if (pMSAA->m_RenderBufferID)
+        {
+            glDeleteRenderbuffers(1, &pMSAA->m_RenderBufferID);
+            pMSAA->m_RenderBufferID = M_CSR_Error_Code;
+        }
+
+        // delete the frame buffer
+        if (pMSAA->m_FrameBufferID)
+        {
+            glDeleteFramebuffers(1, &pMSAA->m_FrameBufferID);
+            pMSAA->m_FrameBufferID = M_CSR_Error_Code;
+        }
+
+        // recreate the multisample antialiasing
+        return csrMSAAConfigure(width, height, pMSAA->m_Factor, pMSAA);
+    }
+#endif
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA)
+    {
+        // do apply a multisample antialiasing on the scene
+        if (pMSAA && pMSAA->m_pShader)
+        {
+            // enable the MSAA shader
+            csrShaderEnable(pMSAA->m_pShader);
+
+            // enable multisampling
+            glEnable(GL_MULTISAMPLE);
+
+            // bind the frame buffer on which the scene should be drawn
+            glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_FrameBufferID);
+        }
+
+        // begin the scene
+        csrSceneBegin(r, g, b, a);
+    }
+#endif
+//---------------------------------------------------------------------------
+#ifndef CSR_OPENGL_2_ONLY
+    void csrMSAASceneEnd(const CSR_MSAA* pMSAA)
+    {
+        // end the scene
+        csrSceneEnd();
+
+        // do finalize the multisampling antialiasing effect?
+        if (pMSAA && pMSAA->m_pShader && pMSAA->m_pStaticBuffer)
+        {
+            // configure the culling
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            glFrontFace(GL_CW);
+
+            // disable the alpha blending
+            glDisable(GL_BLEND);
+
+            // set polygon mode to fill
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+            // enable the MSAA shader
+            csrShaderEnable(pMSAA->m_pShader);
+
+            // blit the multisampled buffer containing the drawn scene to the output texture buffer
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, pMSAA->m_FrameBufferID);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pMSAA->m_TextureBufferID);
+            glBlitFramebuffer(0,
+                              0,
+                              pMSAA->m_Width,
+                              pMSAA->m_Height,
+                              0,
+                              0,
+                              pMSAA->m_Width,
+                              pMSAA->m_Height,
+                              GL_COLOR_BUFFER_BIT,
+                              GL_NEAREST);
+
+            // unbind the frame buffer
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            // configure the depth testing
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glDisable(GL_DEPTH_TEST);
+
+            // select the texture sampler to use (GL_TEXTURE0 for normal textures)
+            glActiveTexture(GL_TEXTURE0);
+            glUniform1i(pMSAA->m_pShader->m_TextureSlot, GL_TEXTURE0);
+
+            // bind the texure to use
+            glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
+
+            // bind the VBO containing the shape to draw
+            glBindBuffer(GL_ARRAY_BUFFER, pMSAA->m_pStaticBuffer->m_BufferID);
+
+            // enable the vertices
+            glEnableVertexAttribArray(pMSAA->m_pShader->m_VertexSlot);
+            glVertexAttribPointer(pMSAA->m_pShader->m_VertexSlot,
+                                  2,
+                                  GL_FLOAT,
+                                  GL_FALSE,
+                                  pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
+                                  0);
+
+            // enable the texture coordinates
+            glEnableVertexAttribArray(pMSAA->m_pShader->m_TexCoordSlot);
+            glVertexAttribPointer(pMSAA->m_pShader->m_TexCoordSlot,
+                                  2,
+                                  GL_FLOAT,
+                                  GL_FALSE,
+                                  pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
+                                  (void*)(2 * sizeof(float)));
+
+            // draw the surface
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+            // disable the vertex attribute arrays
+            glDisableVertexAttribArray(pMSAA->m_pShader->m_TexCoordSlot);
+            glDisableVertexAttribArray(pMSAA->m_pShader->m_VertexSlot);
+
+            // unbind the VBO
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+    }
+#endif
 //---------------------------------------------------------------------------
 // Scene functions
 //---------------------------------------------------------------------------
@@ -570,10 +504,12 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             glDisable(GL_BLEND);
 
         // configure the wireframe mode
-        if (pMesh->m_pVB[i].m_Material.m_Wireframe)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        else
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        #ifndef CSR_OPENGL_2_ONLY
+            if (pMesh->m_pVB[i].m_Material.m_Wireframe)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        #endif
 
         // vertices have UV texture coordinates?
         if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)

@@ -74,12 +74,13 @@ object MainForm: TMainForm
     object laTransparency: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 282
+      Top = 305
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'AABB Tree Box Transparency'
+      ExplicitTop = 282
       ExplicitWidth = 141
     end
     object blOptionsSeparator: TBevel
@@ -201,45 +202,49 @@ object MainForm: TMainForm
     object laRotationSpeedCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 368
+      Top = 391
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Model Rotation Speed'
+      ExplicitTop = 368
       ExplicitWidth = 105
     end
     object laAnimationSpeedCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 454
+      Top = 477
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Model Animation Speed'
+      ExplicitTop = 454
       ExplicitWidth = 111
     end
     object laAnimationNbCaption: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 411
+      Top = 434
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Model Animation Nb.'
+      ExplicitTop = 411
       ExplicitWidth = 98
     end
     object laModelDistance: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 325
+      Top = 348
       Width = 179
       Height = 13
       Margins.Top = 5
       Align = alTop
       Caption = 'Model Distance'
+      ExplicitTop = 325
       ExplicitWidth = 72
     end
     object ckWireFrame: TCheckBox
@@ -267,7 +272,7 @@ object MainForm: TMainForm
     object tbTransparency: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 298
+      Top = 321
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -275,8 +280,9 @@ object MainForm: TMainForm
       Max = 100
       Position = 80
       ShowSelRange = False
-      TabOrder = 7
+      TabOrder = 8
       TickStyle = tsNone
+      ExplicitTop = 298
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -286,7 +292,7 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Open Model...'
-      TabOrder = 11
+      TabOrder = 12
       OnClick = btLoadModelClick
     end
     object ckShowCollidingBoxesOnly: TCheckBox
@@ -326,7 +332,7 @@ object MainForm: TMainForm
     object tbRotationSpeed: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 384
+      Top = 407
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -334,13 +340,14 @@ object MainForm: TMainForm
       Max = 200
       Position = 50
       ShowSelRange = False
-      TabOrder = 8
+      TabOrder = 9
       TickStyle = tsNone
+      ExplicitTop = 384
     end
     object tbAnimationSpeed: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 470
+      Top = 493
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -350,8 +357,9 @@ object MainForm: TMainForm
       Min = 1
       Position = 10
       ShowSelRange = False
-      TabOrder = 10
+      TabOrder = 11
       TickStyle = tsNone
+      ExplicitTop = 470
     end
     object ckPauseModelAnimation: TCheckBox
       AlignWithMargins = True
@@ -368,7 +376,7 @@ object MainForm: TMainForm
     object tbAnimationNb: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 427
+      Top = 450
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -376,13 +384,14 @@ object MainForm: TMainForm
       Enabled = False
       Max = 50
       ShowSelRange = False
-      TabOrder = 9
+      TabOrder = 10
       TickStyle = tsNone
+      ExplicitTop = 427
     end
     object tbModelDistance: TTrackBar
       AlignWithMargins = True
       Left = 3
-      Top = 341
+      Top = 364
       Width = 179
       Height = 19
       Margins.Top = 0
@@ -391,8 +400,23 @@ object MainForm: TMainForm
       Min = 1
       Position = 2
       ShowSelRange = False
-      TabOrder = 6
+      TabOrder = 7
       TickStyle = tsNone
+      ExplicitTop = 341
+    end
+    object ckAntialiasing: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 280
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Antialiasing'
+      Checked = True
+      State = cbChecked
+      TabOrder = 6
+      ExplicitLeft = -5
+      ExplicitTop = 301
     end
   end
 end

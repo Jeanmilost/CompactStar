@@ -73,6 +73,7 @@ class TMainForm : public TForm
         TTrackBar *tbAnimationNb;
         TLabel *laModelDistance;
         TTrackBar *tbModelDistance;
+        TCheckBox *ckAntialiasing;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
