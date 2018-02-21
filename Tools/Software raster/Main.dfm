@@ -15,7 +15,7 @@ object Form1: TForm1
   TextHeight = 13
   object bt1: TButton
     Left = 368
-    Top = 272
+    Top = 267
     Width = 75
     Height = 25
     Caption = 'bt1'

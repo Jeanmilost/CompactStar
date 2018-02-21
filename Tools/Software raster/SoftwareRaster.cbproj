@@ -46,14 +46,16 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Locale>4108</VerInfo_Locale>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>SoftwareRaster</SanitizedProjectName>
         <Multithreaded>true</Multithreaded>
-        <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>N:\Jeanmilost\Devel\Labo\SoftwareRaster\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\SDK\;..\..\Third-party\glew\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
-        <ILINK_LibraryPath>N:\Jeanmilost\Devel\Labo\SoftwareRaster\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Third-party\glew\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
         <DynamicRTL>true</DynamicRTL>
@@ -102,6 +104,8 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
         <LinkPackageImports>rtl.bpi;vcl.bpi</LinkPackageImports>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
@@ -113,6 +117,18 @@
         <BCC_PCHName_Clang>SoftwareRaster_PCH.h</BCC_PCHName_Clang>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\..\SDK\CSR_Common.c">
+            <BuildOrder>6</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Common.h">
+            <BuildOrder>7</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Geometry.c">
+            <BuildOrder>8</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Geometry.h">
+            <BuildOrder>9</BuildOrder>
+        </None>
         <CppCompile Include="cow.cpp">
             <DependentOn>cow.h</DependentOn>
             <BuildOrder>5</BuildOrder>
@@ -164,11 +180,13 @@
                 <Source>
                     <Source Name="MainSource">SoftwareRaster.cpp</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl not found</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment>
-                <DeployFile LocalName=".\Win32\Debug\SoftwareRaster.tds" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win32">
-                        <RemoteName>SoftwareRaster.tds</RemoteName>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin64\cc64160.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -208,14 +226,15 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\SoftwareRaster.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName=".\Win32\Debug\SoftwareRaster.tds" Configuration="Debug" Class="DebugSymbols">
                     <Platform Name="Win32">
-                        <RemoteName>SoftwareRaster.exe</RemoteName>
+                        <RemoteName>SoftwareRaster.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin64\cc64160.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
+                <DeployFile LocalName=".\Win32\Debug\SoftwareRaster.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>SoftwareRaster.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
