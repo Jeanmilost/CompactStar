@@ -373,6 +373,22 @@ void csrMat4ApplyToNormal(const CSR_Matrix4* pM, const CSR_Vector3* pN, CSR_Vect
     pR->m_Z = (pN->m_X * pM->m_Table[0][2] + pN->m_Y * pM->m_Table[1][2] + pN->m_Z * pM->m_Table[2][2]);
 }
 //---------------------------------------------------------------------------
+void csrMat4Transform(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3* pR)
+{
+    float w;
+
+    // apply the transformations (position, rotation, scaling, ...) to the vector
+    csrMat4ApplyToVector(pM, pV, pR);
+
+    // calculate the amplitude
+    w = (pV->m_X * pM->m_Table[0][3] + pV->m_Y * pM->m_Table[1][3] + pV->m_Z * pM->m_Table[2][3] + pM->m_Table[3][3]);
+
+    // calculate the final vector
+    pR->m_X /= w;
+    pR->m_Y /= w;
+    pR->m_Z /= w;
+}
+//---------------------------------------------------------------------------
 void csrMat4Unproject(const CSR_Matrix4* pP, const CSR_Matrix4* pV, CSR_Ray3* pR)
 {
     float       determinant;

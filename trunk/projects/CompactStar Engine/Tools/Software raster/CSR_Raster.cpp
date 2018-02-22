@@ -5,19 +5,8 @@
 #include <stdlib>
 #include <math.h>
 
-/*REM
-#include <System.Classes.hpp>
-#include <Vcl.Controls.hpp>
-#include <Vcl.StdCtrls.hpp>
-#include <Vcl.Forms.hpp>
-#include <Vcl.ComCtrls.hpp>
-#include <Vcl.ExtCtrls.hpp>
-*/
-
-//REM #include <Vcl.Graphics.hpp>
-
 //---------------------------------------------------------------------------
-CSR_FrameBuffer* CSR_Raster::csrFrameBufferCreate(size_t width, size_t height)
+CSR_FrameBuffer* CSR_SoftwareRaster::csrFrameBufferCreate(size_t width, size_t height)
 {
     // create a frame buffer
     CSR_FrameBuffer* pFB = (CSR_FrameBuffer*)malloc(sizeof(CSR_FrameBuffer));
@@ -36,7 +25,7 @@ CSR_FrameBuffer* CSR_Raster::csrFrameBufferCreate(size_t width, size_t height)
     return pFB;
 }
 //---------------------------------------------------------------------------
-int CSR_Raster::csrFrameBufferInit(size_t width, size_t height, CSR_FrameBuffer* pFB)
+int CSR_SoftwareRaster::csrFrameBufferInit(size_t width, size_t height, CSR_FrameBuffer* pFB)
 {
     // calculate the buffer size to create
     const std::size_t size = width * height;
@@ -66,7 +55,7 @@ int CSR_Raster::csrFrameBufferInit(size_t width, size_t height, CSR_FrameBuffer*
     return 1;
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrFrameBufferRelease(CSR_FrameBuffer* pFB)
+void CSR_SoftwareRaster::csrFrameBufferRelease(CSR_FrameBuffer* pFB)
 {
     // nothing to release?
     if (!pFB)
@@ -80,7 +69,7 @@ void CSR_Raster::csrFrameBufferRelease(CSR_FrameBuffer* pFB)
     free(pFB);
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
+void CSR_SoftwareRaster::csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
 {
     size_t i;
 
@@ -93,7 +82,7 @@ void CSR_Raster::csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
         memcpy(&pFB->m_pPixel[i], pPixel, sizeof(CSR_Pixel));
 }
 //---------------------------------------------------------------------------
-CSR_DepthBuffer* CSR_Raster::csrDepthBufferCreate(size_t width, size_t height)
+CSR_DepthBuffer* CSR_SoftwareRaster::csrDepthBufferCreate(size_t width, size_t height)
 {
     // create a depth buffer
     CSR_DepthBuffer* pDB = (CSR_DepthBuffer*)malloc(sizeof(CSR_DepthBuffer));
@@ -112,7 +101,7 @@ CSR_DepthBuffer* CSR_Raster::csrDepthBufferCreate(size_t width, size_t height)
     return pDB;
 }
 //---------------------------------------------------------------------------
-int CSR_Raster::csrDepthBufferInit(size_t width, size_t height, CSR_DepthBuffer* pDB)
+int CSR_SoftwareRaster::csrDepthBufferInit(size_t width, size_t height, CSR_DepthBuffer* pDB)
 {
     // calculate the buffer size to create
     const std::size_t size = width * height;
@@ -142,7 +131,7 @@ int CSR_Raster::csrDepthBufferInit(size_t width, size_t height, CSR_DepthBuffer*
     return 1;
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrDepthBufferRelease(CSR_DepthBuffer* pDB)
+void CSR_SoftwareRaster::csrDepthBufferRelease(CSR_DepthBuffer* pDB)
 {
     // nothing to release?
     if (!pDB)
@@ -156,7 +145,7 @@ void CSR_Raster::csrDepthBufferRelease(CSR_DepthBuffer* pDB)
     free(pDB);
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
+void CSR_SoftwareRaster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
 {
     size_t i;
 
@@ -169,7 +158,19 @@ void CSR_Raster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlan
         memcpy(&pDB->m_pData[i], &farClippingPlane, sizeof(float));
 }
 //---------------------------------------------------------------------------
-float CSR_Raster::csrRasterFindMin(float a, float b, float c)
+void csrRasterInit(CSR_Raster* pRaster)
+{
+    // no raster to initialize?
+    if (!pRaster)
+        return;
+
+    pRaster->m_ApertureWidth  = 0.980; // 35mm full aperture in inches
+    pRaster->m_ApertureHeight = 0.735; // 35mm full aperture in inches
+    pRaster->m_FocalLength    = 20.0f; // focal length in mm
+    pRaster->m_Type           = CSR_RT_Overscan;
+}
+//---------------------------------------------------------------------------
+float CSR_SoftwareRaster::csrRasterFindMin(float a, float b, float c)
 {
     if (a < b && a < c)
         return a;
@@ -180,7 +181,7 @@ float CSR_Raster::csrRasterFindMin(float a, float b, float c)
     return c;
 }
 //---------------------------------------------------------------------------
-float CSR_Raster::csrRasterFindMax(float a, float b, float c)
+float CSR_SoftwareRaster::csrRasterFindMax(float a, float b, float c)
 {
     if (a > b && a > c)
         return a;
@@ -191,42 +192,41 @@ float CSR_Raster::csrRasterFindMax(float a, float b, float c)
     return c;
 }
 //---------------------------------------------------------------------------
-float CSR_Raster::csrRasterFindEdge(const Vec3f& a, const Vec3f& b, const Vec3f& c)
+float CSR_SoftwareRaster::csrRasterFindEdge(const CSR_Vector3* pV1,
+                                    const CSR_Vector3* pV2,
+                                    const CSR_Vector3* pV3)
 {
-    return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+    return ((pV3->m_X - pV1->m_X) * (pV2->m_Y - pV1->m_Y)) -
+           ((pV3->m_Y - pV1->m_Y) * (pV2->m_X - pV1->m_X));
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrRasterGetScreenCoordinates(float                  filmApertureWidth,
-                                               float                  filmApertureHeight,
-                                               size_t                 imageWidth,
-                                               size_t                 imageHeight,
-                                               CSR_EFitResolutionGate fitFilm,
-                                               float                  nearClippingPLane,
-                                               float                  focalLength,
-                                               float&                 top,
-                                               float&                 bottom,
-                                               float&                 left,
-                                               float&                 right)
+void csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
+                                         float       imageWidth,
+                                         float       imageHeight,
+                                         float       zNear,
+                                         CSR_Rect*   pScreenRect)
 {
           float xScale;
           float yScale;
-    const float filmAspectRatio   = filmApertureWidth / filmApertureHeight;
-    const float deviceAspectRatio = (float)imageWidth / (float)imageHeight;
+    const float filmAspectRatio   = pRaster->m_ApertureWidth / pRaster->m_ApertureHeight;
+    const float deviceAspectRatio = imageWidth               / imageHeight;
     const float inchToMm          = 25.4f;
 
-    top   = ((filmApertureHeight * inchToMm / 2.0f) / focalLength) * nearClippingPLane;
-    right = ((filmApertureWidth  * inchToMm / 2.0f) / focalLength) * nearClippingPLane;
+    // validate the input
+    if (!pRaster || !pScreenRect)
+        return;
 
-    // field of view (horizontal)
-    //REM float fov = 2 * 180 / M_PI * atan((filmApertureWidth * inchToMm / 2) / focalLength);
-    //REM std::cerr << "Field of view " << fov << std::endl;
+    // calculate the right and top edges
+    pScreenRect->m_Min.m_Y = ((pRaster->m_ApertureHeight * inchToMm / 2.0f) / pRaster->m_FocalLength) * zNear;
+    pScreenRect->m_Max.m_X = ((pRaster->m_ApertureWidth  * inchToMm / 2.0f) / pRaster->m_FocalLength) * zNear;
 
     xScale = 1;
     yScale = 1;
 
-    switch (fitFilm)
+    // calculate the aspect ratio to apply
+    switch (pRaster->m_Type)
     {
-        case CSR_RG_Overscan:
+        case CSR_RT_Overscan:
             if (filmAspectRatio > deviceAspectRatio)
                 yScale = filmAspectRatio / deviceAspectRatio;
             else
@@ -234,7 +234,7 @@ void CSR_Raster::csrRasterGetScreenCoordinates(float                  filmApertu
 
             break;
 
-        case CSR_RG_Fill:
+        case CSR_RT_Fill:
         default:
             if (filmAspectRatio > deviceAspectRatio)
                 xScale = deviceAspectRatio / filmAspectRatio;
@@ -244,218 +244,645 @@ void CSR_Raster::csrRasterGetScreenCoordinates(float                  filmApertu
             break;
     }
 
-    right *= xScale;
-    top   *= yScale;
+    // apply the ratio to the right and top edges
+    pScreenRect->m_Max.m_X *= xScale;
+    pScreenRect->m_Min.m_Y *= yScale;
 
-    bottom = -top;
-    left   = -right;
+    // calculate the left and bottom edges
+    pScreenRect->m_Max.m_Y = -pScreenRect->m_Min.m_Y;
+    pScreenRect->m_Min.m_X = -pScreenRect->m_Max.m_X;
 }
 //---------------------------------------------------------------------------
-void CSR_Raster::csrRasterConvertTo(const Vec3f&     vertexWorld,
-                                    const Matrix44f& worldToCamera,
-                                          float      l,
-                                          float      r,
-                                          float      t,
-                                          float      b,
-                                          float      zNear,
-                                          unsigned   imageWidth,
-                                          unsigned   imageHeight,
-                                          Vec3f&     vertexRaster)
+void CSR_SoftwareRaster::csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
+                                                  const CSR_Matrix4* pMatrix,
+                                                  const CSR_Rect*    pScreenRect,
+                                                        float        zNear,
+                                                        float        imageWidth,
+                                                        float        imageHeight,
+                                                        CSR_Vector3* pOutVertex)
 {
-    Vec3f vertexCamera;
-    Vec2f vertexScreen;
-    Vec2f vertexNDC;
+    CSR_Vector3 vertexCamera;
+    CSR_Vector2 vertexScreen;
+    CSR_Vector2 vertexNDC;
+    float       subRightLeft;
+    float       addRightLeft;
+    float       subTopBottom;
+    float       addTopBottom;
 
-    worldToCamera.multVecMatrix(vertexWorld, vertexCamera);
+    // validate the input
+    if (!pInVertex || !pMatrix || !pScreenRect || !pOutVertex)
+        return;
 
-    // convert to screen space
-    vertexScreen.x = zNear * vertexCamera.x / -vertexCamera.z;
-    vertexScreen.y = zNear * vertexCamera.y / -vertexCamera.z;
+    // transform the input vertex into the camera space
+    csrMat4Transform(pMatrix, pInVertex, &vertexCamera);
 
-    // now convert point from screen space to NDC space (in range [-1,1])
-    vertexNDC.x = 2.0f * vertexScreen.x / (r - l) - (r + l) / (r - l);
-    vertexNDC.y = 2.0f * vertexScreen.y / (t - b) - (t + b) / (t - b);
+    // transfrom the camera vertex to a point in the screen space
+    vertexScreen.m_X = (zNear * vertexCamera.m_X) / -vertexCamera.m_Z;
+    vertexScreen.m_Y = (zNear * vertexCamera.m_Y) / -vertexCamera.m_Z;
 
-    // convert to raster space
-    vertexRaster.x = (vertexNDC.x + 1) / 2 * imageWidth;
-    // in raster space y is down so invert direction
-    vertexRaster.y = (1 - vertexNDC.y) / 2 * imageHeight;
-    vertexRaster.z = -vertexCamera.z;
+    subRightLeft = pScreenRect->m_Max.m_X - pScreenRect->m_Min.m_X;
+    addRightLeft = pScreenRect->m_Max.m_X + pScreenRect->m_Min.m_X;
+    subTopBottom = pScreenRect->m_Min.m_Y - pScreenRect->m_Max.m_X;
+    addTopBottom = pScreenRect->m_Min.m_Y + pScreenRect->m_Max.m_X;
+
+    // convert point from screen space to NDC space (in range [-1, 1])
+    vertexNDC.m_X = ((2.0f * vertexScreen.m_X) / subRightLeft) - (addRightLeft / subRightLeft);
+    vertexNDC.m_Y = ((2.0f * vertexScreen.m_Y) / subTopBottom) - (addTopBottom / subTopBottom);
+
+    // convert to raster space. NOTE in raster space y is down, so the direction is inverted
+    pOutVertex->m_X = (vertexNDC.m_X + 1.0f) / 2.0f * imageWidth;
+    pOutVertex->m_Y = (1.0f - vertexNDC.m_Y) / 2.0f * imageHeight;
+    pOutVertex->m_Z = -vertexCamera.m_Z;
 }
 //---------------------------------------------------------------------------
-int CSR_Raster::csrRasterRasterize(size_t           imageWidth,
-                                   size_t           imageHeight,
-                                   const Matrix44f* pWorldToCamera,
-                                   float            nearClippingPlane,
-                                   float            farClippingPlane,
-                                   const float*     pVertices,
-                                   size_t           vertCount,
-                                   const unsigned*  pIndices,
-                                   size_t           indiceCount,
-                                   const float*     pUV,
-                                   size_t           uvCount,
-                                   const unsigned*  pUVIndices,
-                                   size_t           uvIndiceCount,
-                                   CSR_FrameBuffer* pFB)
+int CSR_SoftwareRaster::csrRasterGetPolygon(      size_t            v1Index,
+                                                  size_t            v2Index,
+                                                  size_t            v3Index,
+                                            const CSR_VertexBuffer* pVB,
+                                                  CSR_Polygon3*     pPolygon,
+                                                  CSR_Vector3*      pNormal,
+                                                  CSR_Vector2*      pST,
+                                                  unsigned*         pColor)
 {
-    CSR_DepthBuffer* pDB;
+    size_t offset;
 
-    // 35mm Full Aperture in inches
-    const float filmApertureWidth  = 0.980;
-    const float filmApertureHeight = 0.735;
-    const float focalLength        = 20.0f; // in mm
-
-    const Matrix44f cameraToWorld = pWorldToCamera->inverse();
-
-    // compute screen coordinates
-    float t, b, l, r;
-
-    csrRasterGetScreenCoordinates(filmApertureWidth,
-                                  filmApertureHeight,
-                                  imageWidth,
-                                  imageHeight,
-                                  CSR_RG_Overscan,
-                                  nearClippingPlane,
-                                  focalLength,
-                                  t, b, l, r);
-
-    pDB = csrDepthBufferCreate(imageWidth, imageHeight);
-
-    if (!pDB)
+    // validate the input
+    if (!pVB || !pPolygon || !pNormal || !pST || !pColor)
         return 0;
 
-        csrDepthBufferClear(pDB, farClippingPlane);
+    // extract the polygon from source vertex buffer
+    pPolygon->m_Vertex[0].m_X = pVB->m_pData[v1Index];
+    pPolygon->m_Vertex[0].m_Y = pVB->m_pData[v1Index + 1];
+    pPolygon->m_Vertex[0].m_Z = pVB->m_pData[v1Index + 2];
+    pPolygon->m_Vertex[1].m_X = pVB->m_pData[v2Index];
+    pPolygon->m_Vertex[1].m_Y = pVB->m_pData[v2Index + 1];
+    pPolygon->m_Vertex[1].m_Z = pVB->m_pData[v2Index + 2];
+    pPolygon->m_Vertex[2].m_X = pVB->m_pData[v3Index];
+    pPolygon->m_Vertex[2].m_Y = pVB->m_pData[v3Index + 1];
+    pPolygon->m_Vertex[2].m_Z = pVB->m_pData[v3Index + 2];
 
-    // define the frame-buffer and the depth-buffer. Initialize depth buffer
-    // to far clipping plane.
-    //REM Vec3<unsigned char> *frameBuffer = new Vec3<unsigned char>[imageWidth * imageHeight];
-    //REM for (uint32_t i = 0; i < imageWidth * imageHeight; ++i) frameBuffer[i] = Vec3<unsigned char>(255);
-    //REM float *depthBuffer = new float[imageWidth * imageHeight];
-    //REM for (uint32_t i = 0; i < imageWidth * imageHeight; ++i) depthBuffer[i] = farClippingPLane;
+    offset += 3;
 
-    //REM auto t_start = std::chrono::high_resolution_clock::now();
-
-    Vec3f vertices[1732];
-    Vec2f st[3056];
-
-    for (std::size_t i = 0; i < 1732; ++i)
-        vertices[i] = Vec3f(pVertices[i * 3], pVertices[(i * 3) + 1], pVertices[(i * 3) + 2]);
-
-    for (std::size_t i = 0; i < 3056; ++i)
-        st[i] = Vec2f(pUV[i * 2], pUV[(i * 2) + 1]);
-
-    // Outer loop
-    for (uint32_t i = 0; i < vertCount; ++i)
+    // extract the normal from source vertex buffer
+    if (pVB->m_Format.m_HasNormal)
     {
-        const Vec3f &v0 = vertices[pIndices[i * 3]];
-        const Vec3f &v1 = vertices[pIndices[i * 3 + 1]];
-        const Vec3f &v2 = vertices[pIndices[i * 3 + 2]];
+        pNormal[0].m_X = pVB->m_pData[v1Index + offset];
+        pNormal[0].m_Y = pVB->m_pData[v1Index + offset + 1];
+        pNormal[0].m_Z = pVB->m_pData[v1Index + offset + 2];
+        pNormal[1].m_X = pVB->m_pData[v2Index + offset];
+        pNormal[1].m_Y = pVB->m_pData[v2Index + offset + 1];
+        pNormal[1].m_Z = pVB->m_pData[v2Index + offset + 2];
+        pNormal[2].m_X = pVB->m_pData[v3Index + offset];
+        pNormal[2].m_Y = pVB->m_pData[v3Index + offset + 1];
+        pNormal[2].m_Z = pVB->m_pData[v3Index + offset + 2];
 
-        // Convert the vertices of the triangle to raster space
-        Vec3f v0Raster, v1Raster, v2Raster;
-        csrRasterConvertTo(v0, *pWorldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v0Raster);
-        csrRasterConvertTo(v1, *pWorldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v1Raster);
-        csrRasterConvertTo(v2, *pWorldToCamera, l, r, t, b, nearClippingPlane, imageWidth, imageHeight, v2Raster);
+        offset += 3;
+    }
+    else
+    {
+        pNormal[0].m_X = 0.0f;
+        pNormal[0].m_Y = 0.0f;
+        pNormal[0].m_Z = 0.0f;
+        pNormal[1].m_X = 0.0f;
+        pNormal[1].m_Y = 0.0f;
+        pNormal[1].m_Z = 0.0f;
+        pNormal[2].m_X = 0.0f;
+        pNormal[2].m_Y = 0.0f;
+        pNormal[2].m_Z = 0.0f;
+    }
 
-        //Precompute reciprocal of vertex z-coordinate
-        v0Raster.z = 1 / v0Raster.z,
-        v1Raster.z = 1 / v1Raster.z,
-        v2Raster.z = 1 / v2Raster.z;
+    // extract the texture coordinates from source vertex buffer
+    if (pVB->m_Format.m_HasTexCoords)
+    {
+        pST[0].m_X = pVB->m_pData[v1Index + offset];
+        pST[0].m_Y = pVB->m_pData[v1Index + offset + 1];
+        pST[1].m_X = pVB->m_pData[v2Index + offset];
+        pST[1].m_Y = pVB->m_pData[v2Index + offset + 1];
+        pST[2].m_X = pVB->m_pData[v3Index + offset];
+        pST[2].m_Y = pVB->m_pData[v3Index + offset + 1];
 
-        // Prepare vertex attributes. Divde them by their vertex z-coordinate (though we use a multiplication here because v.z = 1 / v.z)
-        Vec2f st0 = st[pUVIndices[i * 3]];
-        Vec2f st1 = st[pUVIndices[i * 3 + 1]];
-        Vec2f st2 = st[pUVIndices[i * 3 + 2]];
+        offset += 2;
+    }
+    else
+    {
+        pST[0].m_X = 0.0f;
+        pST[0].m_Y = 0.0f;
+        pST[1].m_X = 0.0f;
+        pST[1].m_Y = 0.0f;
+        pST[2].m_X = 0.0f;
+        pST[2].m_Y = 0.0f;
+    }
 
-        st0 *= v0Raster.z, st1 *= v1Raster.z, st2 *= v2Raster.z;
+    // extract the color from source vertex buffer
+    if (pVB->m_Format.m_HasPerVertexColor)
+    {
+        pColor[0] = ((((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset])     & 0xFF) << 24) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 1]) & 0xFF) << 16) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 2]) & 0xFF) << 8)  |
+                      ((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 3]) & 0xFF));
+        pColor[1] = ((((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset])     & 0xFF) << 24) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 1]) & 0xFF) << 16) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 2]) & 0xFF) << 8)  |
+                      ((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 3]) & 0xFF));
+        pColor[2] = ((((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset])     & 0xFF) << 24) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 1]) & 0xFF) << 16) |
+                     (((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 2]) & 0xFF) << 8)  |
+                      ((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 3]) & 0xFF));
+    }
+    else
+    {
+        pColor[0] = 0;
+        pColor[1] = 0;
+        pColor[2] = 0;
+    }
 
-        float xmin = csrRasterFindMin(v0Raster.x, v1Raster.x, v2Raster.x);
-        float ymin = csrRasterFindMin(v0Raster.y, v1Raster.y, v2Raster.y);
-        float xmax = csrRasterFindMax(v0Raster.x, v1Raster.x, v2Raster.x);
-        float ymax = csrRasterFindMax(v0Raster.y, v1Raster.y, v2Raster.y);
+    return 1;
+}
+//---------------------------------------------------------------------------
+int CSR_SoftwareRaster::csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
+                                             const CSR_Vector3*     pNormal,
+                                             const CSR_Vector2*     pST,
+                                             const unsigned*        pColor,
+                                             const CSR_Matrix4*     pMatrix,
+                                                   float            zNear,
+                                             const CSR_Rect*        pScreenRect,
+                                                   CSR_FrameBuffer* pFB,
+                                                   CSR_DepthBuffer* pDB)
+{
+    float        xMin;
+    float        yMin;
+    float        xMax;
+    float        yMax;
+    float        xStart;
+    float        yStart;
+    float        xEnd;
+    float        yEnd;
+    float        area;
+    float        w0;
+    float        w1;
+    float        w2;
+    float        invZ;
+    float        z;
+    float        pixelX;
+    float        pixelY;
+    float        nDotView;
+    float        checker;
+    float        c;
+    size_t       x;
+    size_t       y;
+    size_t       x0;
+    size_t       x1;
+    size_t       y0;
+    size_t       y1;
+    CSR_Polygon3 rasterPoly;
+    CSR_Polygon3 cameraPoly;
+    CSR_Vector2  st[3];
+    CSR_Vector2  stCoord;
+    CSR_Vector3  pixelSample;
+    CSR_Vector3  point;
+    CSR_Vector3  v1v0Cam;
+    CSR_Vector3  v1v0CamXv2v0Cam;
+    CSR_Vector3  v2v0Cam;
+    CSR_Vector3  normal;
+    CSR_Vector3  viewDirection;
+    CSR_Vector3  nViewDir;
 
-        // the triangle is out of screen
-        if (xmin > imageWidth - 1 || xmax < 0 || ymin > imageHeight - 1 || ymax < 0)
-            continue;
+    //FIXME const int M = 10;
 
-        // be careful xmin/xmax/ymin/ymax can be negative. Don't cast to uint32_t
-        uint32_t x0 = std::max(int32_t(0), (int32_t)(std::floor(xmin)));
-        uint32_t x1 = std::min(int32_t(imageWidth) - 1, (int32_t)(std::floor(xmax)));
-        uint32_t y0 = std::max(int32_t(0), (int32_t)(std::floor(ymin)));
-        uint32_t y1 = std::min(int32_t(imageHeight) - 1, (int32_t)(std::floor(ymax)));
+    // validate the input
+    if (!pPolygon || !pNormal || !pST || !pColor || !pMatrix || !pScreenRect || !pFB || !pDB)
+        return 0;
 
-        float area = csrRasterFindEdge(v0Raster, v1Raster, v2Raster);
+    // rasterize the polygon
+    csrRasterRasterizeVertex(&pPolygon->m_Vertex[0], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[0]);
+    csrRasterRasterizeVertex(&pPolygon->m_Vertex[1], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[1]);
+    csrRasterRasterizeVertex(&pPolygon->m_Vertex[2], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[2]);
 
-        // Inner loop
-        for (uint32_t y = y0; y <= y1; ++y) {
-            for (uint32_t x = x0; x <= x1; ++x)
+    // invert the vertex z-coordinate (to allow multiplication later instead of division)
+    rasterPoly.m_Vertex[0].m_Z = 1.0f / rasterPoly.m_Vertex[0].m_Z,
+    rasterPoly.m_Vertex[1].m_Z = 1.0f / rasterPoly.m_Vertex[1].m_Z,
+    rasterPoly.m_Vertex[2].m_Z = 1.0f / rasterPoly.m_Vertex[2].m_Z;
+
+    // calculate the texture coordinates, divde them by their vertex z-coordinate
+    st[0].m_X = pST[0].m_X * rasterPoly.m_Vertex[0].m_Z;
+    st[0].m_Y = pST[0].m_Y * rasterPoly.m_Vertex[0].m_Z;
+    st[1].m_X = pST[1].m_X * rasterPoly.m_Vertex[1].m_Z;
+    st[1].m_Y = pST[1].m_Y * rasterPoly.m_Vertex[1].m_Z;
+    st[2].m_X = pST[2].m_X * rasterPoly.m_Vertex[2].m_Z;
+    st[2].m_Y = pST[2].m_Y * rasterPoly.m_Vertex[2].m_Z;
+
+    // calculate the polygon bounding rect
+    xMin = csrRasterFindMin(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X);
+    yMin = csrRasterFindMin(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y);
+    xMax = csrRasterFindMax(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X);
+    yMax = csrRasterFindMax(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y);
+
+    // is the polygon out of screen?
+    if (xMin > (float)(pFB->m_Width  - 1) || xMax < 0.0f ||
+        yMin > (float)(pFB->m_Height - 1) || yMax < 0.0f)
+        return 1;
+
+    // calculate the area to draw
+    csrMathMax(0.0f,                       xMin, &xStart);
+    csrMathMin((float)(pFB->m_Width  - 1), xMax, &xEnd);
+    csrMathMax(0.0f,                       yMin, &yStart);
+    csrMathMin((float)(pFB->m_Height - 1), yMax, &yEnd);
+
+    x0 = floor(xStart);
+    x1 = floor(xEnd);
+    y0 = floor(yStart);
+    y1 = floor(yEnd);
+
+    area = csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2]);
+
+    // iterate through pixels to draw
+    for (y = y0; y <= y1; ++y)
+        for (x = x0; x <= x1; ++x)
+        {
+            pixelSample.m_X = x + 0.5f;
+            pixelSample.m_Y = y + 0.5f;
+            pixelSample.m_Z =     0.0f;
+
+            // calculate the pixel position
+            w0 = csrRasterFindEdge(&rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &pixelSample);
+            w1 = csrRasterFindEdge(&rasterPoly.m_Vertex[2], &rasterPoly.m_Vertex[0], &pixelSample);
+            w2 = csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &pixelSample);
+
+            // FIXME here the culling is tested. If culling is inverted, also invert the wx value below (e.g. with -area)
+            // is pixel visible?
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
-                Vec3f pixelSample(x + 0.5, y + 0.5, 0);
-                float w0 = csrRasterFindEdge(v1Raster, v2Raster, pixelSample);
-                float w1 = csrRasterFindEdge(v2Raster, v0Raster, pixelSample);
-                float w2 = csrRasterFindEdge(v0Raster, v1Raster, pixelSample);
-                if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                w0 /= area;
+                w1 /= area;
+                w2 /= area;
+
+                // calculate the pixel z weight
+                invZ = (rasterPoly.m_Vertex[0].m_Z * w0) +
+                       (rasterPoly.m_Vertex[1].m_Z * w1) +
+                       (rasterPoly.m_Vertex[2].m_Z * w2);
+                z    = 1.0f / invZ;
+
+                // test the pixel against the depth buffer
+                if (z < pDB->m_pData[y * pFB->m_Width + x])
                 {
-                    w0 /= area;
-                    w1 /= area;
-                    w2 /= area;
-                    float oneOverZ = v0Raster.z * w0 + v1Raster.z * w1 + v2Raster.z * w2;
-                    float z = 1 / oneOverZ;
+                    // test passed, update the depth buffer
+                    pDB->m_pData[y * pFB->m_Width + x] = z;
 
-                    //Depth-buffer test
-                    if (z < pDB->m_pData[y * imageWidth + x])
-                    {
-                        pDB->m_pData[y * imageWidth + x] = z;
+                    /* FIXME map a real texture here, and use the vertex buffer normal instead
+                    // calculate the texture coordinate
+                    stCoord.m_X = ((st[0].m_X * w0) + (st[1].m_X * w1) + (st[2].m_X * w2)) * z;
+                    stCoord.m_Y = ((st[0].m_Y * w0) + (st[1].m_Y * w1) + (st[2].m_Y * w2)) * z;
 
-                        Vec2f st = st0 * w0 + st1 * w1 + st2 * w2;
+                    // If you need to compute the actual position of the shaded point in camera space.
+                    // Proceed like with the other vertex attribute. Divide the point coordinates by
+                    // the vertex z-coordinate then interpolate using barycentric coordinates and
+                    // finally multiply by sample depth.
+                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[0], &cameraPoly.m_Vertex[0]);
+                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[1], &cameraPoly.m_Vertex[1]);
+                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[2], &cameraPoly.m_Vertex[2]);
 
-                        st *= z;
+                    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * w0 +
+                             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * w1 +
+                             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * w2;
+                    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * w0 +
+                             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * w1 +
+                             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * w2;
 
-                        //If you need to compute the actual position of the shaded point in camera space. Proceed like with the other vertex attribute. Divide the point coordinates by the vertex z-coordinate then interpolate using barycentric coordinates and finally multiply by sample depth.
-                        Vec3f v0Cam, v1Cam, v2Cam;
-                        pWorldToCamera->multVecMatrix(v0, v0Cam);
-                        pWorldToCamera->multVecMatrix(v1, v1Cam);
-                        pWorldToCamera->multVecMatrix(v2, v2Cam);
+                    // calculate the pixel in the camera space
+                    point.m_X =  pixelX * z;
+                    point.m_Y =  pixelY * z;
+                    point.m_Z = -z;
 
-                        float px = (v0Cam.x/-v0Cam.z) * w0 + (v1Cam.x/-v1Cam.z) * w1 + (v2Cam.x/-v2Cam.z) * w2;
-                        float py = (v0Cam.y/-v0Cam.z) * w0 + (v1Cam.y/-v1Cam.z) * w1 + (v2Cam.y/-v2Cam.z) * w2;
+                    // Compute the face normal which is used for a simple facing ratio. Keep in mind
+                    // that we are doing all calculation in camera space. Thus the view direction can
+                    // be computed as the point on the object in camera space minus CSR_Vector3(0),
+                    // the position of the camera in camera space.
+                    csrVec3Sub(&cameraPoly.m_Vertex[1], &cameraPoly.m_Vertex[0], &v1v0Cam);
+                    csrVec3Sub(&cameraPoly.m_Vertex[2], &cameraPoly.m_Vertex[0], &v2v0Cam);
+                    csrVec3Cross(&v1v0Cam, &v2v0Cam, &v1v0CamXv2v0Cam);
+                    csrVec3Normalize(&v1v0CamXv2v0Cam, &normal);
 
-                        Vec3f pt(px * z, py * z, -z); // pt is in camera space
+                    viewDirection.m_X = -point.m_X;
+                    viewDirection.m_Y = -point.m_Y;
+                    viewDirection.m_Z = -point.m_Z;
+                    csrVec3Normalize(&viewDirection, &nViewDir);
 
-                        //Compute the face normal which is used for a simple facing ratio. Keep in mind that we are doing all calculation in camera space. Thus the view direction can be computed as the point on the object in camera space minus Vec3f(0), the position of the camera in camera space.
-                        Vec3f n = (v1Cam - v0Cam).crossProduct(v2Cam - v0Cam);
-                        n.normalize();
-                        Vec3f viewDirection = -pt;
-                        viewDirection.normalize();
+                    csrVec3Dot(&normal, &nViewDir, &nDotView);
+                    csrMathMax(0.0f, nDotView, &nDotView);
 
-                        float nDotView =  std::max(0.f, n.dotProduct(viewDirection));
+                    // FIXME map a real texture here
+                    // The final color is the reuslt of the faction ratio multiplied by the checkerboard pattern.
+                    checker   = (fmod(stCoord.m_X * M, 1.0f) > 0.5f) ^ (fmod(stCoord.m_Y * M, 1.0f) < 0.5f);
+                    c         = 0.3 * (1 - checker) + 0.7 * checker;
+                    nDotView *= c;
+                    */
 
-                        // The final color is the reuslt of the faction ration multiplied by the checkerboard pattern.
-                        const int M = 10;
-                        float checker = (fmod(st.x * M, 1.0f) > 0.5f) ^ (fmod(st.y * M, 1.0f) < 0.5f);
-                        float c = 0.3 * (1 - checker) + 0.7 * checker;
-                        nDotView *= c;
-                        pFB->m_pPixel[y * imageWidth + x].m_R = nDotView * 255;
-                        pFB->m_pPixel[y * imageWidth + x].m_G = nDotView * 255;
-                        pFB->m_pPixel[y * imageWidth + x].m_B = nDotView * 255;
-                    }
+                    // fixme use the result of the pixel shader here
+                    // write the pixel inside the frame buffer
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_R = 255;//FIXME nDotView * 255;
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_G = 0;//FIXME nDotView * 255;
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_B = 0;//FIXME nDotView * 255;
                 }
             }
         }
-    }
 
-    /*REM
-    auto t_end = std::chrono::high_resolution_clock::now();
-    auto passedTime = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-    std::cerr << "Wall passed time:  " << passedTime << " ms" << std::endl;
-
-    // Store the result of the framebuffer to a PPM file (Photoshop reads PPM files).
-    std::ofstream ofs;
-    ofs.open("./output.ppm");
-    ofs << "P6\n" << imageWidth << " " << imageHeight << "\n255\n";
-    ofs.write((char*)frameBuffer, imageWidth * imageWidth * 3);
-    ofs.close();
-    */
-
-    return 0;
+    return 1;
 }
+//---------------------------------------------------------------------------
+int CSR_SoftwareRaster::csrRasterDraw(const CSR_Matrix4*      pMatrix,
+                                            float             zNear,
+                                            float             zFar,
+                                      const CSR_VertexBuffer* pVB,
+                                      const CSR_Raster*       pRaster,
+                                            CSR_FrameBuffer*  pFB,
+                                            CSR_DepthBuffer*  pDB)
+{
+    size_t       vertexCount;
+    size_t       i;
+    size_t       index;
+    float        determinant;
+    CSR_Rect     screenRect;
+    CSR_Matrix4  invMat;
+    CSR_Polygon3 polygon;
+    CSR_Vector3  normal[3];
+    CSR_Vector2  st[3];
+    unsigned     color[3];
+
+    // validate the input
+    if (!pMatrix || !pVB || !pVB->m_Format.m_Stride || !pRaster || !pFB || !pDB)
+        return 0;
+
+    csrMat4Inverse(pMatrix, &invMat, &determinant);
+
+    // get the raster screen coordinates
+    csrRasterGetScreenCoordinates(pRaster,
+                                  pFB->m_Width,
+                                  pFB->m_Height,
+                                  zNear,
+                                 &screenRect);
+
+    // search for vertex type
+    switch (pVB->m_Format.m_Type)
+    {
+        case CSR_VT_Triangles:
+        {
+            // calculate iteration step
+            const unsigned step = (pVB->m_Format.m_Stride * 3);
+
+            // iterate through source vertices
+            for (i = 0; i < pVB->m_Count; i += step)
+            {
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(i,
+                                         i +  pVB->m_Format.m_Stride,
+                                         i + (pVB->m_Format.m_Stride * 2),
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+            }
+
+            return 1;
+        }
+
+        case CSR_VT_TriangleStrip:
+        {
+            // calculate length to read in triangle strip buffer
+            const unsigned stripLength = (pVB->m_Count - (pVB->m_Format.m_Stride * 2));
+
+            index = 0;
+
+            // iterate through source vertices
+            for (i = 0; i < stripLength; i += pVB->m_Format.m_Stride)
+            {
+                // extract polygon from source buffer, revert odd polygons
+                if (!index || !(index % 2))
+                {
+                    // get the next polygon to draw
+                    if (!csrRasterGetPolygon(i,
+                                             i +  pVB->m_Format.m_Stride,
+                                             i + (pVB->m_Format.m_Stride * 2),
+                                             pVB,
+                                            &polygon,
+                                             normal,
+                                             st,
+                                             color))
+                        return 0;
+                }
+                else
+                {
+                    // get the next polygon to draw
+                    if (!csrRasterGetPolygon(i +  pVB->m_Format.m_Stride,
+                                             i,
+                                             i + (pVB->m_Format.m_Stride * 2),
+                                             pVB,
+                                            &polygon,
+                                             normal,
+                                             st,
+                                             color))
+                        return 0;
+                }
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+
+                ++index;
+            }
+
+            return 1;
+        }
+
+        case CSR_VT_TriangleFan:
+        {
+            // calculate length to read in triangle fan buffer
+            const unsigned fanLength = (pVB->m_Count - pVB->m_Format.m_Stride);
+
+            // iterate through source vertices
+            for (i = pVB->m_Format.m_Stride; i < fanLength; i += pVB->m_Format.m_Stride)
+            {
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(0,
+                                         i,
+                                         i + pVB->m_Format.m_Stride,
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+            }
+
+            return 1;
+        }
+
+        case CSR_VT_Quads:
+        {
+            // calculate iteration step
+            const unsigned step = (pVB->m_Format.m_Stride * 4);
+
+            // iterate through source vertices
+            for (i = 0; i < pVB->m_Count; i += step)
+            {
+                // calculate vertices position
+                const unsigned v1 = i;
+                const unsigned v2 = i +  pVB->m_Format.m_Stride;
+                const unsigned v3 = i + (pVB->m_Format.m_Stride * 2);
+                const unsigned v4 = i + (pVB->m_Format.m_Stride * 3);
+
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(v1,
+                                         v2,
+                                         v3,
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(v3,
+                                         v2,
+                                         v4,
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+            }
+
+            return 1;
+        }
+
+        case CSR_VT_QuadStrip:
+        {
+            // calculate iteration step
+            const unsigned step = (pVB->m_Format.m_Stride * 2);
+
+            // calculate length to read in triangle strip buffer
+            const unsigned stripLength = (pVB->m_Count - (pVB->m_Format.m_Stride * 2));
+
+            // iterate through source vertices
+            for (i = 0; i < stripLength; i += step)
+            {
+                // calculate vertices position
+                const unsigned v1 = i;
+                const unsigned v2 = i +  pVB->m_Format.m_Stride;
+                const unsigned v3 = i + (pVB->m_Format.m_Stride * 2);
+                const unsigned v4 = i + (pVB->m_Format.m_Stride * 3);
+
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(v1,
+                                         v2,
+                                         v3,
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+
+                // get the next polygon to draw
+                if (!csrRasterGetPolygon(v3,
+                                         v2,
+                                         v4,
+                                         pVB,
+                                        &polygon,
+                                         normal,
+                                         st,
+                                         color))
+                    return 0;
+
+                // draw the polygon
+                if (!csrRasterDrawPolygon(&polygon,
+                                           normal,
+                                           st,
+                                           color,
+                                           pMatrix,
+                                           zNear,
+                                          &screenRect,
+                                           pFB,
+                                           pDB))
+                    return 0;
+            }
+
+            return 1;
+        }
+
+        default:
+            return 0;
+    }
+}
+//---------------------------------------------------------------------------

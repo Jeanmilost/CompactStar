@@ -452,7 +452,7 @@ typedef struct
         void csrMat4Inverse(const CSR_Matrix4* pM, CSR_Matrix4* pR, float* pDeterminant);
 
         /**
-        * Applies matrix to a vector
+        * Applies a matrix to a vector
         *@param pM - matrix to apply
         *@param pV - vector on which matrix should be applied
         *@param[out] pR - resulting vector
@@ -460,12 +460,20 @@ typedef struct
         void csrMat4ApplyToVector(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3* pR);
 
         /**
-        * Applies matrix to a normal
+        * Applies a matrix to a normal
         *@param pM - matrix to apply
         *@param pN - normal on which matrix should be applied
         *@param[out] pR - resulting normal
         */
         void csrMat4ApplyToNormal(const CSR_Matrix4* pM, const CSR_Vector3* pN, CSR_Vector3* pR);
+
+        /**
+        * Transforms a vector by a matrix
+        *@param pM - transform matrix
+        *@param pV - vector to transform
+        *@param[out] pR - transformed vector
+        */
+        void csrMat4Transform(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3* pR);
 
         /**
         * Unprojects a ray (i.e. transforms it in viewport coordinates)
