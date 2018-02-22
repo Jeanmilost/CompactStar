@@ -46,16 +46,16 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>4108</VerInfo_Locale>
-        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>SoftwareRaster</SanitizedProjectName>
         <Multithreaded>true</Multithreaded>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\SDK\;..\..\Third-party\glew\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\Projects\CompactStar Engine\Third-party\glew\;..\..\Projects\CompactStar Engine\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
-        <ILINK_LibraryPath>..\..\SDK\;..\..\Third-party\glew\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\Projects\CompactStar Engine\SDK\;..\..\Projects\CompactStar Engine\Third-party\glew\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
         <DynamicRTL>true</DynamicRTL>
@@ -72,8 +72,6 @@
         <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
         <PackageImports>adortl;bcbie;bcbsmp;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindengine;CloudService;CustomIPTransport;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXInterBaseDriver;DBXMySQLDriver;DBXSqliteDriver;dclGraphicEx210;DelphiAL;DragDropDXE7;dsnap;dsnapcon;dsnapxml;EasyListviewD21;emsclient;fmx;fmxase;fmxdae;fmxobj;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inet;inetdb;inetdbxpress;Mels_Base;Mels_Models;Mels_Player;Mels_Player_Base;Mels_VCL;Mels_VCLComponentsGL;MetropolisUILiveTile;MPCommonLibD21;RESTBackendComponents;RESTComponents;rtl;soapmidas;soaprtl;soapserver;svn;tethering;TWSVG;vcl;vclactnband;vcldb;vcldsnap;vclie;vclimg;VCLRESTComponents;vclribbon;VclSmp;vcltouch;vclx;VirtualShellToolsD21;VirtualTreesR;WControls_XE7;WindowsMediaPlayer;xmlrtl;$(PackageImports)</PackageImports>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
@@ -117,24 +115,6 @@
         <BCC_PCHName_Clang>SoftwareRaster_PCH.h</BCC_PCHName_Clang>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="..\..\SDK\CSR_Common.c">
-            <BuildOrder>6</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Common.h">
-            <BuildOrder>7</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Geometry.c">
-            <BuildOrder>8</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Geometry.h">
-            <BuildOrder>9</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Vertex.c">
-            <BuildOrder>10</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Vertex.h">
-            <BuildOrder>11</BuildOrder>
-        </None>
         <CppCompile Include="cow.cpp">
             <DependentOn>cow.h</DependentOn>
             <BuildOrder>5</BuildOrder>
@@ -159,6 +139,18 @@
         <PCHCompile Include="SoftwareRaster_PCH.h">
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
+        <CppCompile Include="..\..\Projects\CompactStar Engine\SDK\CSR_Common.c">
+            <BuildOrder>6</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Projects\CompactStar Engine\SDK\CSR_Common.h">
+            <BuildOrder>7</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\Projects\CompactStar Engine\SDK\CSR_Geometry.c">
+            <BuildOrder>8</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Projects\CompactStar Engine\SDK\CSR_Geometry.h">
+            <BuildOrder>9</BuildOrder>
+        </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

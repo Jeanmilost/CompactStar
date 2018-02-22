@@ -6,15 +6,13 @@
 
 // compactStart engine
 #include "CSR_Geometry.h"
-
-//REM
-#include "geometry.h"
+#include "CSR_Vertex.h"
 
 typedef enum
 {
-    CSR_RG_Fill = 0,
-    CSR_RG_Overscan
-} CSR_EFitResolutionGate;
+    CSR_RT_Fill = 0,
+    CSR_RT_Overscan
+} CSR_ERasterType;
 
 typedef struct
 {
@@ -40,7 +38,15 @@ typedef struct
     size_t m_Size;
 } CSR_DepthBuffer;
 
-class CSR_Raster
+typedef struct
+{
+    float           m_ApertureWidth;  // in inches
+    float           m_ApertureHeight; // in inches
+    float           m_FocalLength;    // in mm
+    CSR_ERasterType m_Type;
+} CSR_Raster;
+
+class CSR_SoftwareRaster
 {
     public:
         static CSR_FrameBuffer* csrFrameBufferCreate(size_t width, size_t height);
@@ -53,53 +59,58 @@ class CSR_Raster
         static void csrDepthBufferRelease(CSR_DepthBuffer* pDB);
         static void csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane);
 
+        static void csrRasterInit(CSR_Raster* pRaster);
         static float csrRasterFindMin(float a, float b, float c);
         static float csrRasterFindMax(float a, float b, float c);
-        static float csrRasterFindEdge(const Vec3f &a, const Vec3f &b, const Vec3f &c);
+        static float csrRasterFindEdge(const CSR_Vector3* pV1,
+                                       const CSR_Vector3* pV2,
+                                       const CSR_Vector3* pV3);
 
         //Compute screen coordinates based on a physically-based camera model
         // http://www.scratchapixel.com/lessons/3d-basic-rendering/3d-viewing-pinhole-camera
-        static void csrRasterGetScreenCoordinates(float                  filmApertureWidth,
-                                                  float                  filmApertureHeight,
-                                                  size_t                 imageWidth,
-                                                  size_t                 imageHeight,
-                                                  CSR_EFitResolutionGate fitFilm,
-                                                  float                  nearClippingPLane,
-                                                  float                  focalLength,
-                                                  float&                 top,
-                                                  float&                 bottom,
-                                                  float&                 left,
-                                                  float&                 right);
+        static void csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
+                                                        float       imageWidth,
+                                                        float       imageHeight,
+                                                        float       zNear,
+                                                        CSR_Rect*   pScreenRect);
 
         // Compute vertex raster screen coordinates. Vertices are defined in world space.
         // They are then converted to camera space, then to NDC space (in the range [-1,1]) and then to raster space.
         // The z-coordinates of the vertex in raster space is set with the z-coordinate of the vertex in camera space.
-        static void csrRasterConvertTo(const Vec3f&     vertexWorld,
-                                       const Matrix44f& worldToCamera,
-                                             float      l,
-                                             float      r,
-                                             float      t,
-                                             float      b,
-                                             float      zNear,
-                                             unsigned   imageWidth,
-                                             unsigned   imageHeight,
-                                             Vec3f&     vertexRaster);
+        static void csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
+                                             const CSR_Matrix4* pMatrix,
+                                             const CSR_Rect*    pScreenRect,
+                                                   float        zNear,
+                                                   float        imageWidth,
+                                                   float        imageHeight,
+                                                   CSR_Vector3* pOutVertex);
 
-        static int csrRasterRasterize(size_t           imageWidth,
-                                      size_t           imageHeight,
-                                      const Matrix44f* pWorldToCamera,
-                                      float            nearClippingPlane,
-                                      float            farClippingPlane,
-                                      const float*     pVertices,
-                                      size_t           vertCount,
-                                      const unsigned*  pIndices,
-                                      size_t           indiceCount,
-                                      const float*     pUV,
-                                      size_t           uvCount,
-                                      const unsigned*  pUVIndices,
-                                      size_t           uvIndiceCount,
-                                      CSR_FrameBuffer* pFB);
-;
+        static int CSR_SoftwareRaster::csrRasterGetPolygon(      size_t            v1Index,
+                                                                 size_t            v2Index,
+                                                                 size_t            v3Index,
+                                                           const CSR_VertexBuffer* pVB,
+                                                                 CSR_Polygon3*     pPolygon,
+                                                                 CSR_Vector3*      pNormal,
+                                                                 CSR_Vector2*      pST,
+                                                                 unsigned*         pColor);
+
+        static int csrRasterDrawPolygon(const CSR_Polygon3*     pPolygon,
+                                        const CSR_Vector3*      pNormal,
+                                        const CSR_Vector2*      pST,
+                                        const unsigned*         pColor,
+                                        const CSR_Matrix4*      pMatrix,
+                                              float             zNear,
+                                        const CSR_Rect*         pScreenRect,
+                                              CSR_FrameBuffer*  pFB,
+                                              CSR_DepthBuffer*  pDB);
+
+        static int csrRasterDraw(const CSR_Matrix4*      pMatrix,
+                                       float             zNear,
+                                       float             zFar,
+                                 const CSR_VertexBuffer* pVB,
+                                 const CSR_Raster*       pRaster,
+                                       CSR_FrameBuffer*  pFB,
+                                       CSR_DepthBuffer*  pDB);
 };
 
 #endif
