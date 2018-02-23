@@ -158,7 +158,7 @@ void CSR_SoftwareRaster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClip
         memcpy(&pDB->m_pData[i], &farClippingPlane, sizeof(float));
 }
 //---------------------------------------------------------------------------
-void csrRasterInit(CSR_Raster* pRaster)
+void CSR_SoftwareRaster::csrRasterInit(CSR_Raster* pRaster)
 {
     // no raster to initialize?
     if (!pRaster)
@@ -200,11 +200,11 @@ float CSR_SoftwareRaster::csrRasterFindEdge(const CSR_Vector3* pV1,
            ((pV3->m_Y - pV1->m_Y) * (pV2->m_X - pV1->m_X));
 }
 //---------------------------------------------------------------------------
-void csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
-                                         float       imageWidth,
-                                         float       imageHeight,
-                                         float       zNear,
-                                         CSR_Rect*   pScreenRect)
+void CSR_SoftwareRaster::csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
+                                                             float       imageWidth,
+                                                             float       imageHeight,
+                                                             float       zNear,
+                                                             CSR_Rect*   pScreenRect)
 {
           float xScale;
           float yScale;
@@ -282,8 +282,8 @@ void CSR_SoftwareRaster::csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
 
     subRightLeft = pScreenRect->m_Max.m_X - pScreenRect->m_Min.m_X;
     addRightLeft = pScreenRect->m_Max.m_X + pScreenRect->m_Min.m_X;
-    subTopBottom = pScreenRect->m_Min.m_Y - pScreenRect->m_Max.m_X;
-    addTopBottom = pScreenRect->m_Min.m_Y + pScreenRect->m_Max.m_X;
+    subTopBottom = pScreenRect->m_Min.m_Y - pScreenRect->m_Max.m_Y;
+    addTopBottom = pScreenRect->m_Min.m_Y + pScreenRect->m_Max.m_Y;
 
     // convert point from screen space to NDC space (in range [-1, 1])
     vertexNDC.m_X = ((2.0f * vertexScreen.m_X) / subRightLeft) - (addRightLeft / subRightLeft);
@@ -580,7 +580,7 @@ int CSR_SoftwareRaster::csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
                     // fixme use the result of the pixel shader here
                     // write the pixel inside the frame buffer
                     pFB->m_pPixel[y * pFB->m_Width + x].m_R = 255;//FIXME nDotView * 255;
-                    pFB->m_pPixel[y * pFB->m_Width + x].m_G = 0;//FIXME nDotView * 255;
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_G = 255;//FIXME nDotView * 255;
                     pFB->m_pPixel[y * pFB->m_Width + x].m_B = 0;//FIXME nDotView * 255;
                 }
             }
