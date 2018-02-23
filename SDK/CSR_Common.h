@@ -189,7 +189,7 @@ typedef struct
         /**
         * Creates a new buffer
         *@return newly created buffer, 0 on error
-        *@note The buffer must be released when no longer used, see csrReleaseBuffer()
+        *@note The buffer must be released when no longer used, see csrBufferRelease()
         */
         CSR_Buffer* csrBufferCreate(void);
 

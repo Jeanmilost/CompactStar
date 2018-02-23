@@ -84,7 +84,7 @@ void csrFrameBufferRelease(CSR_FrameBuffer* pFB)
     free(pFB);
 }
 //---------------------------------------------------------------------------
-void csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
+void csrFrameBufferClear(CSR_FrameBuffer* pFB, const CSR_Pixel* pPixel)
 {
     size_t i;
 
@@ -160,7 +160,7 @@ void csrDepthBufferRelease(CSR_DepthBuffer* pDB)
     free(pDB);
 }
 //---------------------------------------------------------------------------
-void csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
+void csrDepthBufferClear(CSR_DepthBuffer* pDB, float zFar)
 {
     size_t i;
 
@@ -170,7 +170,7 @@ void csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
 
     // fill the buffer with the far clipping plane value
     for (i = 0; i < pDB->m_Size; ++i)
-        memcpy(&pDB->m_pData[i], &farClippingPlane, sizeof(float));
+        memcpy(&pDB->m_pData[i], &zFar, sizeof(float));
 }
 //---------------------------------------------------------------------------
 void csrRasterInit(CSR_Raster* pRaster)
@@ -185,34 +185,47 @@ void csrRasterInit(CSR_Raster* pRaster)
     pRaster->m_Type           = CSR_RT_Overscan;
 }
 //---------------------------------------------------------------------------
-float csrRasterFindMin(float a, float b, float c)
+void csrRasterFindMin(float a, float b, float c, float* pR)
 {
     if (a < b && a < c)
-        return a;
+    {
+        *pR = a;
+        return;
+    }
 
     if (b < c)
-        return b;
+    {
+        *pR = b;
+        return;
+    }
 
-    return c;
+    *pR = c;
 }
 //---------------------------------------------------------------------------
-float csrRasterFindMax(float a, float b, float c)
+void csrRasterFindMax(float a, float b, float c, float* pR)
 {
     if (a > b && a > c)
-        return a;
+    {
+        *pR = a;
+        return;
+    }
 
     if (b > c)
-        return b;
+    {
+        *pR = b;
+        return;
+    }
 
-    return c;
+    *pR = c;
 }
 //---------------------------------------------------------------------------
-float csrRasterFindEdge(const CSR_Vector3* pV1,
-                        const CSR_Vector3* pV2,
-                        const CSR_Vector3* pV3)
+void csrRasterFindEdge(const CSR_Vector3* pV1,
+                       const CSR_Vector3* pV2,
+                       const CSR_Vector3* pV3,
+                             float*       pR)
 {
-    return ((pV3->m_X - pV1->m_X) * (pV2->m_Y - pV1->m_Y)) -
-           ((pV3->m_Y - pV1->m_Y) * (pV2->m_X - pV1->m_X));
+    *pR = ((pV3->m_X - pV1->m_X) * (pV2->m_Y - pV1->m_Y)) -
+          ((pV3->m_Y - pV1->m_Y) * (pV2->m_X - pV1->m_X));
 }
 //---------------------------------------------------------------------------
 void csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
@@ -310,16 +323,19 @@ void csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
     pOutVertex->m_Z = -vertexCamera.m_Z;
 }
 //---------------------------------------------------------------------------
-int csrRasterGetPolygon(      size_t            v1Index,
-                              size_t            v2Index,
-                              size_t            v3Index,
-                        const CSR_VertexBuffer* pVB,
-                              CSR_Polygon3*     pPolygon,
-                              CSR_Vector3*      pNormal,
-                              CSR_Vector2*      pST,
-                              unsigned*         pColor)
+int csrRasterGetPolygon(const CSR_Matrix4*             pMatrix,
+                              size_t                   v1Index,
+                              size_t                   v2Index,
+                              size_t                   v3Index,
+                        const CSR_VertexBuffer*        pVB,
+                              CSR_Polygon3*            pPolygon,
+                              CSR_Vector3*             pNormal,
+                              CSR_Vector2*             pST,
+                              CSR_Color*               pColor,
+                        const CSR_fOnApplyVertexShader fOnApplyVertexShader)
 {
     size_t offset;
+    size_t i;
 
     // validate the input
     if (!pVB || !pPolygon || !pNormal || !pST || !pColor)
@@ -393,78 +409,80 @@ int csrRasterGetPolygon(      size_t            v1Index,
     // extract the color from source vertex buffer
     if (pVB->m_Format.m_HasPerVertexColor)
     {
-        pColor[0] = ((((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset])     & 0xFF) << 24) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 1]) & 0xFF) << 16) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 2]) & 0xFF) << 8)  |
-                      ((unsigned char)floor(255.0f * pVB->m_pData[v1Index + offset + 3]) & 0xFF));
-        pColor[1] = ((((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset])     & 0xFF) << 24) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 1]) & 0xFF) << 16) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 2]) & 0xFF) << 8)  |
-                      ((unsigned char)floor(255.0f * pVB->m_pData[v2Index + offset + 3]) & 0xFF));
-        pColor[2] = ((((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset])     & 0xFF) << 24) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 1]) & 0xFF) << 16) |
-                     (((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 2]) & 0xFF) << 8)  |
-                      ((unsigned char)floor(255.0f * pVB->m_pData[v3Index + offset + 3]) & 0xFF));
+        pColor[0].m_R = pVB->m_pData[v1Index + offset];
+        pColor[0].m_G = pVB->m_pData[v1Index + offset + 1];
+        pColor[0].m_B = pVB->m_pData[v1Index + offset + 2];
+        pColor[0].m_A = pVB->m_pData[v1Index + offset + 3];
+        pColor[1].m_R = pVB->m_pData[v2Index + offset];
+        pColor[1].m_G = pVB->m_pData[v2Index + offset + 1];
+        pColor[1].m_B = pVB->m_pData[v2Index + offset + 2];
+        pColor[1].m_A = pVB->m_pData[v2Index + offset + 3];
+        pColor[2].m_R = pVB->m_pData[v3Index + offset];
+        pColor[2].m_G = pVB->m_pData[v3Index + offset + 1];
+        pColor[2].m_B = pVB->m_pData[v3Index + offset + 2];
+        pColor[2].m_A = pVB->m_pData[v3Index + offset + 3];
     }
     else
     {
-        pColor[0] = 0;
-        pColor[1] = 0;
-        pColor[2] = 0;
+        pColor[0].m_R = 0.0f;
+        pColor[0].m_G = 0.0f;
+        pColor[0].m_B = 0.0f;
+        pColor[0].m_A = 0.0f;
+        pColor[1].m_R = 0.0f;
+        pColor[1].m_G = 0.0f;
+        pColor[1].m_B = 0.0f;
+        pColor[1].m_A = 0.0f;
+        pColor[2].m_R = 0.0f;
+        pColor[2].m_G = 0.0f;
+        pColor[2].m_B = 0.0f;
+        pColor[2].m_A = 0.0f;
     }
+
+    // for each vertex, apply the vertex shader
+    if (fOnApplyVertexShader)
+        for (i = 0; i < 3; ++i)
+            fOnApplyVertexShader(pMatrix, &pPolygon->m_Vertex[i], &pNormal[i], &pST[i], &pColor[i]);
 
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
-                         const CSR_Vector3*     pNormal,
-                         const CSR_Vector2*     pST,
-                         const unsigned*        pColor,
-                         const CSR_Matrix4*     pMatrix,
-                               float            zNear,
-                         const CSR_Rect*        pScreenRect,
-                               CSR_FrameBuffer* pFB,
-                               CSR_DepthBuffer* pDB)
+int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
+                         const CSR_Vector3*               pNormal,
+                         const CSR_Vector2*               pST,
+                         const CSR_Color*                 pColor,
+                         const CSR_Matrix4*               pMatrix,
+                               float                      zNear,
+                         const CSR_Rect*                  pScreenRect,
+                               CSR_FrameBuffer*           pFB,
+                               CSR_DepthBuffer*           pDB,
+                         const CSR_fOnApplyFragmentShader fOnApplyFragmentShader)
 {
-    float        xMin;
-    float        yMin;
-    float        xMax;
-    float        yMax;
-    float        xStart;
-    float        yStart;
-    float        xEnd;
-    float        yEnd;
-    float        area;
-    float        w0;
-    float        w1;
-    float        w2;
-    float        invZ;
-    float        z;
-    float        pixelX;
-    float        pixelY;
-    float        nDotView;
-    float        checker;
-    float        c;
-    size_t       x;
-    size_t       y;
-    size_t       x0;
-    size_t       x1;
-    size_t       y0;
-    size_t       y1;
-    CSR_Polygon3 rasterPoly;
-    CSR_Polygon3 cameraPoly;
-    CSR_Vector2  st[3];
-    CSR_Vector2  stCoord;
-    CSR_Vector3  pixelSample;
-    CSR_Vector3  point;
-    CSR_Vector3  v1v0Cam;
-    CSR_Vector3  v1v0CamXv2v0Cam;
-    CSR_Vector3  v2v0Cam;
-    CSR_Vector3  normal;
-    CSR_Vector3  viewDirection;
-    CSR_Vector3  nViewDir;
-
-    //FIXME const int M = 10;
+    float         xMin;
+    float         yMin;
+    float         xMax;
+    float         yMax;
+    float         xStart;
+    float         yStart;
+    float         xEnd;
+    float         yEnd;
+    float         area;
+    float         w0;
+    float         w1;
+    float         w2;
+    float         invZ;
+    float         z;
+    size_t        x;
+    size_t        y;
+    size_t        x0;
+    size_t        x1;
+    size_t        y0;
+    size_t        y1;
+    CSR_Polygon3  rasterPoly;
+    CSR_Vector2   st[3];
+    CSR_Vector2   stCoord;
+    CSR_Vector3   pixelSample;
+    CSR_Vector3   samplerEntries;
+    CSR_Color     color;
 
     // validate the input
     if (!pPolygon || !pNormal || !pST || !pColor || !pMatrix || !pScreenRect || !pFB || !pDB)
@@ -489,10 +507,10 @@ int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
     st[2].m_Y = pST[2].m_Y * rasterPoly.m_Vertex[2].m_Z;
 
     // calculate the polygon bounding rect
-    xMin = csrRasterFindMin(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X);
-    yMin = csrRasterFindMin(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y);
-    xMax = csrRasterFindMax(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X);
-    yMax = csrRasterFindMax(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y);
+    csrRasterFindMin(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X, &xMin);
+    csrRasterFindMin(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y, &yMin);
+    csrRasterFindMax(rasterPoly.m_Vertex[0].m_X, rasterPoly.m_Vertex[1].m_X, rasterPoly.m_Vertex[2].m_X, &xMax);
+    csrRasterFindMax(rasterPoly.m_Vertex[0].m_Y, rasterPoly.m_Vertex[1].m_Y, rasterPoly.m_Vertex[2].m_Y, &yMax);
 
     // is the polygon out of screen?
     if (xMin > (float)(pFB->m_Width  - 1) || xMax < 0.0f ||
@@ -510,7 +528,7 @@ int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
     y0 = floor(yStart);
     y1 = floor(yEnd);
 
-    area = csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2]);
+    csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &area);
 
     // iterate through pixels to draw
     for (y = y0; y <= y1; ++y)
@@ -521,9 +539,9 @@ int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
             pixelSample.m_Z =     0.0f;
 
             // calculate the pixel position
-            w0 = csrRasterFindEdge(&rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &pixelSample);
-            w1 = csrRasterFindEdge(&rasterPoly.m_Vertex[2], &rasterPoly.m_Vertex[0], &pixelSample);
-            w2 = csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &pixelSample);
+            csrRasterFindEdge(&rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &pixelSample, &w0);
+            csrRasterFindEdge(&rasterPoly.m_Vertex[2], &rasterPoly.m_Vertex[0], &pixelSample, &w1);
+            csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &pixelSample, &w2);
 
             // FIXME here the culling is tested. If culling is inverted, also invert the wx value below (e.g. with -area)
             // is pixel visible?
@@ -545,60 +563,36 @@ int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
                     // test passed, update the depth buffer
                     pDB->m_pData[y * pFB->m_Width + x] = z;
 
-                    /* FIXME map a real texture here, and use the vertex buffer normal instead
+                    // calculate the default pixel color using the vertex color
+                    color.m_R = w0 * pColor[0].m_R + w1 * pColor[1].m_R + w2 * pColor[2].m_R;
+                    color.m_G = w0 * pColor[0].m_G + w1 * pColor[1].m_G + w2 * pColor[2].m_G;
+                    color.m_B = w0 * pColor[0].m_B + w1 * pColor[1].m_B + w2 * pColor[2].m_B;
+
                     // calculate the texture coordinate
                     stCoord.m_X = ((st[0].m_X * w0) + (st[1].m_X * w1) + (st[2].m_X * w2)) * z;
                     stCoord.m_Y = ((st[0].m_Y * w0) + (st[1].m_Y * w1) + (st[2].m_Y * w2)) * z;
 
-                    // If you need to compute the actual position of the shaded point in camera space.
-                    // Proceed like with the other vertex attribute. Divide the point coordinates by
-                    // the vertex z-coordinate then interpolate using barycentric coordinates and
-                    // finally multiply by sample depth.
-                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[0], &cameraPoly.m_Vertex[0]);
-                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[1], &cameraPoly.m_Vertex[1]);
-                    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[2], &cameraPoly.m_Vertex[2]);
+                    // for each pixel, apply the fragment shader
+                    if (fOnApplyFragmentShader)
+                    {
+                        // set the sampler entries
+                        samplerEntries.m_X = w0;
+                        samplerEntries.m_Y = w1;
+                        samplerEntries.m_Z = w2;
 
-                    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * w0 +
-                             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * w1 +
-                             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * w2;
-                    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * w0 +
-                             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * w1 +
-                             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * w2;
+                        fOnApplyFragmentShader(pMatrix, pPolygon, &samplerEntries, &stCoord, &color);
+                    }
 
-                    // calculate the pixel in the camera space
-                    point.m_X =  pixelX * z;
-                    point.m_Y =  pixelY * z;
-                    point.m_Z = -z;
+                    // Limit the color components between 0.0 and 1.0
+                    csrMathClamp(color.m_R, 0.0, 1.0, &color.m_R);
+                    csrMathClamp(color.m_G, 0.0, 1.0, &color.m_G);
+                    csrMathClamp(color.m_B, 0.0, 1.0, &color.m_B);
 
-                    // Compute the face normal which is used for a simple facing ratio. Keep in mind
-                    // that we are doing all calculation in camera space. Thus the view direction can
-                    // be computed as the point on the object in camera space minus CSR_Vector3(0),
-                    // the position of the camera in camera space.
-                    csrVec3Sub(&cameraPoly.m_Vertex[1], &cameraPoly.m_Vertex[0], &v1v0Cam);
-                    csrVec3Sub(&cameraPoly.m_Vertex[2], &cameraPoly.m_Vertex[0], &v2v0Cam);
-                    csrVec3Cross(&v1v0Cam, &v2v0Cam, &v1v0CamXv2v0Cam);
-                    csrVec3Normalize(&v1v0CamXv2v0Cam, &normal);
-
-                    viewDirection.m_X = -point.m_X;
-                    viewDirection.m_Y = -point.m_Y;
-                    viewDirection.m_Z = -point.m_Z;
-                    csrVec3Normalize(&viewDirection, &nViewDir);
-
-                    csrVec3Dot(&normal, &nViewDir, &nDotView);
-                    csrMathMax(0.0f, nDotView, &nDotView);
-
-                    // FIXME map a real texture here
-                    // The final color is the reuslt of the faction ratio multiplied by the checkerboard pattern.
-                    checker   = (fmod(stCoord.m_X * M, 1.0f) > 0.5f) ^ (fmod(stCoord.m_Y * M, 1.0f) < 0.5f);
-                    c         = 0.3 * (1 - checker) + 0.7 * checker;
-                    nDotView *= c;
-                    */
-
-                    // fixme use the result of the pixel shader here
                     // write the pixel inside the frame buffer
-                    pFB->m_pPixel[y * pFB->m_Width + x].m_R = 255;//FIXME nDotView * 255;
-                    pFB->m_pPixel[y * pFB->m_Width + x].m_G = 255;//FIXME nDotView * 255;
-                    pFB->m_pPixel[y * pFB->m_Width + x].m_B = 0;//FIXME nDotView * 255;
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_R = (unsigned char)(color.m_R * 255.0f);
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_G = (unsigned char)(color.m_G * 255.0f);
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_B = (unsigned char)(color.m_B * 255.0f);
+                    pFB->m_pPixel[y * pFB->m_Width + x].m_A = (unsigned char)(color.m_A * 255.0f);
                 }
             }
         }
@@ -606,13 +600,15 @@ int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrRasterDraw(const CSR_Matrix4*      pMatrix,
-                        float             zNear,
-                        float             zFar,
-                  const CSR_VertexBuffer* pVB,
-                  const CSR_Raster*       pRaster,
-                        CSR_FrameBuffer*  pFB,
-                        CSR_DepthBuffer*  pDB)
+int csrRasterDraw(const CSR_Matrix4*               pMatrix,
+                        float                      zNear,
+                        float                      zFar,
+                  const CSR_VertexBuffer*          pVB,
+                  const CSR_Raster*                pRaster,
+                        CSR_FrameBuffer*           pFB,
+                        CSR_DepthBuffer*           pDB,
+                  const CSR_fOnApplyVertexShader   fOnApplyVertexShader,
+                  const CSR_fOnApplyFragmentShader fOnApplyFragmentShader)
 {
     size_t       vertexCount;
     size_t       i;
@@ -623,7 +619,7 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
     CSR_Polygon3 polygon;
     CSR_Vector3  normal[3];
     CSR_Vector2  st[3];
-    unsigned     color[3];
+    CSR_Color    color[3];
 
     // validate the input
     if (!pMatrix || !pVB || !pVB->m_Format.m_Stride || !pRaster || !pFB || !pDB)
@@ -650,14 +646,16 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
             for (i = 0; i < pVB->m_Count; i += step)
             {
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(i,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         i,
                                          i +  pVB->m_Format.m_Stride,
                                          i + (pVB->m_Format.m_Stride * 2),
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -669,7 +667,8 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
             }
 
@@ -690,27 +689,31 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                 if (!index || !(index % 2))
                 {
                     // get the next polygon to draw
-                    if (!csrRasterGetPolygon(i,
+                    if (!csrRasterGetPolygon(pMatrix,
+                                             i,
                                              i +  pVB->m_Format.m_Stride,
                                              i + (pVB->m_Format.m_Stride * 2),
                                              pVB,
                                             &polygon,
                                              normal,
                                              st,
-                                             color))
+                                             color,
+                                             fOnApplyVertexShader))
                         return 0;
                 }
                 else
                 {
                     // get the next polygon to draw
-                    if (!csrRasterGetPolygon(i +  pVB->m_Format.m_Stride,
+                    if (!csrRasterGetPolygon(pMatrix,
+                                             i +  pVB->m_Format.m_Stride,
                                              i,
                                              i + (pVB->m_Format.m_Stride * 2),
                                              pVB,
                                             &polygon,
                                              normal,
                                              st,
-                                             color))
+                                             color,
+                                             fOnApplyVertexShader))
                         return 0;
                 }
 
@@ -723,7 +726,8 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
 
                 ++index;
@@ -741,14 +745,16 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
             for (i = pVB->m_Format.m_Stride; i < fanLength; i += pVB->m_Format.m_Stride)
             {
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(0,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         0,
                                          i,
                                          i + pVB->m_Format.m_Stride,
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -760,7 +766,8 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
             }
 
@@ -782,14 +789,16 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                 const unsigned v4 = i + (pVB->m_Format.m_Stride * 3);
 
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(v1,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         v1,
                                          v2,
                                          v3,
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -801,18 +810,21 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
 
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(v3,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         v3,
                                          v2,
                                          v4,
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -824,7 +836,8 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
             }
 
@@ -849,14 +862,16 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                 const unsigned v4 = i + (pVB->m_Format.m_Stride * 3);
 
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(v1,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         v1,
                                          v2,
                                          v3,
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -868,18 +883,21 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
 
                 // get the next polygon to draw
-                if (!csrRasterGetPolygon(v3,
+                if (!csrRasterGetPolygon(pMatrix,
+                                         v3,
                                          v2,
                                          v4,
                                          pVB,
                                         &polygon,
                                          normal,
                                          st,
-                                         color))
+                                         color,
+                                         fOnApplyVertexShader))
                     return 0;
 
                 // draw the polygon
@@ -891,7 +909,8 @@ int csrRasterDraw(const CSR_Matrix4*      pMatrix,
                                            zNear,
                                           &screenRect,
                                            pFB,
-                                           pDB))
+                                           pDB,
+                                           fOnApplyFragmentShader))
                     return 0;
             }
 
