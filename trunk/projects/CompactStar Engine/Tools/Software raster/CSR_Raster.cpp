@@ -310,6 +310,8 @@ int CSR_SoftwareRaster::csrRasterGetPolygon(      size_t            v1Index,
     if (!pVB || !pPolygon || !pNormal || !pST || !pColor)
         return 0;
 
+    offset = 0;
+
     // extract the polygon from source vertex buffer
     pPolygon->m_Vertex[0].m_X = pVB->m_pData[v1Index];
     pPolygon->m_Vertex[0].m_Y = pVB->m_pData[v1Index + 1];
