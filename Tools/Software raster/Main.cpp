@@ -6,7 +6,7 @@
 
 #include <Vcl.Graphics.hpp>
 
-#include "CSR_Raster.h"
+#include "CSR_SoftwareRaster.h"
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
@@ -48,25 +48,14 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
     pixel.m_A = 255;
 
     // create the frame buffer
-    CSR_FrameBuffer* pFrameBuffer = CSR_SoftwareRaster::csrFrameBufferCreate(imageWidth, imageHeight);
-    CSR_SoftwareRaster::csrFrameBufferClear(pFrameBuffer, &pixel);
+    CSR_FrameBuffer* pFrameBuffer = csrFrameBufferCreate(imageWidth, imageHeight);
+    csrFrameBufferClear(pFrameBuffer, &pixel);
 
     // create the depth buffer
-    CSR_DepthBuffer* pDepthBuffer = CSR_SoftwareRaster::csrDepthBufferCreate(imageWidth, imageHeight);
-    CSR_SoftwareRaster::csrDepthBufferClear(pDepthBuffer, zFar);
+    CSR_DepthBuffer* pDepthBuffer = csrDepthBufferCreate(imageWidth, imageHeight);
+    csrDepthBufferClear(pDepthBuffer, zFar);
 
     CSR_VertexBuffer vb;
-
-    /*REM
-    verticesRAW,
-    3156,//sizeof(verticesRAW) / sizeof(verticesRAW[0]),
-    nvertices,
-    sizeof(nvertices) / sizeof(nvertices[0]),
-    stRAW,
-    sizeof(stRAW) / sizeof(stRAW[0]),
-    stindices,
-    sizeof(stindices) / sizeof(stindices[0]),
-    */
 
     CSR_Vector3 vertices[1732];
     CSR_Vector2 st[3056];
@@ -127,15 +116,15 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
     }
 
     CSR_Raster raster;
-    CSR_SoftwareRaster::csrRasterInit(&raster);
+    csrRasterInit(&raster);
 
-    CSR_SoftwareRaster::csrRasterDraw(&worldToCamera,
-                                       zNear,
-                                       zFar,
-                                      &vb,
-                                      &raster,
-                                       pFrameBuffer,
-                                       pDepthBuffer);
+    csrRasterDraw(&worldToCamera,
+                   zNear,
+                   zFar,
+                  &vb,
+                  &raster,
+                   pFrameBuffer,
+                   pDepthBuffer);
 
     std::auto_ptr<TBitmap> pBitmap(new TBitmap());
     pBitmap->PixelFormat = pf24bit;
@@ -156,15 +145,16 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
     free(vb.m_pData);
 
     // release the depth buffer
-    CSR_SoftwareRaster::csrDepthBufferRelease(pDepthBuffer);
+    csrDepthBufferRelease(pDepthBuffer);
 
     // release the frame buffer
-    CSR_SoftwareRaster::csrFrameBufferRelease(pFrameBuffer);
+    csrFrameBufferRelease(pFrameBuffer);
 
     //REM delete [] frameBuffer;
     //REM delete [] depthBuffer;
 
-    pBitmap->SaveToFile(L"test.bmp");
+    //pBitmap->SaveToFile(L"test.bmp");
     //REM im1->Picture->Assign(pBitmap.get());
+    Canvas->Draw(0, 0, pBitmap.get());
 }
 //---------------------------------------------------------------------------
