@@ -1,22 +1,95 @@
-//---------------------------------------------------------------------------
-
 #include <vcl.h>
 #pragma hdrstop
 #include "Main.h"
 
 #include <Vcl.Graphics.hpp>
 
-#include "CSR_SoftwareRaster.h"
-
-//---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
-TForm1 *Form1;
+TMainForm *MainForm;
 //---------------------------------------------------------------------------
-__fastcall TForm1::TForm1(TComponent* Owner)
+__fastcall TMainForm::TMainForm(TComponent* Owner)
     : TForm(Owner)
 {
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
+                                      const CSR_Polygon3* pPolygon,
+                                      const CSR_Vector3*  pSamplerEntries,
+                                            CSR_Vector2*  pST,
+                                            CSR_Color*    pColor)
+{
+    pColor->m_R = 1.0f;
+    pColor->m_G = 1.0f;
+    pColor->m_B = 0.0f;
+    pColor->m_A = 1.0f;
+    /*
+    //FIXME const int M = 10;
+
+    // FIXME map a real texture here, and use the vertex buffer normal instead
+
+    CSR_Polygon3  cameraPoly;
+
+    // If you need to compute the actual position of the shaded point in camera space.
+    // Proceed like with the other vertex attribute. Divide the point coordinates by
+    // the vertex z-coordinate then interpolate using barycentric coordinates and
+    // finally multiply by sample depth.
+    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[0], &cameraPoly.m_Vertex[0]);
+    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[1], &cameraPoly.m_Vertex[1]);
+    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[2], &cameraPoly.m_Vertex[2]);
+
+    float         pixelX;
+    float         pixelY;
+
+    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * w0 +
+             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * w1 +
+             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * w2;
+    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * w0 +
+             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * w1 +
+             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * w2;
+
+    CSR_Vector3   point;
+
+    // calculate the pixel in the camera space
+    point.m_X =  pixelX * z;
+    point.m_Y =  pixelY * z;
+    point.m_Z = -z;
+
+    CSR_Vector3   v1v0Cam;
+    CSR_Vector3   v1v0CamXv2v0Cam;
+    CSR_Vector3   v2v0Cam;
+    CSR_Vector3   normal;
+    CSR_Vector3   viewDirection;
+    CSR_Vector3   nViewDir;
+    float         nDotView;
+
+    // Compute the face normal which is used for a simple facing ratio. Keep in mind
+    // that we are doing all calculation in camera space. Thus the view direction can
+    // be computed as the point on the object in camera space minus CSR_Vector3(0),
+    // the position of the camera in camera space.
+    csrVec3Sub(&cameraPoly.m_Vertex[1], &cameraPoly.m_Vertex[0], &v1v0Cam);
+    csrVec3Sub(&cameraPoly.m_Vertex[2], &cameraPoly.m_Vertex[0], &v2v0Cam);
+    csrVec3Cross(&v1v0Cam, &v2v0Cam, &v1v0CamXv2v0Cam);
+    csrVec3Normalize(&v1v0CamXv2v0Cam, &normal);
+
+    viewDirection.m_X = -point.m_X;
+    viewDirection.m_Y = -point.m_Y;
+    viewDirection.m_Z = -point.m_Z;
+    csrVec3Normalize(&viewDirection, &nViewDir);
+
+    csrVec3Dot(&normal, &nViewDir, &nDotView);
+    csrMathMax(0.0f, nDotView, &nDotView);
+
+    float checker;
+    float c;
+
+    // FIXME map a real texture here
+    // The final color is the reuslt of the faction ratio multiplied by the checkerboard pattern.
+    checker   = (fmod(stCoord.m_X * M, 1.0f) > 0.5f) ^ (fmod(stCoord.m_Y * M, 1.0f) < 0.5f);
+    c         = 0.3 * (1 - checker) + 0.7 * checker;
+    nDotView *= c;
+    */
 }
 //---------------------------------------------------------------------------
 #include <stdint.h>
@@ -26,7 +99,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //REM #include <chrono>
 
 #include "cow.h"
-void __fastcall TForm1::bt1Click(TObject *Sender)
+void __fastcall TMainForm::bt1Click(TObject *Sender)
 {
     const uint32_t imageWidth  = 640;
     const uint32_t imageHeight = 480;
@@ -124,7 +197,9 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
                   &vb,
                   &raster,
                    pFrameBuffer,
-                   pDepthBuffer);
+                   pDepthBuffer,
+                   0,
+                   OnApplyFragmentShader);
 
     std::auto_ptr<TBitmap> pBitmap(new TBitmap());
     pBitmap->PixelFormat = pf24bit;

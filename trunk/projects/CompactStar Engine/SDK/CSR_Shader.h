@@ -56,7 +56,7 @@ typedef struct
 /**
 * Called when static vertex buffers may be linked to the shader
 *@param pShader - shader about to be linked
-*@aram pCustomData - custom data
+*@param pCustomData - custom data
 */
 typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader, const void* pCustomData);
 
