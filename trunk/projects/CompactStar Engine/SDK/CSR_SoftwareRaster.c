@@ -1,12 +1,27 @@
-#pragma hdrstop
-#include "CSR_Raster.h"
+/****************************************************************************
+ * ==> CSR_SoftwareRaster --------------------------------------------------*
+ ****************************************************************************
+ * Description : This module provides a small software rasterizer, that may *
+ *               be used to replace OpenGL for simple rendering             *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
+
+#include "CSR_SoftwareRaster.h"
 
 // std
 #include <stdlib>
 #include <math.h>
 
 //---------------------------------------------------------------------------
-CSR_FrameBuffer* CSR_SoftwareRaster::csrFrameBufferCreate(size_t width, size_t height)
+CSR_FrameBuffer* csrFrameBufferCreate(size_t width, size_t height)
 {
     // create a frame buffer
     CSR_FrameBuffer* pFB = (CSR_FrameBuffer*)malloc(sizeof(CSR_FrameBuffer));
@@ -25,10 +40,10 @@ CSR_FrameBuffer* CSR_SoftwareRaster::csrFrameBufferCreate(size_t width, size_t h
     return pFB;
 }
 //---------------------------------------------------------------------------
-int CSR_SoftwareRaster::csrFrameBufferInit(size_t width, size_t height, CSR_FrameBuffer* pFB)
+int csrFrameBufferInit(size_t width, size_t height, CSR_FrameBuffer* pFB)
 {
     // calculate the buffer size to create
-    const std::size_t size = width * height;
+    const size_t size = width * height;
 
     // validate the input
     if (!size || !pFB)
@@ -55,7 +70,7 @@ int CSR_SoftwareRaster::csrFrameBufferInit(size_t width, size_t height, CSR_Fram
     return 1;
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrFrameBufferRelease(CSR_FrameBuffer* pFB)
+void csrFrameBufferRelease(CSR_FrameBuffer* pFB)
 {
     // nothing to release?
     if (!pFB)
@@ -69,7 +84,7 @@ void CSR_SoftwareRaster::csrFrameBufferRelease(CSR_FrameBuffer* pFB)
     free(pFB);
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
+void csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pPixel)
 {
     size_t i;
 
@@ -82,7 +97,7 @@ void CSR_SoftwareRaster::csrFrameBufferClear(CSR_FrameBuffer* pFB, CSR_Pixel* pP
         memcpy(&pFB->m_pPixel[i], pPixel, sizeof(CSR_Pixel));
 }
 //---------------------------------------------------------------------------
-CSR_DepthBuffer* CSR_SoftwareRaster::csrDepthBufferCreate(size_t width, size_t height)
+CSR_DepthBuffer* csrDepthBufferCreate(size_t width, size_t height)
 {
     // create a depth buffer
     CSR_DepthBuffer* pDB = (CSR_DepthBuffer*)malloc(sizeof(CSR_DepthBuffer));
@@ -101,10 +116,10 @@ CSR_DepthBuffer* CSR_SoftwareRaster::csrDepthBufferCreate(size_t width, size_t h
     return pDB;
 }
 //---------------------------------------------------------------------------
-int CSR_SoftwareRaster::csrDepthBufferInit(size_t width, size_t height, CSR_DepthBuffer* pDB)
+int csrDepthBufferInit(size_t width, size_t height, CSR_DepthBuffer* pDB)
 {
     // calculate the buffer size to create
-    const std::size_t size = width * height;
+    const size_t size = width * height;
 
     // validate the input
     if (!size || !pDB)
@@ -131,7 +146,7 @@ int CSR_SoftwareRaster::csrDepthBufferInit(size_t width, size_t height, CSR_Dept
     return 1;
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrDepthBufferRelease(CSR_DepthBuffer* pDB)
+void csrDepthBufferRelease(CSR_DepthBuffer* pDB)
 {
     // nothing to release?
     if (!pDB)
@@ -145,7 +160,7 @@ void CSR_SoftwareRaster::csrDepthBufferRelease(CSR_DepthBuffer* pDB)
     free(pDB);
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
+void csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClippingPlane)
 {
     size_t i;
 
@@ -158,7 +173,7 @@ void CSR_SoftwareRaster::csrDepthBufferClear(CSR_DepthBuffer* pDB, float farClip
         memcpy(&pDB->m_pData[i], &farClippingPlane, sizeof(float));
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrRasterInit(CSR_Raster* pRaster)
+void csrRasterInit(CSR_Raster* pRaster)
 {
     // no raster to initialize?
     if (!pRaster)
@@ -170,7 +185,7 @@ void CSR_SoftwareRaster::csrRasterInit(CSR_Raster* pRaster)
     pRaster->m_Type           = CSR_RT_Overscan;
 }
 //---------------------------------------------------------------------------
-float CSR_SoftwareRaster::csrRasterFindMin(float a, float b, float c)
+float csrRasterFindMin(float a, float b, float c)
 {
     if (a < b && a < c)
         return a;
@@ -181,7 +196,7 @@ float CSR_SoftwareRaster::csrRasterFindMin(float a, float b, float c)
     return c;
 }
 //---------------------------------------------------------------------------
-float CSR_SoftwareRaster::csrRasterFindMax(float a, float b, float c)
+float csrRasterFindMax(float a, float b, float c)
 {
     if (a > b && a > c)
         return a;
@@ -192,19 +207,19 @@ float CSR_SoftwareRaster::csrRasterFindMax(float a, float b, float c)
     return c;
 }
 //---------------------------------------------------------------------------
-float CSR_SoftwareRaster::csrRasterFindEdge(const CSR_Vector3* pV1,
-                                    const CSR_Vector3* pV2,
-                                    const CSR_Vector3* pV3)
+float csrRasterFindEdge(const CSR_Vector3* pV1,
+                        const CSR_Vector3* pV2,
+                        const CSR_Vector3* pV3)
 {
     return ((pV3->m_X - pV1->m_X) * (pV2->m_Y - pV1->m_Y)) -
            ((pV3->m_Y - pV1->m_Y) * (pV2->m_X - pV1->m_X));
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
-                                                             float       imageWidth,
-                                                             float       imageHeight,
-                                                             float       zNear,
-                                                             CSR_Rect*   pScreenRect)
+void csrRasterGetScreenCoordinates(const CSR_Raster* pRaster,
+                                         float       imageWidth,
+                                         float       imageHeight,
+                                         float       zNear,
+                                         CSR_Rect*   pScreenRect)
 {
           float xScale;
           float yScale;
@@ -253,13 +268,13 @@ void CSR_SoftwareRaster::csrRasterGetScreenCoordinates(const CSR_Raster* pRaster
     pScreenRect->m_Min.m_X = -pScreenRect->m_Max.m_X;
 }
 //---------------------------------------------------------------------------
-void CSR_SoftwareRaster::csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
-                                                  const CSR_Matrix4* pMatrix,
-                                                  const CSR_Rect*    pScreenRect,
-                                                        float        zNear,
-                                                        float        imageWidth,
-                                                        float        imageHeight,
-                                                        CSR_Vector3* pOutVertex)
+void csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
+                              const CSR_Matrix4* pMatrix,
+                              const CSR_Rect*    pScreenRect,
+                                    float        zNear,
+                                    float        imageWidth,
+                                    float        imageHeight,
+                                    CSR_Vector3* pOutVertex)
 {
     CSR_Vector3 vertexCamera;
     CSR_Vector2 vertexScreen;
@@ -295,14 +310,14 @@ void CSR_SoftwareRaster::csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
     pOutVertex->m_Z = -vertexCamera.m_Z;
 }
 //---------------------------------------------------------------------------
-int CSR_SoftwareRaster::csrRasterGetPolygon(      size_t            v1Index,
-                                                  size_t            v2Index,
-                                                  size_t            v3Index,
-                                            const CSR_VertexBuffer* pVB,
-                                                  CSR_Polygon3*     pPolygon,
-                                                  CSR_Vector3*      pNormal,
-                                                  CSR_Vector2*      pST,
-                                                  unsigned*         pColor)
+int csrRasterGetPolygon(      size_t            v1Index,
+                              size_t            v2Index,
+                              size_t            v3Index,
+                        const CSR_VertexBuffer* pVB,
+                              CSR_Polygon3*     pPolygon,
+                              CSR_Vector3*      pNormal,
+                              CSR_Vector2*      pST,
+                              unsigned*         pColor)
 {
     size_t offset;
 
@@ -401,15 +416,15 @@ int CSR_SoftwareRaster::csrRasterGetPolygon(      size_t            v1Index,
     return 1;
 }
 //---------------------------------------------------------------------------
-int CSR_SoftwareRaster::csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
-                                             const CSR_Vector3*     pNormal,
-                                             const CSR_Vector2*     pST,
-                                             const unsigned*        pColor,
-                                             const CSR_Matrix4*     pMatrix,
-                                                   float            zNear,
-                                             const CSR_Rect*        pScreenRect,
-                                                   CSR_FrameBuffer* pFB,
-                                                   CSR_DepthBuffer* pDB)
+int csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
+                         const CSR_Vector3*     pNormal,
+                         const CSR_Vector2*     pST,
+                         const unsigned*        pColor,
+                         const CSR_Matrix4*     pMatrix,
+                               float            zNear,
+                         const CSR_Rect*        pScreenRect,
+                               CSR_FrameBuffer* pFB,
+                               CSR_DepthBuffer* pDB)
 {
     float        xMin;
     float        yMin;
@@ -591,13 +606,13 @@ int CSR_SoftwareRaster::csrRasterDrawPolygon(const CSR_Polygon3*    pPolygon,
     return 1;
 }
 //---------------------------------------------------------------------------
-int CSR_SoftwareRaster::csrRasterDraw(const CSR_Matrix4*      pMatrix,
-                                            float             zNear,
-                                            float             zFar,
-                                      const CSR_VertexBuffer* pVB,
-                                      const CSR_Raster*       pRaster,
-                                            CSR_FrameBuffer*  pFB,
-                                            CSR_DepthBuffer*  pDB)
+int csrRasterDraw(const CSR_Matrix4*      pMatrix,
+                        float             zNear,
+                        float             zFar,
+                  const CSR_VertexBuffer* pVB,
+                  const CSR_Raster*       pRaster,
+                        CSR_FrameBuffer*  pFB,
+                        CSR_DepthBuffer*  pDB)
 {
     size_t       vertexCount;
     size_t       i;
