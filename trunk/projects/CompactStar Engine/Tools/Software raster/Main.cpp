@@ -56,6 +56,7 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
     CSR_SoftwareRaster::csrDepthBufferClear(pDepthBuffer, zFar);
 
     CSR_VertexBuffer vb;
+
     /*REM
     verticesRAW,
     3156,//sizeof(verticesRAW) / sizeof(verticesRAW[0]),
@@ -66,27 +67,64 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
     stindices,
     sizeof(stindices) / sizeof(stindices[0]),
     */
-    /*REM
+
     CSR_Vector3 vertices[1732];
     CSR_Vector2 st[3056];
 
     for (std::size_t i = 0; i < 1732; ++i)
-        vertices[i] = CSR_Vector3(pVertices[i * 3], pVertices[(i * 3) + 1], pVertices[(i * 3) + 2]);
+    {
+        vertices[i].m_X = verticesRAW[i * 3];
+        vertices[i].m_Y = verticesRAW[(i * 3) + 1];
+        vertices[i].m_Z = verticesRAW[(i * 3) + 2];
+    }
 
     for (std::size_t i = 0; i < 3056; ++i)
-        st[i] = CSR_Vector2(pUV[i * 2], pUV[(i * 2) + 1]);
-    */
-    /*REM
-    const CSR_Vector3& v0 = vertices[pIndices[i * 3]];
-    const CSR_Vector3& v1 = vertices[pIndices[i * 3 + 1]];
-    const CSR_Vector3& v2 = vertices[pIndices[i * 3 + 2]];
-    */
-    /*REM
-    // Prepare vertex attributes. Divde them by their vertex z-coordinate (though we use a multiplication here because v.z = 1 / v.z)
-    CSR_Vector2 st0 = st[pUVIndices[i * 3]];
-    CSR_Vector2 st1 = st[pUVIndices[i * 3 + 1]];
-    CSR_Vector2 st2 = st[pUVIndices[i * 3 + 2]];
-    */
+    {
+        st[i].m_X = stRAW[i * 2];
+        st[i].m_Y = stRAW[(i * 2) + 1];
+    }
+
+    vb.m_Format.m_Type              = CSR_VT_Triangles;
+    vb.m_Format.m_HasNormal         = 0;
+    vb.m_Format.m_HasTexCoords      = 1;
+    vb.m_Format.m_HasPerVertexColor = 0;
+    vb.m_Format.m_Stride            = 5;
+    vb.m_Count                      = ntris * 3 * vb.m_Format.m_Stride;
+    vb.m_pData                      = (float*)malloc(vb.m_Count * sizeof(float));
+
+    for (std::size_t i = 0; i < ntris; ++i)
+    {
+        vb.m_pData[ i * 3 * 5]      = vertices[nvertices[i * 3]].m_X;
+        vb.m_pData[(i * 3 * 5) + 1] = vertices[nvertices[i * 3]].m_Y;
+        vb.m_pData[(i * 3 * 5) + 2] = vertices[nvertices[i * 3]].m_Z;
+        vb.m_pData[(i * 3 * 5) + 3] = st[stindices[i * 3]].m_X;
+        vb.m_pData[(i * 3 * 5) + 4] = st[stindices[i * 3]].m_Y;
+
+        vb.m_pData[(i * 3 * 5) + 5] = vertices[nvertices[i * 3 + 1]].m_X;
+        vb.m_pData[(i * 3 * 5) + 6] = vertices[nvertices[i * 3 + 1]].m_Y;
+        vb.m_pData[(i * 3 * 5) + 7] = vertices[nvertices[i * 3 + 1]].m_Z;
+        vb.m_pData[(i * 3 * 5) + 8] = st[stindices[i * 3 + 1]].m_X;
+        vb.m_pData[(i * 3 * 5) + 9] = st[stindices[i * 3 + 1]].m_Y;
+
+        vb.m_pData[(i * 3 * 5) + 10] = vertices[nvertices[i * 3 + 2]].m_X;
+        vb.m_pData[(i * 3 * 5) + 11] = vertices[nvertices[i * 3 + 2]].m_Y;
+        vb.m_pData[(i * 3 * 5) + 12] = vertices[nvertices[i * 3 + 2]].m_Z;
+        vb.m_pData[(i * 3 * 5) + 13] = st[stindices[i * 3 + 2]].m_X;
+        vb.m_pData[(i * 3 * 5) + 14] = st[stindices[i * 3 + 2]].m_Y;
+
+        /*REM
+        const CSR_Vector3& v0 = vertices[pIndices[i * 3]];
+        const CSR_Vector3& v1 = vertices[pIndices[i * 3 + 1]];
+        const CSR_Vector3& v2 = vertices[pIndices[i * 3 + 2]];
+
+        // Prepare vertex attributes. Divde them by their vertex z-coordinate (though we use a multiplication here because v.z = 1 / v.z)
+        CSR_Vector2 st0 = st[pUVIndices[i * 3]];
+        CSR_Vector2 st1 = st[pUVIndices[i * 3 + 1]];
+        CSR_Vector2 st2 = st[pUVIndices[i * 3 + 2]];
+
+        vb.m_pData
+        */
+    }
 
     CSR_Raster raster;
     CSR_SoftwareRaster::csrRasterInit(&raster);
@@ -114,6 +152,8 @@ void __fastcall TForm1::bt1Click(TObject *Sender)
             pLine[x].rgbtBlue  = pFrameBuffer->m_pPixel[y * imageWidth + x].m_B;
         }
     }
+
+    free(vb.m_pData);
 
     // release the depth buffer
     CSR_SoftwareRaster::csrDepthBufferRelease(pDepthBuffer);

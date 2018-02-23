@@ -7,9 +7,7 @@
 #include <iomanip>
 #include <cmath>
 
-#include "geometry.h"
-
-uint32_t nvertices[9468] =
+unsigned nvertices[9468] =
 {
     2, 0, 3, 1, 3, 0, 4, 2,
     5, 3, 5, 2, 6, 4, 7, 5,
@@ -1196,7 +1194,7 @@ uint32_t nvertices[9468] =
     1731, 1723, 1722, 1731, 1724, 1723, 1731, 1725,
     1724, 1731, 1721, 1725};
 
-    uint32_t stindices[9468] = {
+    unsigned stindices[9468] = {
     0, 1, 2, 4, 2, 1, 11, 0,
     5, 2, 5, 0, 27, 11, 17, 5,
     17, 11, 35, 48, 27, 27, 17, 35,
