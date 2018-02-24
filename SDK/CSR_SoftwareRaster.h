@@ -118,15 +118,17 @@ typedef void (*CSR_fOnApplyVertexShader)(const CSR_Matrix4* pMatrix,
 * Called when the fragment shader should be applied
 *@param pMatrix - matrix
 *@param pPolygon - polygon currently drawing
-*@param pSamplerEntries - sampler entries
-*@param[in, out] pST - texture coordinate matching with the pixel
+*@param pST - texture coordinate matching with the pixel
+*@param pSampler - sampler items (x = w0, y = w1, z = w2)
+*@param z - pixel z order
 *@param[in, out] pColor - pixel color
 */
 typedef void (*CSR_fOnApplyFragmentShader)(const CSR_Matrix4*  pMatrix,
-                                           const CSR_Polygon3* pPolygon,
-                                           const CSR_Vector3*  pSamplerEntries,
-                                                 CSR_Vector2*  pST,
-                                                 CSR_Color*    pColor);
+                                           const CSR_Polygon3* pPolygon,
+                                           const CSR_Vector2*  pST,
+                                           const CSR_Vector3*  pSampler,
+                                                 float         z,
+                                                 CSR_Color*    pColor);
 
 #ifdef __cplusplus
     extern "C"
@@ -307,6 +309,8 @@ typedef void (*CSR_fOnApplyFragmentShader)(const CSR_Matrix4*  pMatrix,
         *@param pColor - polygon per-vertex colors (array of 3 items)
         *@param pMatrix - matrix
         *@param zNear - near clipping plane value
+        *@param cullingType - culling type to apply
+        *@param cullingFace - culling face to apply
         *@param pScreenRect - rect containing the screen coordinates
         *@param[in, out] pFB - frame buffer in which the scene will be drawn
         *@param[in, out] pDB - depth buffer to use for depth checking
@@ -319,6 +323,8 @@ typedef void (*CSR_fOnApplyFragmentShader)(const CSR_Matrix4*  pMatrix,
                                  const CSR_Color*                 pColor,
                                  const CSR_Matrix4*               pMatrix,
                                        float                      zNear,
+                                       CSR_ECullingType           cullingType,
+                                       CSR_ECullingFace           cullingFace,
                                  const CSR_Rect*                  pScreenRect,
                                        CSR_FrameBuffer*           pFB,
                                        CSR_DepthBuffer*           pDB,

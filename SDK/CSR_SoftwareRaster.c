@@ -452,6 +452,8 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
                          const CSR_Color*                 pColor,
                          const CSR_Matrix4*               pMatrix,
                                float                      zNear,
+                               CSR_ECullingType           cullingType,
+                               CSR_ECullingFace           cullingFace,
                          const CSR_Rect*                  pScreenRect,
                                CSR_FrameBuffer*           pFB,
                                CSR_DepthBuffer*           pDB,
@@ -477,11 +479,13 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
     size_t        x1;
     size_t        y0;
     size_t        y1;
+    int           cullingMode;
+    int           pixelVisible;
     CSR_Polygon3  rasterPoly;
     CSR_Vector2   st[3];
     CSR_Vector2   stCoord;
     CSR_Vector3   pixelSample;
-    CSR_Vector3   samplerEntries;
+    CSR_Vector3   sampler;
     CSR_Color     color;
 
     // validate the input
@@ -492,6 +496,75 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
     csrRasterRasterizeVertex(&pPolygon->m_Vertex[0], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[0]);
     csrRasterRasterizeVertex(&pPolygon->m_Vertex[1], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[1]);
     csrRasterRasterizeVertex(&pPolygon->m_Vertex[2], pMatrix, pScreenRect, zNear, pFB->m_Width, pFB->m_Height, &rasterPoly.m_Vertex[2]);
+
+    // check if the polygon is culled and determine the culling mode to use (0 = CW, 1 = CCW, 2 = both)
+    switch (cullingType)
+    {
+        case CSR_CT_None:
+            // both faces are accepted
+            cullingType = 2;
+            break;
+
+        case CSR_CT_Front:
+        case CSR_CT_Back:
+        {
+            CSR_Plane   polygonPlane;
+            CSR_Vector3 polygonNormal;
+            CSR_Vector3 cullingNormal;
+            float       cullingDot;
+
+            // calculate the rasterized polygon plane
+            csrPlaneFromPoints(&rasterPoly.m_Vertex[0],
+                               &rasterPoly.m_Vertex[1],
+                               &rasterPoly.m_Vertex[2],
+                               &polygonPlane);
+
+            // calculate the rasterized polygon surface normal
+            polygonNormal.m_X = polygonPlane.m_A;
+            polygonNormal.m_Y = polygonPlane.m_B;
+            polygonNormal.m_Z = polygonPlane.m_C;
+
+            // get the culling normal
+            cullingNormal.m_X =  0.0f;
+            cullingNormal.m_Y =  0.0f;
+            cullingNormal.m_Z = -1.0f;
+
+            // calculate the dot product between the culling and the polygon normal
+            csrVec3Dot(&polygonNormal, &cullingNormal, &cullingDot);
+
+            switch (cullingFace)
+            {
+                case CSR_CF_CW:
+                    // is polygon rejected?
+                    if (cullingDot <= 0.0f)
+                        return 1;
+
+                    // apply a clockwise culling
+                    cullingMode = 0;
+                    break;
+
+                case CSR_CF_CCW:
+                    // is polygon rejected?
+                    if (cullingDot >= 0.0f)
+                        return 1;
+
+                    // apply a counter-clockwise culling
+                    cullingMode = 1;
+                    break;
+
+                // error
+                default:
+                    return 1;
+            }
+
+            break;
+        }
+
+        case CSR_CT_Both:
+        default:
+            // both faces are rejected
+            return 1;
+    }
 
     // invert the vertex z-coordinate (to allow multiplication later instead of division)
     rasterPoly.m_Vertex[0].m_Z = 1.0f / rasterPoly.m_Vertex[0].m_Z,
@@ -543,15 +616,62 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
             csrRasterFindEdge(&rasterPoly.m_Vertex[2], &rasterPoly.m_Vertex[0], &pixelSample, &w1);
             csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &pixelSample, &w2);
 
-            // FIXME here the culling is tested. If culling is inverted, also invert the wx value below (e.g. with -area)
+            pixelVisible = 0;
+
+            // check if the pixel is visible. The culling mode is important to determine the sign
+            switch (cullingMode)
+            {
+                // clockwise
+                case 0:
+                    if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                        pixelVisible = 1;
+
+                    break;
+
+                // counter-clockwise
+                case 1:
+                    if (w0 <= 0 && w1 <= 0 && w2 <= 0)
+                    {
+                        pixelVisible = 1;
+
+                        // invert the sampler values
+                        w0 = -w0;
+                        w1 = -w1;
+                        w2 = -w2;
+                    }
+
+                    break;
+
+                // both
+                case 2:
+                    if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                        pixelVisible = 1;
+                    else
+                    if (w0 <= 0 && w1 <= 0 && w2 <= 0)
+                    {
+                        pixelVisible = 1;
+
+                        // invert the sampler values
+                        w0 = -w0;
+                        w1 = -w1;
+                        w2 = -w2;
+                    }
+
+                    break;
+
+                // error
+                default:
+                    return 0;
+            }
+
             // is pixel visible?
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+            if (pixelVisible)
             {
                 w0 /= area;
                 w1 /= area;
                 w2 /= area;
 
-                // calculate the pixel z weight
+                // calculate the pixel z order
                 invZ = (rasterPoly.m_Vertex[0].m_Z * w0) +
                        (rasterPoly.m_Vertex[1].m_Z * w1) +
                        (rasterPoly.m_Vertex[2].m_Z * w2);
@@ -563,7 +683,7 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
                     // test passed, update the depth buffer
                     pDB->m_pData[y * pFB->m_Width + x] = z;
 
-                    // calculate the default pixel color using the vertex color
+                    // calculate the default pixel color, based on the per-vertex color
                     color.m_R = w0 * pColor[0].m_R + w1 * pColor[1].m_R + w2 * pColor[2].m_R;
                     color.m_G = w0 * pColor[0].m_G + w1 * pColor[1].m_G + w2 * pColor[2].m_G;
                     color.m_B = w0 * pColor[0].m_B + w1 * pColor[1].m_B + w2 * pColor[2].m_B;
@@ -575,12 +695,17 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
                     // for each pixel, apply the fragment shader
                     if (fOnApplyFragmentShader)
                     {
-                        // set the sampler entries
-                        samplerEntries.m_X = w0;
-                        samplerEntries.m_Y = w1;
-                        samplerEntries.m_Z = w2;
+                        // set the sampler items
+                        sampler.m_X = w0;
+                        sampler.m_Y = w1;
+                        sampler.m_Z = w2;
 
-                        fOnApplyFragmentShader(pMatrix, pPolygon, &samplerEntries, &stCoord, &color);
+                        fOnApplyFragmentShader(pMatrix,
+                                               pPolygon,
+                                               &stCoord,
+                                               &sampler,
+                                               z,
+                                               &color);
                     }
 
                     // Limit the color components between 0.0 and 1.0
@@ -665,6 +790,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -724,6 +851,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -764,6 +893,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -808,6 +939,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -834,6 +967,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -881,6 +1016,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
@@ -907,6 +1044,8 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
                                            color,
                                            pMatrix,
                                            zNear,
+                                           pVB->m_Culling.m_Type,
+                                           pVB->m_Culling.m_Face,
                                           &screenRect,
                                            pFB,
                                            pDB,
