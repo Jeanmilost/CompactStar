@@ -22,8 +22,5 @@ object MainForm: TMainForm
     Caption = 'bt1'
     TabOrder = 0
     OnClick = bt1Click
-    ExplicitLeft = 368
-    ExplicitTop = 267
-    ExplicitWidth = 75
   end
 end

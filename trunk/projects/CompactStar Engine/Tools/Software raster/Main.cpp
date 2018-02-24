@@ -11,25 +11,28 @@ TMainForm *MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* Owner)
     : TForm(Owner)
-{
-}
+{}
 //---------------------------------------------------------------------------
 void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
                                       const CSR_Polygon3* pPolygon,
-                                      const CSR_Vector3*  pSamplerEntries,
-                                            CSR_Vector2*  pST,
-                                            CSR_Color*    pColor)
-{
+                                      const CSR_Vector2*  pST,
+                                      const CSR_Vector3*  pSampler,
+                                            float         z,
+                                            CSR_Color*    pColor)
+{
+    /*REM
     pColor->m_R = 1.0f;
     pColor->m_G = 1.0f;
     pColor->m_B = 0.0f;
     pColor->m_A = 1.0f;
-    /*
-    //FIXME const int M = 10;
+    */
+
+    /**/
+    const int M = 10;
 
     // FIXME map a real texture here, and use the vertex buffer normal instead
 
-    CSR_Polygon3  cameraPoly;
+    CSR_Polygon3 cameraPoly;
 
     // If you need to compute the actual position of the shaded point in camera space.
     // Proceed like with the other vertex attribute. Divide the point coordinates by
@@ -39,30 +42,30 @@ void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
     csrMat4Transform(pMatrix, &pPolygon->m_Vertex[1], &cameraPoly.m_Vertex[1]);
     csrMat4Transform(pMatrix, &pPolygon->m_Vertex[2], &cameraPoly.m_Vertex[2]);
 
-    float         pixelX;
-    float         pixelY;
+    float pixelX;
+    float pixelY;
 
-    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * w0 +
-             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * w1 +
-             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * w2;
-    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * w0 +
-             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * w1 +
-             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * w2;
+    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * pSampler->m_X +
+             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * pSampler->m_Y +
+             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * pSampler->m_Z;
+    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * pSampler->m_X +
+             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * pSampler->m_Y +
+             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * pSampler->m_Z;
 
-    CSR_Vector3   point;
+    CSR_Vector3 point;
 
     // calculate the pixel in the camera space
     point.m_X =  pixelX * z;
     point.m_Y =  pixelY * z;
     point.m_Z = -z;
 
-    CSR_Vector3   v1v0Cam;
-    CSR_Vector3   v1v0CamXv2v0Cam;
-    CSR_Vector3   v2v0Cam;
-    CSR_Vector3   normal;
-    CSR_Vector3   viewDirection;
-    CSR_Vector3   nViewDir;
-    float         nDotView;
+    CSR_Vector3 v1v0Cam;
+    CSR_Vector3 v1v0CamXv2v0Cam;
+    CSR_Vector3 v2v0Cam;
+    CSR_Vector3 normal;
+    CSR_Vector3 viewDirection;
+    CSR_Vector3 nViewDir;
+    float       nDotView;
 
     // Compute the face normal which is used for a simple facing ratio. Keep in mind
     // that we are doing all calculation in camera space. Thus the view direction can
@@ -86,10 +89,14 @@ void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
 
     // FIXME map a real texture here
     // The final color is the reuslt of the faction ratio multiplied by the checkerboard pattern.
-    checker   = (fmod(stCoord.m_X * M, 1.0f) > 0.5f) ^ (fmod(stCoord.m_Y * M, 1.0f) < 0.5f);
+    checker   = (fmod(pST->m_X * M, 1.0f) > 0.5f) ^ (fmod(pST->m_Y * M, 1.0f) < 0.5f);
     c         = 0.3 * (1 - checker) + 0.7 * checker;
     nDotView *= c;
-    */
+    /**/
+
+    pColor->m_R = nDotView;
+    pColor->m_G = nDotView;
+    pColor->m_B = nDotView;
 }
 //---------------------------------------------------------------------------
 #include <stdint.h>
@@ -151,6 +158,8 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
     vb.m_Format.m_HasTexCoords      = 1;
     vb.m_Format.m_HasPerVertexColor = 0;
     vb.m_Format.m_Stride            = 5;
+    vb.m_Culling.m_Type             = CSR_CT_Back;
+    vb.m_Culling.m_Face             = CSR_CF_CW;
     vb.m_Count                      = ntris * 3 * vb.m_Format.m_Stride;
     vb.m_pData                      = (float*)malloc(vb.m_Count * sizeof(float));
 
@@ -173,20 +182,24 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
         vb.m_pData[(i * 3 * 5) + 12] = vertices[nvertices[i * 3 + 2]].m_Z;
         vb.m_pData[(i * 3 * 5) + 13] = st[stindices[i * 3 + 2]].m_X;
         vb.m_pData[(i * 3 * 5) + 14] = st[stindices[i * 3 + 2]].m_Y;
-
-        /*REM
-        const CSR_Vector3& v0 = vertices[pIndices[i * 3]];
-        const CSR_Vector3& v1 = vertices[pIndices[i * 3 + 1]];
-        const CSR_Vector3& v2 = vertices[pIndices[i * 3 + 2]];
-
-        // Prepare vertex attributes. Divde them by their vertex z-coordinate (though we use a multiplication here because v.z = 1 / v.z)
-        CSR_Vector2 st0 = st[pUVIndices[i * 3]];
-        CSR_Vector2 st1 = st[pUVIndices[i * 3 + 1]];
-        CSR_Vector2 st2 = st[pUVIndices[i * 3 + 2]];
-
-        vb.m_pData
-        */
     }
+
+    // configure the MDL model vertex format
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 0;
+
+    // load MDL model
+    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\shadow.mdl",
+                               0,
+                              &vf,
+                               0,
+                               0,
+                               0);
+
+    pMDL->m_pModel[0].m_pMesh[0].m_pVB->m_Culling.m_Type = CSR_CT_Back;
+    pMDL->m_pModel[0].m_pMesh[0].m_pVB->m_Culling.m_Face = CSR_CF_CCW;
 
     CSR_Raster raster;
     csrRasterInit(&raster);
@@ -194,7 +207,7 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
     csrRasterDraw(&worldToCamera,
                    zNear,
                    zFar,
-                  &vb,
+                   pMDL->m_pModel[0].m_pMesh[0].m_pVB,// &vb,
                   &raster,
                    pFrameBuffer,
                    pDepthBuffer,
@@ -216,6 +229,9 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
             pLine[x].rgbtBlue  = pFrameBuffer->m_pPixel[y * imageWidth + x].m_B;
         }
     }
+
+    if (pMDL)
+        csrMDLRelease(pMDL);
 
     free(vb.m_pData);
 
