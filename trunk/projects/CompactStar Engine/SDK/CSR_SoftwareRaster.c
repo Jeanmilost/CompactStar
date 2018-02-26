@@ -17,7 +17,6 @@
 #include "CSR_SoftwareRaster.h"
 
 // std
-#include <stdlib>
 #include <math.h>
 
 //---------------------------------------------------------------------------
@@ -740,7 +739,6 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
     size_t       index;
     float        determinant;
     CSR_Rect     screenRect;
-    CSR_Matrix4  invMat;
     CSR_Polygon3 polygon;
     CSR_Vector3  normal[3];
     CSR_Vector2  st[3];
@@ -749,8 +747,6 @@ int csrRasterDraw(const CSR_Matrix4*               pMatrix,
     // validate the input
     if (!pMatrix || !pVB || !pVB->m_Format.m_Stride || !pRaster || !pFB || !pDB)
         return 0;
-
-    csrMat4Inverse(pMatrix, &invMat, &determinant);
 
     // get the raster screen coordinates
     csrRasterGetScreenCoordinates(pRaster,

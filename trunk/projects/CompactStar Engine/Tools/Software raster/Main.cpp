@@ -4,14 +4,44 @@
 
 #include <Vcl.Graphics.hpp>
 
+#include <stdint.h>
+#include <memory>
+#include <fstream>
+
+//REM #include <chrono>
+
+#include "cow.h"
+
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
+CSR_PixelBuffer* g_pModelTexture   = 0;
+
+//---------------------------------------------------------------------------
 TMainForm *MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* Owner)
     : TForm(Owner)
 {}
+//------------------------------------------------------------------------------
+void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+{
+    // no pixel buffer?
+    if (!pPixelBuffer)
+        return;
+
+    // release the previously existing texture, if any
+    if (g_pModelTexture)
+        csrPixelBufferRelease(g_pModelTexture);
+
+    // copy the pixel buffer content (the source buffer will be released sooner)
+    g_pModelTexture = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
+    memcpy(g_pModelTexture, pPixelBuffer, sizeof(CSR_PixelBuffer));
+
+    // copy the texture pixel data
+    g_pModelTexture->m_pData = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
+    memcpy(g_pModelTexture->m_pData, pPixelBuffer->m_pData, pPixelBuffer->m_DataLength);
+}
 //---------------------------------------------------------------------------
 void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
                                       const CSR_Polygon3* pPolygon,
@@ -20,92 +50,31 @@ void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
                                             float         z,
                                             CSR_Color*    pColor)
 {
-    /*REM
-    pColor->m_R = 1.0f;
-    pColor->m_G = 1.0f;
-    pColor->m_B = 0.0f;
+    float  stX;
+    float  stY;
+    size_t x;
+    size_t y;
+    size_t line;
+
+    // limit the texture coordinate between 0 and 1 (equivalent to OpenGL clamp mode)
+    csrMathClamp(pST->m_X, 0.0f, 1.0f, &stX);
+    csrMathClamp(pST->m_Y, 0.0f, 1.0f, &stY);
+
+    // calculate the x and y coordinate to pick in the texture, and the line length in pixels
+    x    = stX * g_pModelTexture->m_Width;
+    y    = stY * g_pModelTexture->m_Height;
+    line = g_pModelTexture->m_Width * g_pModelTexture->m_BytePerPixel;
+
+    // calculate the pixel index to get
+    const size_t index = (y * line) + (x * g_pModelTexture->m_BytePerPixel);
+
+    // get the pixel color from texture
+    pColor->m_R = (float)(((unsigned char*)(g_pModelTexture->m_pData))[index])     / 255.0f;
+    pColor->m_G = (float)(((unsigned char*)(g_pModelTexture->m_pData))[index + 1]) / 255.0f;
+    pColor->m_B = (float)(((unsigned char*)(g_pModelTexture->m_pData))[index + 2]) / 255.0f;
     pColor->m_A = 1.0f;
-    */
-
-    /**/
-    const int M = 10;
-
-    // FIXME map a real texture here, and use the vertex buffer normal instead
-
-    CSR_Polygon3 cameraPoly;
-
-    // If you need to compute the actual position of the shaded point in camera space.
-    // Proceed like with the other vertex attribute. Divide the point coordinates by
-    // the vertex z-coordinate then interpolate using barycentric coordinates and
-    // finally multiply by sample depth.
-    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[0], &cameraPoly.m_Vertex[0]);
-    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[1], &cameraPoly.m_Vertex[1]);
-    csrMat4Transform(pMatrix, &pPolygon->m_Vertex[2], &cameraPoly.m_Vertex[2]);
-
-    float pixelX;
-    float pixelY;
-
-    pixelX = (cameraPoly.m_Vertex[0].m_X / -cameraPoly.m_Vertex[0].m_Z) * pSampler->m_X +
-             (cameraPoly.m_Vertex[1].m_X / -cameraPoly.m_Vertex[1].m_Z) * pSampler->m_Y +
-             (cameraPoly.m_Vertex[2].m_X / -cameraPoly.m_Vertex[2].m_Z) * pSampler->m_Z;
-    pixelY = (cameraPoly.m_Vertex[0].m_Y / -cameraPoly.m_Vertex[0].m_Z) * pSampler->m_X +
-             (cameraPoly.m_Vertex[1].m_Y / -cameraPoly.m_Vertex[1].m_Z) * pSampler->m_Y +
-             (cameraPoly.m_Vertex[2].m_Y / -cameraPoly.m_Vertex[2].m_Z) * pSampler->m_Z;
-
-    CSR_Vector3 point;
-
-    // calculate the pixel in the camera space
-    point.m_X =  pixelX * z;
-    point.m_Y =  pixelY * z;
-    point.m_Z = -z;
-
-    CSR_Vector3 v1v0Cam;
-    CSR_Vector3 v1v0CamXv2v0Cam;
-    CSR_Vector3 v2v0Cam;
-    CSR_Vector3 normal;
-    CSR_Vector3 viewDirection;
-    CSR_Vector3 nViewDir;
-    float       nDotView;
-
-    // Compute the face normal which is used for a simple facing ratio. Keep in mind
-    // that we are doing all calculation in camera space. Thus the view direction can
-    // be computed as the point on the object in camera space minus CSR_Vector3(0),
-    // the position of the camera in camera space.
-    csrVec3Sub(&cameraPoly.m_Vertex[1], &cameraPoly.m_Vertex[0], &v1v0Cam);
-    csrVec3Sub(&cameraPoly.m_Vertex[2], &cameraPoly.m_Vertex[0], &v2v0Cam);
-    csrVec3Cross(&v1v0Cam, &v2v0Cam, &v1v0CamXv2v0Cam);
-    csrVec3Normalize(&v1v0CamXv2v0Cam, &normal);
-
-    viewDirection.m_X = -point.m_X;
-    viewDirection.m_Y = -point.m_Y;
-    viewDirection.m_Z = -point.m_Z;
-    csrVec3Normalize(&viewDirection, &nViewDir);
-
-    csrVec3Dot(&normal, &nViewDir, &nDotView);
-    csrMathMax(0.0f, nDotView, &nDotView);
-
-    float checker;
-    float c;
-
-    // FIXME map a real texture here
-    // The final color is the reuslt of the faction ratio multiplied by the checkerboard pattern.
-    checker   = (fmod(pST->m_X * M, 1.0f) > 0.5f) ^ (fmod(pST->m_Y * M, 1.0f) < 0.5f);
-    c         = 0.3 * (1 - checker) + 0.7 * checker;
-    nDotView *= c;
-    /**/
-
-    pColor->m_R = nDotView;
-    pColor->m_G = nDotView;
-    pColor->m_B = nDotView;
 }
 //---------------------------------------------------------------------------
-#include <stdint.h>
-#include <memory>
-#include <fstream>
-
-//REM #include <chrono>
-
-#include "cow.h"
 void __fastcall TMainForm::bt1Click(TObject *Sender)
 {
     const uint32_t imageWidth  = 640;
@@ -113,18 +82,82 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
     const float    zNear       = 1.0f;
     const float    zFar        = 1000.0f;
 
+    CSR_Matrix4 projectionMatrix;
+    float w = imageWidth;
+    float h = imageHeight;
+
+    // calculate matrix items
+    const float fov    = 45.0f;
+    const float aspect = w / h;
+
+    csrMat4Perspective(fov, aspect, zNear, zFar, &projectionMatrix);
+
+    float       angle;
+    CSR_Vector3 t;
+    CSR_Vector3 axis;
+    CSR_Vector3 factor;
+    CSR_Matrix4 translateMatrix;
+    CSR_Matrix4 rotateMatrixX;
+    CSR_Matrix4 rotateMatrixY;
+    CSR_Matrix4 scaleMatrix;
+    CSR_Matrix4 combinedMatrixLevel1;
+    CSR_Matrix4 combinedMatrixLevel2;
+    CSR_Matrix4 modelViewMatrix;
     CSR_Matrix4 worldToCamera;
+    /*
     worldToCamera.m_Table[0][0] =  0.707107f; worldToCamera.m_Table[0][1] = -0.331295f; worldToCamera.m_Table[0][2] =  0.624695f;  worldToCamera.m_Table[0][3] = 0.0f;
     worldToCamera.m_Table[1][0] =  0.0f;      worldToCamera.m_Table[1][1] =  0.883452f; worldToCamera.m_Table[1][2] =  0.468521f;  worldToCamera.m_Table[1][3] = 0.0f;
     worldToCamera.m_Table[2][0] = -0.707107f; worldToCamera.m_Table[2][1] = -0.331295f; worldToCamera.m_Table[2][2] =  0.624695f;  worldToCamera.m_Table[2][3] = 0.0f;
     worldToCamera.m_Table[3][0] = -1.63871f;  worldToCamera.m_Table[3][1] = -5.747777f; worldToCamera.m_Table[3][2] = -40.400412f; worldToCamera.m_Table[3][3] = 1.0f;
+    */
+    // set translation
+    t.m_X =  0.0f;
+    t.m_Y =  0.0f;
+    t.m_Z = -150.0f;
+
+    csrMat4Translate(&t, &translateMatrix);
+
+    // set rotation axis
+    axis.m_X = 1.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 0.0f;
+
+    // set rotation angle
+    angle = M_PI * 0.5;
+
+    csrMat4Rotate(angle, &axis, &rotateMatrixX);
+
+    // set rotation axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 1.0f;
+    axis.m_Z = 0.0f;
+
+    // set rotation angle
+    angle = M_PI * 0.25;
+
+    csrMat4Rotate(angle, &axis, &rotateMatrixY);
+
+    // set scale factor
+    factor.m_X = 0.5f;
+    factor.m_Y = 0.5f;
+    factor.m_Z = 0.5f;
+
+    csrMat4Scale(&factor, &scaleMatrix);
+
+    // calculate model view matrix
+    csrMat4Multiply(&scaleMatrix,          &rotateMatrixX,   &combinedMatrixLevel1);
+    csrMat4Multiply(&combinedMatrixLevel1, &rotateMatrixY,   &combinedMatrixLevel2);
+    csrMat4Multiply(&combinedMatrixLevel2, &translateMatrix, &modelViewMatrix);
+
+    // build the final matrix
+    csrMat4Multiply(&modelViewMatrix, &projectionMatrix, &worldToCamera);
 
     const uint32_t ntris = 3156;
 
     CSR_Pixel pixel;
-    pixel.m_R = 255;
-    pixel.m_G = 255;
-    pixel.m_B = 255;
+    pixel.m_R = 0;
+    pixel.m_G = 0;
+    pixel.m_B = 0;
     pixel.m_A = 255;
 
     // create the frame buffer
@@ -190,16 +223,18 @@ void __fastcall TMainForm::bt1Click(TObject *Sender)
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 0;
 
+    CSR_VertexCulling vc;
+    vc.m_Type = CSR_CT_Back;
+    vc.m_Face = CSR_CF_CW;
+
     // load MDL model
-    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\shadow.mdl",
+    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\wizard.mdl",
                                0,
                               &vf,
+                              &vc,
                                0,
                                0,
-                               0);
-
-    pMDL->m_pModel[0].m_pMesh[0].m_pVB->m_Culling.m_Type = CSR_CT_Back;
-    pMDL->m_pModel[0].m_pMesh[0].m_pVB->m_Culling.m_Face = CSR_CF_CCW;
+                               OnTextureRead);
 
     CSR_Raster raster;
     csrRasterInit(&raster);

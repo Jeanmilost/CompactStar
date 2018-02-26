@@ -1447,7 +1447,8 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                       const CSR_VertexFormat*     pVertFormat,
                       const CSR_VertexCulling*    pVertCulling,
                       const CSR_Material*         pMaterial,
-                      const CSR_fOnGetVertexColor fOnGetVertexColor)
+                      const CSR_fOnGetVertexColor fOnGetVertexColor,
+                      const CSR_fOnTextureRead    fOnTextureRead)
 {
     CSR_MDLHeader*       pHeader;
     CSR_MDLSkin*         pSkin;
@@ -1612,6 +1613,10 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
 
                 return 0;
             }
+
+            // notify that a texture was read
+            if (fOnTextureRead)
+                fOnTextureRead(i, pPixelBuffer);
 
             // is a default texture?
             if (pPixelBuffer->m_DataLength <= 16)
@@ -1810,7 +1815,8 @@ CSR_MDL* csrMDLOpen(const char*                 pFileName,
                     const CSR_VertexFormat*     pVertFormat,
                     const CSR_VertexCulling*    pVertCulling,
                     const CSR_Material*         pMaterial,
-                    const CSR_fOnGetVertexColor fOnGetVertexColor)
+                    const CSR_fOnGetVertexColor fOnGetVertexColor,
+                    const CSR_fOnTextureRead    fOnTextureRead)
 {
     CSR_Buffer* pBuffer;
     CSR_MDL*    pMDL;
@@ -1831,7 +1837,8 @@ CSR_MDL* csrMDLOpen(const char*                 pFileName,
                         pVertFormat,
                         pVertCulling,
                         pMaterial,
-                        fOnGetVertexColor);
+                        fOnGetVertexColor,
+                        fOnTextureRead);
 
     // release the file buffer (no longer required)
     csrBufferRelease(pBuffer);
@@ -2422,11 +2429,11 @@ CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
     pPB->m_Height       = height;
     pPB->m_BytePerPixel = bpp;
     pPB->m_Stride       = width * pPB->m_BytePerPixel;
-    pPB->m_DataLength   = pSkin->m_TexLen;
-    offset              = pPB->m_DataLength * index;
+    pPB->m_DataLength   = sizeof(unsigned char) * pSkin->m_TexLen * 3;
+    offset              = pSkin->m_TexLen * index;
 
     // allocate memory for the pixels
-    pPB->m_pData = (unsigned char*)malloc(sizeof(unsigned char) * pPB->m_DataLength * 3);
+    pPB->m_pData = (unsigned char*)malloc(pPB->m_DataLength);
 
     // do use the default palette?
     if (!pPalette || pPalette->m_Length != sizeof(g_ColorTable))
@@ -2435,7 +2442,7 @@ CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
         pTexPal = pPalette->m_pData;
 
     // convert indexed 8 bits texture to RGB 24 bits
-    for (i = 0; i < pPB->m_DataLength; ++i)
+    for (i = 0; i < pSkin->m_TexLen; ++i)
     {
         ((unsigned char*)pPB->m_pData)[(i * bpp)]     = pTexPal[pSkin->m_pData[offset + i] * bpp];
         ((unsigned char*)pPB->m_pData)[(i * bpp) + 1] = pTexPal[pSkin->m_pData[offset + i] * bpp + 1];

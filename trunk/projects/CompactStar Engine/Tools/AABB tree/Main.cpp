@@ -509,6 +509,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                             &vf,
                                              0,
                                             &material,
+                                             0,
                                              0);
 
                 // succeeded?
