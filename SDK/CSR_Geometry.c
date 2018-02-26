@@ -383,6 +383,10 @@ void csrMat4Transform(const CSR_Matrix4* pM, const CSR_Vector3* pV, CSR_Vector3*
     // calculate the amplitude
     w = (pV->m_X * pM->m_Table[0][3] + pV->m_Y * pM->m_Table[1][3] + pV->m_Z * pM->m_Table[2][3] + pM->m_Table[3][3]);
 
+    // should not happen, unless the matrix is wrong
+    if (!w)
+        return;
+
     // calculate the final vector
     pR->m_X /= w;
     pR->m_Y /= w;

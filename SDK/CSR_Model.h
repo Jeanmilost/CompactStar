@@ -161,6 +161,17 @@ typedef struct
     CSR_MDLFrame* m_pFrame;
 } CSR_MDLFrameGroup;
 
+//---------------------------------------------------------------------------
+// Callbacks
+//---------------------------------------------------------------------------
+
+/**
+* Called when a texture was read in a model
+*@param index - texture index in the model
+*@param pPixelBuffer - pixel buffer containing the read texture
+*/
+typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -362,6 +373,7 @@ typedef struct
         *@param pVertCulling - model vertex culling, if 0 the default culling will be used
         *@param pMaterial - mesh material, if 0 the default material will be used
         *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
+        *@param fOnTextureRead - called when a texture is read
         *@return the newly created MDL model, 0 on error
         *@note The MDL model must be released when no longer used, see csrMDLModelRelease()
         */
@@ -370,7 +382,8 @@ typedef struct
                               const CSR_VertexFormat*     pVertFormat,
                               const CSR_VertexCulling*    pVertCulling,
                               const CSR_Material*         pMaterial,
-                              const CSR_fOnGetVertexColor fOnGetVertexColor);
+                              const CSR_fOnGetVertexColor fOnGetVertexColor,
+                              const CSR_fOnTextureRead    fOnTextureRead);
 
         /**
         * Opens a MDL model from a file
@@ -388,7 +401,8 @@ typedef struct
                             const CSR_VertexFormat*     pVertFormat,
                             const CSR_VertexCulling*    pVertCulling,
                             const CSR_Material*         pMaterial,
-                            const CSR_fOnGetVertexColor fOnGetVertexColor);
+                            const CSR_fOnGetVertexColor fOnGetVertexColor,
+                            const CSR_fOnTextureRead    fOnTextureRead);
 
         /**
         * Releases a MDL model
