@@ -11,11 +11,35 @@
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
 #include "CSR_SoftwareRaster.h"
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.ExtCtrls.hpp>
 
 class TMainForm : public TForm
 {
     __published:
-    void __fastcall FormShow(TObject *Sender);
+        TPanel *paView;
+        TSplitter *spMainView;
+        TPanel *paControls;
+        TLabel *laOptionsCaption;
+        TBevel *blOptionsSeparator;
+        TBevel *blFilesSeparator;
+        TLabel *laFilesCaption;
+        TBevel *blStatsSeparator;
+        TLabel *laStatsCaption;
+        TLabel *laFPS;
+        TLabel *laPolygonCount;
+        TLabel *laRotationSpeedCaption;
+        TLabel *laAnimationSpeedCaption;
+        TLabel *laAnimationNbCaption;
+        TLabel *laModelDistance;
+        TButton *btLoadModel;
+        TTrackBar *tbRotationSpeed;
+        TTrackBar *tbAnimationSpeed;
+        TCheckBox *ckPauseModelAnimation;
+        TTrackBar *tbAnimationNb;
+        TTrackBar *tbModelDistance;
+
+        void __fastcall FormShow(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -32,6 +56,9 @@ class TMainForm : public TForm
         CSR_DepthBuffer* m_pDepthBuffer;
         float            m_zNear;
         float            m_zFar;
+        float            m_PosY;
+        float            m_AngleX;
+        float            m_AngleY;
         double           m_pTextureLastTime;
         double           m_pModelLastTime;
         double           m_pMeshLastTime;
@@ -65,14 +92,14 @@ class TMainForm : public TForm
         */
         void DrawScene();
 
-        static void TextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 
-        static void ApplyFragmentShader(const CSR_Matrix4*  pMatrix,
-                                        const CSR_Polygon3* pPolygon,
-                                        const CSR_Vector2*  pST,
-                                        const CSR_Vector3*  pSampler,
-                                              float         z,
-                                              CSR_Color*    pColor);
+        static void OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
+                                                  const CSR_Polygon3* pPolygon,
+                                                  const CSR_Vector2*  pST,
+                                                  const CSR_Vector3*  pSampler,
+                                                        float         z,
+                                                        CSR_Color*    pColor);
 
         void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 

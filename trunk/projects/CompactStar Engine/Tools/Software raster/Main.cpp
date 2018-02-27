@@ -22,6 +22,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pDepthBuffer(NULL),
     m_zNear(1.0f),
     m_zFar(1000.0f),
+    m_AngleX(M_PI / 2.0f),
+    m_AngleY(0.0f),
     m_pTextureLastTime(0.0),
     m_pModelLastTime(0.0),
     m_pMeshLastTime(0.0),
@@ -41,7 +43,7 @@ __fastcall TMainForm::~TMainForm()
 void __fastcall TMainForm::FormShow(TObject *Sender)
 {
     // initialize the scene
-    InitScene(ClientWidth, ClientHeight);
+    InitScene(paView->ClientWidth, paView->ClientHeight);
 
     // initialize the timer
     m_StartTime    = ::GetTickCount();
@@ -49,26 +51,6 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 
     // listen the application idle
     Application->OnIdle = OnIdle;
-}
-//------------------------------------------------------------------------------
-void TMainForm::TextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
-{
-    static_cast<TMainForm*>(Application->MainForm)->OnTextureRead(index, pPixelBuffer);
-}
-//---------------------------------------------------------------------------
-void TMainForm::ApplyFragmentShader(const CSR_Matrix4*  pMatrix,
-                                    const CSR_Polygon3* pPolygon,
-                                    const CSR_Vector2*  pST,
-                                    const CSR_Vector3*  pSampler,
-                                          float         z,
-                                          CSR_Color*    pColor)
-{
-    static_cast<TMainForm*>(Application->MainForm)->OnApplyFragmentShader(pMatrix,
-                                                                        pPolygon,
-                                                                        pST,
-                                                                        pSampler,
-                                                                        z,
-                                                                        pColor);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -103,7 +85,7 @@ void TMainForm::InitScene(int w, int h)
                           &vc,
                           0,
                           0,
-                          TextureRead);
+                          OnTextureReadCallback);
 
     m_Initialized = true;
 }
@@ -144,6 +126,13 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 modelViewMatrix;
     CSR_Matrix4 worldToCamera;
 
+    // calculate the next angle
+    m_AngleY += (elapsedTime * (float(tbRotationSpeed->Position) * 0.01f));
+
+    // avoid the angle to exceeds the bounds even if a huge time has elapsed since last update
+    while (m_AngleY > M_PI * 2.0f)
+        m_AngleY -= M_PI * 2.0f;
+
     // set translation
     t.m_X =  0.0f;
     t.m_Y =  0.0f;
@@ -157,7 +146,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     axis.m_Z = 0.0f;
 
     // set rotation angle
-    angle = M_PI * 0.5;
+    angle = m_AngleX;
 
     csrMat4Rotate(angle, &axis, &rotateMatrixX);
 
@@ -167,7 +156,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     axis.m_Z = 0.0f;
 
     // set rotation angle
-    angle = -M_PI * 0.25;
+    angle = m_AngleY;
 
     csrMat4Rotate(angle, &axis, &rotateMatrixY);
 
@@ -227,25 +216,61 @@ void TMainForm::DrawScene()
                    m_pFrameBuffer,
                    m_pDepthBuffer,
                    0,
-                   ApplyFragmentShader);
+                   OnApplyFragmentShaderCallback);
 
     std::auto_ptr<TBitmap> pBitmap(new TBitmap());
     pBitmap->PixelFormat = pf24bit;
-    pBitmap->SetSize(ClientWidth, ClientHeight);
+    pBitmap->SetSize(paView->ClientWidth, paView->ClientHeight);
 
-    for (std::size_t y = 0; y < ClientHeight; ++y)
+    for (std::size_t y = 0; y < paView->ClientHeight; ++y)
     {
         TRGBTriple* pLine = reinterpret_cast<TRGBTriple*>(pBitmap->ScanLine[y]);
 
-        for (std::size_t x = 0; x < ClientWidth; ++x)
+        for (std::size_t x = 0; x < paView->ClientWidth; ++x)
         {
-            pLine[x].rgbtRed   = m_pFrameBuffer->m_pPixel[y * ClientWidth + x].m_R;
-            pLine[x].rgbtGreen = m_pFrameBuffer->m_pPixel[y * ClientWidth + x].m_G;
-            pLine[x].rgbtBlue  = m_pFrameBuffer->m_pPixel[y * ClientWidth + x].m_B;
+            pLine[x].rgbtRed   = m_pFrameBuffer->m_pPixel[y * paView->ClientWidth + x].m_R;
+            pLine[x].rgbtGreen = m_pFrameBuffer->m_pPixel[y * paView->ClientWidth + x].m_G;
+            pLine[x].rgbtBlue  = m_pFrameBuffer->m_pPixel[y * paView->ClientWidth + x].m_B;
         }
     }
 
-    Canvas->Draw(0, 0, pBitmap.get());
+    HDC hViewDC = NULL;
+
+    try
+    {
+        hViewDC = ::GetDC(paView->Handle);
+
+        if (hViewDC)
+            //REM paView->Canvas->Draw(0, 0, pBitmap.get());
+            ::BitBlt(hViewDC, 0, 0, pBitmap->Width, pBitmap->Height, pBitmap->Canvas->Handle, 0, 0, SRCCOPY);
+    }
+    __finally
+    {
+        if (hViewDC)
+            ::ReleaseDC(paView->Handle, hViewDC);
+    }
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+{
+    // redirect the callback to the main form
+    static_cast<TMainForm*>(Application->MainForm)->OnTextureRead(index, pPixelBuffer);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
+                                              const CSR_Polygon3* pPolygon,
+                                              const CSR_Vector2*  pST,
+                                              const CSR_Vector3*  pSampler,
+                                                    float         z,
+                                                    CSR_Color*    pColor)
+{
+    // redirect the callback to the main form
+    static_cast<TMainForm*>(Application->MainForm)->OnApplyFragmentShader(pMatrix,
+                                                                        pPolygon,
+                                                                        pST,
+                                                                        pSampler,
+                                                                        z,
+                                                                        pColor);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
