@@ -8,10 +8,6 @@
 #include <memory>
 #include <fstream>
 
-//REM #include <chrono>
-
-#include "cow.h"
-
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
