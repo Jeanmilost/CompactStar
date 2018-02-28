@@ -100,6 +100,12 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\..\SDK\CSR_Collision.c">
+            <BuildOrder>17</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Collision.h">
+            <BuildOrder>18</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Common.c">
             <BuildOrder>6</BuildOrder>
         </CppCompile>
@@ -147,6 +153,7 @@
         </CppCompile>
         <PCHCompile Include="CompactStar_SoftwareRaster_PCH.h">
             <BuildOrder>1</BuildOrder>
+            <PCH>true</PCH>
         </PCHCompile>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
