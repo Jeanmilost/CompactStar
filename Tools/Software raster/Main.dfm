@@ -198,6 +198,8 @@ object MainForm: TMainForm
       Align = alBottom
       Caption = 'Open Model...'
       TabOrder = 5
+      OnClick = btLoadModelClick
+      ExplicitTop = 606
     end
     object tbRotationSpeed: TTrackBar
       AlignWithMargins = True
@@ -268,5 +270,11 @@ object MainForm: TMainForm
       TabOrder = 1
       TickStyle = tsNone
     end
+  end
+  object odOpen: TOpenDialog
+    DefaultExt = 'mdl'
+    Filter = 'Quake I model (*.mdl)|*.mdl'
+    Left = 13
+    Top = 16
   end
 end
