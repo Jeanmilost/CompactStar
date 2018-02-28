@@ -8,6 +8,7 @@
 
 // compactStart engine
 #include "CSR_Geometry.h"
+#include "CSR_Collision.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
 #include "CSR_SoftwareRaster.h"
@@ -40,6 +41,7 @@ class TMainForm : public TForm
         TTrackBar *tbModelDistance;
 
         void __fastcall FormShow(TObject* pSender);
+        void __fastcall FormResize(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -70,6 +72,26 @@ class TMainForm : public TForm
         bool             m_Initialized;
 
         /**
+        * Gets the models directory
+        *@return the model directory, empty string on error
+        */
+        UnicodeString GetModelsDir() const;
+
+        /**
+        * Loads a model
+        *@param fileName - model file name to load
+        *@return true on success, otherwise false
+        */
+        bool LoadModel(const std::string& fileName);
+
+        /**
+        * Creates the viewport
+        *@param w - scene width
+        *@param h - scene height
+        */
+        void CreateViewport(int w, int h);
+
+        /**
         * Initializes the scene
         *@param w - scene width
         *@param h - scene height
@@ -91,6 +113,14 @@ class TMainForm : public TForm
         * Draws the scene
         */
         void DrawScene();
+
+        /**
+        * Calculates the model y position from his bounding box
+        *@param pTree - tree containing the bounding box to use to calculate the y position
+        *@param rotated - if true, the model is shown rotated 90° on the x axis
+        *@return the y position
+        */
+        float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
         static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 

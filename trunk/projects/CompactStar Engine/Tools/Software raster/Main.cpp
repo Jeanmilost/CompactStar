@@ -2,8 +2,10 @@
 #pragma hdrstop
 #include "Main.h"
 
+// vcl
 #include <Vcl.Graphics.hpp>
 
+// std
 #include <stdint.h>
 #include <memory>
 #include <fstream>
@@ -52,21 +54,43 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
     // listen the application idle
     Application->OnIdle = OnIdle;
 }
-//------------------------------------------------------------------------------
-void TMainForm::InitScene(int w, int h)
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FormResize(TObject* pSender)
 {
-    // initialize the raster
-    csrRasterInit(&m_Raster);
+    CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//------------------------------------------------------------------------------
+UnicodeString TMainForm::GetModelsDir() const
+{
+    // build the model dir from the application exe
+    UnicodeString modelDir = ::ExtractFilePath(Application->ExeName);
+                  modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+                  modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+                  modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
 
-    // calculate matrix items
-    const float fov    = 45.0f;
-    const float aspect = float(w) / float(h);
+    // dir exists?
+    if (::DirectoryExists(modelDir))
+        return modelDir;
 
-    csrMat4Perspective(fov, aspect, m_zNear, m_zFar, &m_ProjectionMatrix);
+    // build the model dir from the application exe, in his /Debug or /Release path
+    modelDir = ::ExtractFilePath(Application->ExeName);
+    modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+    modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+    modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+    modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
+    modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
 
-    // create the frame and depth buffers
-    m_pFrameBuffer = csrFrameBufferCreate(w, h);
-    m_pDepthBuffer = csrDepthBufferCreate(w, h);
+    // set the default dir in open dialog, if exists
+    if (::DirectoryExists(modelDir))
+        return modelDir;
+
+    return L"";
+}
+//------------------------------------------------------------------------------
+bool TMainForm::LoadModel(const std::string& fileName)
+{
+    if (m_pModel)
+        csrMDLRelease(m_pModel);
 
     // configure the MDL model vertex format
     CSR_VertexFormat vf;
@@ -79,13 +103,77 @@ void TMainForm::InitScene(int w, int h)
     vc.m_Face = CSR_CF_CCW;
 
     // load MDL model
-    m_pModel = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\wizard.mdl",
+    m_pModel = csrMDLOpen(fileName.c_str(),
                           0,
                           &vf,
                           &vc,
                           0,
                           0,
                           OnTextureReadCallback);
+
+    if (!m_pModel)
+        return false;
+
+    // get the AABB tree
+    if (m_pModel->m_ModelCount && m_pModel->m_pModel->m_MeshCount)
+    {
+        CSR_AABBNode* pTree = csrAABBTreeFromMesh(&m_pModel->m_pModel[0].m_pMesh[0]);
+
+        if (pTree)
+            m_PosY = -CalculateYPos(pTree, true);
+    }
+
+    // get the animation count
+    const int animCount = m_pModel->m_AnimationCount ? m_pModel->m_AnimationCount - 1 : 0;
+
+    // update the interface
+    tbModelDistance->Position  = 100;
+    tbAnimationNb->Max         = animCount;
+    tbAnimationNb->Enabled     = animCount;
+    tbAnimationSpeed->Position = 10;
+    tbAnimationSpeed->Enabled  = tbAnimationNb->Enabled;
+
+    return true;
+}
+//------------------------------------------------------------------------------
+void TMainForm::CreateViewport(int w, int h)
+{
+    // release the previous frame buffer
+    if (m_pFrameBuffer)
+        csrFrameBufferRelease(m_pFrameBuffer);
+
+    // release the previous depth buffer
+    if (m_pDepthBuffer)
+        csrDepthBufferRelease(m_pDepthBuffer);
+
+    // create the frame and depth buffers
+    m_pFrameBuffer = csrFrameBufferCreate(w, h);
+    m_pDepthBuffer = csrDepthBufferCreate(w, h);
+
+    // calculate matrix items
+    const float fov    = 45.0f;
+    const float aspect = float(w) / float(h);
+
+    csrMat4Perspective(fov, aspect, m_zNear, m_zFar, &m_ProjectionMatrix);
+}
+//------------------------------------------------------------------------------
+void TMainForm::InitScene(int w, int h)
+{
+    // initialize the raster
+    csrRasterInit(&m_Raster);
+
+    CreateViewport(w, h);
+
+    if (!LoadModel((AnsiString(GetModelsDir()) + "\\wizard.mdl").c_str()))
+    {
+        MessageDlg("An error occurred while the default model was opened.\n\nApplication will quit.",
+                   mtError,
+                   TMsgDlgButtons() << mbOK,
+                   0);
+
+        Close();
+        return;
+    }
 
     m_Initialized = true;
 }
@@ -135,8 +223,8 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     // set translation
     t.m_X =  0.0f;
-    t.m_Y =  0.0f;
-    t.m_Z = -150.0f;
+    t.m_Y =  m_PosY;
+    t.m_Z = -float(tbModelDistance->Position);
 
     csrMat4Translate(&t, &translateMatrix);
 
@@ -176,16 +264,17 @@ void TMainForm::UpdateScene(float elapsedTime)
     csrMat4Multiply(&modelViewMatrix, &m_ProjectionMatrix, &m_Matrix);
 
     // calculate the next indexes to use for the MDL model
-    csrMDLUpdateIndex(m_pModel,
-                      10,
-                      0,
-                     &m_TextureIndex,
-                     &m_ModelIndex,
-                     &m_MeshIndex,
-                     &m_pTextureLastTime,
-                     &m_pModelLastTime,
-                     &m_pMeshLastTime,
-                      elapsedTime);
+    if (!ckPauseModelAnimation->Checked && m_pModel)
+        csrMDLUpdateIndex(m_pModel,
+                          tbAnimationSpeed->Position,
+                          tbAnimationNb->Position,
+                         &m_TextureIndex,
+                         &m_ModelIndex,
+                         &m_MeshIndex,
+                         &m_pTextureLastTime,
+                         &m_pModelLastTime,
+                         &m_pMeshLastTime,
+                          elapsedTime);
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -249,6 +338,21 @@ void TMainForm::DrawScene()
         if (hViewDC)
             ::ReleaseDC(paView->Handle, hViewDC);
     }
+}
+//---------------------------------------------------------------------------
+float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
+{
+    // no tree or box?
+    if (!pTree || !pTree->m_pBox)
+        return 0.0f;
+
+    // is model rotated?
+    if (rotated)
+        // calculate the y position from the z axis
+        return (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
+
+    // calculate the y position from the z axis
+    return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //------------------------------------------------------------------------------
 void TMainForm::OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)

@@ -11,6 +11,7 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -236,8 +237,6 @@ object MainForm: TMainForm
       Height = 17
       Align = alTop
       Caption = 'Pause The Model Animation'
-      Checked = True
-      State = cbChecked
       TabOrder = 0
     end
     object tbAnimationNb: TTrackBar
