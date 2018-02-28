@@ -14,6 +14,20 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TMainForm::ITreeStats
+//---------------------------------------------------------------------------
+TMainForm::ITreeStats::ITreeStats() :
+    m_FPS(0)
+{}
+//---------------------------------------------------------------------------
+TMainForm::ITreeStats::~ITreeStats()
+{}
+//---------------------------------------------------------------------------
+void TMainForm::ITreeStats::Clear()
+{}
+//---------------------------------------------------------------------------
+// TMainForm
+//---------------------------------------------------------------------------
 TMainForm *MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
@@ -32,6 +46,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_TextureIndex(0),
     m_ModelIndex(0),
     m_MeshIndex(0),
+    m_FrameCount(0),
     m_StartTime(0),
     m_PreviousTime(0),
     m_Initialized(false)
@@ -58,6 +73,26 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 void __fastcall TMainForm::FormResize(TObject* pSender)
 {
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
+{
+    // set the default dir
+    odOpen->InitialDir = GetModelsDir();
+
+    // show the open dialog box
+    if (!odOpen->Execute())
+        return;
+
+    // get the file name
+    const std::string fileName = AnsiString(odOpen->FileName).c_str();
+
+    // load the model
+    if (!LoadModel(fileName))
+        ::MessageDlg(("Failed to load the model.\r\n\r\n" + fileName).c_str(),
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
 }
 //------------------------------------------------------------------------------
 UnicodeString TMainForm::GetModelsDir() const
@@ -89,6 +124,7 @@ UnicodeString TMainForm::GetModelsDir() const
 //------------------------------------------------------------------------------
 bool TMainForm::LoadModel(const std::string& fileName)
 {
+    // release the previous model
     if (m_pModel)
         csrMDLRelease(m_pModel);
 
@@ -166,10 +202,10 @@ void TMainForm::InitScene(int w, int h)
 
     if (!LoadModel((AnsiString(GetModelsDir()) + "\\wizard.mdl").c_str()))
     {
-        MessageDlg("An error occurred while the default model was opened.\n\nApplication will quit.",
-                   mtError,
-                   TMsgDlgButtons() << mbOK,
-                   0);
+        ::MessageDlg("An error occurred while the default model was opened.\n\nApplication will quit.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
 
         Close();
         return;
@@ -340,6 +376,39 @@ void TMainForm::DrawScene()
     }
 }
 //---------------------------------------------------------------------------
+void TMainForm::ShowStats() const
+{
+    unsigned    vertexCount = 0;
+    unsigned    stride;
+    std::size_t polyCount;
+
+    if (m_pModel)
+    {
+        // get the current model mesh to draw
+        const CSR_Mesh* pMesh = csrMDLGetMesh(m_pModel, m_ModelIndex, m_MeshIndex);
+
+        // found it?
+        if (!pMesh)
+            return;
+
+        // get the mesh stride
+        stride = pMesh->m_pVB ? pMesh->m_pVB->m_Format.m_Stride : 0;
+
+        // count all vertices contained in the mesh
+        for (std::size_t i = 0; i < pMesh->m_Count; ++i)
+            vertexCount += pMesh->m_pVB[i].m_Count;
+
+        // calculate the polygons count
+        polyCount = stride ? ((vertexCount / stride) / 3) : 0;
+    }
+    else
+        return;
+
+    // show the stats
+    laPolygonCount->Caption = L"Polygons Count: " + ::IntToStr(int(polyCount));
+    laFPS->Caption          = L"FPS:"             + ::IntToStr(int(m_Stats.m_FPS));
+}
+//---------------------------------------------------------------------------
 float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
 {
     // no tree or box?
@@ -400,9 +469,28 @@ void TMainForm::OnDrawScene(bool resize)
     if (!m_Initialized)
         return;
 
+    // clear the tree stats
+    m_Stats.Clear();
+
+    ++m_FrameCount;
+
+    // calculate the FPS
+    if (m_FrameCount >= 100)
+    {
+        const double      smoothing = 0.1;
+        const std::size_t fpsTime   = now > m_StartTime ? now - m_StartTime : 1;
+        const std::size_t newFPS    = (m_FrameCount * 100) / fpsTime;
+        m_StartTime                 = ::GetTickCount();
+        m_FrameCount                = 0;
+        m_Stats.m_FPS               = (newFPS * smoothing) + (m_Stats.m_FPS * (1.0 - smoothing));
+    }
+
     // update and draw the scene
     UpdateScene(elapsedTime);
     DrawScene();
+
+    // show the stats
+    ShowStats();
 }
 //------------------------------------------------------------------------------
 void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)

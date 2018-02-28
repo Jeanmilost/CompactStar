@@ -1,10 +1,17 @@
 #ifndef MainH
 #define MainH
 
+// vcl
 #include <System.Classes.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Dialogs.hpp>
+
+// std
+#include <string>
 
 // compactStart engine
 #include "CSR_Geometry.h"
@@ -39,9 +46,11 @@ class TMainForm : public TForm
         TCheckBox *ckPauseModelAnimation;
         TTrackBar *tbAnimationNb;
         TTrackBar *tbModelDistance;
+        TOpenDialog *odOpen;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall btLoadModelClick(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -49,6 +58,23 @@ class TMainForm : public TForm
         virtual __fastcall ~TMainForm();
 
     private:
+        /**
+        * Tree statistics
+        */
+        struct ITreeStats
+        {
+            std::size_t m_FPS;
+
+            ITreeStats();
+            ~ITreeStats();
+
+            /**
+            * Clears the stats
+            */
+            void Clear();
+        };
+
+        ITreeStats       m_Stats;
         CSR_Raster       m_Raster;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_Matrix;
@@ -67,6 +93,7 @@ class TMainForm : public TForm
         std::size_t      m_TextureIndex;
         std::size_t      m_ModelIndex;
         std::size_t      m_MeshIndex;
+        std::size_t      m_FrameCount;
         unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
@@ -113,6 +140,11 @@ class TMainForm : public TForm
         * Draws the scene
         */
         void DrawScene();
+
+        /**
+        * Shows the stats
+        */
+        void ShowStats() const;
 
         /**
         * Calculates the model y position from his bounding box

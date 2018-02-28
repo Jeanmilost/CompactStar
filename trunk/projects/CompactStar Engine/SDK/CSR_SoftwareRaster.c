@@ -312,7 +312,7 @@ void csrRasterRasterizeVertex(const CSR_Vector3* pInVertex,
     subTopBottom = pScreenRect->m_Min.m_Y - pScreenRect->m_Max.m_Y;
     addTopBottom = pScreenRect->m_Min.m_Y + pScreenRect->m_Max.m_Y;
 
-    // convert point from screen space to NDC space (in range [-1, 1])
+    // convert point from screen space to Normalized Device Coordinates (NDC) space (in range [-1, 1])
     vertexNDC.m_X = ((2.0f * vertexScreen.m_X) / subRightLeft) - (addRightLeft / subRightLeft);
     vertexNDC.m_Y = ((2.0f * vertexScreen.m_Y) / subTopBottom) - (addTopBottom / subTopBottom);
 
@@ -600,6 +600,7 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
     y0 = floor(yStart);
     y1 = floor(yEnd);
 
+    // calculate the triangle area (multiplied by 2)
     csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &area);
 
     // iterate through pixels to draw
@@ -610,7 +611,7 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
             pixelSample.m_Y = y + 0.5f;
             pixelSample.m_Z =     0.0f;
 
-            // calculate the pixel position
+            // calculate the sub-triangle areas (multiplied by 2)
             csrRasterFindEdge(&rasterPoly.m_Vertex[1], &rasterPoly.m_Vertex[2], &pixelSample, &w0);
             csrRasterFindEdge(&rasterPoly.m_Vertex[2], &rasterPoly.m_Vertex[0], &pixelSample, &w1);
             csrRasterFindEdge(&rasterPoly.m_Vertex[0], &rasterPoly.m_Vertex[1], &pixelSample, &w2);
@@ -666,11 +667,13 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
             // is pixel visible?
             if (pixelVisible)
             {
+                // calculate the barycentric coordinates, which are the areas of the sub-triangles
+                // divided by the area of the main triangle
                 w0 /= area;
                 w1 /= area;
                 w2 /= area;
 
-                // calculate the pixel z order
+                // calculate the pixel depth
                 invZ = (rasterPoly.m_Vertex[0].m_Z * w0) +
                        (rasterPoly.m_Vertex[1].m_Z * w1) +
                        (rasterPoly.m_Vertex[2].m_Z * w2);
@@ -707,12 +710,12 @@ int csrRasterDrawPolygon(const CSR_Polygon3*              pPolygon,
                                                &color);
                     }
 
-                    // Limit the color components between 0.0 and 1.0
+                    // limit the color components between 0.0 and 1.0
                     csrMathClamp(color.m_R, 0.0, 1.0, &color.m_R);
                     csrMathClamp(color.m_G, 0.0, 1.0, &color.m_G);
                     csrMathClamp(color.m_B, 0.0, 1.0, &color.m_B);
 
-                    // write the pixel inside the frame buffer
+                    // write the final pixel inside the frame buffer
                     pFB->m_pPixel[y * pFB->m_Width + x].m_R = (unsigned char)(color.m_R * 255.0f);
                     pFB->m_pPixel[y * pFB->m_Width + x].m_G = (unsigned char)(color.m_G * 255.0f);
                     pFB->m_pPixel[y * pFB->m_Width + x].m_B = (unsigned char)(color.m_B * 255.0f);
