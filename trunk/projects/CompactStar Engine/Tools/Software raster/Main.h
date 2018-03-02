@@ -1,3 +1,19 @@
+/****************************************************************************
+ * ==> Software rasterizer main form ---------------------------------------*
+ ****************************************************************************
+ * Description : This is a tool showing how to load and draw a model using  *
+ *               the software rasterizer                                    *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
+
 #ifndef MainH
 #define MainH
 
@@ -22,6 +38,10 @@
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.ExtCtrls.hpp>
 
+/**
+* Software rasterizer tool main form
+*@author Jean-Milost Reymond
+*/
 class TMainForm : public TForm
 {
     __published:
@@ -50,6 +70,8 @@ class TMainForm : public TForm
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall FormMouseWheel(TObject* pSender, TShiftState shift, int wheelDelta,
+                TPoint& mousePos, bool& handled);
         void __fastcall btLoadModelClick(TObject* pSender);
 
     public:
@@ -59,14 +81,14 @@ class TMainForm : public TForm
 
     private:
         /**
-        * Tree statistics
+        * Statistics
         */
-        struct ITreeStats
+        struct IStats
         {
             std::size_t m_FPS;
 
-            ITreeStats();
-            ~ITreeStats();
+            IStats();
+            ~IStats();
 
             /**
             * Clears the stats
@@ -74,7 +96,7 @@ class TMainForm : public TForm
             void Clear();
         };
 
-        ITreeStats       m_Stats;
+        IStats           m_Stats;
         CSR_Raster       m_Raster;
         CSR_Matrix4      m_ProjectionMatrix;
         CSR_Matrix4      m_Matrix;
@@ -154,8 +176,22 @@ class TMainForm : public TForm
         */
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
+        /**
+        * Called from rasterizer engine when a texture is read
+        *@param index - model texture index
+        *@param pPixelBuffer - pixel buffer containing the texture
+        */
         static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 
+        /**
+        * Called from rasterizer engine when the fragment shader should be applied
+        *@param pMatrix - transformation matrix
+        *@param pPolygon - polygon at which the pixel belongs
+        *@param pST - s and t texture coordinates
+        *@param pSampler - fragment sampler containing the barycentric coordinates of the pixel
+        *@param z - pixel z depth
+        *@param[out] pColor - pixel color to write in the frame buffer
+        */
         static void OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
                                                   const CSR_Polygon3* pPolygon,
                                                   const CSR_Vector2*  pST,
@@ -163,8 +199,22 @@ class TMainForm : public TForm
                                                         float         z,
                                                         CSR_Color*    pColor);
 
+        /**
+        * Called when a texture is read
+        *@param index - model texture index
+        *@param pPixelBuffer - pixel buffer containing the texture
+        */
         void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 
+        /**
+        * Called when the fragment shader should be applied
+        *@param pMatrix - transformation matrix
+        *@param pPolygon - polygon at which the pixel belongs
+        *@param pST - s and t texture coordinates
+        *@param pSampler - fragment sampler containing the barycentric coordinates of the pixel
+        *@param z - pixel z depth
+        *@param[out] pColor - pixel color to write in the frame buffer
+        */
         void OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
                                    const CSR_Polygon3* pPolygon,
                                    const CSR_Vector2*  pST,

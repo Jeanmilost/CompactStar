@@ -1,3 +1,19 @@
+/****************************************************************************
+ * ==> Software rasterizer main form ---------------------------------------*
+ ****************************************************************************
+ * Description : This is a tool showing how to load and draw a model using  *
+ *               the software rasterizer                                    *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
+
 #include <vcl.h>
 #pragma hdrstop
 #include "Main.h"
@@ -14,21 +30,21 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
-// TMainForm::ITreeStats
+// TMainForm::IStats
 //---------------------------------------------------------------------------
-TMainForm::ITreeStats::ITreeStats() :
+TMainForm::IStats::IStats() :
     m_FPS(0)
 {}
 //---------------------------------------------------------------------------
-TMainForm::ITreeStats::~ITreeStats()
+TMainForm::IStats::~IStats()
 {}
 //---------------------------------------------------------------------------
-void TMainForm::ITreeStats::Clear()
+void TMainForm::IStats::Clear()
 {}
 //---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
-TMainForm *MainForm;
+TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
@@ -57,7 +73,7 @@ __fastcall TMainForm::~TMainForm()
     DeleteScene();
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::FormShow(TObject *Sender)
+void __fastcall TMainForm::FormShow(TObject* pSender)
 {
     // initialize the scene
     InitScene(paView->ClientWidth, paView->ClientHeight);
@@ -73,6 +89,12 @@ void __fastcall TMainForm::FormShow(TObject *Sender)
 void __fastcall TMainForm::FormResize(TObject* pSender)
 {
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FormMouseWheel(TObject* pSender, TShiftState shift, int wheelDelta,
+        TPoint& mousePos, bool& handled)
+{
+    tbModelDistance->Position = tbModelDistance->Position + ((wheelDelta > 0) ? 1 : -1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
