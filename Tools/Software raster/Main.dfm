@@ -11,6 +11,7 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -30,7 +31,7 @@ object MainForm: TMainForm
     Top = 0
     Width = 554
     Height = 636
-    Cursor = crCross
+    Cursor = crArrow
     Align = alClient
     BevelOuter = bvNone
     DoubleBuffered = False
@@ -199,7 +200,6 @@ object MainForm: TMainForm
       Caption = 'Open Model...'
       TabOrder = 5
       OnClick = btLoadModelClick
-      ExplicitTop = 606
     end
     object tbRotationSpeed: TTrackBar
       AlignWithMargins = True
