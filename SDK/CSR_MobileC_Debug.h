@@ -68,7 +68,7 @@
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include "CSR_Debug.c"
+    #include "CSR_MobileC_Debug.c"
 #endif
 
 #endif
