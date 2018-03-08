@@ -2,6 +2,8 @@
 #pragma hdrstop
 #include "Main.h"
 
+// std
+#include <memory>
 #include <string>
 
 // compactStar engine
@@ -9,6 +11,9 @@
 #include "CSR_Geometry.h"
 #include "CSR_Renderer.h"
 #include "CSR_Sound.h"
+
+// classes
+#include "CSR_DesignerViewHelper.h"
 
 #pragma package(smart_init)
 #ifdef __llvm__
@@ -47,20 +52,21 @@ const char* miniGetFSColored()
            "}";
 }
 //---------------------------------------------------------------------------
+// TMainForm
+//---------------------------------------------------------------------------
 TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
-    m_hDC(NULL),
-    m_hRC(NULL),
     m_pShader(NULL),
     m_pSphere(NULL),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
 {
-    // enable OpenGL
-    EnableOpenGL(pa3DView->Handle, &m_hDC, &m_hRC);
+    // create an OpenGL context for the 3d views
+    m_OpenGLHelper.AddContext(paDesigner3DView);
+    m_OpenGLHelper.AddContext(pa3DView);
 
     // stop GLEW crashing on OSX :-/
     glewExperimental = GL_TRUE;
@@ -68,8 +74,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     // initialize GLEW
     if (glewInit() != GLEW_OK)
     {
-        // shutdown OpenGL
-        DisableOpenGL(Handle, m_hDC, m_hRC);
+        // release the OpenGL contexts on the views
+        m_OpenGLHelper.ClearContexts();
 
         // close the app
         Application->Terminate();
@@ -78,19 +84,29 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
 //---------------------------------------------------------------------------
 __fastcall TMainForm::~TMainForm()
 {
-    // restore the normal view procedure
-    if (m_fViewWndProc_Backup)
-        pa3DView->WindowProc = m_fViewWndProc_Backup;
-
     DeleteScene();
-    DisableOpenGL(pa3DView->Handle, m_hDC, m_hRC);
+
+    // release the OpenGL contexts on the views
+    m_OpenGLHelper.ClearContexts();
+
+    // clear the hooks
+    m_pDesignerViewXHook.reset();
+    m_pDesignerViewYHook.reset();
+    m_pDesignerViewZHook.reset();
+    m_pDesigner3DViewHook.reset();
+    m_p3DViewHook.reset();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
 {
-    // hook the 3D view procedure
-    m_fViewWndProc_Backup = pa3DView->WindowProc;
-    pa3DView->WindowProc  = ViewWndProc;
+    // hook the designer views
+    m_pDesignerViewXHook.reset (new CSR_VCLControlHook(paDesignerXView,  OnDesignerViewMessage));
+    m_pDesignerViewYHook.reset (new CSR_VCLControlHook(paDesignerYView,  OnDesignerViewMessage));
+    m_pDesignerViewZHook.reset (new CSR_VCLControlHook(paDesignerZView,  OnDesignerViewMessage));
+    m_pDesigner3DViewHook.reset(new CSR_VCLControlHook(paDesigner3DView, On3DViewMessage));
+
+    // hook the 3d view
+    m_p3DViewHook.reset(new CSR_VCLControlHook(pa3DView, On3DViewMessage));
 
     // initialize the scene
     InitScene(ClientWidth, ClientHeight);
@@ -102,185 +118,188 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     Application->OnIdle = OnIdle;
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::FormResize(TObject *Sender)
+void __fastcall TMainForm::FormResize(TObject* pSender)
 {
-    // update the viewport
-    CreateViewport(ClientWidth, ClientHeight);
-}
+    if (!m_Initialized)
+        return;
+
+    m_OpenGLHelper.ResizeViews(m_pShader);
+}
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::ViewWndProc(TMessage& message)
+void __fastcall TMainForm::OnSplitterMoved(TObject* pSender)
+{
+    if (!m_Initialized)
+        return;
+
+    m_OpenGLHelper.ResizeViews(m_pShader);
+}
+//---------------------------------------------------------------------------
+bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
 {
     switch (message.Msg)
     {
-        /*REM
+        case WM_ERASEBKGND:
+            // do nothing, the background will be fully repainted later
+            message.Result = 1L;
+            return true;
+
+        case WM_PAINT:
+        {
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
+
+            if (!pPanel)
+                return false;
+
+            ::PAINTSTRUCT ps;
+            HDC           hDC;
+
+            try
+            {
+                // begin paint
+                hDC = ::BeginPaint(pPanel->Handle, &ps);
+
+                // succeeded?
+                if (!hDC)
+                    return false;
+
+                // draw the background grid
+                CSR_DesignerViewHelper::DrawGrid(pControl->ClientRect,
+                                                 CSR_DesignerViewHelper::IGridOptions(),
+                                                 hDC);
+            }
+            __finally
+            {
+                // end paint
+                if (hDC)
+                    ::EndPaint(pPanel->Handle, &ps);
+            }
+
+            // validate entire client rect (it has just been completely redrawn)
+            ::ValidateRect(pPanel->Handle, NULL);
+
+            // notify main Windows procedure that the view was repainted
+            message.Result = 0L;
+            return true;
+        }
+    }
+
+    return false;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
+{
+    switch (message.Msg)
+    {
+        case WM_ERASEBKGND:
+            // do nothing, the background will be fully repainted later
+            message.Result = 1L;
+            return true;
+
         case WM_WINDOWPOSCHANGED:
         {
             if (!m_Initialized)
                 break;
 
-            if (m_fViewWndProc_Backup)
-                m_fViewWndProc_Backup(message);
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
 
-            HDC hDC = NULL;
+            if (!pPanel)
+                return false;
 
-            try
-            {
-                hDC = ::GetDC(pa3DView->Handle);
+            if (fCtrlOriginalProc)
+                fCtrlOriginalProc(message);
 
-                if (hDC)
-                    // redraw here, thus the view will be redrawn to the correct size in real time
-                    // while the size changes
-                    OnDrawScene(true);
-            }
-            __finally
-            {
-                if (hDC)
-                    ::ReleaseDC(pa3DView->Handle, hDC);
-            }
+            // redraw here, thus the view will be redrawn to the correct size in real time while the
+            // size changes
+            OnDrawScene(true);
 
-            return;
+            return true;
         }
-        */
 
         case WM_PAINT:
         {
             // is scene initialized?
             if (!m_Initialized)
-                break;
+                return false;
 
-            HDC           hDC = NULL;
-            ::PAINTSTRUCT ps;
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
 
-            try
-            {
-                // get and lock the view device context
-                hDC = ::BeginPaint(pa3DView->Handle, &ps);
+            if (!pPanel)
+                return false;
 
-                // on success, draw the scene
-                if (hDC)
-                    OnDrawScene(true);
-            }
-            __finally
-            {
-                // unlock and release the device context
-                ::EndPaint(pa3DView->Handle, &ps);
-            }
+            // draw the scene
+            OnDrawScene(true);
 
-            return;
+            // validate entire client rect (it has just been completely redrawn)
+            ::ValidateRect(pPanel->Handle, NULL);
+
+            // notify main Windows procedure that the view was repainted
+            message.Result = 0L;
+            return true;
         }
     }
 
-    if (m_fViewWndProc_Backup)
-        m_fViewWndProc_Backup(message);
-}
-//---------------------------------------------------------------------------
-void TMainForm::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
-{
-    PIXELFORMATDESCRIPTOR pfd;
-
-    int iFormat;
-
-    // get the device context
-    *hDC = ::GetDC(hWnd);
-
-    ZeroMemory(&pfd, sizeof(pfd));
-    pfd.nSize      = sizeof(pfd);
-    pfd.nVersion   = 1;
-    pfd.dwFlags    = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 32;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-
-    // set the pixel format for the device context
-    iFormat = ChoosePixelFormat(*hDC, &pfd);
-    SetPixelFormat(*hDC, iFormat, &pfd);
-
-    // create and enable the OpenGL render context
-    *hRC = wglCreateContext(*hDC);
-    wglMakeCurrent(*hDC, *hRC);
-}
-//------------------------------------------------------------------------------
-void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
-{
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(hRC);
-    ReleaseDC(hwnd, hDC);
-}
-//------------------------------------------------------------------------------
-void TMainForm::CreateViewport(float w, float h)
-{
-    if (!m_pShader)
-        return;
-
-    // calculate matrix items
-    const float zNear  = 1.0f;
-    const float zFar   = 1000.0f;
-    const float fov    = 45.0f;
-    const float aspect = w / h;
-
-    // create the OpenGL viewport
-    glViewport(0, 0, w, h);
-
-    CSR_Matrix4 matrix;
-    csrMat4Perspective(fov, aspect, zNear, zFar, &matrix);
-
-    // connect projection matrix to shader
-    GLint projectionUniform = glGetUniformLocation(m_pShader->m_ProgramID, "qr_uProjection");
-    glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
+    return false;
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
-    CSR_Buffer* pVS = csrBufferCreate();
-    CSR_Buffer* pFS = csrBufferCreate();
+    // iterate through views to initialize
+    for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
+    {
+        // enable view context
+        wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
 
-    std::string data = miniGetVSColored();
+        std::string vsColored = miniGetVSColored();
+        std::string fsColored = miniGetFSColored();
 
-    pVS->m_Length = data.length();
-    pVS->m_pData  = new unsigned char[pVS->m_Length + 1];
-    std::memcpy(pVS->m_pData, data.c_str(), pVS->m_Length);
-    pVS->m_pData[pVS->m_Length] = 0x0;
+        m_pShader = csrShaderLoadFromStr(vsColored.c_str(),
+                                         vsColored.length(),
+                                         fsColored.c_str(),
+                                         fsColored.length(),
+                                         NULL,
+                                         NULL);
 
-    data = miniGetFSColored();
+        csrShaderEnable(m_pShader);
 
-    pFS->m_Length = data.length();
-    pFS->m_pData  = new unsigned char[pFS->m_Length + 1];
-    std::memcpy(pFS->m_pData, data.c_str(), pFS->m_Length);
-    pFS->m_pData[pFS->m_Length] = 0x0;
+        // get shader attributes
+        m_pShader->m_VertexSlot = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vPosition");
+        m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vColor");
 
-    m_pShader = csrShaderLoadFromBuffer(pVS, pFS);
+        m_OpenGLHelper.CreateViewport(w, h, m_pShader);
 
-    csrBufferRelease(pVS);
-    csrBufferRelease(pFS);
+        CSR_VertexFormat vf;
+        vf.m_HasNormal         = 0;
+        vf.m_HasTexCoords      = 0;
+        vf.m_HasPerVertexColor = 1;
 
-    csrShaderEnable(m_pShader);
+        CSR_Material sm;
+        sm.m_Color       = 0xFFFF;
+        sm.m_Transparent = 0;
+        sm.m_Wireframe   = 0;
 
-    // get shader attributes
-    m_pShader->m_VertexSlot = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vPosition");
-    m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vColor");
+        CSR_Material bm;
+        bm.m_Color       = 0xFF0000FF;
+        bm.m_Transparent = 0;
+        bm.m_Wireframe   = 0;
 
-    CSR_VertexFormat vf;
-    vf.m_Type = CSR_VT_TriangleStrip;
-    vf.m_UseNormals  = 0;
-    vf.m_UseTextures = 0;
-    vf.m_UseColors   = 1;
+        m_pSphere   = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
+        m_pBox      = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+        m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
 
-    m_pSphere   = csrShapeCreateSphere(&vf, 0.5f, 20, 20, 0xFFFF);
-    m_pBox      = csrShapeCreateBox(&vf, 1.0f, 1.0f, 1.0f, 0xFF0000FF, 0);
-    m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
-
-    // configure OpenGL depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDepthRangef(0.0f, 1.0f);
+        // configure OpenGL depth testing
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LEQUAL);
+        glDepthRangef(0.0f, 1.0f);
+    }
 
     m_Initialized = true;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
+    m_Initialized = false;
+
     csrAABBTreeRelease(m_pAABBTree);
     csrMeshRelease(m_pBox);
     csrMeshRelease(m_pSphere);
@@ -322,7 +341,7 @@ void TMainForm::DrawScene()
         // rotate 90 degrees
         xAngle = 1.57075f;
 
-        csrMat4Rotate(&xAngle, &r, &xRotateMatrix);
+        csrMat4Rotate(xAngle, &r, &xRotateMatrix);
 
         // set rotation on Y axis
         r.m_X = 0.0f;
@@ -331,7 +350,7 @@ void TMainForm::DrawScene()
 
         yAngle = 0.0f;
 
-        csrMat4Rotate(&yAngle, &r, &yRotateMatrix);
+        csrMat4Rotate(yAngle, &r, &yRotateMatrix);
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
@@ -342,7 +361,7 @@ void TMainForm::DrawScene()
         glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
 
         csrSceneDrawMesh(m_pSphere, m_pShader);
-        csrSceneDrawMesh(m_pBox, m_pShader);
+        //csrSceneDrawMesh(m_pBox, m_pShader);
     }
     __finally
     {
@@ -352,33 +371,44 @@ void TMainForm::DrawScene()
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
 {
-    // do draw the scene for a resize?
-    if (resize)
+    // iterate through views to redraw
+    for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
     {
-        if (!m_Initialized)
-            return;
+        // is view control visible?
+        if (!CSR_VCLHelper::IsVisible(it.First()))
+            continue;
 
-        // just process a minimal draw
-        UpdateScene(0.0);
+        // enable view context
+        wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
+
+        // do draw the scene for a resize?
+        if (resize)
+        {
+            if (!m_Initialized)
+                continue;
+
+            // just process a minimal draw
+            UpdateScene(0.0);
+            DrawScene();
+
+            ::SwapBuffers(it.Second().m_hDC);
+            continue;
+        }
+
+        // calculate time interval
+        const unsigned __int64 now            = ::GetTickCount();
+        const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
+                               m_PreviousTime =  now;
+
+        if (!m_Initialized)
+            continue;
+
+        // update and draw the scene
+        UpdateScene(elapsedTime);
         DrawScene();
 
-        ::SwapBuffers(m_hDC);
-        return;
+        ::SwapBuffers(it.Second().m_hDC);
     }
-
-    // calculate time interval
-    const unsigned __int64 now            = ::GetTickCount();
-    const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
-                           m_PreviousTime =  now;
-
-    if (!m_Initialized)
-        return;
-
-    // update and draw the scene
-    UpdateScene(elapsedTime);
-    DrawScene();
-
-    ::SwapBuffers(m_hDC);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

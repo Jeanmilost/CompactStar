@@ -17,6 +17,7 @@
 #define CSR_RendererH
 
 // compactStar engine
+#include "CSR_Common.h"
 #include "CSR_Model.h"
 #include "CSR_Shader.h"
 

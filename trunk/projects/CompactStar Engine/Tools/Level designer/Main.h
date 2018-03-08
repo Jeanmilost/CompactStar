@@ -1,29 +1,36 @@
 #ifndef MainH
 #define MainH
 
+// vcl
 #include <System.Classes.hpp>
+#include <System.Actions.hpp>
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Menus.hpp>
+#include <Vcl.ToolWin.hpp>
+#include <Vcl.ActnList.hpp>
+#include <Vcl.ImgList.hpp>
+
+// std
+#include <memory>
+#include <map>
 
 // compactStar engine
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
-#include <Vcl.Menus.hpp>
-#include <Vcl.ToolWin.hpp>
-#include <System.Actions.hpp>
-#include <Vcl.ActnList.hpp>
-#include <Vcl.ImgList.hpp>
+
+// classes
+#include "CSR_OpenGLHelper.h"
+#include "CSR_VCLHelper.h"
+#include "CSR_VCLControlHook.h"
 
 class TMainForm : public TForm
 {
     __published:
-        TPageControl *pcViews;
-        TTabSheet *ts3DView;
-        TPanel *pa3DView;
         TMainMenu *mmMenu;
         TMenuItem *miViews;
         TMenuItem *mi3Dview;
@@ -34,9 +41,23 @@ class TMainForm : public TForm
         TPanel *paInspector;
         TSplitter *spInspector;
         TPanel *paViews;
+        TPageControl *pcMain;
+        TTabSheet *ts3DView;
+        TPanel *pa3DView;
+        TTabSheet *tsDesigner;
+        TPanel *paDesignerTop;
+        TSplitter *spDesignerTopBottom;
+        TPanel *paDesignerBottom;
+        TPanel *paDesignerXView;
+        TSplitter *spDesignerXY;
+        TPanel *paDesignerYView;
+        TPanel *paDesignerZView;
+        TPanel *paDesigner3DView;
+        TSplitter *spDesignerZ3D;
 
-        void __fastcall FormShow(TObject *Sender);
-        void __fastcall FormResize(TObject *Sender);
+        void __fastcall FormShow(TObject* pSender);
+        void __fastcall FormResize(TObject* pSender);
+        void __fastcall OnSplitterMoved(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);
@@ -44,44 +65,37 @@ class TMainForm : public TForm
 
     protected:
         /**
-        * View panel main procedure
-        *@param message- Windows procedure message
+        * Called when a Windows message is sent to a designer view
+        *@param pControl - hooked designer view control
+        *@param message - Windows message
+        *@param fCtrlOriginalProc - control original Windows procedure
+        *@return true if the message was resolved and should no longer be handled, otherwise false
         */
-        void __fastcall ViewWndProc(TMessage& message);
+        bool OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
+
+        /**
+        * Called when a Windows message is sent to a 3d view
+        *@param pControl - hooked designer view control
+        *@param message - Windows message
+        *@param fCtrlOriginalProc - control original Windows procedure
+        *@return true if the message was resolved and should no longer be handled, otherwise false
+        */
+        bool On3DViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
     private:
-        HDC              m_hDC;
-        HGLRC            m_hRC;
-        CSR_Shader*      m_pShader;
-        CSR_Mesh*        m_pSphere;
-        CSR_Mesh*        m_pBox;
-        CSR_AABBNode*    m_pAABBTree;
-        unsigned __int64 m_PreviousTime;
-        bool             m_Initialized;
-        TWndMethod       m_fViewWndProc_Backup;
-
-        /**
-        * Enables OpenGL
-        *@param hWnd - Windows handle
-        *@param hDC - device context
-        *@param hRC - OpenGL rendering context
-        */
-        void EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC);
-
-        /**
-        * Disables OpenGL
-        *@param hWnd - Windows handle
-        *@param hDC - device context
-        *@param hRC - OpenGL rendering context
-        */
-        void DisableOpenGL(HWND hWnd, HDC hDC, HGLRC hRC);
-
-        /**
-        * Creates the viewport
-        *@param w - viewport width
-        *@param h - viewport height
-        */
-        void CreateViewport(float w, float h);
+        CSR_OpenGLHelper                    m_OpenGLHelper;
+        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewXHook;
+        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewYHook;
+        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
+        std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
+        std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
+        CSR_Shader*                         m_pShader;
+        CSR_Mesh*                           m_pSphere;
+        CSR_Mesh*                           m_pBox;
+        CSR_AABBNode*                       m_pAABBTree;
+        unsigned __int64                    m_PreviousTime;
+        bool                                m_Initialized;
+        TWndMethod                          m_fViewWndProc_Backup;
 
         /**
         * Initializes the scene

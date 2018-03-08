@@ -46,13 +46,14 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <BCC_weff>false</BCC_weff>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Classes\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
-        <IncludePath>..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
+        <IncludePath>Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -136,6 +137,12 @@
         <None Include="..\..\SDK\CSR_Geometry.h">
             <BuildOrder>8</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Lighting.c">
+            <BuildOrder>21</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Lighting.h">
+            <BuildOrder>22</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Model.c">
             <BuildOrder>9</BuildOrder>
         </CppCompile>
@@ -147,6 +154,12 @@
         </CppCompile>
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>12</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Scene.c">
+            <BuildOrder>27</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Scene.h">
+            <BuildOrder>28</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Shader.c">
             <BuildOrder>13</BuildOrder>
@@ -172,6 +185,22 @@
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>20</BuildOrder>
         </None>
+        <CppCompile Include="Classes\CSR_DesignerViewHelper.cpp">
+            <DependentOn>Classes\CSR_DesignerViewHelper.h</DependentOn>
+            <BuildOrder>25</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Classes\CSR_OpenGLHelper.cpp">
+            <DependentOn>Classes\CSR_OpenGLHelper.h</DependentOn>
+            <BuildOrder>26</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Classes\CSR_VCLControlHook.cpp">
+            <DependentOn>Classes\CSR_VCLControlHook.h</DependentOn>
+            <BuildOrder>27</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Classes\CSR_VCLHelper.cpp">
+            <DependentOn>Classes\CSR_VCLHelper.h</DependentOn>
+            <BuildOrder>28</BuildOrder>
+        </CppCompile>
         <CppCompile Include="CompactStar_LevelDesigner.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
@@ -211,6 +240,9 @@
                 <Source>
                     <Source Name="MainSource">CompactStar_LevelDesigner.cpp</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl not found</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">
