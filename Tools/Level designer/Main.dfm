@@ -23,6 +23,7 @@ object MainForm: TMainForm
     Height = 652
     Align = alRight
     ResizeStyle = rsUpdate
+    OnMoved = OnSplitterMoved
     ExplicitLeft = 1099
     ExplicitTop = 0
   end
@@ -52,16 +53,116 @@ object MainForm: TMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    object pcViews: TPageControl
+    object pcMain: TPageControl
       Left = 0
       Top = 0
       Width = 914
       Height = 652
-      ActivePage = ts3DView
+      ActivePage = tsDesigner
       Align = alClient
       TabOrder = 0
+      object tsDesigner: TTabSheet
+        Caption = 'tsDesigner'
+        ImageIndex = 1
+        object spDesignerTopBottom: TSplitter
+          Left = 0
+          Top = 313
+          Width = 906
+          Height = 3
+          Cursor = crVSplit
+          Align = alTop
+          ResizeStyle = rsUpdate
+          OnMoved = OnSplitterMoved
+          ExplicitWidth = 311
+        end
+        object paDesignerTop: TPanel
+          Left = 0
+          Top = 0
+          Width = 906
+          Height = 313
+          Align = alTop
+          BevelOuter = bvNone
+          TabOrder = 0
+          object spDesignerXY: TSplitter
+            Left = 449
+            Top = 0
+            Height = 313
+            ResizeStyle = rsUpdate
+            ExplicitLeft = 455
+            ExplicitTop = -3
+          end
+          object paDesignerXView: TPanel
+            Left = 0
+            Top = 0
+            Width = 449
+            Height = 313
+            Align = alLeft
+            BevelOuter = bvNone
+            Color = clWhite
+            ParentBackground = False
+            TabOrder = 0
+          end
+          object paDesignerYView: TPanel
+            Left = 452
+            Top = 0
+            Width = 454
+            Height = 313
+            Align = alClient
+            BevelOuter = bvNone
+            Color = clWhite
+            ParentBackground = False
+            TabOrder = 1
+          end
+        end
+        object paDesignerBottom: TPanel
+          Left = 0
+          Top = 316
+          Width = 906
+          Height = 308
+          Align = alClient
+          BevelOuter = bvNone
+          TabOrder = 1
+          object spDesignerZ3D: TSplitter
+            Left = 449
+            Top = 0
+            Height = 308
+            ResizeStyle = rsUpdate
+            OnMoved = OnSplitterMoved
+            ExplicitLeft = 446
+            ExplicitTop = 3
+          end
+          object paDesignerZView: TPanel
+            Left = 0
+            Top = 0
+            Width = 449
+            Height = 308
+            Align = alLeft
+            BevelOuter = bvNone
+            Color = clWhite
+            ParentBackground = False
+            TabOrder = 0
+          end
+          object paDesigner3DView: TPanel
+            Left = 452
+            Top = 0
+            Width = 454
+            Height = 308
+            Align = alClient
+            BevelOuter = bvNone
+            Color = clWhite
+            DoubleBuffered = False
+            ParentBackground = False
+            ParentDoubleBuffered = False
+            TabOrder = 1
+          end
+        end
+      end
       object ts3DView: TTabSheet
-        Caption = '3D view'
+        Caption = 'ts3DView'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object pa3DView: TPanel
           Left = 0
           Top = 0
@@ -70,7 +171,9 @@ object MainForm: TMainForm
           Align = alClient
           BevelOuter = bvNone
           Color = clBlack
+          DoubleBuffered = False
           ParentBackground = False
+          ParentDoubleBuffered = False
           TabOrder = 0
         end
       end
