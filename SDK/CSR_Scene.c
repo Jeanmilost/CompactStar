@@ -53,9 +53,16 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     if (!pSceneItem)
         return;
 
-    pSceneItem->m_pModel  = 0;
-    pSceneItem->m_Type    = CSR_IT_Model;
-    pSceneItem->m_pShader = 0;
+    pSceneItem->m_pItem         = 0;
+    pSceneItem->m_Type          = CSR_IT_Model;
+    pSceneItem->m_pShader       = 0;
+    pSceneItem->m_TextureIndex  = 0;
+    pSceneItem->m_ModelIndex    = 0;
+    pSceneItem->m_MeshIndex     = 0;
+    pSceneItem->m_Interpolation = 0.0f;
+
+    // set the default item matrix to identity
+    csrMat4Identity(&pSceneItem->m_Matrix);
 }
 //---------------------------------------------------------------------------
 // Scene functions
@@ -110,13 +117,102 @@ void csrSceneInit(CSR_Scene* pScene)
     if (!pScene)
         return;
 
+    // initialize the scene
+    pScene->m_Color.m_R            = 0.0f;
+    pScene->m_Color.m_G            = 0.0f;
+    pScene->m_Color.m_B            = 0.0f;
+    pScene->m_Color.m_A            = 1.0f;
     pScene->m_pItem                = 0;
     pScene->m_ItemCount            = 0;
     pScene->m_pTransparentItem     = 0;
     pScene->m_TransparentItemCount = 0;
 
+    // set the default item matrix to identity
+    csrMat4Identity(&pScene->m_Matrix);
+
     #ifndef CSR_OPENGL_2_ONLY
         pScene->m_pMSAA = 0;
     #endif
+}
+//---------------------------------------------------------------------------
+void csrSceneDraw(CSR_Scene* pScene)
+{
+    size_t i;
+    GLint  slot;
+
+    // no scene to draw?
+    if (!pScene)
+        return;
+
+    // begin the scene drawing
+    #ifndef CSR_OPENGL_2_ONLY
+        if (pScene->m_pMSAA)
+            csrMSAASceneBegin(&pScene->m_Color, pScene->m_pMSAA);
+        else
+    #endif
+            csrSceneBegin(&pScene->m_Color);
+
+    // first draw the standard models
+    if (pScene->m_ItemCount && pScene->m_pItem)
+        for (i = 0; i < pScene->m_ItemCount; ++i)
+        {
+            // enable the item shader
+            csrShaderEnable(pScene->m_pItem[i].m_pShader);
+
+            // get the view matrix slot from shader
+            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uView");
+
+            // connect view matrix to shader
+            if (slot >= 0)
+                glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
+
+            // get the model matrix slot from shader
+            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uModel");
+
+            // connect model matrix to shader
+            if (slot >= 0)
+                glUniformMatrix4fv(slot, 1, 0, &pScene->m_pItem[i].m_Matrix.m_Table[0][0]);
+
+            // get the interpolation slot
+            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uTime");
+
+            // set interpolation value in shader
+            if (slot >= 0)
+                glUniform1f(slot, pScene->m_pItem[i].m_Interpolation);
+
+            // draw the model
+            switch (pScene->m_pItem[i].m_Type)
+            {
+                case CSR_IT_Mesh:
+                    csrSceneDrawMesh((const CSR_Mesh*)pScene->m_pItem[i].m_pItem,
+                                                      pScene->m_pItem[i].m_pShader);
+                    break;
+
+                case CSR_IT_Model:
+                    csrSceneDrawModel((const CSR_Model*)pScene->m_pItem[i].m_pItem,
+                                                        pScene->m_pItem[i].m_ModelIndex,
+                                                        pScene->m_pItem[i].m_pShader);
+                    break;
+
+                case CSR_IT_MDL:
+                    csrSceneDrawMDL((const CSR_MDL*)pScene->m_pItem[i].m_pItem,
+                                                    pScene->m_pItem[i].m_pShader,
+                                                    pScene->m_pItem[i].m_TextureIndex,
+                                                    pScene->m_pItem[i].m_ModelIndex,
+                                                    pScene->m_pItem[i].m_MeshIndex);
+                    break;
+            }
+
+            // disable the item shader
+            csrShaderEnable(0);
+        }
+
+    // end the scene drawing
+    #ifndef CSR_OPENGL_2_ONLY
+        if (pScene->m_pMSAA)
+            csrMSAASceneEnd(pScene->m_pMSAA);
+        else
+    #endif
+            csrSceneEnd();
 }
 //---------------------------------------------------------------------------

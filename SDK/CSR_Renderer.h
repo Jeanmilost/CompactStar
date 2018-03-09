@@ -96,14 +96,11 @@
 
         /**
         * Begins to draw an antialiased scene
-        *@param r - scene background color red component in percent (between 0.0f and 1.0f)
-        *@param g - scene background color green component in percent (between 0.0f and 1.0f)
-        *@param b - scene background color blue component in percent (between 0.0f and 1.0f)
-        *@param a - scene background color alpha component in percent (between 0.0f and 1.0f)
+        *@param pColor - scene background color
         *@param pMSAA - multisample antialiasing to apply
         */
         #ifndef CSR_OPENGL_2_ONLY
-            void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA);
+            void csrMSAASceneBegin(const CSR_Color* pColor, const CSR_MSAA* pMSAA);
         #endif
 
         /**
@@ -120,12 +117,9 @@
 
         /**
         * Begins to draw a scene
-        *@param r - scene background color red component in percent (between 0.0f and 1.0f)
-        *@param g - scene background color green component in percent (between 0.0f and 1.0f)
-        *@param b - scene background color blue component in percent (between 0.0f and 1.0f)
-        *@param a - scene background color alpha component in percent (between 0.0f and 1.0f)
+        *@param pColor - scene background color
         */
-        void csrSceneBegin(float r, float g, float b, float a);
+        void csrSceneBegin(const CSR_Color* pColor);
 
         /**
         * Ends to draw a scene

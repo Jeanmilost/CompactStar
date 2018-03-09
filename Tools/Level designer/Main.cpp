@@ -243,6 +243,12 @@ bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMetho
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
+    // configure the scene color
+    m_Scene.m_Color.m_R = 0.0f;
+    m_Scene.m_Color.m_G = 0.0f;
+    m_Scene.m_Color.m_B = 0.0f;
+    m_Scene.m_Color.m_A = 1.0f;
+
     // iterate through views to initialize
     for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
     {
@@ -324,7 +330,7 @@ void TMainForm::DrawScene()
 
     try
     {
-        csrSceneBegin(0.0f, 0.0f, 0.0f, 1.0f);
+        csrSceneBegin(&m_Scene.m_Color);
 
         // set translation
         t.m_X =  0.0f;

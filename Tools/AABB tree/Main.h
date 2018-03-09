@@ -128,6 +128,7 @@ class TMainForm : public TForm
         HDC              m_hDC;
         HGLRC            m_hRC;
         ITreeStats       m_Stats;
+        CSR_Color        m_Background;
         CSR_Shader*      m_pShader_ColoredMesh;
         CSR_Shader*      m_pShader_TexturedMesh;
         CSR_MSAA*        m_pMSAA;
