@@ -22,6 +22,7 @@
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
+#include "CSR_Scene.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
@@ -89,6 +90,7 @@ class TMainForm : public TForm
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
         std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
         std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
+        CSR_Scene                           m_Scene;
         CSR_Shader*                         m_pShader;
         CSR_Mesh*                           m_pSphere;
         CSR_Mesh*                           m_pBox;

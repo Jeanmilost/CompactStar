@@ -327,7 +327,7 @@
 #endif
 //---------------------------------------------------------------------------
 #ifndef CSR_OPENGL_2_ONLY
-    void csrMSAASceneBegin(float r, float g, float b, float a, const CSR_MSAA* pMSAA)
+    void csrMSAASceneBegin(const CSR_Color* pColor, const CSR_MSAA* pMSAA)
     {
         // do apply a multisample antialiasing on the scene
         if (pMSAA && pMSAA->m_pShader)
@@ -343,7 +343,7 @@
         }
 
         // begin the scene
-        csrSceneBegin(r, g, b, a);
+        csrSceneBegin(pColor);
     }
 #endif
 //---------------------------------------------------------------------------
@@ -435,10 +435,14 @@
 //---------------------------------------------------------------------------
 // Scene functions
 //---------------------------------------------------------------------------
-void csrSceneBegin(float r, float g, float b, float a)
+void csrSceneBegin(const CSR_Color* pColor)
 {
+    // no scene background color?
+    if (!pColor)
+        return;
+
     // clear scene background and depth buffer
-    glClearColor(r, g, b, a);
+    glClearColor(pColor->m_R, pColor->m_G, pColor->m_B, pColor->m_A);
     glClearDepthf(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -68,6 +68,18 @@ typedef enum
 //---------------------------------------------------------------------------
 
 /**
+* RGBA color
+*@note Values are in percent, between 0.0f (0%) and 1.0f (100%)
+*/
+typedef struct
+{
+    float m_R;
+    float m_G;
+    float m_B;
+    float m_A;
+} CSR_Color;
+
+/**
 * Memory buffer
 */
 typedef struct

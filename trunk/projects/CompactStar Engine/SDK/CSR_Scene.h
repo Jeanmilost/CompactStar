@@ -19,6 +19,7 @@
 
 // compactStar engine
 #include "CSR_Common.h"
+#include "CSR_Geometry.h"
 #include "CSR_Model.h"
 #include "CSR_Shader.h"
 #include "CSR_Renderer.h"
@@ -46,16 +47,14 @@ typedef enum
 */
 typedef struct
 {
-    // only one model may be declared on the same time
-    union
-    {
-        CSR_Mesh*  m_pMesh;
-        CSR_Model* m_pModel;
-        CSR_MDL*   m_pMDL;
-    };
-
+    void*              m_pItem;
     CSR_ESceneItemType m_Type;
+    CSR_Matrix4        m_Matrix;
     CSR_Shader*        m_pShader;
+    size_t             m_TextureIndex;
+    size_t             m_ModelIndex;
+    size_t             m_MeshIndex;
+    float              m_Interpolation;
 } CSR_SceneItem;
 
 /**
@@ -63,6 +62,8 @@ typedef struct
 */
 typedef struct
 {
+    CSR_Color      m_Color;
+    CSR_Matrix4    m_Matrix;
     CSR_SceneItem* m_pItem;
     size_t         m_ItemCount;
     CSR_SceneItem* m_pTransparentItem;
@@ -122,6 +123,12 @@ typedef struct
         *@param[in, out] pScene - scene to initialize
         */
         void csrSceneInit(CSR_Scene* pScene);
+
+        /**
+        * Draws a scene
+        *@param pScene - scene to draw
+        */
+        void csrSceneDraw(CSR_Scene* pScene);
 
 #ifdef __cplusplus
     }

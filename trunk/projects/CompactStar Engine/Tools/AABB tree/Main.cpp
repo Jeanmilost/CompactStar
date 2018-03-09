@@ -730,6 +730,12 @@ void TMainForm::CreateViewport(float w, float h)
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
+    // set the scene background color
+    m_Background.m_R = 0.0f;
+    m_Background.m_G = 0.0f;
+    m_Background.m_B = 0.0f;
+    m_Background.m_A = 1.0f;
+
     // load the shaders
     m_pShader_ColoredMesh  = csrShaderLoadFromStr(g_VertexProgram_ColoredMesh,
                                                   sizeof(g_VertexProgram_ColoredMesh),
@@ -909,7 +915,7 @@ void TMainForm::DrawScene()
     try
     {
         // begin the scene
-        csrMSAASceneBegin(0.0f, 0.0f, 0.0f, 1.0f, ckAntialiasing->Checked ? m_pMSAA : NULL);
+        csrMSAASceneBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
 
         if (m_pMesh)
             // draw the mesh
