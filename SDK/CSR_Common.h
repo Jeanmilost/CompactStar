@@ -181,6 +181,27 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
+        * Converts a color to a RGBA color
+        *@param pColor - color to convert
+        *@return converted color
+        */
+        unsigned csrColorToRGBA(const CSR_Color* pColor);
+
+        /**
+        * Converts a RGBA color to a color
+        *@param color - RGBA color to convert
+        *@param[out] pColor - converted color
+        */
+        void csrRGBAToColor(unsigned color, CSR_Color* pColor);
+
+        /**
+        * Converts a 32 bit BGR color (Windows style) to a RGBA color
+        *@param color - BGR color to convert
+        *@return RGBA color
+        */
+        unsigned csrColorBGRToRGBA(unsigned color);
+
+        /**
         * Converts a 32 bit BGR color (Windows style) to a RGBA color
         *@param color - BGR color to convert
         *@return RGBA color

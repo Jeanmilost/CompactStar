@@ -16,6 +16,7 @@
 
 // std
 #include <memory>
+#include <vector>
 #include <map>
 
 // compactStar engine
@@ -84,27 +85,27 @@ class TMainForm : public TForm
         bool On3DViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
     private:
+        typedef std::vector<CSR_Shader*> IShaders;
+
         CSR_OpenGLHelper                    m_OpenGLHelper;
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewXHook;
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewYHook;
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
         std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
         std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
-        CSR_Scene                           m_Scene;
-        CSR_Shader*                         m_pShader;
+        CSR_Scene*                          m_pScene;
+        IShaders                            m_Shaders;
+        CSR_Shader*                         m_pCurrentShader;
         CSR_Mesh*                           m_pSphere;
         CSR_Mesh*                           m_pBox;
         CSR_AABBNode*                       m_pAABBTree;
         unsigned __int64                    m_PreviousTime;
-        bool                                m_Initialized;
         TWndMethod                          m_fViewWndProc_Backup;
 
         /**
         * Initializes the scene
-        *@param w - scene width
-        *@param h - scene height
         */
-        void InitScene(int w, int h);
+        void InitScene();
 
         /**
         * Deletes the scene

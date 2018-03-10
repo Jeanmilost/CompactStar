@@ -53,16 +53,72 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     if (!pSceneItem)
         return;
 
-    pSceneItem->m_pItem         = 0;
-    pSceneItem->m_Type          = CSR_IT_Model;
-    pSceneItem->m_pShader       = 0;
-    pSceneItem->m_TextureIndex  = 0;
-    pSceneItem->m_ModelIndex    = 0;
-    pSceneItem->m_MeshIndex     = 0;
-    pSceneItem->m_Interpolation = 0.0f;
+    pSceneItem->m_pItem        = 0;
+    pSceneItem->m_Type         = CSR_IT_Model;
+    pSceneItem->m_pShader      = 0;
+    pSceneItem->m_TextureIndex = 0;
+    pSceneItem->m_ModelIndex   = 0;
+    pSceneItem->m_MeshIndex    = 0;
+    pSceneItem->m_Visible      = 1;
 
     // set the default item matrix to identity
     csrMat4Identity(&pSceneItem->m_Matrix);
+}
+//---------------------------------------------------------------------------
+void csrSceneItemDraw(const CSR_Scene* pScene, const CSR_SceneItem* pSceneItem)
+{
+    GLint slot;
+
+    // validate the input
+    if (!pScene || !pSceneItem)
+        return;
+
+    // is scene item visible?
+    if (!pSceneItem->m_Visible)
+        return;
+
+    // enable the item shader
+    csrShaderEnable(pSceneItem->m_pShader);
+
+    // get the view matrix slot from shader
+    slot = glGetUniformLocation(pSceneItem->m_pShader->m_ProgramID, "csr_uView");
+
+    // connect view matrix to shader
+    if (slot >= 0)
+        glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
+
+    // get the model matrix slot from shader
+    slot = glGetUniformLocation(pSceneItem->m_pShader->m_ProgramID, "csr_uModel");
+
+    // connect model matrix to shader
+    if (slot >= 0)
+        glUniformMatrix4fv(slot, 1, 0, &pSceneItem->m_Matrix.m_Table[0][0]);
+
+    // draw the model
+    switch (pSceneItem->m_Type)
+    {
+        case CSR_IT_Mesh:
+            csrSceneDrawMesh((const CSR_Mesh*)pSceneItem->m_pItem,
+                                              pSceneItem->m_pShader);
+            break;
+
+        case CSR_IT_Model:
+            csrSceneDrawModel((const CSR_Model*)pSceneItem->m_pItem,
+                                                pSceneItem->m_ModelIndex,
+                                                pSceneItem->m_pShader);
+            break;
+
+        case CSR_IT_MDL:
+            csrSceneDrawMDL((const CSR_MDL*)pSceneItem->m_pItem,
+                                            pSceneItem->m_pShader,
+                                            pSceneItem->m_TextureIndex,
+                                            pSceneItem->m_ModelIndex,
+                                            pSceneItem->m_MeshIndex);
+            break;
+    }
+
+    // disable the item shader
+    csrShaderEnable(0);
 }
 //---------------------------------------------------------------------------
 // Scene functions
@@ -135,10 +191,183 @@ void csrSceneInit(CSR_Scene* pScene)
     #endif
 }
 //---------------------------------------------------------------------------
-void csrSceneDraw(CSR_Scene* pScene)
+int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pMesh)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount + 1);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount + 1);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pMesh;
+    pItem[index].m_Type    = CSR_IT_Mesh;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pModel)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pModel;
+    pItem[index].m_Type    = CSR_IT_Model;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pMDL)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pMDL;
+    pItem[index].m_Type    = CSR_IT_MDL;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+void csrSceneDraw(const CSR_Scene* pScene)
 {
     size_t i;
-    GLint  slot;
 
     // no scene to draw?
     if (!pScene)
@@ -153,59 +382,12 @@ void csrSceneDraw(CSR_Scene* pScene)
             csrSceneBegin(&pScene->m_Color);
 
     // first draw the standard models
-    if (pScene->m_ItemCount && pScene->m_pItem)
-        for (i = 0; i < pScene->m_ItemCount; ++i)
-        {
-            // enable the item shader
-            csrShaderEnable(pScene->m_pItem[i].m_pShader);
+    for (i = 0; i < pScene->m_ItemCount; ++i)
+        csrSceneItemDraw(pScene, &pScene->m_pItem[i]);
 
-            // get the view matrix slot from shader
-            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uView");
-
-            // connect view matrix to shader
-            if (slot >= 0)
-                glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
-
-            // get the model matrix slot from shader
-            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uModel");
-
-            // connect model matrix to shader
-            if (slot >= 0)
-                glUniformMatrix4fv(slot, 1, 0, &pScene->m_pItem[i].m_Matrix.m_Table[0][0]);
-
-            // get the interpolation slot
-            slot = glGetUniformLocation(pScene->m_pItem[i].m_pShader->m_ProgramID, "csr_uTime");
-
-            // set interpolation value in shader
-            if (slot >= 0)
-                glUniform1f(slot, pScene->m_pItem[i].m_Interpolation);
-
-            // draw the model
-            switch (pScene->m_pItem[i].m_Type)
-            {
-                case CSR_IT_Mesh:
-                    csrSceneDrawMesh((const CSR_Mesh*)pScene->m_pItem[i].m_pItem,
-                                                      pScene->m_pItem[i].m_pShader);
-                    break;
-
-                case CSR_IT_Model:
-                    csrSceneDrawModel((const CSR_Model*)pScene->m_pItem[i].m_pItem,
-                                                        pScene->m_pItem[i].m_ModelIndex,
-                                                        pScene->m_pItem[i].m_pShader);
-                    break;
-
-                case CSR_IT_MDL:
-                    csrSceneDrawMDL((const CSR_MDL*)pScene->m_pItem[i].m_pItem,
-                                                    pScene->m_pItem[i].m_pShader,
-                                                    pScene->m_pItem[i].m_TextureIndex,
-                                                    pScene->m_pItem[i].m_ModelIndex,
-                                                    pScene->m_pItem[i].m_MeshIndex);
-                    break;
-            }
-
-            // disable the item shader
-            csrShaderEnable(0);
-        }
+    // then draw the transparent models
+    for (i = 0; i < pScene->m_TransparentItemCount; ++i)
+        csrSceneItemDraw(pScene, &pScene->m_pTransparentItem[i]);
 
     // end the scene drawing
     #ifndef CSR_OPENGL_2_ONLY

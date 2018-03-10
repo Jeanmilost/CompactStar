@@ -54,7 +54,7 @@ typedef struct
     size_t             m_TextureIndex;
     size_t             m_ModelIndex;
     size_t             m_MeshIndex;
-    float              m_Interpolation;
+    int                m_Visible;
 } CSR_SceneItem;
 
 /**
@@ -101,6 +101,13 @@ typedef struct
         */
         void csrSceneItemInit(CSR_SceneItem* pSceneItem);
 
+        /**
+        * Draws a scene item
+        *@param pScene - scene at which the item belongs
+        *@param pSceneItem - scene item to draw
+        */
+        void csrSceneItemDraw(const CSR_Scene* pScene, const CSR_SceneItem* pSceneItem);
+
         //-------------------------------------------------------------------
         // Scene functions
         //-------------------------------------------------------------------
@@ -125,10 +132,46 @@ typedef struct
         void csrSceneInit(CSR_Scene* pScene);
 
         /**
+        * Adds a mesh to a scene
+        *@param pScene - scene in which the mesh will be added
+        *@param pMesh - mesh to add
+        *@param pShader - shader to use to draw the mesh
+        *@param transparent - if 1, the mesh is transparent, if 0 the mesh is opaque
+        *@return 1 on success, otherwise 0
+        *@note Because the scene will keep a reference on the added mesh and shader, these objects
+        *      should be released only after the scene is released
+        */
+        int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, CSR_Shader* pShader, int transparent);
+
+        /**
+        * Adds a model to a scene
+        *@param pScene - scene in which the model will be added
+        *@param pModel- model to add
+        *@param pShader - shader to use to draw the model
+        *@param transparent - if 1, the model is transparent, if 0 the model is opaque
+        *@return 1 on success, otherwise 0
+        *@note Because the scene will keep a reference on the added mesh and shader, these objects
+        *      should be released only after the scene is released
+        */
+        int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, CSR_Shader* pShader, int transparent);
+
+        /**
+        * Adds a MDL model to a scene
+        *@param pScene - scene in which the model will be added
+        *@param pMDL - model to add
+        *@param pShader - shader to use to draw the model
+        *@param transparent - if 1, the model is transparent, if 0 the model is opaque
+        *@return 1 on success, otherwise 0
+        *@note Because the scene will keep a reference on the added mesh and shader, these objects
+        *      should be released only after the scene is released
+        */
+        int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, CSR_Shader* pShader, int transparent);
+
+        /**
         * Draws a scene
         *@param pScene - scene to draw
         */
-        void csrSceneDraw(CSR_Scene* pScene);
+        void csrSceneDraw(const CSR_Scene* pScene);
 
 #ifdef __cplusplus
     }

@@ -217,7 +217,7 @@ void CSR_OpenGLHelper::CreateViewport(float w, float h, const CSR_Shader* pShade
     csrMat4Perspective(fov, aspect, zNear, zFar, &matrix);
 
     // connect projection matrix to shader
-    const GLint projectionUniform = glGetUniformLocation(pShader->m_ProgramID, "qr_uProjection");
+    const GLint projectionUniform = glGetUniformLocation(pShader->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
 }
 //---------------------------------------------------------------------------
