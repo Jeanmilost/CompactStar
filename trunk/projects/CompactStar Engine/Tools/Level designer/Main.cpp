@@ -29,15 +29,16 @@
 const char* miniGetVSColored()
 {
     return "precision mediump float;"
-           "attribute vec4 qr_vPosition;"
-           "attribute vec4 qr_vColor;"
-           "uniform   mat4 qr_uProjection;"
-           "uniform   mat4 qr_uModelview;"
-           "varying   vec4 qr_fColor;"
+           "attribute vec4 csr_aVertices;"
+           "attribute vec4 csr_aColor;"
+           "uniform   mat4 csr_uProjection;"
+           "uniform   mat4 csr_uView;"
+           "uniform   mat4 csr_uModel;"
+           "varying   vec4 csr_vColor;"
            "void main(void)"
            "{"
-           "    qr_fColor    = qr_vColor;"
-           "    gl_Position  = qr_uProjection * qr_uModelview * qr_vPosition;"
+           "    csr_vColor   = csr_aColor;"
+           "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * csr_aVertices;"
            "}";
 }
 //----------------------------------------------------------------------------
@@ -45,10 +46,10 @@ const char* miniGetVSColored()
 const char* miniGetFSColored()
 {
     return "precision mediump float;"
-           "varying lowp vec4 qr_fColor;"
+           "varying lowp vec4 csr_vColor;"
            "void main(void)"
            "{"
-           "    gl_FragColor = qr_fColor;"
+           "    gl_FragColor = csr_vColor;"
            "}";
 }
 //---------------------------------------------------------------------------
@@ -58,10 +59,10 @@ TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
-    m_pShader(NULL),
+    m_pCurrentShader(NULL),
+    m_pScene(NULL),
     m_pSphere(NULL),
     m_PreviousTime(0),
-    m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
 {
     // create an OpenGL context for the 3d views
@@ -109,7 +110,7 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     m_p3DViewHook.reset(new CSR_VCLControlHook(pa3DView, On3DViewMessage));
 
     // initialize the scene
-    InitScene(ClientWidth, ClientHeight);
+    InitScene();
 
     // initialize the timer
     m_PreviousTime = ::GetTickCount();
@@ -120,18 +121,18 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormResize(TObject* pSender)
 {
-    if (!m_Initialized)
+    if (!m_pScene)
         return;
 
-    m_OpenGLHelper.ResizeViews(m_pShader);
+    m_OpenGLHelper.ResizeViews(m_pCurrentShader);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnSplitterMoved(TObject* pSender)
 {
-    if (!m_Initialized)
+    if (!m_pScene)
         return;
 
-    m_OpenGLHelper.ResizeViews(m_pShader);
+    m_OpenGLHelper.ResizeViews(m_pCurrentShader);
 }
 //---------------------------------------------------------------------------
 bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
@@ -197,7 +198,7 @@ bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMetho
 
         case WM_WINDOWPOSCHANGED:
         {
-            if (!m_Initialized)
+            if (!m_pScene)
                 break;
 
             TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
@@ -218,7 +219,7 @@ bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMetho
         case WM_PAINT:
         {
             // is scene initialized?
-            if (!m_Initialized)
+            if (!m_pScene)
                 return false;
 
             TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
@@ -241,13 +242,16 @@ bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMetho
     return false;
 }
 //------------------------------------------------------------------------------
-void TMainForm::InitScene(int w, int h)
+void TMainForm::InitScene()
 {
+    // create a scene
+    m_pScene = csrSceneCreate();
+
     // configure the scene color
-    m_Scene.m_Color.m_R = 0.0f;
-    m_Scene.m_Color.m_G = 0.0f;
-    m_Scene.m_Color.m_B = 0.0f;
-    m_Scene.m_Color.m_A = 1.0f;
+    csrRGBAToColor(0xFF, &m_pScene->m_Color);
+
+    const std::string vsColored = miniGetVSColored();
+    const std::string fsColored = miniGetFSColored();
 
     // iterate through views to initialize
     for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
@@ -255,83 +259,89 @@ void TMainForm::InitScene(int w, int h)
         // enable view context
         wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
 
-        std::string vsColored = miniGetVSColored();
-        std::string fsColored = miniGetFSColored();
+        CSR_Shader* pShader = NULL;
 
-        m_pShader = csrShaderLoadFromStr(vsColored.c_str(),
-                                         vsColored.length(),
-                                         fsColored.c_str(),
-                                         fsColored.length(),
-                                         NULL,
-                                         NULL);
+        try
+        {
+            CSR_Shader* pShader = csrShaderLoadFromStr(vsColored.c_str(),
+                                                       vsColored.length(),
+                                                       fsColored.c_str(),
+                                                       fsColored.length(),
+                                                       NULL,
+                                                       NULL);
 
-        csrShaderEnable(m_pShader);
+            csrShaderEnable(pShader);
 
-        // get shader attributes
-        m_pShader->m_VertexSlot = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vPosition");
-        m_pShader->m_ColorSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "qr_vColor");
+            // get shader attributes
+            pShader->m_VertexSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aVertices");
+            pShader->m_ColorSlot  = glGetAttribLocation(pShader->m_ProgramID, "csr_aColor");
+
+            m_OpenGLHelper.CreateViewport(it.First()->ClientWidth, it.First()->ClientHeight, pShader);
 
-        m_OpenGLHelper.CreateViewport(w, h, m_pShader);
-
-        CSR_VertexFormat vf;
-        vf.m_HasNormal         = 0;
-        vf.m_HasTexCoords      = 0;
-        vf.m_HasPerVertexColor = 1;
-
-        CSR_Material sm;
-        sm.m_Color       = 0xFFFF;
-        sm.m_Transparent = 0;
-        sm.m_Wireframe   = 0;
-
-        CSR_Material bm;
-        bm.m_Color       = 0xFF0000FF;
-        bm.m_Transparent = 0;
-        bm.m_Wireframe   = 0;
-
-        m_pSphere   = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
-        m_pBox      = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
-        m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
-
-        // configure OpenGL depth testing
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LEQUAL);
-        glDepthRangef(0.0f, 1.0f);
+            m_Shaders.push_back(pShader);
+            pShader = NULL;
+        }
+        __finally
+        {
+            csrShaderRelease(pShader);
+        }
     }
 
-    m_Initialized = true;
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 0;
+    vf.m_HasPerVertexColor = 1;
+
+    CSR_Material sm;
+    sm.m_Color       = 0xFFFF;
+    sm.m_Transparent = 0;
+    sm.m_Wireframe   = 0;
+
+    CSR_Material bm;
+    bm.m_Color       = 0xFF0000FF;
+    bm.m_Transparent = 0;
+    bm.m_Wireframe   = 0;
+
+    m_pSphere   = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
+    m_pBox      = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+    m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
+
+    csrSceneAddMesh(m_pScene, m_pSphere, NULL, 0);
+    //csrSceneAddMesh(m_pScene, m_pBox, NULL, 0);
+
+    // configure OpenGL depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRangef(0.0f, 1.0f);
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
-    m_Initialized = false;
+    // release the scene
+    csrSceneRelease(m_pScene);
+    m_pScene = NULL;
 
+    // release the scene objects
     csrAABBTreeRelease(m_pAABBTree);
     csrMeshRelease(m_pBox);
     csrMeshRelease(m_pSphere);
-    csrShaderRelease(m_pShader);
+
+    for (std::size_t i = 0; i < m_Shaders.size(); ++i)
+        csrShaderRelease(m_Shaders[i]);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-}
-//------------------------------------------------------------------------------
-void TMainForm::DrawScene()
-{
-    float       xAngle;
-    float       yAngle;
     CSR_Vector3 t;
     CSR_Vector3 r;
     CSR_Matrix4 translateMatrix;
     CSR_Matrix4 xRotateMatrix;
     CSR_Matrix4 yRotateMatrix;
     CSR_Matrix4 rotateMatrix;
-    CSR_Matrix4 modelMatrix;
 
-    try
+    for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
-        csrSceneBegin(&m_Scene.m_Color);
-
         // set translation
         t.m_X =  0.0f;
         t.m_Y =  0.0f;
@@ -345,7 +355,7 @@ void TMainForm::DrawScene()
         r.m_Z = 0.0f;
 
         // rotate 90 degrees
-        xAngle = 1.57075f;
+        const float xAngle = 1.57075f;
 
         csrMat4Rotate(xAngle, &r, &xRotateMatrix);
 
@@ -354,32 +364,76 @@ void TMainForm::DrawScene()
         r.m_Y = 1.0f;
         r.m_Z = 0.0f;
 
-        yAngle = 0.0f;
+        const float yAngle = 0.0f;
 
         csrMat4Rotate(yAngle, &r, &yRotateMatrix);
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &modelMatrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_pScene->m_pItem[i].m_Matrix);
 
-        // connect model view matrix to shader
-        GLint modelUniform = glGetUniformLocation(m_pShader->m_ProgramID, "qr_uModelview");
-        glUniformMatrix4fv(modelUniform, 1, 0, &modelMatrix.m_Table[0][0]);
-
-        csrSceneDrawMesh(m_pSphere, m_pShader);
-        //csrSceneDrawMesh(m_pBox, m_pShader);
+        m_pScene->m_pItem[i].m_pShader = m_pCurrentShader;
     }
-    __finally
+
+    for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
     {
-        csrSceneEnd();
+        // set translation
+        t.m_X =  0.0f;
+        t.m_Y =  0.0f;
+        t.m_Z = -2.0f;
+
+        csrMat4Translate(&t, &translateMatrix);
+
+        // set rotation on X axis
+        r.m_X = 1.0f;
+        r.m_Y = 0.0f;
+        r.m_Z = 0.0f;
+
+        // rotate 90 degrees
+        const float xAngle = 1.57075f;
+
+        csrMat4Rotate(xAngle, &r, &xRotateMatrix);
+
+        // set rotation on Y axis
+        r.m_X = 0.0f;
+        r.m_Y = 1.0f;
+        r.m_Z = 0.0f;
+
+        const float yAngle = 0.0f;
+
+        csrMat4Rotate(yAngle, &r, &yRotateMatrix);
+
+        // build model view matrix
+        csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_pScene->m_pTransparentItem[i].m_Matrix);
+
+        m_pScene->m_pTransparentItem[i].m_pShader = m_pCurrentShader;
     }
+}
+//------------------------------------------------------------------------------
+void TMainForm::DrawScene()
+{
+    csrSceneDraw(m_pScene);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
 {
+    if (!m_pScene)
+        return;
+
+    // calculate time interval
+    const unsigned __int64 now            = ::GetTickCount();
+    const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
+                           m_PreviousTime =  now;
+
+    std::size_t count = 0;
+
     // iterate through views to redraw
     for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
     {
+        m_pCurrentShader = m_Shaders[count];
+        ++count;
+
         // is view control visible?
         if (!CSR_VCLHelper::IsVisible(it.First()))
             continue;
@@ -387,30 +441,8 @@ void TMainForm::OnDrawScene(bool resize)
         // enable view context
         wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
 
-        // do draw the scene for a resize?
-        if (resize)
-        {
-            if (!m_Initialized)
-                continue;
-
-            // just process a minimal draw
-            UpdateScene(0.0);
-            DrawScene();
-
-            ::SwapBuffers(it.Second().m_hDC);
-            continue;
-        }
-
-        // calculate time interval
-        const unsigned __int64 now            = ::GetTickCount();
-        const double           elapsedTime    = (now - m_PreviousTime) / 1000.0;
-                               m_PreviousTime =  now;
-
-        if (!m_Initialized)
-            continue;
-
         // update and draw the scene
-        UpdateScene(elapsedTime);
+        UpdateScene(resize ? 0.0f : elapsedTime);
         DrawScene();
 
         ::SwapBuffers(it.Second().m_hDC);

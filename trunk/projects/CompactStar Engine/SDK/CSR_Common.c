@@ -127,20 +127,44 @@ void csrMathRoundToExp(float value, unsigned exp, float* pR)
 //---------------------------------------------------------------------------
 // Color functions
 //---------------------------------------------------------------------------
+unsigned csrColorToRGBA(const CSR_Color* pColor)
+{
+    // no color to convert?
+    if (!pColor)
+        return 0;
+
+    return (((unsigned)(pColor->m_R * 255.0f) << 24) |
+            ((unsigned)(pColor->m_G * 255.0f) << 16) |
+            ((unsigned)(pColor->m_B * 255.0f) << 8)  |
+             (unsigned)(pColor->m_A * 255.0f));
+}
+//---------------------------------------------------------------------------
+void csrRGBAToColor(unsigned color, CSR_Color* pColor)
+{
+    // no color to convert?
+    if (!pColor)
+        return;
+
+    pColor->m_R = (float)((color & 0xFF) >> 24) / 255.0f;
+    pColor->m_G = (float)((color & 0xFF) >> 16) / 255.0f;
+    pColor->m_B = (float)((color & 0xFF) >> 8)  / 255.0f;
+    pColor->m_A = (float) (color & 0xFF)        / 255.0f;
+}
+//---------------------------------------------------------------------------
 unsigned csrColorBGRToRGBA(unsigned color)
 {
-    return (((color        & 0xff) << 24) |
-           (((color >> 8)  & 0xff) << 16) |
-           (((color >> 16) & 0xff) << 8)  |
-                             0xff);
+    return (((color        & 0xFF) << 24) |
+           (((color >> 8)  & 0xFF) << 16) |
+           (((color >> 16) & 0xFF) << 8)  |
+                             0xFF);
 }
 //---------------------------------------------------------------------------
 unsigned csrColorABGRToRGBA(unsigned color)
 {
-    return (((color        & 0xff) << 24) |
-           (((color >> 8)  & 0xff) << 16) |
-           (((color >> 16) & 0xff) << 8)  |
-            ((color >> 24) & 0xff));
+    return (((color        & 0xFF) << 24) |
+           (((color >> 8)  & 0xFF) << 16) |
+           (((color >> 16) & 0xFF) << 8)  |
+            ((color >> 24) & 0xFF));
 }
 //---------------------------------------------------------------------------
 // Buffer functions
