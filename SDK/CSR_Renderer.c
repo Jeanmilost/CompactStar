@@ -433,7 +433,350 @@
     }
 #endif
 //---------------------------------------------------------------------------
+// Scene item functions
+//---------------------------------------------------------------------------
+CSR_SceneItem* csrSceneItemCreate(void)
+{
+    // create a new scene item
+    CSR_SceneItem* pSceneItem = (CSR_SceneItem*)malloc(sizeof(CSR_SceneItem));
+
+    // succeeded?
+    if (!pSceneItem)
+        return 0;
+
+    // initialize the scene item content
+    csrSceneItemInit(pSceneItem);
+
+    return pSceneItem;
+}
+//---------------------------------------------------------------------------
+void csrSceneItemRelease(CSR_SceneItem* pSceneItem)
+{
+    // no scene item to release?
+    if (!pSceneItem)
+        return;
+
+    // free the scene item
+    free(pSceneItem);
+}
+//---------------------------------------------------------------------------
+void csrSceneItemInit(CSR_SceneItem* pSceneItem)
+{
+    // no scene item to initialize?
+    if (!pSceneItem)
+        return;
+
+    pSceneItem->m_pItem        = 0;
+    pSceneItem->m_Type         = CSR_IT_Model;
+    pSceneItem->m_pShader      = 0;
+    pSceneItem->m_TextureIndex = 0;
+    pSceneItem->m_ModelIndex   = 0;
+    pSceneItem->m_MeshIndex    = 0;
+    pSceneItem->m_Visible      = 1;
+
+    // set the default item matrix to identity
+    csrMat4Identity(&pSceneItem->m_Matrix);
+}
+//---------------------------------------------------------------------------
+void csrSceneItemDraw(const CSR_Scene* pScene, const CSR_SceneItem* pSceneItem)
+{
+    GLint slot;
+
+    // validate the input
+    if (!pScene || !pSceneItem)
+        return;
+
+    // is scene item visible?
+    if (!pSceneItem->m_Visible)
+        return;
+
+    // enable the item shader
+    csrShaderEnable(pSceneItem->m_pShader);
+
+    // get the view matrix slot from shader
+    slot = glGetUniformLocation(pSceneItem->m_pShader->m_ProgramID, "csr_uView");
+
+    // connect view matrix to shader
+    if (slot >= 0)
+        glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
+
+    // get the model matrix slot from shader
+    slot = glGetUniformLocation(pSceneItem->m_pShader->m_ProgramID, "csr_uModel");
+
+    // connect model matrix to shader
+    if (slot >= 0)
+        glUniformMatrix4fv(slot, 1, 0, &pSceneItem->m_Matrix.m_Table[0][0]);
+
+    // draw the model
+    switch (pSceneItem->m_Type)
+    {
+        case CSR_IT_Mesh:
+            csrSceneDrawMesh((const CSR_Mesh*)pSceneItem->m_pItem,
+                                              pSceneItem->m_pShader);
+            break;
+
+        case CSR_IT_Model:
+            csrSceneDrawModel((const CSR_Model*)pSceneItem->m_pItem,
+                                                pSceneItem->m_ModelIndex,
+                                                pSceneItem->m_pShader);
+            break;
+
+        case CSR_IT_MDL:
+            csrSceneDrawMDL((const CSR_MDL*)pSceneItem->m_pItem,
+                                            pSceneItem->m_pShader,
+                                            pSceneItem->m_TextureIndex,
+                                            pSceneItem->m_ModelIndex,
+                                            pSceneItem->m_MeshIndex);
+            break;
+    }
+
+    // disable the item shader
+    csrShaderEnable(0);
+}
+//---------------------------------------------------------------------------
 // Scene functions
+//---------------------------------------------------------------------------
+CSR_Scene* csrSceneCreate(void)
+{
+    // create a new scene
+    CSR_Scene* pScene = (CSR_Scene*)malloc(sizeof(CSR_Scene));
+
+    // succeeded?
+    if (!pScene)
+        return 0;
+
+    // initialize the scene content
+    csrSceneInit(pScene);
+
+    return pScene;
+}
+//---------------------------------------------------------------------------
+void csrSceneRelease(CSR_Scene* pScene)
+{
+    size_t i;
+
+    // no scene to release?
+    if (!pScene)
+        return;
+
+    // do free the normal items content?
+    if (pScene->m_pItem)
+        // free the scene items
+        free(pScene->m_pItem);
+
+    // do free the transparent items content?
+    if (pScene->m_pTransparentItem)
+        // free the scene transparent items
+        free(pScene->m_pItem);
+
+    #ifndef CSR_OPENGL_2_ONLY
+        // do free the antialiasing structure?
+        if (pScene->m_pMSAA)
+            // free the antialiasing structure
+            csrMSAARelease(pScene->m_pMSAA);
+    #endif
+
+    // free the scene
+    free(pScene);
+}
+//---------------------------------------------------------------------------
+void csrSceneInit(CSR_Scene* pScene)
+{
+    // no scene to initialize?
+    if (!pScene)
+        return;
+
+    // initialize the scene
+    pScene->m_Color.m_R            = 0.0f;
+    pScene->m_Color.m_G            = 0.0f;
+    pScene->m_Color.m_B            = 0.0f;
+    pScene->m_Color.m_A            = 1.0f;
+    pScene->m_pItem                = 0;
+    pScene->m_ItemCount            = 0;
+    pScene->m_pTransparentItem     = 0;
+    pScene->m_TransparentItemCount = 0;
+
+    // set the default item matrix to identity
+    csrMat4Identity(&pScene->m_Matrix);
+
+    #ifndef CSR_OPENGL_2_ONLY
+        pScene->m_pMSAA = 0;
+    #endif
+}
+//---------------------------------------------------------------------------
+int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pMesh)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount + 1);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount + 1);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pMesh;
+    pItem[index].m_Type    = CSR_IT_Mesh;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pModel)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pModel;
+    pItem[index].m_Type    = CSR_IT_Model;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, CSR_Shader* pShader, int transparent)
+{
+    CSR_SceneItem* pItem;
+    int            index;
+
+    // validate the input data
+    if (!pScene || !pMDL)
+        return 0;
+
+    // do add a transparent item?
+    if (transparent)
+    {
+        // add a new item to the transparent items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_TransparentItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the item index to update
+        index = pScene->m_TransparentItemCount;
+
+        // update the transparent item data
+        pScene->m_pTransparentItem = pItem;
+        ++pScene->m_TransparentItemCount;
+    }
+    else
+    {
+        // add a new item to the scene items
+        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                               sizeof(CSR_SceneItem),
+                                               pScene->m_ItemCount);
+
+        // succeeded?
+        if (!pItem)
+            return 0;
+
+        // get the scene item index to update
+        index = pScene->m_ItemCount;
+
+        // update the scene item data
+        pScene->m_pItem = pItem;
+        ++pScene->m_ItemCount;
+    }
+
+    // initialize the newly created item with the default values
+    csrSceneItemInit(&pItem[index]);
+
+    // configure the item
+    pItem[index].m_pItem   = pMDL;
+    pItem[index].m_Type    = CSR_IT_MDL;
+    pItem[index].m_pShader = pShader;
+
+    return 1;
+}
 //---------------------------------------------------------------------------
 void csrSceneBegin(const CSR_Color* pColor)
 {
@@ -453,18 +796,178 @@ void csrSceneBegin(const CSR_Color* pColor)
     glDepthRangef(0.0f, 1.0f);
 }
 //---------------------------------------------------------------------------
-void csrSceneEnd()
+void csrSceneEnd(void)
 {}
 //---------------------------------------------------------------------------
-void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
+void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB, CSR_Shader* pShader)
 {
     GLvoid* pCoords;
     GLvoid* pNormals;
     GLvoid* pTexCoords;
     GLvoid* pColors;
-    size_t  i;
     size_t  offset;
     size_t  vertexCount;
+
+    // no vertex buffer to draw?
+    if (!pVB)
+        return;
+
+    // no shader?
+    if (!pShader)
+        return;
+
+    // check if vertex buffer is empty, skip to next if yes
+    if (!pVB->m_Count || !pVB->m_Format.m_Stride)
+        return;
+
+    // configure the culling
+    switch (pVB->m_Culling.m_Type)
+    {
+        case CSR_CT_None:  glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
+        case CSR_CT_Front: glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT);          break;
+        case CSR_CT_Back:  glEnable(GL_CULL_FACE);  glCullFace(GL_BACK);           break;
+        case CSR_CT_Both:  glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT_AND_BACK); break;
+        default:           glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
+    }
+
+    // configure the culling face
+    switch (pVB->m_Culling.m_Face)
+    {
+        case CSR_CF_CW:  glFrontFace(GL_CW);  break;
+        case CSR_CF_CCW: glFrontFace(GL_CCW); break;
+    }
+
+    // configure the alpha blending
+    if (pVB->m_Material.m_Transparent)
+    {
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else
+        glDisable(GL_BLEND);
+
+    // configure the wireframe mode
+    #ifndef CSR_OPENGL_2_ONLY
+        if (pVB->m_Material.m_Wireframe)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    #endif
+
+    // enable vertex slot
+    glEnableVertexAttribArray(pShader->m_VertexSlot);
+
+    // enable normal slot
+    if (pVB->m_Format.m_HasNormal)
+        glEnableVertexAttribArray(pShader->m_NormalSlot);
+
+    // enable texture slot
+    if (pVB->m_Format.m_HasTexCoords)
+        glEnableVertexAttribArray(pShader->m_TexCoordSlot);
+
+    // enable color slot
+    if (pVB->m_Format.m_HasPerVertexColor)
+        glEnableVertexAttribArray(pShader->m_ColorSlot);
+
+    offset = 0;
+
+    // send vertices to shader
+    pCoords = &pVB->m_pData[offset];
+    glVertexAttribPointer(pShader->m_VertexSlot,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          pVB->m_Format.m_Stride * sizeof(float),
+                          pCoords);
+
+    offset += 3;
+
+    // vertices have normals?
+    if (pVB->m_Format.m_HasNormal)
+    {
+        // send normals to shader
+        pNormals = &pVB->m_pData[offset];
+        glVertexAttribPointer(pShader->m_TexCoordSlot,
+                              3,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              pVB->m_Format.m_Stride * sizeof(float),
+                              pNormals);
+
+        offset += 3;
+    }
+
+    // vertices have UV texture coordinates?
+    if (pVB->m_Format.m_HasTexCoords)
+    {
+        // send textures to shader
+        pTexCoords = &pVB->m_pData[offset];
+        glVertexAttribPointer(pShader->m_TexCoordSlot,
+                              2,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              pVB->m_Format.m_Stride * sizeof(float),
+                              pTexCoords);
+
+        offset += 2;
+    }
+
+    // vertices have per-vertex color?
+    if (pVB->m_Format.m_HasPerVertexColor)
+    {
+        // send colors to shader
+        pColors = &pVB->m_pData[offset];
+        glVertexAttribPointer(pShader->m_ColorSlot,
+                              4,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              pVB->m_Format.m_Stride * sizeof(float),
+                              pColors);
+    }
+    else
+    if (pShader->m_ColorSlot != -1)
+    {
+        // get the color component values
+        const float r = (float)((pVB->m_Material.m_Color >> 24) & 0xFF) / 255.0f;
+        const float g = (float)((pVB->m_Material.m_Color >> 16) & 0xFF) / 255.0f;
+        const float b = (float)((pVB->m_Material.m_Color >> 8)  & 0xFF) / 255.0f;
+        const float a = (float) (pVB->m_Material.m_Color        & 0xFF) / 255.0f;
+
+        // connect the vertex color to the shader
+        glVertexAttrib4f(pShader->m_ColorSlot, r, g, b, a);
+    }
+
+    // calculate the vertex count
+    vertexCount = pVB->m_Count / pVB->m_Format.m_Stride;
+
+    // draw the buffer
+    switch (pVB->m_Format.m_Type)
+    {
+        case CSR_VT_Triangles:     glDrawArrays(GL_TRIANGLES,      0, vertexCount); break;
+        case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
+        case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
+    }
+
+    // disable vertices slots from shader
+    glDisableVertexAttribArray(pShader->m_VertexSlot);
+
+    // disable normal slot
+    if (pVB->m_Format.m_HasNormal)
+        glDisableVertexAttribArray(pShader->m_NormalSlot);
+
+    // disable texture slot
+    if (pVB->m_Format.m_HasTexCoords)
+        glDisableVertexAttribArray(pShader->m_TexCoordSlot);
+
+    // disable color slot
+    if (pVB->m_Format.m_HasPerVertexColor)
+        glDisableVertexAttribArray(pShader->m_ColorSlot);
+}
+//---------------------------------------------------------------------------
+void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
+{
+    size_t i;
 
     // no mesh to draw?
     if (!pMesh)
@@ -480,41 +983,6 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
     // iterate through the vertex buffers composing the mesh to draw
     for (i = 0; i < pMesh->m_Count; ++i)
     {
-        // configure the culling
-        switch (pMesh->m_pVB[i].m_Culling.m_Type)
-        {
-            case CSR_CT_None:  glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
-            case CSR_CT_Front: glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT);          break;
-            case CSR_CT_Back:  glEnable(GL_CULL_FACE);  glCullFace(GL_BACK);           break;
-            case CSR_CT_Both:  glEnable(GL_CULL_FACE);  glCullFace(GL_FRONT_AND_BACK); break;
-            default:           glDisable(GL_CULL_FACE); glCullFace(GL_NONE);           break;
-        }
-
-        // configure the culling face
-        switch (pMesh->m_pVB[i].m_Culling.m_Face)
-        {
-            case CSR_CF_CW:  glFrontFace(GL_CW);  break;
-            case CSR_CF_CCW: glFrontFace(GL_CCW); break;
-        }
-
-        // configure the alpha blending
-        if (pMesh->m_pVB[i].m_Material.m_Transparent)
-        {
-            glEnable(GL_BLEND);
-            glBlendEquation(GL_FUNC_ADD);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
-        else
-            glDisable(GL_BLEND);
-
-        // configure the wireframe mode
-        #ifndef CSR_OPENGL_2_ONLY
-            if (pMesh->m_pVB[i].m_Material.m_Wireframe)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        #endif
-
         // vertices have UV texture coordinates?
         if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
         {
@@ -541,118 +1009,8 @@ void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader)
             }
         }
 
-        // check if vertex buffer is empty, skip to next if yes
-        if (!pMesh->m_pVB[i].m_Count || !pMesh->m_pVB[i].m_Format.m_Stride)
-            continue;
-
-        // enable position slot
-        glEnableVertexAttribArray(pShader->m_VertexSlot);
-
-        // enable normal slot
-        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
-            glEnableVertexAttribArray(pShader->m_NormalSlot);
-
-        // enable texture slot
-        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
-            glEnableVertexAttribArray(pShader->m_TexCoordSlot);
-
-        // enable color slot
-        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
-            glEnableVertexAttribArray(pShader->m_ColorSlot);
-
-        offset = 0;
-
-        // send vertices to shader
-        pCoords = &pMesh->m_pVB[i].m_pData[offset];
-        glVertexAttribPointer(pShader->m_VertexSlot,
-                              3,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              pMesh->m_pVB[i].m_Format.m_Stride * sizeof(float),
-                              pCoords);
-
-        offset += 3;
-
-        // vertices have normals?
-        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
-        {
-            // send normals to shader
-            pNormals = &pMesh->m_pVB[i].m_pData[offset];
-            glVertexAttribPointer(pShader->m_TexCoordSlot,
-                                  3,
-                                  GL_FLOAT,
-                                  GL_FALSE,
-                                  pMesh->m_pVB[i].m_Format.m_Stride * sizeof(float),
-                                  pNormals);
-
-            offset += 3;
-        }
-
-        // vertices have UV texture coordinates?
-        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
-        {
-            // send textures to shader
-            pTexCoords = &pMesh->m_pVB[i].m_pData[offset];
-            glVertexAttribPointer(pShader->m_TexCoordSlot,
-                                  2,
-                                  GL_FLOAT,
-                                  GL_FALSE,
-                                  pMesh->m_pVB[i].m_Format.m_Stride * sizeof(float),
-                                  pTexCoords);
-
-            offset += 2;
-        }
-
-        // vertices have per-vertex color?
-        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
-        {
-            // send colors to shader
-            pColors = &pMesh->m_pVB[i].m_pData[offset];
-            glVertexAttribPointer(pShader->m_ColorSlot,
-                                  4,
-                                  GL_FLOAT,
-                                  GL_FALSE,
-                                  pMesh->m_pVB[i].m_Format.m_Stride * sizeof(float),
-                                  pColors);
-        }
-        else
-        if (pShader->m_ColorSlot != -1)
-        {
-            // get the color component values
-            const float r = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 24) & 0xFF) / 255.0f;
-            const float g = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 16) & 0xFF) / 255.0f;
-            const float b = (float)((pMesh->m_pVB[i].m_Material.m_Color >> 8)  & 0xFF) / 255.0f;
-            const float a = (float) (pMesh->m_pVB[i].m_Material.m_Color        & 0xFF) / 255.0f;
-
-            // connect the vertex color to the shader
-            glVertexAttrib4f(pShader->m_ColorSlot, r, g, b, a);
-        }
-
-        // calculate the vertex count
-        vertexCount = pMesh->m_pVB[i].m_Count / pMesh->m_pVB[i].m_Format.m_Stride;
-
-        // draw the buffer
-        switch (pMesh->m_pVB[i].m_Format.m_Type)
-        {
-            case CSR_VT_Triangles:     glDrawArrays(GL_TRIANGLES,      0, vertexCount); break;
-            case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
-            case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
-        }
-
-        // disable vertices slots from shader
-        glDisableVertexAttribArray(pShader->m_VertexSlot);
-
-        // disable normal slot
-        if (pMesh->m_pVB[i].m_Format.m_HasNormal)
-            glDisableVertexAttribArray(pShader->m_NormalSlot);
-
-        // disable texture slot
-        if (pMesh->m_pVB[i].m_Format.m_HasTexCoords)
-            glDisableVertexAttribArray(pShader->m_TexCoordSlot);
-
-        // disable color slot
-        if (pMesh->m_pVB[i].m_Format.m_HasPerVertexColor)
-            glDisableVertexAttribArray(pShader->m_ColorSlot);
+        // draw the next mesh vertex buffer
+        csrSceneDrawVertexBuffer(&pMesh->m_pVB[i], pShader);
     }
 }
 //---------------------------------------------------------------------------
@@ -699,5 +1057,44 @@ void csrSceneDrawMDL(const CSR_MDL*    pMDL,
 
     // draw the model mesh
     csrSceneDrawMesh(pMesh, pShader);
+}
+//---------------------------------------------------------------------------
+void csrSceneDraw(const CSR_Scene* pScene)
+{
+    size_t i;
+
+    // no scene to draw?
+    if (!pScene)
+        return;
+
+    // begin the scene drawing
+    #ifndef CSR_OPENGL_2_ONLY
+        if (pScene->m_pMSAA)
+            csrMSAASceneBegin(&pScene->m_Color, pScene->m_pMSAA);
+        else
+    #endif
+            csrSceneBegin(&pScene->m_Color);
+
+    // todo -cImprovement -oJean: the models are reloaded on the GPU every time they will be drawn.
+    //                            This is acceptable as long as the scenes are small, but this is a
+    //                            huge time and resource wasting when the scene is large. A better
+    //                            solution would be to group each similar models, load the mesh once
+    //                            on the GPU, then only change the model matrix to draw them
+
+    // first draw the standard models
+    for (i = 0; i < pScene->m_ItemCount; ++i)
+        csrSceneItemDraw(pScene, &pScene->m_pItem[i]);
+
+    // then draw the transparent models
+    for (i = 0; i < pScene->m_TransparentItemCount; ++i)
+        csrSceneItemDraw(pScene, &pScene->m_pTransparentItem[i]);
+
+    // end the scene drawing
+    #ifndef CSR_OPENGL_2_ONLY
+        if (pScene->m_pMSAA)
+            csrMSAASceneEnd(pScene->m_pMSAA);
+        else
+    #endif
+            csrSceneEnd();
 }
 //---------------------------------------------------------------------------

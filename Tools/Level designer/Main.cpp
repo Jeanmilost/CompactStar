@@ -9,7 +9,6 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
-#include "CSR_Renderer.h"
 #include "CSR_Sound.h"
 
 // classes

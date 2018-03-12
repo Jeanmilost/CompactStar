@@ -35,7 +35,7 @@ void* csrMemoryAlloc(void* pMemory, size_t size, size_t count)
     return realloc(pMemory, size * count);
 }
 //---------------------------------------------------------------------------
-CSR_EEndianness csrMemoryEndianness()
+CSR_EEndianness csrMemoryEndianness(void)
 {
     int i = 1;
 
