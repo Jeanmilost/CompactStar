@@ -163,12 +163,6 @@
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>12</BuildOrder>
         </None>
-        <CppCompile Include="..\..\SDK\CSR_Scene.c">
-            <BuildOrder>27</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Scene.h">
-            <BuildOrder>28</BuildOrder>
-        </None>
         <CppCompile Include="..\..\SDK\CSR_Shader.c">
             <BuildOrder>13</BuildOrder>
         </CppCompile>
