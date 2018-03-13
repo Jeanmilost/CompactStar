@@ -919,12 +919,13 @@ void TMainForm::DrawScene()
 
         if (m_pMesh)
             // draw the mesh
-            csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh);
+            csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh, 0);
         else
         if (m_pMDL)
             // draw the MDL model
             csrSceneDrawMDL(m_pMDL,
                             m_pShader_TexturedMesh,
+                            0,
                             m_TextureIndex,
                             m_ModelIndex,
                             m_MeshIndex);
@@ -1070,7 +1071,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
             m_PolygonArray[20] = 1.0f;
 
             // draw the polygon
-            csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh);
+            csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh, 0);
         }
 
         free(mesh.m_pVB);
@@ -1175,7 +1176,7 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
         }
 
         // draw the AABB box
-        csrSceneDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh);
+        csrSceneDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0);
     }
 }
 //---------------------------------------------------------------------------

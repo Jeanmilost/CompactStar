@@ -27,14 +27,14 @@
 //---------------------------------------------------------------------------
 
 /**
-* Scene item type
+* Model type
 */
 typedef enum
 {
-    CSR_IT_Mesh,
-    CSR_IT_Model,
-    CSR_IT_MDL
-} CSR_ESceneItemType;
+    CSR_MT_Mesh,
+    CSR_MT_Model,
+    CSR_MT_MDL
+} CSR_EModelType;
 
 //---------------------------------------------------------------------------
 // Structures
@@ -59,36 +59,30 @@ typedef enum
 #endif
 
 /**
-* Scene collection item
+* Matrix list
 */
 typedef struct
 {
-    void*              m_pItem;
-    CSR_ESceneItemType m_Type;
-    CSR_AABBNode       m_AABBTree;
-} CSR_SceneCollectionItem;
-
-/**
-* Scene collection, contains the models drawn in the scene and pointed by the scene object
-*/
-typedef struct
-{
-    CSR_SceneCollectionItem* m_pItem;
-} CSR_SceneCollection;
+    CSR_Matrix4* m_pMatrix;
+    size_t       m_Count;
+} CSR_MatrixList;
 
 /**
 * Scene item
 */
+// FIXME do own and release the objects
+// FIXME do allow the possibility to draw the same model with several matrices
 typedef struct
 {
-    void*              m_pItem;
-    CSR_ESceneItemType m_Type;
-    CSR_Matrix4        m_Matrix;
-    CSR_Shader*        m_pShader;
-    size_t             m_TextureIndex;
-    size_t             m_ModelIndex;
-    size_t             m_MeshIndex;
-    int                m_Visible;
+    void*           m_pModel;       // the model to draw
+    CSR_EModelType  m_Type;         // model type (a simple mesh, a model or a complex MDL model)
+    CSR_MatrixList* m_pMatrixList;  // items matrices sharing the same model, e.g. all the walls of a room
+    CSR_Shader*     m_pShader;      // shader to use to draw the model
+    CSR_AABBNode*   m_pAABBTree;    // aligned-axis bounding box trees owned by the model
+    size_t          m_TextureIndex; // texture index to show, in case the model contains several textures
+    size_t          m_ModelIndex;   // for MDL models, model index to show, in case the MDL contains several models
+    size_t          m_MeshIndex;    // for models and MDL, mesh index to show, in case a model contains several meshes
+    int             m_Visible;      // if 1, the model is currently visible in the scene and thus should be drawn
 } CSR_SceneItem;
 
 /**
@@ -190,6 +184,7 @@ typedef struct
         /**
         * Releases a scene item
         *@param[in, out] pSceneItem - scene item to release
+        *@note Only the item content is released, the item itself is not released
         */
         void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
 
@@ -235,11 +230,16 @@ typedef struct
         *@param pMesh - mesh to add
         *@param pShader - shader to use to draw the mesh
         *@param transparent - if 1, the mesh is transparent, if 0 the mesh is opaque
+        *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
-        *@note Because the scene will keep a reference on the added mesh and shader, these objects
-        *      should be released only after the scene is released
+        *@note Once successfully added, the mesh will be owned by the scene and should no longer be
+        *      released from outside
         */
-        int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, CSR_Shader* pShader, int transparent);
+        int csrSceneAddMesh(CSR_Scene*  pScene,
+                            CSR_Mesh*   pMesh,
+                            CSR_Shader* pShader,
+                            int         transparent,
+                            int         aabb);
 
         /**
         * Adds a model to a scene
@@ -247,11 +247,16 @@ typedef struct
         *@param pModel- model to add
         *@param pShader - shader to use to draw the model
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
+        *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
-        *@note Because the scene will keep a reference on the added mesh and shader, these objects
-        *      should be released only after the scene is released
+        *@note Once successfully added, the model will be owned by the scene and should no longer be
+        *      released from outside
         */
-        int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, CSR_Shader* pShader, int transparent);
+        int csrSceneAddModel(CSR_Scene*  pScene,
+                             CSR_Model*  pModel,
+                             CSR_Shader* pShader,
+                             int         transparent,
+                             int         aabb);
 
         /**
         * Adds a MDL model to a scene
@@ -259,11 +264,35 @@ typedef struct
         *@param pMDL - model to add
         *@param pShader - shader to use to draw the model
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
+        *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
-        *@note Because the scene will keep a reference on the added mesh and shader, these objects
-        *      should be released only after the scene is released
+        *@note Once successfully added, the MDK model will be owned by the scene and should no
+        *      longer be released from outside
         */
-        int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, CSR_Shader* pShader, int transparent);
+        int csrSceneAddMDL(CSR_Scene*  pScene,
+                           CSR_MDL*    pMDL,
+                           CSR_Shader* pShader,
+                           int         transparent,
+                           int         aabb);
+
+        /**
+        * Adds a MDL model to a scene
+        *@param pScene - scene in which the model will be added
+        *@param pMDL - model to add
+        *@param pShader - shader to use to draw the model
+        *@param transparent - if 1, the model is transparent, if 0 the model is opaque
+        *@param aabb - if 1, the AABB tree will be generated for the mesh
+        *@return 1 on success, otherwise 0
+        *@note Once successfully added, the MDK model will be owned by the scene and should no
+        *      longer be released from outside
+        */
+        int csrSceneAddModelMatrix(CSR_Scene*   pScene,
+                                   CSR_Matrix4* pMatrix,
+                                   CSR_Shader*  pShader,
+                                   int          transparent,
+                                   int          aabb);
+
+        // FIXME add delete functions
 
         /**
         * Begins to draw a scene
@@ -280,38 +309,54 @@ typedef struct
         * Draws a vertex buffer in a scene
         *@param pVB - vertex buffer to draw
         *@param pShader - shader to use to draw the vertex buffer
+        *@param pMatrixList - matrices to use, one for each vertex buffer drawing. If 0, the model
+        *                     matrix currently connected in the shader will be used
         *@note The shader must be first enabled with the csrShaderEnable() function
         */
-        void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB, CSR_Shader* pShader);
+        void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
+                                      const CSR_Shader*       pShader,
+                                      const CSR_MatrixList*   pMatrixList);
 
         /**
         * Draws a mesh in a scene
         *@param pMesh - mesh to draw
         *@param pShader - shader to use to draw the mesh
+        *@param pMatrixList - matrices to use, one for each vertex buffer drawing. If 0, the model
+        *                     matrix currently connected in the shader will be used
         */
-        void csrSceneDrawMesh(const CSR_Mesh* pMesh, CSR_Shader* pShader);
+        void csrSceneDrawMesh(const CSR_Mesh*       pMesh,
+                              const CSR_Shader*     pShader,
+                              const CSR_MatrixList* pMatrixList);
 
         /**
         * Draws a model in a scene
         *@param pModel - model to draw
         *@param index - model mesh index
         *@param pShader - shader to use to draw the mesh
+        *@param pMatrixList - matrices to use, one for each vertex buffer drawing. If 0, the model
+        *                     matrix currently connected in the shader will be used
         */
-        void csrSceneDrawModel(const CSR_Model* pModel, size_t index, CSR_Shader* pShader);
+        void csrSceneDrawModel(const CSR_Model*      pModel,
+                                     size_t          index,
+                               const CSR_Shader*     pShader,
+                               const CSR_MatrixList* pMatrixList);
 
         /**
         * Draws a MDL model in a scene
         *@param pMDL - MDL model to draw
         *@param pShader - shader to use to draw the model
+        *@param pMatrixList - matrices to use, one for each vertex buffer drawing. If 0, the model
+        *                     matrix currently connected in the shader will be used
         *@param textureIndex - texture index
         *@param modelIndex - model index
         *@param meshIndex - mesh index
         */
-        void csrSceneDrawMDL(const CSR_MDL*    pMDL,
-                                   CSR_Shader* pShader,
-                                   size_t      textureIndex,
-                                   size_t      modelIndex,
-                                   size_t      meshIndex);
+        void csrSceneDrawMDL(const CSR_MDL*        pMDL,
+                             const CSR_Shader*     pShader,
+                             const CSR_MatrixList* pMatrixList,
+                                   size_t          textureIndex,
+                                   size_t          modelIndex,
+                                   size_t          meshIndex);
 
         /**
         * Draws a scene
