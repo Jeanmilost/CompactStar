@@ -60,7 +60,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_pCurrentShader(NULL),
     m_pScene(NULL),
-    m_pSphere(NULL),
     m_PreviousTime(0),
     m_fViewWndProc_Backup(NULL)
 {
@@ -301,12 +300,12 @@ void TMainForm::InitScene()
     bm.m_Transparent = 0;
     bm.m_Wireframe   = 0;
 
-    m_pSphere   = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
-    m_pBox      = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
-    m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
+    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
+    //REM CSR_Mesh* pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+    //REM m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
 
-    csrSceneAddMesh(m_pScene, m_pSphere, NULL, 0);
-    //csrSceneAddMesh(m_pScene, m_pBox, NULL, 0);
+    csrSceneAddMesh(m_pScene, pSphere, NULL, 0, 1);
+    //csrSceneAddMesh(m_pScene, m_pBox, NULL, 0, 1);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -322,9 +321,9 @@ void TMainForm::DeleteScene()
     m_pScene = NULL;
 
     // release the scene objects
-    csrAABBTreeRelease(m_pAABBTree);
-    csrMeshRelease(m_pBox);
-    csrMeshRelease(m_pSphere);
+    //REM csrAABBTreeRelease(m_pAABBTree);
+    //REM csrMeshRelease(m_pBox);
+    //REM csrMeshRelease(m_pSphere);
 
     for (std::size_t i = 0; i < m_Shaders.size(); ++i)
         csrShaderRelease(m_Shaders[i]);
@@ -341,6 +340,13 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
+        if (!m_pScene->m_pItem[i].m_pMatrixList)
+        {
+            m_pScene->m_pItem[i].m_pMatrixList            = (CSR_MatrixList*)csrMemoryAlloc(0, sizeof(CSR_MatrixList), 1);
+            m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix = (CSR_Matrix4*)   csrMemoryAlloc(0, sizeof(CSR_Matrix4),    1);
+            m_pScene->m_pItem[i].m_pMatrixList->m_Count   = 1;
+        }
+
         // set translation
         t.m_X =  0.0f;
         t.m_Y =  0.0f;
@@ -369,13 +375,20 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_pScene->m_pItem[i].m_Matrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix,  m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix);
 
         m_pScene->m_pItem[i].m_pShader = m_pCurrentShader;
     }
 
     for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
     {
+        if (!m_pScene->m_pItem[i].m_pMatrixList)
+        {
+            m_pScene->m_pItem[i].m_pMatrixList            = (CSR_MatrixList*)csrMemoryAlloc(0, sizeof(CSR_MatrixList), 1);
+            m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix = (CSR_Matrix4*)   csrMemoryAlloc(0, sizeof(CSR_Matrix4),    1);
+            m_pScene->m_pItem[i].m_pMatrixList->m_Count   = 1;
+        }
+
         // set translation
         t.m_X =  0.0f;
         t.m_Y =  0.0f;
@@ -404,7 +417,7 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_pScene->m_pTransparentItem[i].m_Matrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix,  m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix);
 
         m_pScene->m_pTransparentItem[i].m_pShader = m_pCurrentShader;
     }

@@ -1619,7 +1619,7 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                 fOnTextureRead(i, pPixelBuffer);
 
             // is a default texture?
-            if (pPixelBuffer->m_DataLength <= 16)
+            if (pPixelBuffer->m_DataLength <= 48)
             {
                 unsigned color;
 
