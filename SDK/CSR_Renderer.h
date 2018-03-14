@@ -59,12 +59,20 @@ typedef enum
 #endif
 
 /**
-* Matrix list
+* Matrix item
 */
 typedef struct
 {
     CSR_Matrix4* m_pMatrix;
-    size_t       m_Count;
+} CSR_MatrixItem;
+
+/**
+* Matrix list
+*/
+typedef struct
+{
+    CSR_MatrixItem* m_pItem;
+    size_t          m_Count;
 } CSR_MatrixList;
 
 /**
@@ -74,15 +82,16 @@ typedef struct
 // FIXME do allow the possibility to draw the same model with several matrices
 typedef struct
 {
-    void*           m_pModel;       // the model to draw
-    CSR_EModelType  m_Type;         // model type (a simple mesh, a model or a complex MDL model)
-    CSR_MatrixList* m_pMatrixList;  // items matrices sharing the same model, e.g. all the walls of a room
-    CSR_Shader*     m_pShader;      // shader to use to draw the model
-    CSR_AABBNode*   m_pAABBTree;    // aligned-axis bounding box trees owned by the model
-    size_t          m_TextureIndex; // texture index to show, in case the model contains several textures
-    size_t          m_ModelIndex;   // for MDL models, model index to show, in case the MDL contains several models
-    size_t          m_MeshIndex;    // for models and MDL, mesh index to show, in case a model contains several meshes
-    int             m_Visible;      // if 1, the model is currently visible in the scene and thus should be drawn
+    void*           m_pModel;        // the model to draw
+    CSR_EModelType  m_Type;          // model type (a simple mesh, a model or a complex MDL model)
+    CSR_MatrixList* m_pMatrixList;   // items matrices sharing the same model, e.g. all the walls of a room
+    CSR_Shader*     m_pShader;       // shader to use to draw the model
+    CSR_AABBNode*   m_pAABBTree;     // aligned-axis bounding box trees owned by the model
+    size_t          m_AABBTreeCount; // aligned-axis bounding box tree count
+    size_t          m_TextureIndex;  // texture index to show, in case the model contains several textures
+    size_t          m_ModelIndex;    // for MDL models, model index to show, in case the MDL contains several models
+    size_t          m_MeshIndex;     // for models and MDL, mesh index to show, in case a model contains several meshes
+    int             m_Visible;       // if 1, the model is currently visible in the scene and thus should be drawn
 } CSR_SceneItem;
 
 /**
@@ -101,6 +110,39 @@ typedef struct
         CSR_MSAA*  m_pMSAA;
     #endif
 } CSR_Scene;
+
+//---------------------------------------------------------------------------
+// Callbacks
+//---------------------------------------------------------------------------
+
+/**
+* Called when a model is about to be drawn
+*@param pMDL - MDL model that will be drawn
+*@param[in, out] index - model index to apply
+*/
+typedef void (*CSR_fOnDrawModel)(const CSR_Model* pModel, size_t* pModelIndex);
+
+/**
+* Called when a MDL model is about to be drawn
+*@param pMDL - MDL model that will be drawn
+*@param[in, out] textureIndex - texture index to apply to model
+*@param[in, out] modelIndex - model index to apply to model
+*@param[in, out] meshIndex - mesh index to apply to model
+*/
+typedef void (*CSR_fOnDrawMDL)(const CSR_MDL* pMDL,
+                                     size_t*  pTextureIndex,
+                                     size_t*  pModelIndex,
+                                     size_t*  pMeshIndex);
+
+/**
+* Called when a collision should be detected on a mesh
+*@param pMesh - mesh on which the collision should be detected
+*@param pAABBTree - aligned-axis bounding box tree matching with the mesh
+*@param[in, out] pMatrix - model matrix used to draw the mesh, 0 is matrix is processed externally
+*/
+typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
+                                       const CSR_AABBNode* pAABBTree,
+                                             CSR_Matrix4*  pMatrix);
 
 #ifdef __cplusplus
     extern "C"
@@ -198,8 +240,15 @@ typedef struct
         * Draws a scene item
         *@param pScene - scene at which the item belongs
         *@param pSceneItem - scene item to draw
+        *@param fOnDrawModel - draw model callback function to use, 0 if not used
+        *@param fOnDrawMDL - draw MDL model callback function to use, 0 if not used
+        *@param fOnDetectCollision - detect collision callback function to use, 0 if not used
         */
-        void csrSceneItemDraw(const CSR_Scene* pScene, const CSR_SceneItem* pSceneItem);
+        void csrSceneItemDraw(const CSR_Scene*             pScene,
+                              const CSR_SceneItem*         pSceneItem,
+                                    CSR_fOnDrawModel       fOnDrawModel,
+                                    CSR_fOnDrawMDL         fOnDrawMDL,
+                                    CSR_fOnDetectCollision fOnDetectCollision);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -223,6 +272,17 @@ typedef struct
         *@param[in, out] pScene - scene to initialize
         */
         void csrSceneInit(CSR_Scene* pScene);
+
+        /**
+        * Begins to draw a scene
+        *@param pColor - scene background color
+        */
+        void csrSceneBegin(const CSR_Color* pColor);
+
+        /**
+        * Ends to draw a scene
+        */
+        void csrSceneEnd(void);
 
         /**
         * Adds a mesh to a scene
@@ -266,7 +326,7 @@ typedef struct
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
-        *@note Once successfully added, the MDK model will be owned by the scene and should no
+        *@note Once successfully added, the MDL model will be owned by the scene and should no
         *      longer be released from outside
         */
         int csrSceneAddMDL(CSR_Scene*  pScene,
@@ -276,34 +336,30 @@ typedef struct
                            int         aabb);
 
         /**
-        * Adds a MDL model to a scene
+        * Adds a model matrix to a scene item. Doing that the same model may be drawn several time
+        * at different locations
         *@param pScene - scene in which the model will be added
-        *@param pMDL - model to add
-        *@param pShader - shader to use to draw the model
-        *@param transparent - if 1, the model is transparent, if 0 the model is opaque
-        *@param aabb - if 1, the AABB tree will be generated for the mesh
+        *@param pModel - model for which the matrix should be added
+        *@param pMatrix - matrix to add
         *@return 1 on success, otherwise 0
-        *@note Once successfully added, the MDK model will be owned by the scene and should no
-        *      longer be released from outside
+        *@note The added matrix is not owned by the scene. For that reason it cannot be deleted as
+        *      long as the scene uses it. The caller is responsible to delete the matrix if required
         */
-        int csrSceneAddModelMatrix(CSR_Scene*   pScene,
-                                   CSR_Matrix4* pMatrix,
-                                   CSR_Shader*  pShader,
-                                   int          transparent,
-                                   int          aabb);
-
-        // FIXME add delete functions
+        int csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix);
 
         /**
-        * Begins to draw a scene
-        *@param pColor - scene background color
+        * Gets a scene item matching with a model or a matrix
+        *@param pScene - scene from which the item should be get
+        *@param pKey - search key, may be any model kind or a matrix
+        *@return scene item, 0 if not found or on error
         */
-        void csrSceneBegin(const CSR_Color* pColor);
+        CSR_SceneItem* csrSceneGetItem(const CSR_Scene* pScene, const void* pKey);
 
         /**
-        * Ends to draw a scene
+        * Deletes a model or a matrix from the scene
+        *@param pKey - key to delete, may be any model kind or a matrix
         */
-        void csrSceneEnd(void);
+        void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey);
 
         /**
         * Draws a vertex buffer in a scene
@@ -361,8 +417,14 @@ typedef struct
         /**
         * Draws a scene
         *@param pScene - scene to draw
+        *@param fOnDrawModel - draw model callback function to use, 0 if not used
+        *@param fOnDrawMDL - draw MDL model callback function to use, 0 if not used
+        *@param fOnDetectCollision - detect collision callback function to use, 0 if not used
         */
-        void csrSceneDraw(const CSR_Scene* pScene);
+        void csrSceneDraw(const CSR_Scene*             pScene,
+                                CSR_fOnDrawModel       fOnDrawModel,
+                                CSR_fOnDrawMDL         fOnDrawMDL,
+                                CSR_fOnDetectCollision fOnDetectCollision);
 
 #ifdef __cplusplus
     }
