@@ -96,6 +96,7 @@ class TMainForm : public TForm
         CSR_Scene*                          m_pScene;
         IShaders                            m_Shaders;
         CSR_Shader*                         m_pCurrentShader;
+        CSR_Matrix4                         m_ModelMatrix;
         unsigned __int64                    m_PreviousTime;
         TWndMethod                          m_fViewWndProc_Backup;
 

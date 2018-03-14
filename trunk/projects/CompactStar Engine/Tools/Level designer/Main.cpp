@@ -340,12 +340,9 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
+        // link the model matrix to the scene, if still not done
         if (!m_pScene->m_pItem[i].m_pMatrixList)
-        {
-            m_pScene->m_pItem[i].m_pMatrixList            = (CSR_MatrixList*)csrMemoryAlloc(0, sizeof(CSR_MatrixList), 1);
-            m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix = (CSR_Matrix4*)   csrMemoryAlloc(0, sizeof(CSR_Matrix4),    1);
-            m_pScene->m_pItem[i].m_pMatrixList->m_Count   = 1;
-        }
+            csrSceneAddModelMatrix(m_pScene, m_pScene->m_pItem[i].m_pModel, &m_ModelMatrix);
 
         // set translation
         t.m_X =  0.0f;
@@ -375,19 +372,16 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix,  m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
         m_pScene->m_pItem[i].m_pShader = m_pCurrentShader;
     }
 
     for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
     {
-        if (!m_pScene->m_pItem[i].m_pMatrixList)
-        {
-            m_pScene->m_pItem[i].m_pMatrixList            = (CSR_MatrixList*)csrMemoryAlloc(0, sizeof(CSR_MatrixList), 1);
-            m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix = (CSR_Matrix4*)   csrMemoryAlloc(0, sizeof(CSR_Matrix4),    1);
-            m_pScene->m_pItem[i].m_pMatrixList->m_Count   = 1;
-        }
+        // link the model matrix to the scene, if still not done
+        if (!m_pScene->m_pTransparentItem[i].m_pMatrixList)
+            csrSceneAddModelMatrix(m_pScene, m_pScene->m_pTransparentItem[i].m_pModel, &m_ModelMatrix);
 
         // set translation
         t.m_X =  0.0f;
@@ -417,7 +411,7 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix,  m_pScene->m_pItem[i].m_pMatrixList->m_pMatrix);
+        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
 
         m_pScene->m_pTransparentItem[i].m_pShader = m_pCurrentShader;
     }
@@ -425,7 +419,7 @@ void TMainForm::UpdateScene(float elapsedTime)
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
 {
-    csrSceneDraw(m_pScene);
+    csrSceneDraw(m_pScene, 0, 0, 0);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
