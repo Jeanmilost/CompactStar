@@ -433,6 +433,78 @@
     }
 #endif
 //---------------------------------------------------------------------------
+// Scene item private functions
+//---------------------------------------------------------------------------
+CSR_SceneItem* csrSceneItemDeleteModelFrom(CSR_SceneItem* pItem, size_t index, size_t count)
+{
+    CSR_SceneItem* pNewItem;
+
+    // no item list to delete from?
+    if (!pItem)
+        return 0;
+
+    // was the last model in the scene?
+    if (count == 1)
+        // don't create a new scene item list
+        return 0;
+
+    // create a scene item list one item smaller than the existing one
+    pNewItem = (CSR_SceneItem*)csrMemoryAlloc(0, sizeof(CSR_SceneItem), count - 1);
+
+    // succeeded?
+    if (!pNewItem)
+        return 0;
+
+    // copy all the remaining items in the new list
+    if (!index)
+        memcpy(pNewItem, pItem + 1, (count - 1) * sizeof(CSR_SceneItem));
+    else
+    if (index == (count - 1))
+        memcpy(pNewItem, pItem, (count - 1) * sizeof(CSR_SceneItem));
+    else
+    {
+        memcpy(pNewItem,         pItem,             sizeof(CSR_SceneItem) *          index);
+        memcpy(pNewItem + index, pItem + index + 1, sizeof(CSR_SceneItem) * (count - index - 1));
+    }
+
+    return pNewItem;
+}
+//---------------------------------------------------------------------------
+CSR_MatrixItem* csrSceneItemDeleteMatrixFrom(CSR_MatrixItem* pItem, size_t index, size_t count)
+{
+    CSR_MatrixItem* pNewItem;
+
+    // no item list to delete from?
+    if (!pItem)
+        return 0;
+
+    // was the last matrix in the model?
+    if (count == 1)
+        // don't create a new matrix item list
+        return 0;
+
+    // create a matrix item list one item smaller than the existing one
+    pNewItem = (CSR_MatrixItem*)csrMemoryAlloc(0, sizeof(CSR_MatrixItem), count - 1);
+
+    // succeeded?
+    if (!pNewItem)
+        return 0;
+
+    // copy all the remaining items in the new list
+    if (!index)
+        memcpy(pNewItem, pItem + 1, (count - 1) * sizeof(CSR_MatrixItem));
+    else
+    if (index == (count - 1))
+        memcpy(pNewItem, pItem, (count - 1) * sizeof(CSR_MatrixItem));
+    else
+    {
+        memcpy(pNewItem,         pItem,             sizeof(CSR_MatrixItem) *          index);
+        memcpy(pNewItem + index, pItem + index + 1, sizeof(CSR_MatrixItem) * (count - index - 1));
+    }
+
+    return pNewItem;
+}
+//---------------------------------------------------------------------------
 // Scene item functions
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneItemCreate(void)
@@ -516,71 +588,71 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     pSceneItem->m_pModel        = 0;
     pSceneItem->m_Type          = CSR_MT_Model;
     pSceneItem->m_pMatrixList   = 0;
-    pSceneItem->m_pShader       = 0;
     pSceneItem->m_pAABBTree     = 0;
     pSceneItem->m_AABBTreeCount = 0;
-    pSceneItem->m_TextureIndex  = 0;
-    pSceneItem->m_ModelIndex    = 0;
-    pSceneItem->m_MeshIndex     = 0;
-    pSceneItem->m_Visible       = 1;
 }
 //---------------------------------------------------------------------------
-void csrSceneItemDraw(const CSR_Scene*             pScene,
-                      const CSR_SceneItem*         pSceneItem,
-                            CSR_fOnDrawModel       fOnDrawModel,
-                            CSR_fOnDrawMDL         fOnDrawMDL,
-                            CSR_fOnDetectCollision fOnDetectCollision)
+void csrSceneItemDraw(const CSR_Scene*        pScene,
+                      const CSR_SceneContext* pContext,
+                      const CSR_SceneItem*    pItem)
 {
-    GLint slot;
+    GLint       slot;
+    CSR_Shader* pShader;
 
     // validate the input
-    if (!pScene || !pSceneItem)
+    if (!pScene || !pContext || !pItem)
         return;
 
-    // is scene item visible?
-    if (!pSceneItem->m_Visible)
+    pShader = 0;
+
+    // get the shader to use with the model
+    if (pContext->m_fOnGetShader)
+        pShader = pContext->m_fOnGetShader(pItem->m_pModel, pItem->m_Type);
+
+    // found one?
+    if (!pShader)
         return;
 
     // enable the item shader
-    csrShaderEnable(pSceneItem->m_pShader);
+    csrShaderEnable(pShader);
 
     // get the view matrix slot from shader
-    slot = glGetUniformLocation(pSceneItem->m_pShader->m_ProgramID, "csr_uView");
+    slot = glGetUniformLocation(pShader->m_ProgramID, "csr_uView");
 
     // connect view matrix to shader
     if (slot >= 0)
         glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
 
     // draw the model
-    switch (pSceneItem->m_Type)
+    switch (pItem->m_Type)
     {
         case CSR_MT_Mesh:
         {
             // notify the caller that a collision may be detected
-            if (fOnDetectCollision)
+            if (pContext->m_fOnDetectCollision)
                 // AABB tree exists for the mesh?
-                if (pSceneItem->m_pAABBTree && pSceneItem->m_AABBTreeCount == 1)
+                if (pItem->m_pAABBTree && pItem->m_AABBTreeCount == 1)
                     // several models will be drawn? (each matrix is in fact an standalone mesh copy)
-                    if (pSceneItem->m_pMatrixList && pSceneItem->m_pMatrixList->m_Count)
+                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
                     {
                         size_t i;
 
                         // detect the collision for each standalone mesh
-                        for (i = 0; i < pSceneItem->m_pMatrixList->m_Count; ++i)
-                            fOnDetectCollision((const CSR_Mesh*)pSceneItem->m_pModel,
-                                                                pSceneItem->m_pAABBTree,
-                                                                pSceneItem->m_pMatrixList->m_pItem[i].m_pMatrix);
+                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
+                            pContext->m_fOnDetectCollision
+                                    ((const CSR_Mesh*)pItem->m_pModel,
+                                                      pItem->m_pAABBTree,
+                                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
                     }
                     else
                         // mesh matrix is processed externally, just send the collision data
-                        fOnDetectCollision((const CSR_Mesh*)pSceneItem->m_pModel,
-                                                            pSceneItem->m_pAABBTree,
-                                                            0);
+                        pContext->m_fOnDetectCollision
+                                ((const CSR_Mesh*)pItem->m_pModel, pItem->m_pAABBTree, 0);
 
             // draw the mesh
-            csrSceneDrawMesh((const CSR_Mesh*)pSceneItem->m_pModel,
-                                              pSceneItem->m_pShader,
-                                              pSceneItem->m_pMatrixList);
+            csrSceneDrawMesh((const CSR_Mesh*)pItem->m_pModel,
+                                              pShader,
+                                              pItem->m_pMatrixList);
             break;
         }
 
@@ -589,40 +661,41 @@ void csrSceneItemDraw(const CSR_Scene*             pScene,
             size_t index = 0;
 
             // notify the caller that the model is about to be drawn
-            if (fOnDrawModel)
-                fOnDrawModel((const CSR_Model*)pSceneItem->m_pModel, &index);
+            if (pContext->m_fOnGetModelIndex)
+                pContext->m_fOnGetModelIndex((const CSR_Model*)pItem->m_pModel, &index);
 
             // notify the caller that a collision may be detected
-            if (fOnDetectCollision)
+            if (pContext->m_fOnDetectCollision)
                 // is AABB tree index out of bounds?
-                if (pSceneItem->m_pAABBTree && index < pSceneItem->m_AABBTreeCount)
+                if (pItem->m_pAABBTree && index < pItem->m_AABBTreeCount)
                 {
                     // get the model to check
-                    const CSR_Model* pModel = (const CSR_Model*)pSceneItem->m_pModel;
+                    const CSR_Model* pModel = (const CSR_Model*)pItem->m_pModel;
 
                     // do draw several models? (each matrix is in fact a standalone model copy)
-                    if (pSceneItem->m_pMatrixList && pSceneItem->m_pMatrixList->m_Count)
+                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
                     {
                         size_t i;
 
                         // detect the collision for each standalone model
-                        for (i = 0; i < pSceneItem->m_pMatrixList->m_Count; ++i)
-                            fOnDetectCollision(&pModel->m_pMesh[index],
-                                               &pSceneItem->m_pAABBTree[index],
-                                                pSceneItem->m_pMatrixList->m_pItem[i].m_pMatrix);
+                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
+                            pContext->m_fOnDetectCollision
+                                    (&pModel->m_pMesh[index],
+                                     &pItem->m_pAABBTree[index],
+                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
                     }
                     else
                         // mesh matrix is processed externally, just send the collision data
-                        fOnDetectCollision(&pModel->m_pMesh[index],
-                                           &pSceneItem->m_pAABBTree[index],
-                                            0);
+                        pContext->m_fOnDetectCollision(&pModel->m_pMesh[index],
+                                                       &pItem->m_pAABBTree[index],
+                                                        0);
                 }
 
             // draw the model
-            csrSceneDrawModel((const CSR_Model*)pSceneItem->m_pModel,
+            csrSceneDrawModel((const CSR_Model*)pItem->m_pModel,
                                                 index,
-                                                pSceneItem->m_pShader,
-                                                pSceneItem->m_pMatrixList);
+                                                pShader,
+                                                pItem->m_pMatrixList);
             break;
         }
 
@@ -633,45 +706,47 @@ void csrSceneItemDraw(const CSR_Scene*             pScene,
             size_t meshIndex    = 0;
 
             // notify the caller that the MDL model is about to be drawn
-            if (fOnDrawMDL)
-                fOnDrawMDL((const CSR_MDL*)pSceneItem->m_pModel,
-                                          &textureIndex,
-                                          &modelIndex,
-                                          &meshIndex);
+            if (pContext->m_fOnGetMDLIndex)
+                pContext->m_fOnGetMDLIndex((const CSR_MDL*)pItem->m_pModel,
+                                                          &textureIndex,
+                                                          &modelIndex,
+                                                          &meshIndex);
 
             // notify the caller that a collision may be detected
-            if (fOnDetectCollision)
+            if (pContext->m_fOnDetectCollision)
             {
                 // get the MDL model to check
-                const CSR_MDL* pMDL = (const CSR_MDL*)pSceneItem->m_pModel;
+                const CSR_MDL* pMDL = (const CSR_MDL*)pItem->m_pModel;
 
                 // calculate the AABB tree index
                 const size_t index = (modelIndex * pMDL->m_ModelCount) + meshIndex;
 
                 // is AABB tree index out of bounds?
-                if (pSceneItem->m_pAABBTree && index < pSceneItem->m_AABBTreeCount)
+                if (pItem->m_pAABBTree && index < pItem->m_AABBTreeCount)
                     // several models will be drawn? (each matrix is in fact a standalone model copy)
-                    if (pSceneItem->m_pMatrixList && pSceneItem->m_pMatrixList->m_Count)
+                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
                     {
                         size_t i;
 
                         // detect the collision for each standalone model
-                        for (i = 0; i < pSceneItem->m_pMatrixList->m_Count; ++i)
-                            fOnDetectCollision(&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
-                                               &pSceneItem->m_pAABBTree[index],
-                                                pSceneItem->m_pMatrixList->m_pItem[i].m_pMatrix);
+                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
+                            pContext->m_fOnDetectCollision
+                                    (&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
+                                     &pItem->m_pAABBTree[index],
+                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
                     }
                     else
                         // mesh matrix is processed externally, just send the collision data
-                        fOnDetectCollision(&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
-                                           &pSceneItem->m_pAABBTree[index],
-                                            0);
+                        pContext->m_fOnDetectCollision
+                                (&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
+                                 &pItem->m_pAABBTree[index],
+                                  0);
             }
 
             // draw the MDL model
-            csrSceneDrawMDL((const CSR_MDL*)pSceneItem->m_pModel,
-                                            pSceneItem->m_pShader,
-                                            pSceneItem->m_pMatrixList,
+            csrSceneDrawMDL((const CSR_MDL*)pItem->m_pModel,
+                                            pShader,
+                                            pItem->m_pMatrixList,
                                             textureIndex,
                                             modelIndex,
                                             meshIndex);
@@ -730,13 +805,6 @@ void csrSceneRelease(CSR_Scene* pScene)
         free(pScene->m_pTransparentItem);
     }
 
-    #ifndef CSR_OPENGL_2_ONLY
-        // do free the antialiasing structure?
-        if (pScene->m_pMSAA)
-            // free the antialiasing structure
-            csrMSAARelease(pScene->m_pMSAA);
-    #endif
-
     // free the scene
     free(pScene);
 }
@@ -759,10 +827,6 @@ void csrSceneInit(CSR_Scene* pScene)
 
     // set the default item matrix to identity
     csrMat4Identity(&pScene->m_Matrix);
-
-    #ifndef CSR_OPENGL_2_ONLY
-        pScene->m_pMSAA = 0;
-    #endif
 }
 //---------------------------------------------------------------------------
 void csrSceneBegin(const CSR_Color* pColor)
@@ -786,11 +850,7 @@ void csrSceneBegin(const CSR_Color* pColor)
 void csrSceneEnd(void)
 {}
 //---------------------------------------------------------------------------
-int csrSceneAddMesh(CSR_Scene*  pScene,
-                    CSR_Mesh*   pMesh,
-                    CSR_Shader* pShader,
-                    int         transparent,
-                    int         aabb)
+int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -837,9 +897,8 @@ int csrSceneAddMesh(CSR_Scene*  pScene,
     csrSceneItemInit(&pItem[index]);
 
     // configure the item
-    pItem[index].m_pModel  = pMesh;
-    pItem[index].m_Type    = CSR_MT_Mesh;
-    pItem[index].m_pShader = pShader;
+    pItem[index].m_pModel = pMesh;
+    pItem[index].m_Type   = CSR_MT_Mesh;
 
     // generate the aligned-axis bounding box tree for this mesh
     if (aabb)
@@ -882,11 +941,7 @@ int csrSceneAddMesh(CSR_Scene*  pScene,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSceneAddModel(CSR_Scene*  pScene,
-                     CSR_Model*  pModel,
-                     CSR_Shader* pShader,
-                     int         transparent,
-                     int         aabb)
+int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -933,9 +988,8 @@ int csrSceneAddModel(CSR_Scene*  pScene,
     csrSceneItemInit(&pItem[index]);
 
     // configure the item
-    pItem[index].m_pModel  = pModel;
-    pItem[index].m_Type    = CSR_MT_Model;
-    pItem[index].m_pShader = pShader;
+    pItem[index].m_pModel = pModel;
+    pItem[index].m_Type   = CSR_MT_Model;
 
     // generate the aligned-axis bounding box tree for this model
     if (aabb)
@@ -1013,11 +1067,7 @@ int csrSceneAddModel(CSR_Scene*  pScene,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSceneAddMDL(CSR_Scene*  pScene,
-                   CSR_MDL*    pMDL,
-                   CSR_Shader* pShader,
-                   int         transparent,
-                   int         aabb)
+int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -1064,9 +1114,8 @@ int csrSceneAddMDL(CSR_Scene*  pScene,
     csrSceneItemInit(&pItem[index]);
 
     // configure the item
-    pItem[index].m_pModel  = pMDL;
-    pItem[index].m_Type    = CSR_MT_MDL;
-    pItem[index].m_pShader = pShader;
+    pItem[index].m_pModel = pMDL;
+    pItem[index].m_Type   = CSR_MT_MDL;
 
     // generate the aligned-axis bounding box tree for this model
     if (aabb)
@@ -1238,30 +1287,16 @@ CSR_SceneItem* csrSceneGetItem(const CSR_Scene* pScene, const void* pKey)
     return 0;
 }
 //---------------------------------------------------------------------------
-/* FIXME implement delete functions based on the following example
-int* remove_element(int* array, int sizeOfArray, int indexToRemove)
+void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey)
 {
-    int* temp = malloc((sizeOfArray - 1) * sizeof(int)); // allocate an array with a size 1 less than the current one
-
-    if (indexToRemove != 0)
-        memcpy(temp, array, (indexToRemove - 1) * sizeof(int)); // copy everything BEFORE the index
-
-    if (indexToRemove != (sizeOfArray - 1))
-        memcpy(temp+indexToRemove, array+indexToRemove+1, (sizeOfArray - indexToRemove - 1) * sizeof(int)); // copy everything AFTER the index
-
-    free (array);
-    return temp;
-}
-*/
-void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey)
-{
-/*
-    size_t i;
-    size_t j;
+    size_t          i;
+    size_t          j;
+    CSR_SceneItem*  pSceneItem;
+    CSR_MatrixItem* pMatrixItem;
 
     // validate inputs
     if (!pScene || !pKey)
-        return 0;
+        return;
 
     // first search in the standard models
     for (i = 0; i < pScene->m_ItemCount; ++i)
@@ -1269,6 +1304,14 @@ void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey)
         // found a matching model?
         if (pScene->m_pItem[i].m_pModel == pKey)
         {
+            // delete the item from the list
+            pSceneItem = csrSceneItemDeleteModelFrom(pScene->m_pItem, i, pScene->m_ItemCount);
+
+            // update the scene content
+            free(pScene->m_pItem);
+            pScene->m_pItem = pSceneItem;
+            --pScene->m_ItemCount;
+
             return;
         }
 
@@ -1276,7 +1319,20 @@ void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey)
         if (pScene->m_pItem[i].m_pMatrixList)
             for (j = 0; j < pScene->m_pItem[i].m_pMatrixList->m_Count; ++j)
                 if (&pScene->m_pItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                    return &pScene->m_pItem[i];
+                {
+                    // delete the matrix
+                    pMatrixItem =
+                            csrSceneItemDeleteMatrixFrom(pScene->m_pItem[i].m_pMatrixList->m_pItem,
+                                                         j,
+                                                         pScene->m_pItem[i].m_pMatrixList->m_Count);
+
+                    // update the matrix list content
+                    free(pScene->m_pItem[i].m_pMatrixList->m_pItem);
+                    pScene->m_pItem[i].m_pMatrixList->m_pItem = pMatrixItem;
+                    --pScene->m_pItem[i].m_pMatrixList->m_Count;
+
+                    return;
+                }
     }
 
     // then search in the transparent models
@@ -1284,18 +1340,39 @@ void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey)
     {
         // found a matching model?
         if (pScene->m_pTransparentItem[i].m_pModel == pKey)
-            return &pScene->m_pTransparentItem[i];
+        {
+            // delete the item from the list
+            pSceneItem = csrSceneItemDeleteModelFrom(pScene->m_pTransparentItem,
+                                                     i,
+                                                     pScene->m_TransparentItemCount);
+
+            // update the scene content
+            free(pScene->m_pTransparentItem);
+            pScene->m_pTransparentItem = pSceneItem;
+            --pScene->m_TransparentItemCount;
+
+            return;
+        }
 
         // check also if the key is a known matrix
         if (pScene->m_pTransparentItem[i].m_pMatrixList)
             for (j = 0; j < pScene->m_pTransparentItem[i].m_pMatrixList->m_Count; ++j)
                 if (&pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                    return &pScene->m_pTransparentItem[i];
-    }
+                {
+                    // delete the matrix
+                    pMatrixItem =
+                            csrSceneItemDeleteMatrixFrom(pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem,
+                                                         j,
+                                                         pScene->m_pTransparentItem[i].m_pMatrixList->m_Count);
 
-    // not found
-    return 0;
-*/
+                    // update the matrix list content
+                    free(pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem);
+                    pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem = pMatrixItem;
+                    --pScene->m_pTransparentItem[i].m_pMatrixList->m_Count;
+
+                    return;
+                }
+    }
 }
 //---------------------------------------------------------------------------
 void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
@@ -1591,10 +1668,7 @@ void csrSceneDrawMDL(const CSR_MDL*        pMDL,
     csrSceneDrawMesh(pMesh, pShader, pMatrixList);
 }
 //---------------------------------------------------------------------------
-void csrSceneDraw(const CSR_Scene*             pScene,
-                        CSR_fOnDrawModel       fOnDrawModel,
-                        CSR_fOnDrawMDL         fOnDrawMDL,
-                        CSR_fOnDetectCollision fOnDetectCollision)
+void csrSceneDraw(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
     size_t i;
     GLint  slot;
@@ -1603,36 +1677,32 @@ void csrSceneDraw(const CSR_Scene*             pScene,
     if (!pScene)
         return;
 
+    // no scene context?
+    if (!pContext)
+        return;
+
     // begin the scene drawing
-    #ifndef CSR_OPENGL_2_ONLY
-        if (pScene->m_pMSAA)
-            csrMSAASceneBegin(&pScene->m_Color, pScene->m_pMSAA);
-        else
-    #endif
-            csrSceneBegin(&pScene->m_Color);
+    if (pContext->m_fOnSceneBegin)
+        pContext->m_fOnSceneBegin(pScene, pContext);
+    else
+        csrSceneBegin(&pScene->m_Color);
 
     // first draw the standard models
     for (i = 0; i < pScene->m_ItemCount; ++i)
         csrSceneItemDraw(pScene,
-                        &pScene->m_pItem[i],
-                         fOnDrawModel,
-                         fOnDrawMDL,
-                         fOnDetectCollision);
+                         pContext,
+                        &pScene->m_pItem[i]);
 
     // then draw the transparent models
     for (i = 0; i < pScene->m_TransparentItemCount; ++i)
         csrSceneItemDraw(pScene,
-                        &pScene->m_pTransparentItem[i],
-                         fOnDrawModel,
-                         fOnDrawMDL,
-                         fOnDetectCollision);
+                         pContext,
+                        &pScene->m_pTransparentItem[i]);
 
     // end the scene drawing
-    #ifndef CSR_OPENGL_2_ONLY
-        if (pScene->m_pMSAA)
-            csrMSAASceneEnd(pScene->m_pMSAA);
-        else
-    #endif
-            csrSceneEnd();
+    if (pContext->m_fOnSceneEnd)
+        pContext->m_fOnSceneEnd(pScene, pContext);
+    else
+        csrSceneEnd();
 }
 //---------------------------------------------------------------------------
