@@ -240,10 +240,29 @@ bool TMainForm::On3DViewMessage(TControl* pControl, TMessage& message, TWndMetho
     return false;
 }
 //------------------------------------------------------------------------------
+CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetShader(pModel, type);
+}
+//------------------------------------------------------------------------------
 void TMainForm::InitScene()
 {
     // create a scene
     m_pScene = csrSceneCreate();
+
+    // initialize the scene context
+    m_SceneContext.m_Handle             = 0;
+    m_SceneContext.m_fOnSceneBegin      = 0;
+    m_SceneContext.m_fOnSceneEnd        = 0;
+    m_SceneContext.m_fOnGetShader       = OnGetShaderCallback;
+    m_SceneContext.m_fOnGetModelIndex   = 0;
+    m_SceneContext.m_fOnGetMDLIndex     = 0;
+    m_SceneContext.m_fOnDetectCollision = 0;
 
     // configure the scene color
     csrRGBAToColor(0xFF, &m_pScene->m_Color);
@@ -302,10 +321,9 @@ void TMainForm::InitScene()
 
     CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
     //REM CSR_Mesh* pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
-    //REM m_pAABBTree = csrAABBTreeFromMesh(m_pSphere);
 
-    csrSceneAddMesh(m_pScene, pSphere, NULL, 0, 1);
-    //csrSceneAddMesh(m_pScene, m_pBox, NULL, 0, 1);
+    csrSceneAddMesh(m_pScene, pSphere, 0, 1);
+    //csrSceneAddMesh(m_pScene, m_pBox, 0, 1);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -320,11 +338,7 @@ void TMainForm::DeleteScene()
     csrSceneRelease(m_pScene);
     m_pScene = NULL;
 
-    // release the scene objects
-    //REM csrAABBTreeRelease(m_pAABBTree);
-    //REM csrMeshRelease(m_pBox);
-    //REM csrMeshRelease(m_pSphere);
-
+    // release the shader
     for (std::size_t i = 0; i < m_Shaders.size(); ++i)
         csrShaderRelease(m_Shaders[i]);
 }
@@ -373,8 +387,6 @@ void TMainForm::UpdateScene(float elapsedTime)
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
         csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
-
-        m_pScene->m_pItem[i].m_pShader = m_pCurrentShader;
     }
 
     for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
@@ -412,14 +424,12 @@ void TMainForm::UpdateScene(float elapsedTime)
         // build model view matrix
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
         csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
-
-        m_pScene->m_pTransparentItem[i].m_pShader = m_pCurrentShader;
     }
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
 {
-    csrSceneDraw(m_pScene, 0, 0, 0);
+    csrSceneDraw(m_pScene, &m_SceneContext);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
@@ -446,6 +456,7 @@ void TMainForm::OnDrawScene(bool resize)
 
         // enable view context
         wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
+        m_SceneContext.m_Handle = std::size_t(it.Second().m_hRC);
 
         // update and draw the scene
         UpdateScene(resize ? 0.0f : elapsedTime);
@@ -453,6 +464,11 @@ void TMainForm::OnDrawScene(bool resize)
 
         ::SwapBuffers(it.Second().m_hDC);
     }
+}
+//---------------------------------------------------------------------------
+CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+{
+    return m_pCurrentShader;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

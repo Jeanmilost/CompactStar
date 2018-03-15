@@ -84,6 +84,15 @@ class TMainForm : public TForm
         */
         bool On3DViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
+        /**
+        * Called when a shader should be get for a model
+        *@param pModel - model for which the shader shoudl be get
+        *@param type - model type
+        *@return shader to use to draw the model, 0 if no shader
+        *@note The model will not be drawn if no shader is returned
+        */
+        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+
     private:
         typedef std::vector<CSR_Shader*> IShaders;
 
@@ -94,6 +103,7 @@ class TMainForm : public TForm
         std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
         std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
         CSR_Scene*                          m_pScene;
+        CSR_SceneContext                    m_SceneContext;
         IShaders                            m_Shaders;
         CSR_Shader*                         m_pCurrentShader;
         CSR_Matrix4                         m_ModelMatrix;
@@ -126,6 +136,15 @@ class TMainForm : public TForm
         *@param resize - if true, the scene should be repainted during a resize
         */
         void OnDrawScene(bool resize);
+
+        /**
+        * Called when a shader should be get for a model
+        *@param pModel - model for which the shader shoudl be get
+        *@param type - model type
+        *@return shader to use to draw the model, 0 if no shader
+        *@note The model will not be drawn if no shader is returned
+        */
+        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
 
         /**
         * Called while application is idle

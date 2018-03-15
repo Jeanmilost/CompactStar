@@ -76,22 +76,20 @@ typedef struct
 } CSR_MatrixList;
 
 /**
+* Scene context prototype
+*/
+typedef struct CSR_SceneContext CSR_SceneContext;
+
+/**
 * Scene item
 */
-// FIXME do own and release the objects
-// FIXME do allow the possibility to draw the same model with several matrices
 typedef struct
 {
     void*           m_pModel;        // the model to draw
     CSR_EModelType  m_Type;          // model type (a simple mesh, a model or a complex MDL model)
     CSR_MatrixList* m_pMatrixList;   // items matrices sharing the same model, e.g. all the walls of a room
-    CSR_Shader*     m_pShader;       // shader to use to draw the model
     CSR_AABBNode*   m_pAABBTree;     // aligned-axis bounding box trees owned by the model
     size_t          m_AABBTreeCount; // aligned-axis bounding box tree count
-    size_t          m_TextureIndex;  // texture index to show, in case the model contains several textures
-    size_t          m_ModelIndex;    // for MDL models, model index to show, in case the MDL contains several models
-    size_t          m_MeshIndex;     // for models and MDL, mesh index to show, in case a model contains several meshes
-    int             m_Visible;       // if 1, the model is currently visible in the scene and thus should be drawn
 } CSR_SceneItem;
 
 /**
@@ -99,16 +97,12 @@ typedef struct
 */
 typedef struct
 {
-    CSR_Color      m_Color;
-    CSR_Matrix4    m_Matrix;
-    CSR_SceneItem* m_pItem;
-    size_t         m_ItemCount;
-    CSR_SceneItem* m_pTransparentItem;
-    size_t         m_TransparentItemCount;
-
-    #ifndef CSR_OPENGL_2_ONLY
-        CSR_MSAA*  m_pMSAA;
-    #endif
+    CSR_Color        m_Color;
+    CSR_Matrix4      m_Matrix;
+    CSR_SceneItem*   m_pItem;
+    size_t           m_ItemCount;
+    CSR_SceneItem*   m_pTransparentItem;
+    size_t           m_TransparentItemCount;
 } CSR_Scene;
 
 //---------------------------------------------------------------------------
@@ -116,23 +110,46 @@ typedef struct
 //---------------------------------------------------------------------------
 
 /**
-* Called when a model is about to be drawn
-*@param pMDL - MDL model that will be drawn
-*@param[in, out] index - model index to apply
+* Called when scene begins
+*@param pScene - scene to begin
+*@param pContext - scene context
 */
-typedef void (*CSR_fOnDrawModel)(const CSR_Model* pModel, size_t* pModelIndex);
+typedef void (*CSR_fOnSceneBegin)(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
 /**
-* Called when a MDL model is about to be drawn
-*@param pMDL - MDL model that will be drawn
-*@param[in, out] textureIndex - texture index to apply to model
-*@param[in, out] modelIndex - model index to apply to model
-*@param[in, out] meshIndex - mesh index to apply to model
+* Called when scene ends
+*@param pScene - scene to end
+*@param pContext - scene context
 */
-typedef void (*CSR_fOnDrawMDL)(const CSR_MDL* pMDL,
-                                     size_t*  pTextureIndex,
-                                     size_t*  pModelIndex,
-                                     size_t*  pMeshIndex);
+typedef void (*CSR_fOnSceneEnd)(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+/**
+* Called when a shader should be get for a model
+*@param pModel - model for which the shader shoudl be get
+*@param type - model type
+*@return shader to use to draw the model, 0 if no shader
+*@note The model will not be drawn if no shader is returned
+*/
+typedef CSR_Shader* (*CSR_fOnGetShader)(const void* pModel, CSR_EModelType type);
+
+/**
+* Called when a model index should be get
+*@param pModel - model for which the index should be get
+*@param[in, out] pIndex - model index
+*/
+typedef void (*CSR_fOnGetModelIndex)(const CSR_Model* pModel, size_t* pIndex);
+
+/**
+* Called when the MDL model indexes should be get
+*@param pMDL - MDL model for which the indexes should be get
+*@param[in, out] textureIndex - texture index
+*@param[in, out] modelIndex - model index
+*@param[in, out] meshIndex - mesh index
+*/
+typedef void (*CSR_fOnGetMDLIndex)(const CSR_MDL* pMDL,
+                                         size_t*  pTextureIndex,
+                                         size_t*  pModelIndex,
+                                         size_t*  pMeshIndex);
 
 /**
 * Called when a collision should be detected on a mesh
@@ -143,6 +160,24 @@ typedef void (*CSR_fOnDrawMDL)(const CSR_MDL* pMDL,
 typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
                                        const CSR_AABBNode* pAABBTree,
                                              CSR_Matrix4*  pMatrix);
+
+//---------------------------------------------------------------------------
+// Structures implementations
+//---------------------------------------------------------------------------
+
+/**
+* Scene context
+*/
+struct CSR_SceneContext
+{
+    size_t                 m_Handle;
+    CSR_fOnSceneBegin      m_fOnSceneBegin;
+    CSR_fOnSceneEnd        m_fOnSceneEnd;
+    CSR_fOnGetShader       m_fOnGetShader;
+    CSR_fOnGetModelIndex   m_fOnGetModelIndex;
+    CSR_fOnGetMDLIndex     m_fOnGetMDLIndex;
+    CSR_fOnDetectCollision m_fOnDetectCollision;
+};
 
 #ifdef __cplusplus
     extern "C"
@@ -239,16 +274,12 @@ typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
         /**
         * Draws a scene item
         *@param pScene - scene at which the item belongs
-        *@param pSceneItem - scene item to draw
-        *@param fOnDrawModel - draw model callback function to use, 0 if not used
-        *@param fOnDrawMDL - draw MDL model callback function to use, 0 if not used
-        *@param fOnDetectCollision - detect collision callback function to use, 0 if not used
+        *@param pContext - scene context
+        *@param pItem - scene item to draw
         */
-        void csrSceneItemDraw(const CSR_Scene*             pScene,
-                              const CSR_SceneItem*         pSceneItem,
-                                    CSR_fOnDrawModel       fOnDrawModel,
-                                    CSR_fOnDrawMDL         fOnDrawMDL,
-                                    CSR_fOnDetectCollision fOnDetectCollision);
+        void csrSceneItemDraw(const CSR_Scene*        pScene,
+                              const CSR_SceneContext* pContext,
+                              const CSR_SceneItem*    pItem);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -288,52 +319,37 @@ typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
         * Adds a mesh to a scene
         *@param pScene - scene in which the mesh will be added
         *@param pMesh - mesh to add
-        *@param pShader - shader to use to draw the mesh
         *@param transparent - if 1, the mesh is transparent, if 0 the mesh is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
         *@note Once successfully added, the mesh will be owned by the scene and should no longer be
         *      released from outside
         */
-        int csrSceneAddMesh(CSR_Scene*  pScene,
-                            CSR_Mesh*   pMesh,
-                            CSR_Shader* pShader,
-                            int         transparent,
-                            int         aabb);
+        int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb);
 
         /**
         * Adds a model to a scene
         *@param pScene - scene in which the model will be added
         *@param pModel- model to add
-        *@param pShader - shader to use to draw the model
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
         *@note Once successfully added, the model will be owned by the scene and should no longer be
         *      released from outside
         */
-        int csrSceneAddModel(CSR_Scene*  pScene,
-                             CSR_Model*  pModel,
-                             CSR_Shader* pShader,
-                             int         transparent,
-                             int         aabb);
+        int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb);
 
         /**
         * Adds a MDL model to a scene
         *@param pScene - scene in which the model will be added
         *@param pMDL - model to add
-        *@param pShader - shader to use to draw the model
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return 1 on success, otherwise 0
         *@note Once successfully added, the MDL model will be owned by the scene and should no
         *      longer be released from outside
         */
-        int csrSceneAddMDL(CSR_Scene*  pScene,
-                           CSR_MDL*    pMDL,
-                           CSR_Shader* pShader,
-                           int         transparent,
-                           int         aabb);
+        int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb);
 
         /**
         * Adds a model matrix to a scene item. Doing that the same model may be drawn several time
@@ -359,7 +375,7 @@ typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
         * Deletes a model or a matrix from the scene
         *@param pKey - key to delete, may be any model kind or a matrix
         */
-        void csrSceneDeleteFrom(const CSR_Scene* pScene, const void* pKey);
+        void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey);
 
         /**
         * Draws a vertex buffer in a scene
@@ -417,14 +433,9 @@ typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
         /**
         * Draws a scene
         *@param pScene - scene to draw
-        *@param fOnDrawModel - draw model callback function to use, 0 if not used
-        *@param fOnDrawMDL - draw MDL model callback function to use, 0 if not used
-        *@param fOnDetectCollision - detect collision callback function to use, 0 if not used
+        *@param pContext - scene context
         */
-        void csrSceneDraw(const CSR_Scene*             pScene,
-                                CSR_fOnDrawModel       fOnDrawModel,
-                                CSR_fOnDrawMDL         fOnDrawMDL,
-                                CSR_fOnDetectCollision fOnDetectCollision);
+        void csrSceneDraw(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
 #ifdef __cplusplus
     }
