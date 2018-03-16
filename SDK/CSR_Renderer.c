@@ -467,6 +467,9 @@ CSR_SceneItem* csrSceneItemDeleteModelFrom(CSR_SceneItem* pItem, size_t index, s
         memcpy(pNewItem + index, pItem + index + 1, sizeof(CSR_SceneItem) * (count - index - 1));
     }
 
+    // release the item content
+    csrSceneItemRelease(&pItem[index]);
+
     return pNewItem;
 }
 //---------------------------------------------------------------------------
