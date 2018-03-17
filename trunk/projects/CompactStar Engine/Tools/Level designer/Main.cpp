@@ -320,10 +320,12 @@ void TMainForm::InitScene()
     bm.m_Wireframe   = 0;
 
     CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
-    //REM CSR_Mesh* pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+    CSR_Mesh* pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
 
     csrSceneAddMesh(m_pScene, pSphere, 0, 1);
-    //csrSceneAddMesh(m_pScene, m_pBox, 0, 1);
+    csrSceneAddMesh(m_pScene, pBox, 0, 1);
+
+    csrSceneDeleteFrom(m_pScene, pSphere);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
