@@ -253,6 +253,20 @@ typedef struct
                                 size_t      count,
                                 void*       pData);
 
+        /**
+        * Writes a data in a buffer
+        *@param pBuffer - buffer to write to
+        *@param pData - data to write
+        *@param length - length of one data to read, in bytes
+        *@param count - number of data to read in the buffer, in bytes
+        *@return 1 on success, otherwise 0
+        *@note The data will always be written on the buffer end
+        */
+        int csrBufferWrite(      CSR_Buffer* pBuffer,
+                           const void*       pData,
+                                 size_t      length,
+                                 size_t      count);
+
         //-------------------------------------------------------------------
         // File functions
         //-------------------------------------------------------------------
@@ -271,6 +285,14 @@ typedef struct
         *@note The buffer must be released when no longer used, see csrReleaseBuffer()
         */
         CSR_Buffer* csrFileOpen(const char* pFileName);
+
+        /**
+        * Saves a buffer content inside a file
+        *@param pFileName - file name
+        *@param pBuffer - buffer to save to file
+        *@return 1 on success, otherwise 0
+        */
+        int csrFileSave(const char* pFileName, const CSR_Buffer* pBuffer);
 
 #ifdef __cplusplus
     }

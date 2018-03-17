@@ -248,6 +248,35 @@ int csrBufferRead(const CSR_Buffer* pBuffer,
     return 1;
 }
 //---------------------------------------------------------------------------
+int csrBufferWrite(      CSR_Buffer* pBuffer,
+                   const void*       pData,
+                         size_t      length,
+                         size_t      count)
+{
+    void* pNewData;
+
+    // validate the inputs
+    if (!pBuffer || !pData)
+        return 0;
+
+    // nothing to copy?
+    if (!length)
+        return 1;
+
+    // extend the buffer memory to include the new data
+    pNewData = csrMemoryAlloc(pBuffer->m_pData, pBuffer->m_Length + (length * count), 1);
+
+    // succeeded?
+    if (!pNewData)
+        return 0;
+
+    // update the buffer
+    pBuffer->m_pData   = pNewData;
+    pBuffer->m_Length += (length * count);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 // File functions
 //---------------------------------------------------------------------------
 size_t csrFileSize(const char* pFileName)
@@ -339,5 +368,30 @@ CSR_Buffer* csrFileOpen(const char* pFileName)
     }
 
     return pBuffer;
+}
+//---------------------------------------------------------------------------
+int csrFileSave(const char* pFileName, const CSR_Buffer* pBuffer)
+{
+    FILE*  pFile;
+    size_t bytesWritten;
+
+    // validate the inputs
+    if (!pFileName || !pBuffer)
+        return 0;
+
+    // open the file
+    pFile = fopen(pFileName, "wb");
+
+    // succeeded?
+    if (!pFile)
+        return 0;
+
+    // write the buffer content
+    bytesWritten = fwrite(pBuffer->m_pData, pBuffer->m_Length, 1, pFile);
+
+    // close the file
+    fclose(pFile);
+
+    return (bytesWritten == pBuffer->m_Length);
 }
 //---------------------------------------------------------------------------
