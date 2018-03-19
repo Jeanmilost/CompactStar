@@ -253,18 +253,24 @@ int csrBufferWrite(      CSR_Buffer* pBuffer,
                          size_t      length,
                          size_t      count)
 {
-    void* pNewData;
+    size_t offset;
+    size_t lengthToWrite;
+    void*  pNewData;
 
     // validate the inputs
     if (!pBuffer || !pData)
         return 0;
 
     // nothing to copy?
-    if (!length)
+    if (!length || !count)
         return 1;
 
+    // get the current offset to write from
+    offset        = pBuffer->m_Length;
+    lengthToWrite = (length * count);
+
     // extend the buffer memory to include the new data
-    pNewData = csrMemoryAlloc(pBuffer->m_pData, pBuffer->m_Length + (length * count), 1);
+    pNewData = csrMemoryAlloc(pBuffer->m_pData, pBuffer->m_Length + lengthToWrite, 1);
 
     // succeeded?
     if (!pNewData)
@@ -272,7 +278,10 @@ int csrBufferWrite(      CSR_Buffer* pBuffer,
 
     // update the buffer
     pBuffer->m_pData   = pNewData;
-    pBuffer->m_Length += (length * count);
+    pBuffer->m_Length += lengthToWrite;
+
+    // write the data
+    memcpy(((unsigned char*)pBuffer->m_pData) + offset, pData, lengthToWrite);
 
     return 1;
 }

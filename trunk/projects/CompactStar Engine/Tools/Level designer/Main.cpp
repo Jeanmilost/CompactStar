@@ -327,6 +327,11 @@ void TMainForm::InitScene()
 
     csrSceneDeleteFrom(m_pScene, pSphere);
 
+    CSR_Buffer* pBuffer = csrBufferCreate();
+    csrSerializerWriteVB(&pBox->m_pVB[0], pBuffer);
+    csrFileSave("Test.bin", pBuffer);
+    csrBufferRelease(pBuffer);
+
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);

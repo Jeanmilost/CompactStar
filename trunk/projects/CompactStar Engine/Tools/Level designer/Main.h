@@ -24,6 +24,7 @@
 #include "CSR_Collision.h"
 #include "CSR_Renderer.h"
 #include "CSR_Shader.h"
+#include "CSR_Serializer.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
