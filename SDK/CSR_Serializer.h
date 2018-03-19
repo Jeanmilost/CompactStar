@@ -25,14 +25,34 @@
 #include "CSR_Renderer.h"
 
 //---------------------------------------------------------------------------
+// Enumerators
+//---------------------------------------------------------------------------
+
+/**
+* File header type
+*/
+typedef enum
+{
+    CSR_HT_VertexFormat = 0,
+    CSR_HT_VertexCulling,
+    CSR_HT_VertexMaterial
+} CSR_EHeaderType;
+
+//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
-/*
+/**
+* Scene file header
+*/
 typedef struct
 {
-} CSR_VertexBufferHeader;
-*/
+    CSR_EHeaderType m_HeaderType;
+    unsigned        m_Length;
+    unsigned        m_Version;
+    unsigned        m_DataCount;
+    unsigned        m_DataLength;
+} CSR_SceneFileHeader;
 
 #ifdef __cplusplus
     extern "C"
