@@ -19,77 +19,281 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-#define M_CSR_Scene_File_Header_Version 1
+#define M_CSR_Signature_Material       "matl"
+#define M_CSR_Signature_Texture        "txtr"
+#define M_CSR_Signature_BumpMap        "bump"
+#define M_CSR_Signature_Vertex_Format  "vtfo"
+#define M_CSR_Signature_Vertex_Culling "vtcl"
+#define M_CSR_Signature_Vertex_Buffer  "vbuf"
+#define M_CSR_Signature_Mesh           "mesh"
 //---------------------------------------------------------------------------
 // Write functions
 //---------------------------------------------------------------------------
+int csrSerializerWriteHeader(const char* pID, size_t dataSize, CSR_Buffer* pBuffer)
+{
+    CSR_SceneFileHeader header;
+
+    // validate the input
+    if (!pID)
+        return 0;
+
+    // populate the header to write
+    memcpy(header.m_ID, pID, 4);
+    header.m_HeaderSize = sizeof(CSR_SceneFileHeader);
+    header.m_ChunkSize  = header.m_HeaderSize + dataSize;
+
+    // write the header
+    if (!csrBufferWrite(pBuffer, &header, header.m_HeaderSize, 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteMaterial(const CSR_Material* pMaterial, CSR_Buffer* pBuffer)
+{
+    // validate the input
+    if (!pMaterial || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Material, sizeof(CSR_Material), pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pMaterial, sizeof(CSR_Material), 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteTexture(const CSR_Buffer* pTexture, CSR_Buffer* pBuffer)
+{
+    // validate the input
+    if (!pTexture || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Texture, pTexture->m_Length, pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pTexture->m_pData, pTexture->m_Length, 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteBumpMap(const CSR_Buffer* pBumpMap, CSR_Buffer* pBuffer)
+{
+    // validate the input
+    if (!pBumpMap || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_BumpMap, pBumpMap->m_Length, pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pBumpMap->m_pData, pBumpMap->m_Length, 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteVF(const CSR_VertexFormat* pVF, CSR_Buffer* pBuffer)
+{
+    // validate the input
+    if (!pVF || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Vertex_Format, sizeof(CSR_VertexFormat), pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pVF, sizeof(CSR_VertexFormat), 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteVC(const CSR_VertexCulling* pVC, CSR_Buffer* pBuffer)
+{
+    // validate the input
+    if (!pVC || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Vertex_Culling, sizeof(CSR_VertexCulling), pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pVC, sizeof(CSR_VertexCulling), 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 int csrSerializerWriteVB(const CSR_VertexBuffer* pVB, CSR_Buffer* pBuffer)
 {
-    size_t              i;
-    unsigned            length;
-    CSR_SceneFileHeader header;
+    unsigned    dataSize;
+    CSR_Buffer* pDataBuffer;
 
     // validate the input
     if (!pVB || !pBuffer)
         return 0;
 
-    // populate the common header data
-    header.m_Length  = sizeof(CSR_SceneFileHeader);
-    header.m_Version = M_CSR_Scene_File_Header_Version;
+    // initialize the local data buffer
+    pDataBuffer = csrBufferCreate();
 
-    // populate the vertex format header to write
-    header.m_HeaderType = CSR_HT_VertexFormat;
-    header.m_DataCount  = 1;
-    header.m_DataLength = sizeof(CSR_VertexFormat);
-
-    // write the vertex format header
-    if (!csrBufferWrite(pBuffer, &header, header.m_Length, 1))
+    // write the vertex format
+    if (!csrSerializerWriteVF(&pVB->m_Format, pDataBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
 
-    // write the vertex format content
-    if (!csrBufferWrite(pBuffer, &pVB->m_Format, header.m_DataLength, header.m_DataCount))
+    // write the vertex culling
+    if (!csrSerializerWriteVC(&pVB->m_Culling, pDataBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
 
-    // populate the vertex culling header to write
-    header.m_HeaderType = CSR_HT_VertexCulling;
-    header.m_DataCount  = 1;
-    header.m_DataLength = sizeof(CSR_VertexCulling);
-
-    // write the vertex format header
-    if (!csrBufferWrite(pBuffer, &header, header.m_Length, 1))
+    // write the vertex material
+    if (!csrSerializerWriteMaterial(&pVB->m_Material, pDataBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
 
-    // write the vertex culling content
-    if (!csrBufferWrite(pBuffer, &pVB->m_Culling, header.m_DataLength, header.m_DataCount))
+    // calculate the animation time data size
+    dataSize = sizeof(double);
+
+    // write the animation time data size
+    if (!csrBufferWrite(pDataBuffer, &dataSize, sizeof(unsigned), 1))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
-
-    // populate the vertex material header to write
-    header.m_HeaderType = CSR_HT_VertexMaterial;
-    header.m_DataCount  = 1;
-    header.m_DataLength = sizeof(CSR_Material);
-
-    // write the vertex format header
-    if (!csrBufferWrite(pBuffer, &header, header.m_Length, 1))
-        return 0;
-
-    // write the vertex material content
-    if (!csrBufferWrite(pBuffer, &pVB->m_Material, header.m_DataLength, header.m_DataCount))
-        return 0;
+    }
 
     // write the animation time
-    if (!csrBufferWrite(pBuffer, &pVB->m_Time, sizeof(double), 1))
+    if (!csrBufferWrite(pDataBuffer, &pVB->m_Time, sizeof(double), 1))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
 
-    // get the vertex buffer length
-    length = (unsigned)pVB->m_Count * sizeof(float);
+    // calculate the vertex buffer data size
+    dataSize = (unsigned)pVB->m_Count * sizeof(float);
 
     // write the vertex data size
-    if (!csrBufferWrite(pBuffer, &length, sizeof(unsigned), 1))
+    if (!csrBufferWrite(pDataBuffer, &dataSize, sizeof(unsigned), 1))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
 
     // write the vertex data content
-    if (!csrBufferWrite(pBuffer, pVB->m_pData, sizeof(float), pVB->m_Count))
+    if (!csrBufferWrite(pDataBuffer, pVB->m_pData, sizeof(float), pVB->m_Count))
+    {
+        csrBufferRelease(pDataBuffer);
         return 0;
+    }
+
+    // write the vertex buffer header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Vertex_Buffer, pDataBuffer->m_Length, pBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // write the vertex buffer data content
+    if (!csrBufferWrite(pBuffer, pDataBuffer->m_pData, pDataBuffer->m_Length, 1))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // release the local data buffer
+    csrBufferRelease(pDataBuffer);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteMesh(const CSR_Mesh*   pMesh,
+                           const CSR_Buffer* pTexture,
+                           const CSR_Buffer* pBumpMap,
+                                 CSR_Buffer* pBuffer)
+{
+    size_t      i;
+    unsigned    dataSize;
+    CSR_Buffer* pDataBuffer;
+
+    // validate the input
+    if (!pMesh || !pBuffer)
+        return 0;
+
+    // initialize the local data buffer
+    pDataBuffer = csrBufferCreate();
+
+    // calculate the animation time data size
+    dataSize = sizeof(double);
+
+    // write all the vertex buffers the mesh contains
+    for (i = 0; i < pMesh->m_Count; ++i)
+        if (!csrSerializerWriteVB(&pMesh->m_pVB[i], pDataBuffer))
+        {
+            csrBufferRelease(pDataBuffer);
+            return 0;
+        }
+
+    // write the animation time data size
+    if (!csrBufferWrite(pDataBuffer, &dataSize, sizeof(unsigned), 1))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // write the animation time
+    if (!csrBufferWrite(pDataBuffer, &pMesh->m_Time, sizeof(double), 1))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // write the mesh texture
+    if (pTexture)
+        if (!csrSerializerWriteTexture(pTexture, pBuffer))
+        {
+            csrBufferRelease(pDataBuffer);
+            return 0;
+        }
+
+    // write the mesh bumpmap texture
+    if (pBumpMap)
+        if (!csrSerializerWriteBumpMap(pBumpMap, pBuffer))
+        {
+            csrBufferRelease(pDataBuffer);
+            return 0;
+        }
+
+    // write the mesh header
+    if (!csrSerializerWriteHeader(M_CSR_Signature_Mesh, pDataBuffer->m_Length, pBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // write mesh data content
+    if (!csrBufferWrite(pBuffer, pDataBuffer->m_pData, pDataBuffer->m_Length, 1))
+    {
+        csrBufferRelease(pDataBuffer);
+        return 0;
+    }
+
+    // release the local data buffer
+    csrBufferRelease(pDataBuffer);
 
     return 1;
 }

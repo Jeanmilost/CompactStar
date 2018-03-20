@@ -25,20 +25,6 @@
 #include "CSR_Renderer.h"
 
 //---------------------------------------------------------------------------
-// Enumerators
-//---------------------------------------------------------------------------
-
-/**
-* File header type
-*/
-typedef enum
-{
-    CSR_HT_VertexFormat = 0,
-    CSR_HT_VertexCulling,
-    CSR_HT_VertexMaterial
-} CSR_EHeaderType;
-
-//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
@@ -47,11 +33,9 @@ typedef enum
 */
 typedef struct
 {
-    CSR_EHeaderType m_HeaderType;
-    unsigned        m_Length;
-    unsigned        m_Version;
-    unsigned        m_DataCount;
-    unsigned        m_DataLength;
+    char     m_ID[4];      // chunk identifier
+    unsigned m_HeaderSize; // size of the header, in bytes
+    unsigned m_ChunkSize;  // size of the chunk (i.e. header + content), in bytes
 } CSR_SceneFileHeader;
 
 #ifdef __cplusplus
@@ -63,12 +47,73 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
+        * Writes a header in the buffer
+        *@param pID - header identifier, must always be a string containing 4 chars
+        *@param dataSize - size of data the chunk will contain, in bytes
+        *@param[in, out] pBuffer - buffer to write in
+        */
+        int csrSerializerWriteHeader(const char* pID, size_t dataSize, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a material inside a buffer
+        *@param pMaterial - material to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteMaterial(const CSR_Material* pMaterial, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a texture inside a buffer
+        *@param pTexture - texture to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteTexture(const CSR_Buffer* pTexture, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a bumpmap inside a buffer
+        *@param pBumpMap - bumpmap texture to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteBumpMap(const CSR_Buffer* pBumpMap, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a vertex format inside a buffer
+        *@param pVF - vertex format to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteVF(const CSR_VertexFormat* pVF, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a vertex culling inside a buffer
+        *@param pVC - vertex culling to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteVC(const CSR_VertexCulling* pVC, CSR_Buffer* pBuffer);
+
+        /**
         * Writes a vertex buffer inside a buffer
         *@param pVB - vertex buffer to write
         *@param[in, out] pBuffer - buffer to write in
         *@return 1 on success, otherwise 0
         */
         int csrSerializerWriteVB(const CSR_VertexBuffer* pVB, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a mesh inside a buffer
+        *@param pMesh - mesh to write
+        *@param pTexture - texture belonging to mesh, if 0 no texture will be saved
+        *@param pBumpMap - bumpmap texture belonging to mesh, if 0 no bumpmap texture will be saved
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteMesh(const CSR_Mesh*   pMesh,
+                                   const CSR_Buffer* pTexture,
+                                   const CSR_Buffer* pBumpMap,
+                                         CSR_Buffer* pBuffer);
 
 #ifdef __cplusplus
     }
