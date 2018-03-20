@@ -328,7 +328,7 @@ void TMainForm::InitScene()
     csrSceneDeleteFrom(m_pScene, pSphere);
 
     CSR_Buffer* pBuffer = csrBufferCreate();
-    csrSerializerWriteVB(&pBox->m_pVB[0], pBuffer);
+    csrSerializerWriteMesh(pBox, 0, 0, pBuffer);
     csrFileSave("Test.bin", pBuffer);
     csrBufferRelease(pBuffer);
 
