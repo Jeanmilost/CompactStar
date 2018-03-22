@@ -25,6 +25,41 @@
 #include "CSR_Renderer.h"
 
 //---------------------------------------------------------------------------
+// Enumerators
+//---------------------------------------------------------------------------
+
+/**
+* Global header options
+*/
+typedef enum
+{
+    CSR_HO_None = 0x0,
+} CSR_EHeaderOptions;
+
+/**
+* Scene file header options
+*/
+typedef enum
+{
+    CSR_SO_None            = 0x0,
+    CSR_SO_ModelType_Mesh  = 0x1,
+    CSR_SO_ModelType_Model = 0x2,
+    CSR_SO_ModelType_MDL   = 0x4,
+    CSR_SO_DoGenerateAABB  = 0x8,
+    CSR_SO_Transparent     = 0x10
+} CSR_ESceneItemOptions;
+
+/**
+* Scene file data type
+*/
+typedef enum
+{
+    CSR_DT_Unknown = 0,
+    CSR_DT_Vertices,
+    CSR_DT_TimeStamp
+} CSR_EDataType;
+
+//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
@@ -80,6 +115,31 @@ typedef int (*CSR_fOnGetBumpMap)(void* pModel, size_t index, CSR_Buffer* pBuffer
                                            size_t      dataSize,
                                            unsigned    options,
                                            CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a data inside a buffer
+        *@param pData - data to write
+        *@param type - data type
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteData(const CSR_Buffer* pData, CSR_EDataType type, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a color inside a buffer
+        *@param pColor - color to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteColor(const CSR_Color* pColor, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a matrix inside a buffer
+        *@param pMatrix - matrix to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteMatrix(const CSR_Matrix4* pMatrix, CSR_Buffer* pBuffer);
 
         /**
         * Writes a material inside a buffer
@@ -176,6 +236,50 @@ typedef int (*CSR_fOnGetBumpMap)(void* pModel, size_t index, CSR_Buffer* pBuffer
                                         CSR_Buffer*       pBuffer,
                                   const CSR_fOnGetTexture fOnGetTexture,
                                   const CSR_fOnGetBumpMap fOnGetBumpMap);
+
+        /**
+        * Writes a matrix item inside a buffer
+        *@param pMatrixItem - matrix item to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteMatrixItem(const CSR_MatrixItem* pMatrixItem, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a matrix list inside a buffer
+        *@param pMatrixList - matrix list to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteMatrixList(const CSR_MatrixList* pMatrixList, CSR_Buffer* pBuffer);
+
+        /**
+        * Writes a scene item inside a buffer
+        *@param pSceneItem - scene item to write
+        *@param transparent - if 1, the scene item is transparent
+        *@param[in, out] pBuffer - buffer to write in
+        *@param fOnGetTexture - get texture callback to use, if 0 no texture will be saved
+        *@param fOnGetBumpMap - get bumpmap callback to use, if 0 no bumpmap will be saved
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteSceneItem(const CSR_SceneItem*    pSceneItem,
+                                              int               transparent,
+                                              CSR_Buffer*       pBuffer,
+                                        const CSR_fOnGetTexture fOnGetTexture,
+                                        const CSR_fOnGetBumpMap fOnGetBumpMap);
+
+        /**
+        * Writes a scene inside a buffer
+        *@param pScene - scene to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@param fOnGetTexture - get texture callback to use, if 0 no texture will be saved
+        *@param fOnGetBumpMap - get bumpmap callback to use, if 0 no bumpmap will be saved
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteScene(const CSR_Scene*        pScene,
+                                          CSR_Buffer*       pBuffer,
+                                    const CSR_fOnGetTexture fOnGetTexture,
+                                    const CSR_fOnGetBumpMap fOnGetBumpMap);
 
 #ifdef __cplusplus
     }

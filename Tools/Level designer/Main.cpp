@@ -357,6 +357,11 @@ void TMainForm::InitScene()
     csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     csrSceneAddMesh(m_pScene, pBox, 0, 1);
 
+    CSR_Buffer* pBuffer = csrBufferCreate();
+    csrSerializerWriteScene(m_pScene, pBuffer, 0, 0);//OnGetTextureCallback, OnGetBumpMapCallback);
+    csrFileSave("Scene1.bin", pBuffer);
+    csrBufferRelease(pBuffer);
+
     csrSceneDeleteFrom(m_pScene, pSphere);
 
     CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\player.mdl",
