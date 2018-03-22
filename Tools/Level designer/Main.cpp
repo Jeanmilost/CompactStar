@@ -58,8 +58,10 @@ TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
-    m_pCurrentShader(NULL),
     m_pScene(NULL),
+    m_pCurrentShader(NULL),
+    m_pLoadingModel(NULL),
+    m_pLoadingTexture(NULL),
     m_PreviousTime(0),
     m_fViewWndProc_Backup(NULL)
 {
@@ -250,6 +252,36 @@ CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType ty
     return pMainForm->OnGetShader(pModel, type);
 }
 //------------------------------------------------------------------------------
+void TMainForm::OnTextureReadCallback(size_t index, const CSR_PixelBuffer* pPixelBuffer)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnTextureRead(index, pPixelBuffer);
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnGetTextureCallback(void* pModel, size_t index, CSR_Buffer* pBuffer)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetTexture(pModel, index, pBuffer);
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnGetBumpMapCallback(void* pModel, size_t index, CSR_Buffer* pBuffer)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetBumpMap(pModel, index, pBuffer);
+}
+//------------------------------------------------------------------------------
 void TMainForm::InitScene()
 {
     // create a scene
@@ -327,10 +359,35 @@ void TMainForm::InitScene()
 
     csrSceneDeleteFrom(m_pScene, pSphere);
 
-    CSR_Buffer* pBuffer = csrBufferCreate();
-    csrSerializerWriteMesh(pBox, 0, 0, pBuffer);
-    csrFileSave("Test.bin", pBuffer);
-    csrBufferRelease(pBuffer);
+    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\player.mdl",
+                               0,
+                               0,
+                               0,
+                               0,
+                               0,
+                               OnTextureReadCallback);
+
+    m_pLoadingModel = pMDL;
+
+    try
+    {
+        CSR_Buffer* pBuffer = csrBufferCreate();
+        csrSerializerWriteMDL(pMDL, pBuffer, OnGetTextureCallback, OnGetBumpMapCallback);
+        csrFileSave("Test.bin", pBuffer);
+        csrBufferRelease(pBuffer);
+    }
+    __finally
+    {
+        m_pLoadingModel = NULL;
+
+        if (m_pLoadingTexture)
+        {
+            csrBufferRelease(m_pLoadingTexture);
+            m_pLoadingTexture = NULL;
+        }
+    }
+
+    csrMDLRelease(pMDL);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -476,6 +533,36 @@ void TMainForm::OnDrawScene(bool resize)
 CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return m_pCurrentShader;
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnTextureRead(size_t index, const CSR_PixelBuffer* pPixelBuffer)
+{
+    // FIXME
+    if (m_pLoadingTexture)
+        throw "Too many textures loaded in this demo!";
+
+    // FIXME
+    m_pLoadingTexture = csrBufferCreate();
+    m_pLoadingTexture->m_pData = malloc(pPixelBuffer->m_DataLength);
+    std::memcpy(m_pLoadingTexture->m_pData, pPixelBuffer->m_pData, pPixelBuffer->m_DataLength);
+    m_pLoadingTexture->m_Length = pPixelBuffer->m_DataLength;
+}
+//---------------------------------------------------------------------------
+int TMainForm::OnGetTexture(void* pModel, size_t index, CSR_Buffer* pBuffer)
+{
+    if (pModel != m_pLoadingModel)
+        return 0;
+
+    pBuffer->m_pData = malloc(m_pLoadingTexture->m_Length);
+    std::memcpy(pBuffer->m_pData, m_pLoadingTexture->m_pData, m_pLoadingTexture->m_Length);
+    pBuffer->m_Length = m_pLoadingTexture->m_Length;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int TMainForm::OnGetBumpMap(void* pModel, size_t index, CSR_Buffer* pBuffer)
+{
+    return 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
