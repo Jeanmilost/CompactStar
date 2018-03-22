@@ -94,6 +94,31 @@ class TMainForm : public TForm
         */
         static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
 
+        /**
+        * Called when a texture was read in a model
+        *@param index - texture index in the model
+        *@param pPixelBuffer - pixel buffer containing the read texture
+        */
+        static void OnTextureReadCallback(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+
+        /**
+        * Called when a texture should be serialized
+        *@param pModel - model at which the texture belongs
+        *@param index - texture index in the model
+        *@param[in, out] pBuffer - buffer containing the texture to write
+        *@return 1 if a texture is available to be written, otherwise 0
+        */
+        static int OnGetTextureCallback(void* pModel, size_t index, CSR_Buffer* pBuffer);
+
+        /**
+        * Called when a bumpmap should be serialized
+        *@param pModel - model at which the bumpmap belongs
+        *@param index - bumpmap index in the model
+        *@param[in, out] pBuffer - buffer containing the bumpmap to write
+        *@return 1 if a bumpmap is available to be written, otherwise 0
+        */
+        static int OnGetBumpMapCallback(void* pModel, size_t index, CSR_Buffer* pBuffer);
+
     private:
         typedef std::vector<CSR_Shader*> IShaders;
 
@@ -107,6 +132,8 @@ class TMainForm : public TForm
         CSR_SceneContext                    m_SceneContext;
         IShaders                            m_Shaders;
         CSR_Shader*                         m_pCurrentShader;
+        void*                               m_pLoadingModel;
+        CSR_Buffer*                         m_pLoadingTexture;
         CSR_Matrix4                         m_ModelMatrix;
         unsigned __int64                    m_PreviousTime;
         TWndMethod                          m_fViewWndProc_Backup;
@@ -146,6 +173,31 @@ class TMainForm : public TForm
         *@note The model will not be drawn if no shader is returned
         */
         CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+
+        /**
+        * Called when a texture was read in a model
+        *@param index - texture index in the model
+        *@param pPixelBuffer - pixel buffer containing the read texture
+        */
+        void OnTextureRead(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+
+        /**
+        * Called when a texture should be serialized
+        *@param pModel - model at which the texture belongs
+        *@param index - texture index in the model
+        *@param[in, out] pBuffer - buffer containing the texture to write
+        *@return 1 if a texture is available to be written, otherwise 0
+        */
+        int OnGetTexture(void* pModel, size_t index, CSR_Buffer* pBuffer);
+
+        /**
+        * Called when a bumpmap should be serialized
+        *@param pModel - model at which the bumpmap belongs
+        *@param index - bumpmap index in the model
+        *@param[in, out] pBuffer - buffer containing the bumpmap to write
+        *@return 1 if a bumpmap is available to be written, otherwise 0
+        */
+        int OnGetBumpMap(void* pModel, size_t index, CSR_Buffer* pBuffer);
 
         /**
         * Called while application is idle
