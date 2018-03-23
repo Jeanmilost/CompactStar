@@ -162,7 +162,7 @@ typedef void (*CSR_fOnDetectCollision)(const CSR_Mesh*     pMesh,
                                              CSR_Matrix4*  pMatrix);
 
 //---------------------------------------------------------------------------
-// Structures implementations
+// Implementation
 //---------------------------------------------------------------------------
 
 /**

@@ -252,7 +252,7 @@ CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType ty
     return pMainForm->OnGetShader(pModel, type);
 }
 //------------------------------------------------------------------------------
-void TMainForm::OnTextureReadCallback(size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -262,24 +262,24 @@ void TMainForm::OnTextureReadCallback(size_t index, const CSR_PixelBuffer* pPixe
     pMainForm->OnTextureRead(index, pPixelBuffer);
 }
 //------------------------------------------------------------------------------
-int TMainForm::OnGetTextureCallback(void* pModel, size_t index, CSR_Buffer* pBuffer)
+int TMainForm::OnGetTextureIndexCallback(const void* pModel, size_t index, int bumpMap)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
     if (!pMainForm)
         return 0;
 
-    return pMainForm->OnGetTexture(pModel, index, pBuffer);
+    return pMainForm->OnGetTextureIndex(pModel, index, bumpMap);
 }
 //------------------------------------------------------------------------------
-int TMainForm::OnGetBumpMapCallback(void* pModel, size_t index, CSR_Buffer* pBuffer)
+int TMainForm::OnGetShaderIndexCallback(const void* pModel)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
     if (!pMainForm)
         return 0;
 
-    return pMainForm->OnGetBumpMap(pModel, index, pBuffer);
+    return pMainForm->OnGetShaderIndex(pModel);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene()
@@ -357,8 +357,12 @@ void TMainForm::InitScene()
     csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     csrSceneAddMesh(m_pScene, pBox, 0, 1);
 
+    CSR_WriteContext writeContext;
+    writeContext.m_fOnGetTextureIndex = OnGetTextureIndexCallback;
+    writeContext.m_fOnGetShaderIndex  = OnGetShaderIndexCallback;
+
     CSR_Buffer* pBuffer = csrBufferCreate();
-    csrSerializerWriteScene(m_pScene, pBuffer, 0, 0);//OnGetTextureCallback, OnGetBumpMapCallback);
+    csrSerializerWriteScene(&writeContext, m_pScene, pBuffer);
     csrFileSave("Scene1.bin", pBuffer);
     csrBufferRelease(pBuffer);
 
@@ -377,7 +381,7 @@ void TMainForm::InitScene()
     try
     {
         CSR_Buffer* pBuffer = csrBufferCreate();
-        csrSerializerWriteMDL(pMDL, pBuffer, OnGetTextureCallback, OnGetBumpMapCallback);
+        csrSerializerWriteMDL(&writeContext, pMDL, pBuffer);
         csrFileSave("Test.bin", pBuffer);
         csrBufferRelease(pBuffer);
     }
@@ -540,7 +544,7 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
     return m_pCurrentShader;
 }
 //---------------------------------------------------------------------------
-void TMainForm::OnTextureRead(size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
 {
     // FIXME
     if (m_pLoadingTexture)
@@ -553,21 +557,23 @@ void TMainForm::OnTextureRead(size_t index, const CSR_PixelBuffer* pPixelBuffer)
     m_pLoadingTexture->m_Length = pPixelBuffer->m_DataLength;
 }
 //---------------------------------------------------------------------------
-int TMainForm::OnGetTexture(void* pModel, size_t index, CSR_Buffer* pBuffer)
+int TMainForm::OnGetTextureIndex(const void* pModel, size_t index, int bumpMap)
 {
+    if (bumpMap)
+        return -1;
+
     if (pModel != m_pLoadingModel)
-        return 0;
+        return -1;
 
-    pBuffer->m_pData = malloc(m_pLoadingTexture->m_Length);
-    std::memcpy(pBuffer->m_pData, m_pLoadingTexture->m_pData, m_pLoadingTexture->m_Length);
-    pBuffer->m_Length = m_pLoadingTexture->m_Length;
-
-    return 1;
+    return 254;
 }
 //---------------------------------------------------------------------------
-int TMainForm::OnGetBumpMap(void* pModel, size_t index, CSR_Buffer* pBuffer)
+int TMainForm::OnGetShaderIndex(const void* pModel)
 {
-    return 0;
+    if (pModel != m_pLoadingModel)
+        return -1;
+
+    return 254;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
