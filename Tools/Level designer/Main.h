@@ -99,25 +99,23 @@ class TMainForm : public TForm
         *@param index - texture index in the model
         *@param pPixelBuffer - pixel buffer containing the read texture
         */
-        static void OnTextureReadCallback(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 
         /**
-        * Called when a texture should be serialized
-        *@param pModel - model at which the texture belongs
-        *@param index - texture index in the model
-        *@param[in, out] pBuffer - buffer containing the texture to write
-        *@return 1 if a texture is available to be written, otherwise 0
+        * Called when a model should receive a texture index to save
+        *@param pModel - model for which the texture index should be get
+        *@param index - model texture index, in case the model contains several textures
+        *@param bumpMap - if 1, the needed texture should be a bump map, normal texture if 0
+        *@return texture index from a referenced texture list, if -1 no texture will be linked
         */
-        static int OnGetTextureCallback(void* pModel, size_t index, CSR_Buffer* pBuffer);
+        static int OnGetTextureIndexCallback(const void* pModel, size_t index, int bumpMap);
 
         /**
-        * Called when a bumpmap should be serialized
-        *@param pModel - model at which the bumpmap belongs
-        *@param index - bumpmap index in the model
-        *@param[in, out] pBuffer - buffer containing the bumpmap to write
-        *@return 1 if a bumpmap is available to be written, otherwise 0
+        * Called when a model should receive a shader index to save
+        *@param pModel - model for which the shader index should be get
+        *@return shader index from a referenced shader list, if -1 no shader will be linked
         */
-        static int OnGetBumpMapCallback(void* pModel, size_t index, CSR_Buffer* pBuffer);
+        static int OnGetShaderIndexCallback(const void* pModel);
 
     private:
         typedef std::vector<CSR_Shader*> IShaders;
@@ -179,25 +177,23 @@ class TMainForm : public TForm
         *@param index - texture index in the model
         *@param pPixelBuffer - pixel buffer containing the read texture
         */
-        void OnTextureRead(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
 
         /**
-        * Called when a texture should be serialized
-        *@param pModel - model at which the texture belongs
-        *@param index - texture index in the model
-        *@param[in, out] pBuffer - buffer containing the texture to write
-        *@return 1 if a texture is available to be written, otherwise 0
+        * Called when a model should receive a texture index to save
+        *@param pModel - model for which the texture index should be get
+        *@param index - model texture index, in case the model contains several textures
+        *@param bumpMap - if 1, the needed texture should be a bump map, normal texture if 0
+        *@return texture index from a referenced texture list, if -1 no texture will be linked
         */
-        int OnGetTexture(void* pModel, size_t index, CSR_Buffer* pBuffer);
+        int OnGetTextureIndex(const void* pModel, size_t index, int bumpMap);
 
         /**
-        * Called when a bumpmap should be serialized
-        *@param pModel - model at which the bumpmap belongs
-        *@param index - bumpmap index in the model
-        *@param[in, out] pBuffer - buffer containing the bumpmap to write
-        *@return 1 if a bumpmap is available to be written, otherwise 0
+        * Called when a model should receive a shader index to save
+        *@param pModel - model for which the shader index should be get
+        *@return shader index from a referenced shader list, if -1 no shader will be linked
         */
-        int OnGetBumpMap(void* pModel, size_t index, CSR_Buffer* pBuffer);
+        int OnGetShaderIndex(const void* pModel);
 
         /**
         * Called while application is idle
