@@ -537,11 +537,11 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
         *@return a pixel buffer containing the texture, 0 on error
         *@note The pixel buffer must be released when no longer used, see csrPixelBufferRelease()
         */
-        CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
-                                                 const CSR_Buffer*    pPalette,
-                                                       size_t         width,
-                                                       size_t         height,
-                                                       size_t         index);
+        CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin* pSkin,
+                                                 const CSR_Buffer*  pPalette,
+                                                       size_t       width,
+                                                       size_t       height,
+                                                       size_t       index);
 
         /**
         * Uncompresses a MDL vertex
