@@ -63,6 +63,13 @@ typedef enum
 } CSR_EDataType;
 
 //---------------------------------------------------------------------------
+// Prototypes
+//---------------------------------------------------------------------------
+
+// Write context prototype
+typedef struct CSR_WriteContext CSR_WriteContext;
+
+//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
@@ -76,11 +83,6 @@ typedef struct
     unsigned m_ChunkSize;  // size of the chunk (i.e. header + content), in bytes
     unsigned m_Options;    // chunk options (depend of each chunk)
 } CSR_SceneFileHeader;
-
-/**
-* Write context prototype
-*/
-typedef struct CSR_WriteContext CSR_WriteContext;
 
 //---------------------------------------------------------------------------
 // Callbacks

@@ -2404,11 +2404,11 @@ int csrMDLReadFrameGroup(const CSR_Buffer*        pBuffer,
     return 1;
 }
 //---------------------------------------------------------------------------
-CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin*   pSkin,
-                                         const CSR_Buffer*    pPalette,
-                                               size_t         width,
-                                               size_t         height,
-                                               size_t         index)
+CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin* pSkin,
+                                         const CSR_Buffer*  pPalette,
+                                               size_t       width,
+                                               size_t       height,
+                                               size_t       index)
 {
     size_t           offset;
     size_t           i;

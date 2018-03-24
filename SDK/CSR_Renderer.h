@@ -37,6 +37,13 @@ typedef enum
 } CSR_EModelType;
 
 //---------------------------------------------------------------------------
+// Prototypes
+//---------------------------------------------------------------------------
+
+// Scene context prototype
+typedef struct CSR_SceneContext CSR_SceneContext;
+
+//---------------------------------------------------------------------------
 // Structures
 //---------------------------------------------------------------------------
 
@@ -74,11 +81,6 @@ typedef struct
     CSR_MatrixItem* m_pItem;
     size_t          m_Count;
 } CSR_MatrixList;
-
-/**
-* Scene context prototype
-*/
-typedef struct CSR_SceneContext CSR_SceneContext;
 
 /**
 * Scene item
