@@ -133,6 +133,22 @@ struct CSR_WriteContext
     {
 #endif
         //-------------------------------------------------------------------
+        // Serializer context functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a serializer read context
+        *@param[in, out] pContext - context to initialize
+        */
+        void csrSerializerReadContextInit(CSR_ReadContext* pContext);
+
+        /**
+        * Initializes a serializer write context
+        *@param[in, out] pContext - context to initialize
+        */
+        void csrSerializerWriteContextInit(CSR_WriteContext* pContext);
+
+        //-------------------------------------------------------------------
         // Read functions
         //-------------------------------------------------------------------
 
@@ -141,13 +157,45 @@ struct CSR_WriteContext
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
-        *@param[out] pHeader - header
+        *@param[out] pHeader - the readed header
         *@return 1 on success, otherwise 0
         */
         int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
                                     const CSR_Buffer*          pBuffer,
                                           size_t*              pOffset,
                                           CSR_SceneFileHeader* pHeader);
+
+        /**
+        * Reads a scene item from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param options - scene item options
+        *@param[out] pSceneItem - the readed scene item
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
+                                       const CSR_Buffer*           pBuffer,
+                                             size_t*               pOffset,
+                                             size_t                size,
+                                             CSR_ESceneItemOptions options,
+                                       const CSR_SceneItem*        pSceneItem);
+
+        /**
+        * Reads a scene from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[out] pScene - the readed scene
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadScene(const CSR_ReadContext* pContext,
+                                   const CSR_Buffer*      pBuffer,
+                                         size_t*          pOffset,
+                                         size_t           size,
+                                         CSR_Scene*       pScene);
 
         //-------------------------------------------------------------------
         // Write functions

@@ -508,6 +508,24 @@ CSR_MatrixItem* csrSceneItemDeleteMatrixFrom(CSR_MatrixItem* pItem, size_t index
     return pNewItem;
 }
 //---------------------------------------------------------------------------
+// Scene context functions
+//---------------------------------------------------------------------------
+void csrSceneContextInit(CSR_SceneContext* pContext)
+{
+    // no context to initialize?
+    if (!pContext)
+        return;
+
+    // initialize the context
+    pContext->m_Handle             = 0;
+    pContext->m_fOnSceneBegin      = 0;
+    pContext->m_fOnSceneEnd        = 0;
+    pContext->m_fOnGetShader       = 0;
+    pContext->m_fOnGetModelIndex   = 0;
+    pContext->m_fOnGetMDLIndex     = 0;
+    pContext->m_fOnDetectCollision = 0;
+}
+//---------------------------------------------------------------------------
 // Scene item functions
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneItemCreate(void)

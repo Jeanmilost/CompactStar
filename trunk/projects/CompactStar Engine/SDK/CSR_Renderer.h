@@ -250,6 +250,16 @@ struct CSR_SceneContext
         #endif
 
         //-------------------------------------------------------------------
+        // Scene context functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a scene context
+        *@param[in, out] pContext - context to initialize
+        */
+        void csrSceneContextInit(CSR_SceneContext* pContext);
+
+        //-------------------------------------------------------------------
         // Scene item functions
         //-------------------------------------------------------------------
 
