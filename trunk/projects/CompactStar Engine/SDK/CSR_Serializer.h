@@ -66,6 +66,9 @@ typedef enum
 // Prototypes
 //---------------------------------------------------------------------------
 
+// Read context prototype
+typedef struct CSR_ReadContext CSR_ReadContext;
+
 // Write context prototype
 typedef struct CSR_WriteContext CSR_WriteContext;
 
@@ -109,6 +112,14 @@ typedef int (*CSR_fOnGetShaderIndex)(const void* pModel);
 //---------------------------------------------------------------------------
 
 /**
+* Read context
+*/
+struct CSR_ReadContext
+{
+    int m_Dummy;
+};
+
+/**
 * Write context
 */
 struct CSR_WriteContext
@@ -122,6 +133,23 @@ struct CSR_WriteContext
     {
 #endif
         //-------------------------------------------------------------------
+        // Read functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Reads a header from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param[out] pHeader - header
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
+                                    const CSR_Buffer*          pBuffer,
+                                          size_t*              pOffset,
+                                          CSR_SceneFileHeader* pHeader);
+
+        //-------------------------------------------------------------------
         // Write functions
         //-------------------------------------------------------------------
 
@@ -132,6 +160,7 @@ struct CSR_WriteContext
         *@param dataSize - size of data the chunk will contain, in bytes
         *@param options - header options
         *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
         */
         int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
                                      const char*             pID,

@@ -40,6 +40,21 @@
 #define M_CSR_Signature_Scene_Item     "scit"
 #define M_CSR_Signature_Scene          "scne"
 //---------------------------------------------------------------------------
+// Read functions
+//---------------------------------------------------------------------------
+int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
+                            const CSR_Buffer*          pBuffer,
+                                  size_t*              pOffset,
+                                  CSR_SceneFileHeader* pHeader)
+{
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pHeader)
+        return 0;
+
+    // read the header signature
+    return csrBufferRead(pBuffer, pOffset, sizeof(CSR_SceneFileHeader), 1, pHeader);
+}
+//---------------------------------------------------------------------------
 // Write functions
 //---------------------------------------------------------------------------
 int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
@@ -51,7 +66,7 @@ int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
     CSR_SceneFileHeader header;
 
     // validate the input
-    if (!pContext || !pID)
+    if (!pContext || !pID || !pBuffer)
         return 0;
 
     // populate the header to write
