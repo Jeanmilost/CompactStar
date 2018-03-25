@@ -40,6 +40,29 @@
 #define M_CSR_Signature_Scene_Item     "scit"
 #define M_CSR_Signature_Scene          "scne"
 //---------------------------------------------------------------------------
+// Serializer context functions
+//---------------------------------------------------------------------------
+void csrSerializerReadContextInit(CSR_ReadContext* pContext)
+{
+    // no context to initialize?
+    if (!pContext)
+        return;
+
+    // initialize the context
+    pContext->m_Dummy = 0;
+}
+//---------------------------------------------------------------------------
+void csrSerializerWriteContextInit(CSR_WriteContext* pContext)
+{
+    // no context to initialize?
+    if (!pContext)
+        return;
+
+    // initialize the context
+    pContext->m_fOnGetTextureIndex = 0;
+    pContext->m_fOnGetShaderIndex  = 0;
+}
+//---------------------------------------------------------------------------
 // Read functions
 //---------------------------------------------------------------------------
 int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
@@ -53,6 +76,162 @@ int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
 
     // read the header signature
     return csrBufferRead(pBuffer, pOffset, sizeof(CSR_SceneFileHeader), 1, pHeader);
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
+                               const CSR_Buffer*           pBuffer,
+                                     size_t*               pOffset,
+                                     size_t                size,
+                                     CSR_ESceneItemOptions options,
+                               const CSR_SceneItem*        pSceneItem)
+{
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadScene(const CSR_ReadContext* pContext,
+                           const CSR_Buffer*      pBuffer,
+                                 size_t*          pOffset,
+                                 size_t           size,
+                                 CSR_Scene*       pScene)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pScene)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // FIXME add a protection against infinite loops
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Color, 4))
+        {
+            // read the scene color
+            if (!csrBufferRead(pBuffer, pOffset, sizeof(CSR_Color), 1, &pScene->m_Color))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix, 4))
+        {
+            // read the scene matrix
+            if (!csrBufferRead(pBuffer, pOffset, sizeof(CSR_Matrix4), 1, &pScene->m_Matrix))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Scene_Item, 4))
+        {
+            CSR_SceneItem* pItem;
+            size_t         index;
+
+            // do create a transparent item?
+            if (pHeader->m_Options & CSR_SO_Transparent)
+            {
+                // add a new item to the transparent items
+                pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
+                                                       sizeof(CSR_SceneItem),
+                                                       pScene->m_TransparentItemCount + 1);
+
+                // succeeded?
+                if (!pItem)
+                {
+                    free(pHeader);
+                    return 0;
+                }
+
+                // get the item index
+                index = pScene->m_TransparentItemCount;
+
+                // update the scene
+                pScene->m_pTransparentItem = pItem;
+                ++pScene->m_TransparentItemCount;
+            }
+            else
+            {
+                // add a new item to the normal items
+                pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
+                                                       sizeof(CSR_SceneItem),
+                                                       pScene->m_ItemCount + 1);
+
+                // succeeded?
+                if (!pItem)
+                {
+                    free(pHeader);
+                    return 0;
+                }
+
+                // get the item index
+                index = pScene->m_ItemCount;
+
+                // update the scene
+                pScene->m_pItem = pItem;
+                ++pScene->m_ItemCount;
+            }
+
+            // read the scene item
+            if (!csrSerializerReadSceneItem(pContext,
+                                            pBuffer,
+                                            pOffset,
+                                            pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                            pHeader->m_Options,
+                                           &pScene->m_pItem[index]))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    return 1;
 }
 //---------------------------------------------------------------------------
 // Write functions
