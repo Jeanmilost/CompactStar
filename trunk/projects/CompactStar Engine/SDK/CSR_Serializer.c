@@ -49,7 +49,8 @@ void csrSerializerReadContextInit(CSR_ReadContext* pContext)
         return;
 
     // initialize the context
-    pContext->m_Dummy = 0;
+    pContext->m_fOnSetTextureIndex = 0;
+    pContext->m_fOnSetShaderIndex  = 0;
 }
 //---------------------------------------------------------------------------
 void csrSerializerWriteContextInit(CSR_WriteContext* pContext)
@@ -78,13 +79,474 @@ int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
     return csrBufferRead(pBuffer, pOffset, sizeof(CSR_SceneFileHeader), 1, pHeader);
 }
 //---------------------------------------------------------------------------
+int csrSerializerReadVB(const CSR_ReadContext*      pContext,
+                        const CSR_Buffer*           pBuffer,
+                              size_t*               pOffset,
+                              size_t                size,
+                              CSR_VertexBuffer*     pVB)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pVB)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Vertex_Format, 4))
+        {
+            // read the vertex format
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_VertexFormat),
+                               1,
+                              &pVB->m_Format))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Vertex_Culling, 4))
+        {
+            // read the vertex culling
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_VertexCulling),
+                               1,
+                              &pVB->m_Culling))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Material, 4))
+        {
+            // read the vertex material
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_Material),
+                               1,
+                              &pVB->m_Material))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
+        {
+            // search for data type to read
+            switch (pHeader->m_Options)
+            {
+                case CSR_DT_Vertices:
+                {
+                    size_t dataSize = pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+                    // reserve memory for the vertex data
+                    pVB->m_Count = dataSize / sizeof(float);
+                    pVB->m_pData = malloc(dataSize);
+
+                    // read the vertex data
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       dataSize,
+                                       1,
+                                       pVB->m_pData))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+                }
+
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(double),
+                                       1,
+                                      &pVB->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+            }
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadMesh(const CSR_ReadContext*      pContext,
+                          const CSR_Buffer*           pBuffer,
+                                size_t*               pOffset,
+                                size_t                size,
+                                CSR_Mesh*             pMesh)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pMesh)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Vertex_Buffer, 4))
+        {
+            CSR_VertexBuffer* pVB;
+            size_t            index;
+
+            // add a new vertex buffer to the mesh
+            pVB = (CSR_VertexBuffer*)csrMemoryAlloc(pMesh->m_pVB,
+                                                    sizeof(CSR_VertexBuffer),
+                                                    pMesh->m_Count + 1);
+
+            // succeeded?
+            if (!pVB)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the vertex buffer index
+            index = pMesh->m_Count;
+
+            // update the mesh
+            pMesh->m_pVB = pVB;
+            ++pMesh->m_Count;
+
+            // initialize the vertex buffer
+            csrVertexBufferInit(&pMesh->m_pVB[index]);
+
+            // read the vertex buffer
+            if (!csrSerializerReadVB(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                    &pMesh->m_pVB[index]))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
+        {
+            // search for data type to read
+            switch (pHeader->m_Options)
+            {
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(double),
+                                       1,
+                                      &pMesh->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+
+                case CSR_DT_ShaderIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetShaderIndex)
+                        break;
+
+                    // read the shader index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetShaderIndex(pMesh, index);
+                    break;
+                }
+
+                case CSR_DT_TextureIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the texture index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pMesh, index, 0);
+                    break;
+                }
+
+                case CSR_DT_BumpMapIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the bump map index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pMesh, index, 1);
+                    break;
+                }
+            }
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                                const CSR_Buffer*           pBuffer,
                                      size_t*               pOffset,
                                      size_t                size,
                                      CSR_ESceneItemOptions options,
-                               const CSR_SceneItem*        pSceneItem)
+                                     CSR_SceneItem*        pSceneItem)
 {
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pSceneItem)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Mesh, 4))
+        {
+            // add a new mesh model in the scene item
+            pSceneItem->m_pModel = malloc(sizeof(CSR_Mesh));
+            pSceneItem->m_Type   = CSR_MT_Mesh;
+
+            // succeeded?
+            if (!pSceneItem->m_pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // initialize the mesh content
+            csrMeshInit((CSR_Mesh*)pSceneItem->m_pModel);
+
+            // read the mesh
+            if (!csrSerializerReadMesh(pContext,
+                                       pBuffer,
+                                       pOffset,
+                                       pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                       (CSR_Mesh*)pSceneItem->m_pModel))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            if (options & CSR_SO_DoGenerateAABB)
+            {
+                // create the AABB tree from the mesh
+                pSceneItem->m_pAABBTree = csrAABBTreeFromMesh((CSR_Mesh*)pSceneItem->m_pModel);
+
+                // succeeded?
+                if (!pSceneItem->m_pAABBTree)
+                {
+                    free(pHeader);
+                    return 0;
+                }
+
+                pSceneItem->m_AABBTreeCount = 1;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Model, 4))
+        {
+            int ii = 0;
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_MDL, 4))
+        {
+            int ii = 0;
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_List, 4))
+        {
+            int ii = 0;
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
 }
 //---------------------------------------------------------------------------
 int csrSerializerReadScene(const CSR_ReadContext* pContext,
@@ -106,7 +568,6 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
     // keep the start offset
     start = *pOffset;
 
-    // FIXME add a protection against infinite loops
     // read the file content
     while (*pOffset < start + size)
     {
@@ -203,6 +664,9 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
                 ++pScene->m_ItemCount;
             }
 
+            // initialize the scene item
+            csrSceneItemInit(&pScene->m_pItem[index]);
+
             // read the scene item
             if (!csrSerializerReadSceneItem(pContext,
                                             pBuffer,
@@ -230,6 +694,9 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
             return 0;
         }
     }
+
+    // free the header structure
+    free(pHeader);
 
     return 1;
 }
@@ -261,10 +728,10 @@ int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerWriteData(const CSR_WriteContext* pContext,
-                           const CSR_Buffer*       pData,
-                                 CSR_EDataType     type,
-                                 CSR_Buffer*       pBuffer)
+int csrSerializerWriteData(const CSR_WriteContext*  pContext,
+                           const CSR_Buffer*        pData,
+                                 CSR_ESceneDataType type,
+                                 CSR_Buffer*        pBuffer)
 {
     // validate the input
     if (!pContext || !pData || !pBuffer)
@@ -999,8 +1466,6 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
     switch (pSceneItem->m_Type)
     {
         case CSR_MT_Mesh:
-            options = CSR_SO_ModelType_Mesh;
-
             // write the mesh
             if (!csrSerializerWriteMesh(pContext, (CSR_Mesh*)pSceneItem->m_pModel, pChunkBuffer))
             {
@@ -1011,8 +1476,6 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
             break;
 
         case CSR_MT_Model:
-            options = CSR_SO_ModelType_Model;
-
             // write the model
             if (!csrSerializerWriteModel(pContext, (CSR_Model*)pSceneItem->m_pModel, pChunkBuffer))
             {
@@ -1023,8 +1486,6 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
             break;
 
         case CSR_MT_MDL:
-            options = CSR_SO_ModelType_MDL;
-
             // write the MDL model
             if (!csrSerializerWriteMDL(pContext, (CSR_MDL*)pSceneItem->m_pModel, pChunkBuffer))
             {
@@ -1046,6 +1507,8 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
             csrBufferRelease(pChunkBuffer);
             return 0;
         }
+
+    options = CSR_SO_None;
 
     // set the transparent option if needed
     if (transparent)

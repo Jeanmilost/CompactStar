@@ -401,7 +401,9 @@ void TMainForm::InitScene()
     CSR_ReadContext readContext;
     CSR_Buffer*     pSceneBuffer = csrFileOpen("Scene1.bin");
     size_t          offset       = 0;
-    CSR_Scene       scene;
+    CSR_Scene*      pScene       = csrSceneCreate();
+
+    csrSceneInit(pScene);
 
     CSR_SceneFileHeader* pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
     csrSerializerReadHeader(&readContext, pSceneBuffer, &offset, pHeader);
@@ -410,10 +412,17 @@ void TMainForm::InitScene()
                             pSceneBuffer,
                             &offset,
                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                            &scene);
+                             pScene);
 
     free(pHeader);
     csrBufferRelease(pSceneBuffer);
+
+    pBuffer = csrBufferCreate();
+    csrSerializerWriteScene(&writeContext, pScene, pBuffer);
+    csrFileSave("Scene2.bin", pBuffer);
+    csrBufferRelease(pBuffer);
+
+    csrSceneRelease(pScene);
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
