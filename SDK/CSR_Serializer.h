@@ -37,19 +37,6 @@ typedef enum
 } CSR_EHeaderOptions;
 
 /**
-* Scene file header options
-*/
-typedef enum
-{
-    CSR_SO_None            = 0x0,
-    CSR_SO_ModelType_Mesh  = 0x1,
-    CSR_SO_ModelType_Model = 0x2,
-    CSR_SO_ModelType_MDL   = 0x4,
-    CSR_SO_DoGenerateAABB  = 0x8,
-    CSR_SO_Transparent     = 0x10
-} CSR_ESceneItemOptions;
-
-/**
 * Scene file data type
 */
 typedef enum
@@ -60,7 +47,17 @@ typedef enum
     CSR_DT_ShaderIndex,
     CSR_DT_TextureIndex,
     CSR_DT_BumpMapIndex
-} CSR_EDataType;
+} CSR_ESceneDataType;
+
+/**
+* Scene file header options
+*/
+typedef enum
+{
+    CSR_SO_None           = 0x0,
+    CSR_SO_DoGenerateAABB = 0x1,
+    CSR_SO_Transparent    = 0x2
+} CSR_ESceneItemOptions;
 
 //---------------------------------------------------------------------------
 // Prototypes
@@ -101,11 +98,26 @@ typedef struct
 typedef int (*CSR_fOnGetTextureIndex)(const void* pModel, size_t index, int bumpMap);
 
 /**
+* Called when a texture index should be set to a model
+*@param pModel - model for which the texture index should be set
+*@param index - texture index
+*@param bumpMap - if 1, the texture is a bump map, normal texture if 0
+*/
+typedef void (*CSR_fOnSetTextureIndex)(void* pModel, size_t index, int bumpMap);
+
+/**
 * Called when a model should receive a shader index to save
 *@param pModel - model for which the shader index should be get
 *@return shader index from a referenced shader list, if -1 no shader will be linked
 */
 typedef int (*CSR_fOnGetShaderIndex)(const void* pModel);
+
+/**
+* Called when a shader should be set to a model
+*@param pModel - model for which the shader index should be set
+*@param index - shader index
+*/
+typedef int (*CSR_fOnSetShaderIndex)(void* pModel, size_t index);
 
 //---------------------------------------------------------------------------
 // Implementation
@@ -116,7 +128,8 @@ typedef int (*CSR_fOnGetShaderIndex)(const void* pModel);
 */
 struct CSR_ReadContext
 {
-    int m_Dummy;
+    CSR_fOnSetTextureIndex m_fOnSetTextureIndex;
+    CSR_fOnSetShaderIndex  m_fOnSetShaderIndex;
 };
 
 /**
@@ -157,7 +170,7 @@ struct CSR_WriteContext
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
-        *@param[out] pHeader - the readed header
+        *@param[in, out] pHeader - the header to fill with data
         *@return 1 on success, otherwise 0
         */
         int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
@@ -166,13 +179,43 @@ struct CSR_WriteContext
                                           CSR_SceneFileHeader* pHeader);
 
         /**
+        * Reads a vertex buffer from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pVB - the vertex buffer to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadVB(const CSR_ReadContext*  pContext,
+                                const CSR_Buffer*       pBuffer,
+                                      size_t*           pOffset,
+                                      size_t            size,
+                                      CSR_VertexBuffer* pVB);
+
+        /**
+        * Reads a mesh from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pMesh - the mesh to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadMesh(const CSR_ReadContext*      pContext,
+                                  const CSR_Buffer*           pBuffer,
+                                        size_t*               pOffset,
+                                        size_t                size,
+                                        CSR_Mesh*             pMesh);
+
+        /**
         * Reads a scene item from a buffer
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param size - size of data to read in buffer
         *@param options - scene item options
-        *@param[out] pSceneItem - the readed scene item
+        *@param[in, out] pSceneItem - the scene item to fill with data
         *@return 1 on success, otherwise 0
         */
         int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
@@ -180,7 +223,7 @@ struct CSR_WriteContext
                                              size_t*               pOffset,
                                              size_t                size,
                                              CSR_ESceneItemOptions options,
-                                       const CSR_SceneItem*        pSceneItem);
+                                             CSR_SceneItem*        pSceneItem);
 
         /**
         * Reads a scene from a buffer
@@ -188,7 +231,7 @@ struct CSR_WriteContext
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param size - size of data to read in buffer
-        *@param[out] pScene - the readed scene
+        *@param[in, out] pScene - the scene to fill with data
         *@return 1 on success, otherwise 0
         */
         int csrSerializerReadScene(const CSR_ReadContext* pContext,
@@ -224,10 +267,10 @@ struct CSR_WriteContext
         *@param[in, out] pBuffer - buffer to write in
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerWriteData(const CSR_WriteContext* pContext,
-                                   const CSR_Buffer*       pData,
-                                         CSR_EDataType     type,
-                                         CSR_Buffer*       pBuffer);
+        int csrSerializerWriteData(const CSR_WriteContext*  pContext,
+                                   const CSR_Buffer*        pData,
+                                         CSR_ESceneDataType type,
+                                         CSR_Buffer*        pBuffer);
 
         /**
         * Writes a color inside a buffer
