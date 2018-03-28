@@ -233,11 +233,11 @@ int csrSerializerReadVB(const CSR_ReadContext*      pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerReadMesh(const CSR_ReadContext*      pContext,
-                          const CSR_Buffer*           pBuffer,
-                                size_t*               pOffset,
-                                size_t                size,
-                                CSR_Mesh*             pMesh)
+int csrSerializerReadMesh(const CSR_ReadContext* pContext,
+                          const CSR_Buffer*      pBuffer,
+                                size_t*          pOffset,
+                                size_t           size,
+                                CSR_Mesh*        pMesh)
 {
     size_t               start;
     CSR_SceneFileHeader* pHeader;
@@ -424,6 +424,428 @@ int csrSerializerReadMesh(const CSR_ReadContext*      pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
+int csrSerializerReadModel(const CSR_ReadContext* pContext,
+                           const CSR_Buffer*      pBuffer,
+                                 size_t*          pOffset,
+                                 size_t           size,
+                                 CSR_Model*       pModel)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pModel)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Mesh, 4))
+        {
+            CSR_Mesh* pMesh;
+            size_t    index;
+
+            // add a new mesh to the model
+            pMesh = (CSR_Mesh*)csrMemoryAlloc(pModel->m_pMesh,
+                                              sizeof(CSR_Mesh),
+                                              pModel->m_MeshCount + 1);
+
+            // succeeded?
+            if (!pMesh)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the mesh index
+            index = pModel->m_MeshCount;
+
+            // update the model
+            pModel->m_pMesh = pMesh;
+            ++pModel->m_MeshCount;
+
+            // initialize the mesh
+            csrMeshInit(&pModel->m_pMesh[index]);
+
+            // read the mesh
+            if (!csrSerializerReadMesh(pContext,
+                                       pBuffer,
+                                       pOffset,
+                                       pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                      &pModel->m_pMesh[index]))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
+        {
+            // search for data type to read
+            switch (pHeader->m_Options)
+            {
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(double),
+                                       1,
+                                      &pModel->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+
+                case CSR_DT_ShaderIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetShaderIndex)
+                        break;
+
+                    // read the shader index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetShaderIndex(pModel, index);
+                    break;
+                }
+
+                case CSR_DT_TextureIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the texture index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pModel, index, 0);
+                    break;
+                }
+
+                case CSR_DT_BumpMapIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the bump map index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pModel, index, 1);
+                    break;
+                }
+            }
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadMDL(const CSR_ReadContext* pContext,
+                         const CSR_Buffer*      pBuffer,
+                               size_t*          pOffset,
+                               size_t           size,
+                               CSR_MDL*         pMDL)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pMDL)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext,
+                                     pBuffer,
+                                     pOffset,
+                                     pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Model, 4))
+        {
+            CSR_Model* pModel;
+            size_t     index;
+
+            // add a new model to the MDL
+            pModel = (CSR_Model*)csrMemoryAlloc(pMDL->m_pModel,
+                                                sizeof(CSR_Model),
+                                                pMDL->m_ModelCount + 1);
+
+            // succeeded?
+            if (!pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the model index
+            index = pMDL->m_ModelCount;
+
+            // update the MDL
+            pMDL->m_pModel = pModel;
+            ++pMDL->m_ModelCount;
+
+            // initialize the model
+            csrModelInit(&pMDL->m_pModel[index]);
+
+            // read the model
+            if (!csrSerializerReadModel(pContext,
+                                        pBuffer,
+                                        pOffset,
+                                        pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                       &pMDL->m_pModel[index]))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Model_Anim, 4))
+        {
+            CSR_ModelAnimation* pModelAnim;
+            size_t              index;
+
+            // add a new model animation to the MDL
+            pModelAnim = (CSR_ModelAnimation*)csrMemoryAlloc(pMDL->m_pAnimation,
+                                                             sizeof(CSR_ModelAnimation),
+                                                             pMDL->m_AnimationCount + 1);
+
+            // succeeded?
+            if (!pModelAnim)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the model animation index
+            index = pMDL->m_AnimationCount;
+
+            // update the MDL
+            pMDL->m_pAnimation = pModelAnim;
+            ++pMDL->m_AnimationCount;
+
+            // read the model animation
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_ModelAnimation),
+                               1,
+                              &pMDL->m_pAnimation[index]))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
+        {
+            /*FIXME
+            // search for data type to read
+            switch (pHeader->m_Options)
+            {
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(double),
+                                       1,
+                                      &pModel->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+
+                case CSR_DT_ShaderIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetShaderIndex)
+                        break;
+
+                    // read the shader index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetShaderIndex(pModel, index);
+                    break;
+                }
+
+                case CSR_DT_TextureIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the texture index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pModel, index, 0);
+                    break;
+                }
+
+                case CSR_DT_BumpMapIndex:
+                {
+                    int index;
+
+                    if (!pContext->m_fOnSetTextureIndex)
+                        break;
+
+                    // read the bump map index
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(int),
+                                       1,
+                                      &index))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    pContext->m_fOnSetTextureIndex(pModel, index, 1);
+                    break;
+                }
+            }
+            */
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                                const CSR_Buffer*           pBuffer,
                                      size_t*               pOffset,
@@ -494,6 +916,7 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                 return 0;
             }
 
+            // do generate AABB trees for the mesh?
             if (options & CSR_SO_DoGenerateAABB)
             {
                 // create the AABB tree from the mesh
@@ -514,13 +937,161 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
         else
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Model, 4))
         {
-            int ii = 0;
+            // add a new model in the scene item
+            pSceneItem->m_pModel = malloc(sizeof(CSR_Model));
+            pSceneItem->m_Type   = CSR_MT_Model;
+
+            // succeeded?
+            if (!pSceneItem->m_pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // initialize the model content
+            csrModelInit((CSR_Model*)pSceneItem->m_pModel);
+
+            // read the model
+            if (!csrSerializerReadModel(pContext,
+                                        pBuffer,
+                                        pOffset,
+                                        pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                        (CSR_Model*)pSceneItem->m_pModel))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // do generate AABB trees for the model?
+            if (options & CSR_SO_DoGenerateAABB)
+            {
+                size_t     i;
+                CSR_Model* pModel = (CSR_Model*)pSceneItem->m_pModel;
+
+                pSceneItem->m_AABBTreeCount = 0;
+
+                // iterate through the model meshes for which the AABB tree should be created
+                for (i = 0; i < pModel->m_MeshCount; ++i)
+                {
+                    size_t        treeIndex;
+                    CSR_AABBNode* pTree;
+                    CSR_AABBNode* pMeshTree;
+
+                    // add a new AABB tree in the scene item
+                    pTree = (CSR_AABBNode*)csrMemoryAlloc(pSceneItem->m_pAABBTree,
+                                                          sizeof(CSR_AABBNode),
+                                                          pSceneItem->m_AABBTreeCount + 1);
+
+                    // succeeded?
+                    if (!pTree)
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    // get the tree index to use
+                    treeIndex = pSceneItem->m_AABBTreeCount;
+
+                    // update the scene item content
+                    pSceneItem->m_pAABBTree = pTree;
+                    ++pSceneItem->m_AABBTreeCount;
+
+                    // create the AABB tree from the model mesh
+                    pMeshTree = csrAABBTreeFromMesh(&pModel->m_pMesh[i]);
+
+                    // succeeded?
+                    if (!pMeshTree)
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    // copy the AABB tree content
+                    memcpy(&pSceneItem->m_pAABBTree[treeIndex], pMeshTree, sizeof(CSR_AABBNode));
+                }
+            }
+
             continue;
         }
         else
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_MDL, 4))
         {
-            int ii = 0;
+            // add a new MDL model in the scene item
+            pSceneItem->m_pModel = malloc(sizeof(CSR_MDL));
+            pSceneItem->m_Type   = CSR_MT_MDL;
+
+            // succeeded?
+            if (!pSceneItem->m_pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // initialize the MDL model content
+            csrMDLInit((CSR_MDL*)pSceneItem->m_pModel);
+
+            // read the MDL model
+            if (!csrSerializerReadMDL(pContext,
+                                      pBuffer,
+                                      pOffset,
+                                      pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                      (CSR_MDL*)pSceneItem->m_pModel))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // do generate AABB trees for the model?
+            if (options & CSR_SO_DoGenerateAABB)
+            {
+                size_t     i;
+                size_t     j;
+                CSR_MDL* pMDL = (CSR_MDL*)pSceneItem->m_pModel;
+
+                pSceneItem->m_AABBTreeCount = 0;
+
+                // iterate through the frames for which the AABB tree should be created
+                for (i = 0; i < pMDL->m_ModelCount; ++i)
+                    for (j = 0; j < pMDL->m_pModel[i].m_MeshCount; ++j)
+                    {
+                        size_t        treeIndex;
+                        CSR_AABBNode* pTree;
+                        CSR_AABBNode* pMeshTree;
+
+                        // add a new AABB tree in the scene item
+                        pTree = (CSR_AABBNode*)csrMemoryAlloc(pSceneItem->m_pAABBTree,
+                                                              sizeof(CSR_AABBNode),
+                                                              pSceneItem->m_AABBTreeCount + 1);
+
+                        // succeeded?
+                        if (!pTree)
+                        {
+                            free(pHeader);
+                            return 0;
+                        }
+
+                        // get the tree index to use
+                        treeIndex = pSceneItem->m_AABBTreeCount;
+
+                        // update the scene item content
+                        pSceneItem->m_pAABBTree = pTree;
+                        ++pSceneItem->m_AABBTreeCount;
+
+                        // create the AABB tree from the model mesh
+                        pMeshTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
+
+                        // succeeded?
+                        if (!pMeshTree)
+                        {
+                            free(pHeader);
+                            return 0;
+                        }
+
+                        // copy the AABB tree content
+                        memcpy(&pSceneItem->m_pAABBTree[treeIndex], pMeshTree, sizeof(CSR_AABBNode));
+                    }
+            }
+
             continue;
         }
         else

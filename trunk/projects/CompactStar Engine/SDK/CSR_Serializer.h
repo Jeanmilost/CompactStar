@@ -202,11 +202,26 @@ struct CSR_WriteContext
         *@param[in, out] pMesh - the mesh to fill with data
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerReadMesh(const CSR_ReadContext*      pContext,
-                                  const CSR_Buffer*           pBuffer,
-                                        size_t*               pOffset,
-                                        size_t                size,
-                                        CSR_Mesh*             pMesh);
+        int csrSerializerReadMesh(const CSR_ReadContext* pContext,
+                                  const CSR_Buffer*      pBuffer,
+                                        size_t*          pOffset,
+                                        size_t           size,
+                                        CSR_Mesh*        pMesh);
+
+        /**
+        * Reads a model from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pModel - the model to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadModel(const CSR_ReadContext* pContext,
+                                   const CSR_Buffer*      pBuffer,
+                                         size_t*          pOffset,
+                                         size_t           size,
+                                         CSR_Model*       pModel);
 
         /**
         * Reads a scene item from a buffer
