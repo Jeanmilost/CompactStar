@@ -101,9 +101,10 @@ typedef int (*CSR_fOnGetTextureIndex)(const void* pModel, size_t index, int bump
 * Called when a texture index should be set to a model
 *@param pModel - model for which the texture index should be set
 *@param index - texture index
+*@param modelTexIndex - texture index to set in the model
 *@param bumpMap - if 1, the texture is a bump map, normal texture if 0
 */
-typedef void (*CSR_fOnSetTextureIndex)(void* pModel, size_t index, int bumpMap);
+typedef void (*CSR_fOnSetTextureIndex)(void* pModel, size_t index, size_t modelTexIndex, int bumpMap);
 
 /**
 * Called when a model should receive a shader index to save
@@ -179,6 +180,25 @@ struct CSR_WriteContext
                                           CSR_SceneFileHeader* pHeader);
 
         /**
+        * Reads the dependencies (texture, shader, ...) a model requires
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pModel - model for which the links should be read
+        *@param dataType - dependency data type to read
+        *@param index - model texture index for MDL models, always 0 for other model types
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadModelDependencies(const CSR_ReadContext* pContext,
+                                               const CSR_Buffer*      pBuffer,
+                                                     size_t*          pOffset,
+                                                     size_t           size,
+                                                     void*            pModel,
+                                                     int              dataType,
+                                                     size_t           index);
+
+        /**
         * Reads a vertex buffer from a buffer
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
@@ -222,6 +242,21 @@ struct CSR_WriteContext
                                          size_t*          pOffset,
                                          size_t           size,
                                          CSR_Model*       pModel);
+
+        /**
+        * Reads a matrix list from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pMatrixList - the matrix list to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadMatrixList(const CSR_ReadContext* pContext,
+                                        const CSR_Buffer*      pBuffer,
+                                              size_t*          pOffset,
+                                              size_t           size,
+                                              CSR_MatrixList*  pMatrixList);
 
         /**
         * Reads a scene item from a buffer
@@ -346,7 +381,7 @@ struct CSR_WriteContext
         * Writes the dependencies (texture, shader, ...) a model requires
         *@param pContext - write context, containing the write options
         *@param pModel - model for which the links should be written
-        *@param index - MDL texture index, always 0 for other model types
+        *@param index - model texture index for MDL models, always 0 for other model types
         *@param[in, out] pBuffer - buffer to write in
         *@return 1 on success, otherwise 0
         */
