@@ -79,3 +79,102 @@ void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
     pTextureShader->m_BumpMapID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------
+// Texture item functions
+//---------------------------------------------------------------------------
+CSR_TextureItem* csrTextureItemCreate(void)
+{
+    // create a new texture item
+    CSR_TextureItem* pTI = (CSR_TextureItem*)malloc(sizeof(CSR_TextureItem));
+
+    // succeeded?
+    if (!pTI)
+        return 0;
+
+    // initialize the texture item content
+    csrTextureItemInit(pTI);
+
+    return pTI;
+}
+//---------------------------------------------------------------------------
+void csrTextureItemRelease(CSR_TextureItem* pTI)
+{
+    // no texture item to release?
+    if (!pTI)
+        return;
+
+    // do release the file name?
+    if (pTI->m_pFileName)
+        free(pTI->m_pFileName);
+
+    // do release the texture?
+    if (pTI->m_pTexture)
+        csrPixelBufferRelease(pTI->m_pTexture);
+
+    // do release the texture loaded on the GPU?
+    if (pTI->m_TextureID != M_CSR_Error_Code)
+        glDeleteTextures(1, &pTI->m_TextureID);
+}
+//---------------------------------------------------------------------------
+void csrTextureItemInit(CSR_TextureItem* pTI)
+{
+    // no texture item to initialize?
+    if (!pTI)
+        return;
+
+    // initialize the texture item content
+    pTI->m_pFileName = 0;
+    pTI->m_pTexture  = 0;
+    pTI->m_TextureID = M_CSR_Error_Code;
+}
+//---------------------------------------------------------------------------
+// Texture list functions
+//---------------------------------------------------------------------------
+CSR_TextureList* csrTextureListCreate(void)
+{
+    // create a new texture list
+    CSR_TextureList* pTL = (CSR_TextureList*)malloc(sizeof(CSR_TextureList));
+
+    // succeeded?
+    if (!pTL)
+        return 0;
+
+    // initialize the texture list content
+    csrTextureListInit(pTL);
+
+    return pTL;
+}
+//---------------------------------------------------------------------------
+void csrTextureListRelease(CSR_TextureList* pTL)
+{
+    size_t i;
+
+    // no texture list to release?
+    if (!pTL)
+        return;
+
+    // do free the texture items?
+    if (pTL->m_pItem)
+    {
+        // iterate through texture items to free
+        for (i = 0; i < pTL->m_Count; ++i)
+            csrTextureItemRelease(&pTL->m_pItem[i]);
+
+        // free the texture items
+        free(pTL->m_pItem);
+    }
+
+    // Free the texture list
+    free(pTL);
+}
+//---------------------------------------------------------------------------
+void csrTextureListInit(CSR_TextureList* pTL)
+{
+    // no texture list to initialize?
+    if (!pTL)
+        return;
+
+    // initialize the texture list content
+    pTL->m_pItem = 0;
+    pTL->m_Count = 0;
+}
+//---------------------------------------------------------------------------

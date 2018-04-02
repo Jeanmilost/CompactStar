@@ -180,8 +180,11 @@ class TMainForm : public TForm
         * Called from rasterizer engine when a texture is read
         *@param index - model texture index
         *@param pPixelBuffer - pixel buffer containing the texture
+        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
         */
-        static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        static void OnTextureReadCallback(      std::size_t      index,
+                                          const CSR_PixelBuffer* pPixelBuffer,
+                                                int*             pNoGPU);
 
         /**
         * Called from rasterizer engine when the fragment shader should be applied
@@ -203,8 +206,9 @@ class TMainForm : public TForm
         * Called when a texture is read
         *@param index - model texture index
         *@param pPixelBuffer - pixel buffer containing the texture
+        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
         */
-        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU);
 
         /**
         * Called when the fragment shader should be applied

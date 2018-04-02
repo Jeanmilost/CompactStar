@@ -98,8 +98,11 @@ class TMainForm : public TForm
         * Called when a texture was read in a model
         *@param index - texture index in the model
         *@param pPixelBuffer - pixel buffer containing the read texture
+        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
         */
-        static void OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        static void OnTextureReadCallback(      std::size_t      index,
+                                          const CSR_PixelBuffer* pPixelBuffer,
+                                                int*             pNoGPU);
 
         /**
         * Called when a model should receive a texture index to save
@@ -176,8 +179,9 @@ class TMainForm : public TForm
         * Called when a texture was read in a model
         *@param index - texture index in the model
         *@param pPixelBuffer - pixel buffer containing the read texture
+        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
         */
-        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer);
+        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU);
 
         /**
         * Called when a model should receive a texture index to save

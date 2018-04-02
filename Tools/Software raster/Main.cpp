@@ -446,10 +446,12 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //------------------------------------------------------------------------------
-void TMainForm::OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureReadCallback(      std::size_t      index,
+                                      const CSR_PixelBuffer* pPixelBuffer,
+                                            int*             pNoGPU)
 {
     // redirect the callback to the main form
-    static_cast<TMainForm*>(Application->MainForm)->OnTextureRead(index, pPixelBuffer);
+    static_cast<TMainForm*>(Application->MainForm)->OnTextureRead(index, pPixelBuffer, pNoGPU);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
@@ -515,8 +517,12 @@ void TMainForm::OnDrawScene(bool resize)
     ShowStats();
 }
 //------------------------------------------------------------------------------
-void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU)
 {
+    // don't generate the texture on the GPU side (OpenGL isn't used here)
+    if (pNoGPU)
+        *pNoGPU = 1;
+
     // no pixel buffer?
     if (!pPixelBuffer)
         return;

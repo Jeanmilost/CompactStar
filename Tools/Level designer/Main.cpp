@@ -252,14 +252,16 @@ CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType ty
     return pMainForm->OnGetShader(pModel, type);
 }
 //------------------------------------------------------------------------------
-void TMainForm::OnTextureReadCallback(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureReadCallback(      std::size_t      index,
+                                      const CSR_PixelBuffer* pPixelBuffer,
+                                            int*             pNoGPU)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
     if (!pMainForm)
         return;
 
-    pMainForm->OnTextureRead(index, pPixelBuffer);
+    pMainForm->OnTextureRead(index, pPixelBuffer, pNoGPU);
 }
 //------------------------------------------------------------------------------
 int TMainForm::OnGetTextureIndexCallback(const void* pModel, size_t index, int bumpMap)
@@ -410,9 +412,9 @@ void TMainForm::InitScene()
 
     csrSerializerReadScene(&readContext,
                             pSceneBuffer,
-                            &offset,
-                             pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                             pScene);
+                           &offset,
+                            pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                            pScene);
 
     free(pHeader);
     csrBufferRelease(pSceneBuffer);
@@ -570,7 +572,7 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
     return m_pCurrentShader;
 }
 //---------------------------------------------------------------------------
-void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer)
+void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU)
 {
     // FIXME
     if (m_pLoadingTexture)

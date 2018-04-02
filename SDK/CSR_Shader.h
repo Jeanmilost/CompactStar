@@ -41,6 +41,25 @@ typedef struct
 } CSR_Shader;
 
 /**
+* Shader item
+*/
+typedef struct
+{
+    char*       m_pFileName;
+    char*       m_pContent;
+    CSR_Shader* m_pShader;
+} CSR_ShaderItem;
+
+/**
+* Shader list
+*/
+typedef struct
+{
+    CSR_ShaderItem* m_pItem;
+    size_t          m_Count;
+} CSR_ShaderList;
+
+/**
 * Static buffer, it's a buffer which the content was moved to a shader, i.e. on the GPU side
 */
 typedef struct
@@ -156,6 +175,53 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader, const void* pCust
         *@param pShader - shader to enable, disable any previously enabled shader if 0
         */
         void csrShaderEnable(const CSR_Shader* pShader);
+
+        //-------------------------------------------------------------------
+        // Shader item functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a shader item
+        *@return newly created shader item, 0 on error
+        *@note The shader item must be released when no longer used, see csrShaderItemRelease()
+        */
+        CSR_ShaderItem* csrShaderItemCreate(void);
+
+        /**
+        * Releases a shader item
+        *@param[in, out] pTI - shader item to release
+        *@note Only the item content is released, the item itself is not released
+        */
+        void csrShaderItemRelease(CSR_ShaderItem* pSI);
+
+        /**
+        * Initializes a shader item structure
+        *@param[in, out] pTI - shader item to initialize
+        */
+        void csrShaderItemInit(CSR_ShaderItem* pSI);
+
+        //-------------------------------------------------------------------
+        // Shader list functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a shader list
+        *@return newly created shader list, 0 on error
+        *@note The shader list must be released when no longer used, see csrShaderListRelease()
+        */
+        CSR_ShaderList* csrShaderListCreate(void);
+
+        /**
+        * Releases a shader list
+        *@param[in, out] pTL - shader list to release
+        */
+        void csrShaderListRelease(CSR_ShaderList* pSL);
+
+        /**
+        * Initializes a shader list structure
+        *@param[in, out] pTL - shader list to initialize
+        */
+        void csrShaderListInit(CSR_ShaderList* pSL);
 
         //-------------------------------------------------------------------
         // Static buffer functions

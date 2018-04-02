@@ -39,6 +39,10 @@
 #define M_CSR_Signature_Matrix_List    "matl"
 #define M_CSR_Signature_Scene_Item     "scit"
 #define M_CSR_Signature_Scene          "scne"
+#define M_CSR_Signature_Texture_Item   "txit"
+#define M_CSR_Signature_Texture_List   "txlt"
+#define M_CSR_Signature_Shader_Item    "sdit"
+#define M_CSR_Signature_Shader_List    "sdlt"
 //---------------------------------------------------------------------------
 // Serializer context functions
 //---------------------------------------------------------------------------
@@ -356,17 +360,34 @@ int csrSerializerReadMesh(const CSR_ReadContext* pContext,
         else
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
         {
-            // read the mesh dependencies
-            if (!csrSerializerReadModelDependencies(pContext,
-                                                    pBuffer,
-                                                    pOffset,
-                                                    pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                                    pMesh,
-                                                    pHeader->m_Options,
-                                                    0))
+            // search for data type to read
+            switch (pHeader->m_Options)
             {
-                free(pHeader);
-                return 0;
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer, pOffset, sizeof(double), 1, &pMesh->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+
+                default:
+                    // read the mesh dependencies
+                    if (!csrSerializerReadModelDependencies(pContext,
+                                                            pBuffer,
+                                                            pOffset,
+                                                            pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                                            pMesh,
+                                                            pHeader->m_Options,
+                                                            0))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
             }
 
             continue;
@@ -473,17 +494,34 @@ int csrSerializerReadModel(const CSR_ReadContext* pContext,
         else
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
         {
-            // read the model dependencies
-            if (!csrSerializerReadModelDependencies(pContext,
-                                                    pBuffer,
-                                                    pOffset,
-                                                    pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                                    pModel,
-                                                    pHeader->m_Options,
-                                                    0))
+            // search for data type to read
+            switch (pHeader->m_Options)
             {
-                free(pHeader);
-                return 0;
+                case CSR_DT_TimeStamp:
+                    // read the animation timestamp
+                    if (!csrBufferRead(pBuffer, pOffset, sizeof(double), 1, &pModel->m_Time))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+
+                default:
+                    // read the model dependencies
+                    if (!csrSerializerReadModelDependencies(pContext,
+                                                            pBuffer,
+                                                            pOffset,
+                                                            pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                                            pModel,
+                                                            pHeader->m_Options,
+                                                            0))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
             }
 
             continue;
@@ -2153,6 +2191,132 @@ int csrSerializerWriteScene(const CSR_WriteContext* pContext,
 
     // release the local data buffer
     csrBufferRelease(pChunkBuffer);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
+                            const CSR_Scene*        pScene,
+                            const CSR_TextureList*  pTextures,
+                            const CSR_ShaderList*   pShaders,
+                                  CSR_Buffer*       pBuffer)
+{
+    // write the textures
+    if (pTextures)
+    {
+        size_t      i;
+        CSR_Buffer* pChunkBuffer;
+
+        // initialize the local chunk buffer
+        pChunkBuffer = csrBufferCreate();
+
+        // iterate through textures to write
+        for (i = 0; i < pTextures->m_Count; ++i)
+        {
+            // write the texture item header
+            if (!csrSerializerWriteHeader(pContext,
+                                          M_CSR_Signature_Texture_Item,
+                                          pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                                          CSR_HO_None,
+                                          pChunkBuffer))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture data content
+            if (!csrBufferWrite(pChunkBuffer,
+                                pTextures->m_pItem[i].m_pTexture->m_pData,
+                                pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+        }
+
+        // write the texture list header
+        if (!csrSerializerWriteHeader(pContext,
+                                      M_CSR_Signature_Texture_List,
+                                      pChunkBuffer->m_Length,
+                                      CSR_HO_None,
+                                      pBuffer))
+        {
+            csrBufferRelease(pChunkBuffer);
+            return 0;
+        }
+
+        // write texture list data content
+        if (!csrBufferWrite(pBuffer, pChunkBuffer->m_pData, pChunkBuffer->m_Length, 1))
+        {
+            csrBufferRelease(pChunkBuffer);
+            return 0;
+        }
+
+        // release the local data buffer
+        csrBufferRelease(pChunkBuffer);
+    }
+
+    // write the shaders
+    if (pShaders)
+    {
+        size_t      i;
+        CSR_Buffer* pChunkBuffer;
+
+        // initialize the local chunk buffer
+        pChunkBuffer = csrBufferCreate();
+
+        // iterate through shaders to write
+        for (i = 0; i < pShaders->m_Count; ++i)
+        {
+            // write the shader item header
+            if (!csrSerializerWriteHeader(pContext,
+                                          M_CSR_Signature_Shader_Item,
+                                          sizeof(*pShaders->m_pItem[i].m_pContent),
+                                          CSR_HO_None,
+                                          pChunkBuffer))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write shader data content
+            if (!csrBufferWrite(pChunkBuffer,
+                                pShaders->m_pItem[i].m_pContent,
+                                sizeof(*pShaders->m_pItem[i].m_pContent),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+        }
+
+        // write the shader list header
+        if (!csrSerializerWriteHeader(pContext,
+                                      M_CSR_Signature_Shader_List,
+                                      pChunkBuffer->m_Length,
+                                      CSR_HO_None,
+                                      pBuffer))
+        {
+            csrBufferRelease(pChunkBuffer);
+            return 0;
+        }
+
+        // write shader list data content
+        if (!csrBufferWrite(pBuffer, pChunkBuffer->m_pData, pChunkBuffer->m_Length, 1))
+        {
+            csrBufferRelease(pChunkBuffer);
+            return 0;
+        }
+
+        // release the local data buffer
+        csrBufferRelease(pChunkBuffer);
+    }
+
+    // write the scene
+    if (pScene)
+        if (!csrSerializerWriteScene(pContext, pScene, pBuffer))
+            return 0;
 
     return 1;
 }

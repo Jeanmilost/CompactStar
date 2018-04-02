@@ -169,8 +169,9 @@ typedef struct
 * Called when a texture was read in a model
 *@param index - texture index in the model
 *@param pPixelBuffer - pixel buffer containing the read texture
+*@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
 */
-typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBuffer);
+typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU);
 
 #ifdef __cplusplus
     extern "C"
