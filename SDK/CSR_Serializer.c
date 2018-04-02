@@ -53,6 +53,8 @@ void csrSerializerReadContextInit(CSR_ReadContext* pContext)
         return;
 
     // initialize the context
+    pContext->m_fOnCreateTexture   = 0;
+    pContext->m_fOnCreateShader    = 0;
     pContext->m_fOnSetTextureIndex = 0;
     pContext->m_fOnSetShaderIndex  = 0;
 }
@@ -1279,6 +1281,394 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
+int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
+                                 const CSR_Buffer*      pBuffer,
+                                       size_t*          pOffset,
+                                       size_t           size,
+                                       CSR_TextureList* pTextureList)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pTextureList)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext, pBuffer, pOffset, pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture_Item, 4))
+        {
+            CSR_TextureItem* pItem;
+            size_t           index;
+
+            // add a new item to the texture list
+            pItem = (CSR_TextureItem*)csrMemoryAlloc(pTextureList->m_pItem,
+                                                     sizeof(CSR_TextureItem),
+                                                     pTextureList->m_Count + 1);
+
+            // succeeded?
+            if (!pItem)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the item index
+            index = pTextureList->m_Count;
+
+            // update the texture list
+            pTextureList->m_pItem = pItem;
+            ++pTextureList->m_Count;
+
+            // initialize the texture item
+            csrTextureItemInit(&pTextureList->m_pItem[index]);
+
+            // create memory for the texture pixel buffer
+            pTextureList->m_pItem[index].m_pTexture = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
+
+            // read the texture pixel type
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_EPixelType),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_PixelType))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture width
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(unsigned),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_Width))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture height
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(unsigned),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_Height))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture stride
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(unsigned),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_Stride))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture byte per pixels
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(unsigned),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_BytePerPixel))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture data length
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(unsigned),
+                               1,
+                              &pTextureList->m_pItem[index].m_pTexture->m_DataLength))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // read the texture data content
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               pTextureList->m_pItem[index].m_pTexture->m_DataLength,
+                               1,
+                               pTextureList->m_pItem[index].m_pTexture->m_pData))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // notify that a texture was read and should be created
+            if (pContext->m_fOnCreateTexture)
+                pContext->m_fOnCreateTexture(pTextureList->m_pItem[index].m_pTexture);
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
+                                const CSR_Buffer*      pBuffer,
+                                      size_t*          pOffset,
+                                      size_t           size,
+                                      CSR_ShaderList*  pShaderList)
+{
+    size_t               start;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pOffset || !pShaderList)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // keep the start offset
+    start = *pOffset;
+
+    // read the file content
+    while (*pOffset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (*pOffset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext, pBuffer, pOffset, pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader_Item, 4))
+        {
+            CSR_ShaderItem* pItem;
+            size_t          index;
+
+            // add a new item to the shader list
+            pItem = (CSR_ShaderItem*)csrMemoryAlloc(pShaderList->m_pItem,
+                                                    sizeof(CSR_ShaderItem),
+                                                    pShaderList->m_Count + 1);
+
+            // succeeded?
+            if (!pItem)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // get the item index
+            index = pShaderList->m_Count;
+
+            // update the texture list
+            pShaderList->m_pItem = pItem;
+            ++pShaderList->m_Count;
+
+            // initialize the shader item
+            csrShaderItemInit(&pShaderList->m_pItem[index]);
+
+            // create memory for the shader content
+            pShaderList->m_pItem[index].m_pContent = (unsigned char*)malloc(pHeader->m_ChunkSize);
+
+            // read the shader content
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               pHeader->m_ChunkSize,
+                               1,
+                               pShaderList->m_pItem[index].m_pContent))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // notify that a shader was read and should be created
+            if (pContext->m_fOnCreateShader)
+                pContext->m_fOnCreateShader(pShaderList->m_pItem[index].m_pContent, pHeader->m_ChunkSize);
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerReadLevel(const CSR_ReadContext* pContext,
+                           const CSR_Buffer*      pBuffer,
+                                 CSR_TextureList* pTextures,
+                                 CSR_ShaderList*  pShaders,
+                                 CSR_Scene*       pScene)
+{
+    size_t               start;
+    size_t               offset;
+    size_t               size;
+    CSR_SceneFileHeader* pHeader;
+
+    // validate the input
+    if (!pContext || !pBuffer || !pTextures || !pShaders || !pScene)
+        return 0;
+
+    // create a header
+    pHeader = (CSR_SceneFileHeader*)malloc(sizeof(CSR_SceneFileHeader));
+
+    // initialize the read values
+    start  = 0;
+    offset = 0;
+    size   = pBuffer->m_Length;
+
+    // read the file content
+    while (offset < start + size)
+    {
+        size_t prevOffset;
+
+        // protect the loop against data corruption (offset cannot exceeds the buffer length)
+        if (offset >= pBuffer->m_Length)
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // read the next header
+        if (!csrSerializerReadHeader(pContext, pBuffer, &offset, pHeader))
+        {
+            free(pHeader);
+            return 0;
+        }
+
+        // search which chunk is reading
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture_List, 4))
+        {
+            // read the texture list
+            if (!csrSerializerReadTextureList(pContext,
+                                              pBuffer,
+                                             &offset,
+                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                              pTextures))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader_List, 4))
+        {
+            // read the shader list
+            if (!csrSerializerReadShaderList(pContext,
+                                             pBuffer,
+                                            &offset,
+                                             pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                             pShaders))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Scene, 4))
+        {
+            // read the scene
+            if (!csrSerializerReadScene(pContext,
+                                        pBuffer,
+                                       &offset,
+                                        pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                        pScene))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+
+        prevOffset = offset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        offset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == offset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // free the header structure
+    free(pHeader);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 // Write functions
 //---------------------------------------------------------------------------
 int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
@@ -2201,6 +2591,10 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                             const CSR_ShaderList*   pShaders,
                                   CSR_Buffer*       pBuffer)
 {
+    // validate the input
+    if (!pContext || !pBuffer)
+        return 0;
+
     // write the textures
     if (pTextures)
     {
@@ -2219,6 +2613,66 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                                           pTextures->m_pItem[i].m_pTexture->m_DataLength,
                                           CSR_HO_None,
                                           pChunkBuffer))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture pixel type
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_PixelType,
+                                sizeof(CSR_EPixelType),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture width
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_Width,
+                                sizeof(unsigned),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture height
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_Height,
+                                sizeof(unsigned),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture stride
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_Stride,
+                                sizeof(unsigned),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture byte per pixels
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_BytePerPixel,
+                                sizeof(unsigned),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
+            // write texture data length
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                                sizeof(unsigned),
+                                1))
             {
                 csrBufferRelease(pChunkBuffer);
                 return 0;
