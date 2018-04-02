@@ -89,6 +89,19 @@ typedef struct
 //---------------------------------------------------------------------------
 
 /**
+* Called when a texture should be created for the scene
+*@param pPixelBuffer - texture pixel buffer
+*/
+typedef void (*CSR_fOnCreateTexture)(const CSR_PixelBuffer* pPixelBuffer);
+
+/**
+* Called when a shader should be created for the scene
+*@param pContent - shader content to create
+*@param size - shader content size
+*/
+typedef void (*CSR_fOnCreateShader)(const char* pContent, size_t size);
+
+/**
 * Called when a model should receive a texture index to save
 *@param pModel - model for which the texture index should be get
 *@param index - model texture index, in case the model contains several textures
@@ -129,6 +142,8 @@ typedef int (*CSR_fOnSetShaderIndex)(void* pModel, size_t index);
 */
 struct CSR_ReadContext
 {
+    CSR_fOnCreateTexture   m_fOnCreateTexture;
+    CSR_fOnCreateShader    m_fOnCreateShader;
     CSR_fOnSetTextureIndex m_fOnSetTextureIndex;
     CSR_fOnSetShaderIndex  m_fOnSetShaderIndex;
 };
@@ -336,6 +351,51 @@ struct CSR_WriteContext
                                    const CSR_Buffer*      pBuffer,
                                          size_t*          pOffset,
                                          size_t           size,
+                                         CSR_Scene*       pScene);
+
+        /**
+        * Reads a texture list from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pTextureList - the texture list to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
+                                         const CSR_Buffer*      pBuffer,
+                                               size_t*          pOffset,
+                                               size_t           size,
+                                               CSR_TextureList* pTextureList);
+
+        /**
+        * Reads a shader list from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pShaderList - the shader list to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
+                                        const CSR_Buffer*      pBuffer,
+                                              size_t*          pOffset,
+                                              size_t           size,
+                                              CSR_ShaderList*  pShaderList);
+
+        /**
+        * Reads a level from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pTextures - the texture list to fill with data
+        *@param[in, out] pShaders - the shader list to fill with data
+        *@param[in, out] pScene - the scene to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadLevel(const CSR_ReadContext* pContext,
+                                   const CSR_Buffer*      pBuffer,
+                                         CSR_TextureList* pTextures,
+                                         CSR_ShaderList*  pShaders,
                                          CSR_Scene*       pScene);
 
         //-------------------------------------------------------------------
