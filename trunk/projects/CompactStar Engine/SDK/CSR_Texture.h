@@ -63,6 +63,25 @@ typedef struct
     GLuint m_BumpMapID;
 } CSR_TextureShader;
 
+/**
+* Texture item
+*/
+typedef struct
+{
+    char*            m_pFileName;
+    CSR_PixelBuffer* m_pTexture;
+    GLuint           m_TextureID;
+} CSR_TextureItem;
+
+/**
+* Texture list
+*/
+typedef struct
+{
+    CSR_TextureItem* m_pItem;
+    size_t           m_Count;
+} CSR_TextureList;
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -99,6 +118,53 @@ typedef struct
         *@param[in, out] pTextureShader - texture shader to initialize
         */
         void csrTextureShaderInit(CSR_TextureShader* pTextureShader);
+
+        //-------------------------------------------------------------------
+        // Texture item functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a texture item
+        *@return newly created texture item, 0 on error
+        *@note The texture item must be released when no longer used, see csrTextureItemRelease()
+        */
+        CSR_TextureItem* csrTextureItemCreate(void);
+
+        /**
+        * Releases a texture item
+        *@param[in, out] pTI - texture item to release
+        *@note Only the item content is released, the item itself is not released
+        */
+        void csrTextureItemRelease(CSR_TextureItem* pTI);
+
+        /**
+        * Initializes a texture item structure
+        *@param[in, out] pTI - texture item to initialize
+        */
+        void csrTextureItemInit(CSR_TextureItem* pTI);
+
+        //-------------------------------------------------------------------
+        // Texture list functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a texture list
+        *@return newly created texture list, 0 on error
+        *@note The texture list must be released when no longer used, see csrTextureListRelease()
+        */
+        CSR_TextureList* csrTextureListCreate(void);
+
+        /**
+        * Releases a texture list
+        *@param[in, out] pTL - texture list to release
+        */
+        void csrTextureListRelease(CSR_TextureList* pTL);
+
+        /**
+        * Initializes a texture list structure
+        *@param[in, out] pTL - texture list to initialize
+        */
+        void csrTextureListInit(CSR_TextureList* pTL);
 
 #ifdef __cplusplus
     }

@@ -1595,6 +1595,8 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
         // iterate through textures to extract
         for (i = 0; i < pSkin->m_Count; ++i)
         {
+            int noGPU = 0;
+
             // extract texture from model
             pPixelBuffer = csrMDLUncompressTexture(pSkin,
                                                    pPalette,
@@ -1616,75 +1618,79 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
 
             // notify that a texture was read
             if (fOnTextureRead)
-                fOnTextureRead(i, pPixelBuffer);
+                fOnTextureRead(i, pPixelBuffer, &noGPU);
 
-            // is a default texture?
-            if (pPixelBuffer->m_DataLength <= 48)
+            // can load the texture on the GPU?
+            if (!noGPU)
             {
-                unsigned color;
-
-                free(pPixelBuffer->m_pData);
-
-                // recreate a 4 * 4 * 3 pixel buffer
-                pPixelBuffer->m_DataLength = 48;
-                pPixelBuffer->m_pData      = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
-
-                // succeeded?
-                if (!pPixelBuffer->m_pData)
+                // is a default texture?
+                if (pPixelBuffer->m_DataLength <= 48)
                 {
-                    // release the MDL object used for the loading
-                    csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+                    unsigned color;
 
-                    // release the model
-                    csrMDLRelease(pMDL);
+                    free(pPixelBuffer->m_pData);
 
-                    return 0;
+                    // recreate a 4 * 4 * 3 pixel buffer
+                    pPixelBuffer->m_DataLength = 48;
+                    pPixelBuffer->m_pData      = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
+
+                    // succeeded?
+                    if (!pPixelBuffer->m_pData)
+                    {
+                        // release the MDL object used for the loading
+                        csrMDLReleaseObjects(pHeader, pFrameGroup, pSkin, pTexCoord, pPolygon);
+
+                        // release the model
+                        csrMDLRelease(pMDL);
+
+                        return 0;
+                    }
+
+                    // get the texture color from material
+                    if (pMaterial)
+                        color = pMaterial->m_Color;
+                    else
+                    {
+                        // create a default material (because the model vertex buffer is still not created)
+                        CSR_Material material;
+                        csrMaterialInit(&material);
+
+                        color = material.m_Color;
+                    }
+
+                    // initialize the buffer
+                    for (j = 0; j < 16; ++j)
+                    {
+                        // set color data
+                        ((unsigned char*)pPixelBuffer->m_pData)[ j * 3]      = ((color >> 24) & 0xFF);
+                        ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 1] = ((color >> 16) & 0xFF);
+                        ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 2] = ((color >> 8)  & 0xFF);
+                    }
                 }
 
-                // get the texture color from material
-                if (pMaterial)
-                    color = pMaterial->m_Color;
-                else
-                {
-                    // create a default material (because the model vertex buffer is still not created)
-                    CSR_Material material;
-                    csrMaterialInit(&material);
+                // create new OpenGL texture
+                glGenTextures(1, &pMDL->m_pTexture[i].m_TextureID);
+                glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[i].m_TextureID);
 
-                    color = material.m_Color;
-                }
+                // set texture filtering
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-                // initialize the buffer
-                for (j = 0; j < 16; ++j)
-                {
-                    // set color data
-                    ((unsigned char*)pPixelBuffer->m_pData)[ j * 3]      = ((color >> 24) & 0xFF);
-                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 1] = ((color >> 16) & 0xFF);
-                    ((unsigned char*)pPixelBuffer->m_pData)[(j * 3) + 2] = ((color >> 8)  & 0xFF);
-                }
+                // set texture wrapping mode
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+                // generate texture from bitmap data. NOTE MDL textures are always provided in 24 bit RGB
+                glTexImage2D(GL_TEXTURE_2D,
+                             0,
+                             GL_RGB,
+                             pPixelBuffer->m_Width,
+                             pPixelBuffer->m_Height,
+                             0,
+                             GL_RGB,
+                             GL_UNSIGNED_BYTE,
+                             pPixelBuffer->m_pData);
             }
-
-            // create new OpenGL texture
-            glGenTextures(1, &pMDL->m_pTexture[i].m_TextureID);
-            glBindTexture(GL_TEXTURE_2D, pMDL->m_pTexture[i].m_TextureID);
-
-            // set texture filtering
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            // set texture wrapping mode
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            // generate texture from bitmap data. NOTE MDL textures are always provided in 24 bit RGB
-            glTexImage2D(GL_TEXTURE_2D,
-                         0,
-                         GL_RGB,
-                         pPixelBuffer->m_Width,
-                         pPixelBuffer->m_Height,
-                         0,
-                         GL_RGB,
-                         GL_UNSIGNED_BYTE,
-                         pPixelBuffer->m_pData);
 
             // release the pixel buffer
             csrPixelBufferRelease(pPixelBuffer);

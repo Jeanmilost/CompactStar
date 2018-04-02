@@ -147,6 +147,54 @@ struct CSR_WriteContext
     {
 #endif
         //-------------------------------------------------------------------
+        // Shader item functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a scene item
+        *@return newly created scene item, 0 on error
+        *@note The scene item must be released when no longer used, see csrSceneItemRelease()
+        */
+        CSR_SceneItem* csrSceneItemCreate(void);
+
+        /**
+        * Releases a scene item
+        *@param[in, out] pSceneItem - scene item to release
+        *@note Only the item content is released, the item itself is not released
+        */
+        void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
+
+        /**
+        * Initializes a scene item structure
+        *@param[in, out] pSceneItem - scene item to initialize
+        */
+        void csrSceneItemInit(CSR_SceneItem* pSceneItem);
+
+        //-------------------------------------------------------------------
+        // Shader list functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a scene item
+        *@return newly created scene item, 0 on error
+        *@note The scene item must be released when no longer used, see csrSceneItemRelease()
+        */
+        CSR_SceneItem* csrSceneItemCreate(void);
+
+        /**
+        * Releases a scene item
+        *@param[in, out] pSceneItem - scene item to release
+        *@note Only the item content is released, the item itself is not released
+        */
+        void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
+
+        /**
+        * Initializes a scene item structure
+        *@param[in, out] pSceneItem - scene item to initialize
+        */
+        void csrSceneItemInit(CSR_SceneItem* pSceneItem);
+
+        //-------------------------------------------------------------------
         // Serializer context functions
         //-------------------------------------------------------------------
 
@@ -511,6 +559,21 @@ struct CSR_WriteContext
         */
         int csrSerializerWriteScene(const CSR_WriteContext* pContext,
                                     const CSR_Scene*        pScene,
+                                          CSR_Buffer*       pBuffer);
+
+        /**
+        * Writes a level inside a buffer
+        *@param pContext - write context, containing the write options
+        *@param pScene - scene to write
+        *@param pTextures - texture list to write
+        *@param pShaders - shaderlist to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
+                                    const CSR_Scene*        pScene,
+                                    const CSR_TextureList*  pTextures,
+                                    const CSR_ShaderList*   pShaders,
                                           CSR_Buffer*       pBuffer);
 
 #ifdef __cplusplus
