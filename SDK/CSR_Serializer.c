@@ -36,7 +36,7 @@
 #define M_CSR_Signature_Model_Anim     "mani"
 #define M_CSR_Signature_MDL            "mdlm"
 #define M_CSR_Signature_Matrix_Item    "mati"
-#define M_CSR_Signature_Matrix_List    "matl"
+#define M_CSR_Signature_Matrix_Array   "mata"
 #define M_CSR_Signature_Scene_Item     "scit"
 #define M_CSR_Signature_Scene          "scne"
 #define M_CSR_Signature_Texture_Item   "txit"
@@ -77,7 +77,7 @@ int csrSerializerReadHeader(const CSR_ReadContext*     pContext,
                                   size_t*              pOffset,
                                   CSR_SceneFileHeader* pHeader)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pHeader)
         return 0;
 
@@ -93,7 +93,7 @@ int csrSerializerReadModelDependencies(const CSR_ReadContext* pContext,
                                              int              dataType,
                                              size_t           index)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pModel)
         return 0;
 
@@ -158,7 +158,7 @@ int csrSerializerReadVB(const CSR_ReadContext*      pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pVB)
         return 0;
 
@@ -289,7 +289,7 @@ int csrSerializerReadMesh(const CSR_ReadContext* pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pMesh)
         return 0;
 
@@ -423,7 +423,7 @@ int csrSerializerReadModel(const CSR_ReadContext* pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pModel)
         return 0;
 
@@ -558,7 +558,7 @@ int csrSerializerReadMDL(const CSR_ReadContext* pContext,
     size_t               modelTexIndex;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pMDL)
         return 0;
 
@@ -713,17 +713,17 @@ int csrSerializerReadMDL(const CSR_ReadContext* pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerReadMatrixList(const CSR_ReadContext* pContext,
-                               const CSR_Buffer*       pBuffer,
-                                     size_t*           pOffset,
-                                     size_t            size,
-                                     CSR_MatrixList*   pMatrixList)
+int csrSerializerReadMatrixArray(const CSR_ReadContext* pContext,
+                                 const CSR_Buffer*      pBuffer,
+                                       size_t*          pOffset,
+                                       size_t           size,
+                                       CSR_Array*       pMatrixArray)
 {
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
-    if (!pContext || !pBuffer || !pOffset || !pMatrixList)
+    // validate the inputs
+    if (!pContext || !pBuffer || !pOffset || !pMatrixArray)
         return 0;
 
     // create a header
@@ -754,13 +754,13 @@ int csrSerializerReadMatrixList(const CSR_ReadContext* pContext,
         // search which chunk is reading
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_Item, 4))
         {
-            CSR_MatrixItem* pMatrixItem;
-            size_t          index;
+            CSR_ArrayItem* pMatrixItem;
+            size_t         index;
 
-            // add a new matrix item to the list
-            pMatrixItem = (CSR_MatrixItem*)csrMemoryAlloc(pMatrixList->m_pItem,
-                                                          sizeof(CSR_MatrixItem),
-                                                          pMatrixList->m_Count + 1);
+            // add a new matrix item to the array
+            pMatrixItem = (CSR_ArrayItem*)csrMemoryAlloc(pMatrixArray->m_pItem,
+                                                         sizeof(CSR_ArrayItem),
+                                                         pMatrixArray->m_Count + 1);
 
             // succeeded?
             if (!pMatrixItem)
@@ -770,18 +770,23 @@ int csrSerializerReadMatrixList(const CSR_ReadContext* pContext,
             }
 
             // get the matrix item index
-            index = pMatrixList->m_Count;
+            index = pMatrixArray->m_Count;
 
-            // update the list
-            pMatrixList->m_pItem = pMatrixItem;
-            ++pMatrixList->m_Count;
+            // update the array
+            pMatrixArray->m_pItem = pMatrixItem;
+            ++pMatrixArray->m_Count;
+
+            // initialize the memory required to contain the matrix. This memory should be freed
+            // while the array will be released
+            pMatrixArray->m_pItem[index].m_pData    = malloc(sizeof(CSR_Matrix4));
+            pMatrixArray->m_pItem[index].m_AutoFree = 1;
 
             // read the matrix item
             if (!csrBufferRead(pBuffer,
                                pOffset,
-                               sizeof(CSR_MatrixItem),
+                               sizeof(CSR_ArrayItem),
                                1,
-                              &pMatrixList->m_pItem[index]))
+                               pMatrixArray->m_pItem[index].m_pData))
             {
                 free(pHeader);
                 return 0;
@@ -819,7 +824,7 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pSceneItem)
         return 0;
 
@@ -1076,35 +1081,35 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
             continue;
         }
         else
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_List, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_Array, 4))
         {
-            // normally the scene item can contain only one matrix list
-            if (pSceneItem->m_pMatrixList)
+            // normally the scene item can contain only one matrix array
+            if (pSceneItem->m_pMatrixArray)
             {
                 free(pHeader);
                 return 0;
             }
 
-            // add a new matrix list in the scene item
-            pSceneItem->m_pMatrixList = malloc(sizeof(CSR_MatrixList));
+            // add a new matrix array in the scene item
+            pSceneItem->m_pMatrixArray = malloc(sizeof(CSR_Array));
 
             // succeeded?
-            if (!pSceneItem->m_pMatrixList)
+            if (!pSceneItem->m_pMatrixArray)
             {
                 free(pHeader);
                 return 0;
             }
 
-            // initialize the matrix list content
-            pSceneItem->m_pMatrixList->m_pItem = 0;
-            pSceneItem->m_pMatrixList->m_Count = 0;
+            // initialize the matrix array content
+            pSceneItem->m_pMatrixArray->m_pItem = 0;
+            pSceneItem->m_pMatrixArray->m_Count = 0;
 
-            // read the matrix list
-            if (!csrSerializerReadMatrixList(pContext,
-                                             pBuffer,
-                                             pOffset,
-                                             pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                             pSceneItem->m_pMatrixList))
+            // read the matrix array
+            if (!csrSerializerReadMatrixArray(pContext,
+                                              pBuffer,
+                                              pOffset,
+                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                              pSceneItem->m_pMatrixArray))
             {
                 free(pHeader);
                 return 0;
@@ -1141,7 +1146,7 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pScene)
         return 0;
 
@@ -1290,7 +1295,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pTextureList)
         return 0;
 
@@ -1462,7 +1467,7 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pOffset || !pShaderList)
         return 0;
 
@@ -1570,7 +1575,7 @@ int csrSerializerReadLevel(const CSR_ReadContext* pContext,
     size_t               size;
     CSR_SceneFileHeader* pHeader;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer || !pTextures || !pShaders || !pScene)
         return 0;
 
@@ -1679,7 +1684,7 @@ int csrSerializerWriteHeader(const CSR_WriteContext* pContext,
 {
     CSR_SceneFileHeader header;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pID || !pBuffer)
         return 0;
 
@@ -1701,7 +1706,7 @@ int csrSerializerWriteData(const CSR_WriteContext*  pContext,
                                  CSR_ESceneDataType type,
                                  CSR_Buffer*        pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pData || !pBuffer)
         return 0;
 
@@ -1728,7 +1733,7 @@ int csrSerializerWriteColor(const CSR_WriteContext* pContext,
                             const CSR_Color*        pColor,
                                   CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pColor || !pBuffer)
         return 0;
 
@@ -1751,7 +1756,7 @@ int csrSerializerWriteMatrix(const CSR_WriteContext* pContext,
                              const CSR_Matrix4*      pMatrix,
                                    CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pMatrix || !pBuffer)
         return 0;
 
@@ -1774,7 +1779,7 @@ int csrSerializerWriteMaterial(const CSR_WriteContext* pContext,
                                const CSR_Material*     pMaterial,
                                      CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pMaterial || !pBuffer)
         return 0;
 
@@ -1797,7 +1802,7 @@ int csrSerializerWriteTexture(const CSR_WriteContext* pContext,
                               const CSR_Buffer*       pTexture,
                                     CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pTexture || !pBuffer)
         return 0;
 
@@ -1820,7 +1825,7 @@ int csrSerializerWriteBumpMap(const CSR_WriteContext* pContext,
                               const CSR_Buffer*       pBumpMap,
                                     CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBumpMap || !pBuffer)
         return 0;
 
@@ -1847,7 +1852,7 @@ int csrSerializerWriteModelDependencies(const CSR_WriteContext* pContext,
     CSR_Buffer* pDataBuffer;
     int         indexToWrite;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pModel || !pBuffer)
         return 0;
 
@@ -1927,7 +1932,7 @@ int csrSerializerWriteVF(const CSR_WriteContext* pContext,
                          const CSR_VertexFormat* pVF,
                                CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pVF || !pBuffer)
         return 0;
 
@@ -1950,7 +1955,7 @@ int csrSerializerWriteVC(const CSR_WriteContext*  pContext,
                          const CSR_VertexCulling* pVC,
                                CSR_Buffer*        pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pVC || !pBuffer)
         return 0;
 
@@ -1976,7 +1981,7 @@ int csrSerializerWriteVB(const CSR_WriteContext* pContext,
     CSR_Buffer* pChunkBuffer;
     CSR_Buffer* pDataBuffer;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pVB || !pBuffer)
         return 0;
 
@@ -2091,7 +2096,7 @@ int csrSerializerWriteMesh(const CSR_WriteContext* pContext,
     CSR_Buffer* pChunkBuffer;
     CSR_Buffer* pDataBuffer;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pMesh || !pBuffer)
         return 0;
 
@@ -2174,7 +2179,7 @@ int csrSerializerWriteModel(const CSR_WriteContext* pContext,
     CSR_Buffer* pChunkBuffer;
     CSR_Buffer* pDataBuffer;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pModel || !pBuffer)
         return 0;
 
@@ -2253,7 +2258,7 @@ int csrSerializerWriteModelAnimation(const CSR_WriteContext*   pContext,
                                      const CSR_ModelAnimation* pModelAnim,
                                            CSR_Buffer*         pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pModelAnim || !pBuffer)
         return 0;
 
@@ -2279,7 +2284,7 @@ int csrSerializerWriteMDL(const CSR_WriteContext* pContext,
     size_t      i;
     CSR_Buffer* pChunkBuffer;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pMDL || !pBuffer)
         return 0;
 
@@ -2347,10 +2352,10 @@ int csrSerializerWriteMDL(const CSR_WriteContext* pContext,
 }
 //---------------------------------------------------------------------------
 int csrSerializerWriteMatrixItem(const CSR_WriteContext* pContext,
-                                 const CSR_MatrixItem*   pMatrixItem,
+                                 const CSR_ArrayItem*    pMatrixItem,
                                        CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pMatrixItem || !pBuffer)
         return 0;
 
@@ -2363,37 +2368,37 @@ int csrSerializerWriteMatrixItem(const CSR_WriteContext* pContext,
         return 0;
 
     // write the data
-    if (!csrBufferWrite(pBuffer, pMatrixItem->m_pMatrix, sizeof(CSR_Matrix4), 1))
+    if (!csrBufferWrite(pBuffer, pMatrixItem->m_pData, sizeof(CSR_Matrix4), 1))
         return 0;
 
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerWriteMatrixList(const CSR_WriteContext* pContext,
-                                 const CSR_MatrixList*   pMatrixList,
-                                       CSR_Buffer*       pBuffer)
+int csrSerializerWriteMatrixArray(const CSR_WriteContext* pContext,
+                                  const CSR_Array*        pMatrixArray,
+                                        CSR_Buffer*       pBuffer)
 {
     size_t      i;
     CSR_Buffer* pChunkBuffer;
 
-    // validate the input
-    if (!pContext || !pMatrixList || !pBuffer)
+    // validate the inputs
+    if (!pContext || !pMatrixArray || !pBuffer)
         return 0;
 
     // initialize the local chunk buffer
     pChunkBuffer = csrBufferCreate();
 
-    // write all the matrix items the list contains
-    for (i = 0; i < pMatrixList->m_Count; ++i)
-        if (!csrSerializerWriteMatrixItem(pContext, &pMatrixList->m_pItem[i], pChunkBuffer))
+    // write all the matrix items the array contains
+    for (i = 0; i < pMatrixArray->m_Count; ++i)
+        if (!csrSerializerWriteMatrixItem(pContext, &pMatrixArray->m_pItem[i], pChunkBuffer))
         {
             csrBufferRelease(pChunkBuffer);
             return 0;
         }
 
-    // write the matrix list header
+    // write the matrix array header
     if (!csrSerializerWriteHeader(pContext,
-                                  M_CSR_Signature_Matrix_List,
+                                  M_CSR_Signature_Matrix_Array,
                                   pChunkBuffer->m_Length,
                                   CSR_HO_None,
                                   pBuffer))
@@ -2423,7 +2428,7 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
     CSR_Buffer*           pChunkBuffer;
     CSR_ESceneItemOptions options;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pSceneItem || !pBuffer)
         return 0;
 
@@ -2468,9 +2473,9 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
             return 0;
     }
 
-    // write the scene item matrix list
-    if (pSceneItem->m_pMatrixList)
-        if (!csrSerializerWriteMatrixList(pContext, pSceneItem->m_pMatrixList, pChunkBuffer))
+    // write the scene item matrix array
+    if (pSceneItem->m_pMatrixArray)
+        if (!csrSerializerWriteMatrixArray(pContext, pSceneItem->m_pMatrixArray, pChunkBuffer))
         {
             csrBufferRelease(pChunkBuffer);
             return 0;
@@ -2518,7 +2523,7 @@ int csrSerializerWriteScene(const CSR_WriteContext* pContext,
     CSR_Buffer*        pChunkBuffer;
     CSR_EHeaderOptions options;
 
-    // validate the input
+    // validate the inputs
     if (!pContext || !pScene || !pBuffer)
         return 0;
 
@@ -2591,7 +2596,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                             const CSR_ShaderList*   pShaders,
                                   CSR_Buffer*       pBuffer)
 {
-    // validate the input
+    // validate the inputs
     if (!pContext || !pBuffer)
         return 0;
 

@@ -167,6 +167,212 @@ unsigned csrColorABGRToRGBA(unsigned color)
             ((color >> 24) & 0xFF));
 }
 //---------------------------------------------------------------------------
+// Array functions
+//---------------------------------------------------------------------------
+CSR_Array* csrArrayCreate(void)
+{
+    // create a new array
+    CSR_Array* pArray = (CSR_Array*)malloc(sizeof(CSR_Array));
+
+    // succeeded?
+    if (!pArray)
+        return 0;
+
+    // initialize the array content
+    csrArrayInit(pArray);
+
+    return pArray;
+}
+//---------------------------------------------------------------------------
+void csrArrayRelease(CSR_Array* pArray)
+{
+    // no array to release?
+    if (!pArray)
+        return;
+
+    // free the array items
+    if (pArray->m_pItem)
+    {
+        size_t i;
+
+        // iterate through each item and free his content
+        for (i = 0; i < pArray->m_Count; ++i)
+            // do free the item content?
+            if (pArray->m_pItem[i].m_AutoFree)
+                free(pArray->m_pItem[i].m_pData);
+
+        // free the item array
+        free(pArray->m_pItem);
+    }
+
+    // free the array
+    free(pArray);
+}
+//---------------------------------------------------------------------------
+void csrArrayInit(CSR_Array* pArray)
+{
+    // no array to initialize?
+    if (!pArray)
+        return;
+
+    // initialize the array content
+    pArray->m_pItem = 0;
+    pArray->m_Count = 0;
+}
+//---------------------------------------------------------------------------
+void csrArrayAdd(void* pData, CSR_Array* pArray, int autoFree)
+{
+    size_t         index;
+    CSR_ArrayItem* pNewItem;
+
+    // validate the inputs
+    if (!pArray || !pData)
+        return;
+
+    // add an item to the array
+    pNewItem = (CSR_ArrayItem*)csrMemoryAlloc(pArray->m_pItem,
+                                              sizeof(CSR_ArrayItem),
+                                              pArray->m_Count + 1);
+
+    // succeeded?
+    if (!pNewItem)
+        return;
+
+    // get the new item index
+    index = pArray->m_Count;
+
+    // update the array
+    pArray->m_pItem = pNewItem;
+    ++pArray->m_Count;
+
+    // set the data in the newly created item
+    pArray->m_pItem[index].m_pData    = pData;
+    pArray->m_pItem[index].m_AutoFree = autoFree;
+}
+//---------------------------------------------------------------------------
+void csrArrayAddUnique(void* pData, CSR_Array* pArray, int autoFree)
+{
+    // check if the data was already added to this array
+    if (csrArrayGetIndex(pData, pArray) != (size_t)M_CSR_Unknown_Index)
+        return;
+
+    // still not added, add it
+    csrArrayAdd(pData, pArray, autoFree);
+}
+//---------------------------------------------------------------------------
+size_t csrArrayGetIndex(void* pData, const CSR_Array* pArray)
+{
+    return csrArrayGetIndexFrom(pData, 0, pArray);
+}
+//---------------------------------------------------------------------------
+CSR_ArrayItem* csrArrayGetItem(void* pData, const CSR_Array* pArray)
+{
+    return csrArrayGetItemFrom(pData, 0, pArray);
+}
+//---------------------------------------------------------------------------
+size_t csrArrayGetIndexFrom(void* pData, size_t startIndex, const CSR_Array* pArray)
+{
+    size_t i;
+
+    // validate the inputs
+    if (!pArray || !pData)
+        return M_CSR_Unknown_Index;
+
+    // search for data index
+    for (i = startIndex; i < pArray->m_Count; ++i)
+        if (pArray->m_pItem[i].m_pData == pData)
+            return i;
+
+    return M_CSR_Unknown_Index;
+}
+//---------------------------------------------------------------------------
+CSR_ArrayItem* csrArrayGetItemFrom(void* pData, size_t startIndex, const CSR_Array* pArray)
+{
+    // get the data index
+    const size_t index = csrArrayGetIndexFrom(pData, startIndex, pArray);
+
+    // found it?
+    if (index == (size_t)M_CSR_Unknown_Index)
+        return 0;
+
+    return &pArray->m_pItem[index];
+}
+//---------------------------------------------------------------------------
+void csrArrayDelete(void* pData, CSR_Array* pArray)
+{
+    size_t i;
+
+    // validate the inputs
+    if (!pArray || !pData)
+        return;
+
+    // search for an item matching with the data in the array, delete it if found
+    for (i = 0; i < pArray->m_Count; ++i)
+        if (pArray->m_pItem[i].m_pData == pData)
+        {
+            csrArrayDeleteAt(i, pArray);
+            return;
+        }
+}
+//---------------------------------------------------------------------------
+void csrArrayDeleteAt(size_t index, CSR_Array* pArray)
+{
+    CSR_ArrayItem* pNewItem;
+
+    // empty array?
+    if (!pArray || !pArray->m_pItem || !pArray->m_Count)
+        return;
+
+    // is index out of bounds?
+    if (index >= pArray->m_Count)
+        return;
+
+    // was the last item in the array?
+    if (pArray->m_Count == 1)
+    {
+        // free the array
+        if (pArray->m_pItem)
+            free(pArray->m_pItem);
+
+        // don't recreate nothing
+        pArray->m_pItem = 0;
+        pArray->m_Count = 0;
+
+        return;
+    }
+
+    // create an item list one item smaller than the existing one
+    pNewItem = (CSR_ArrayItem*)csrMemoryAlloc(0, sizeof(CSR_ArrayItem), pArray->m_Count - 1);
+
+    // succeeded?
+    if (!pNewItem)
+        return;
+
+    // copy all the remaining items in the new array
+    if (!index)
+        memcpy(pNewItem, pArray->m_pItem + 1, (pArray->m_Count - 1) * sizeof(CSR_ArrayItem));
+    else
+    if (index == (pArray->m_Count - 1))
+        memcpy(pNewItem, pArray->m_pItem, (pArray->m_Count - 1) * sizeof(CSR_ArrayItem));
+    else
+    {
+        memcpy(pNewItem,         pArray->m_pItem,             sizeof(CSR_ArrayItem) *                    index);
+        memcpy(pNewItem + index, pArray->m_pItem + index + 1, sizeof(CSR_ArrayItem) * (pArray->m_Count - index - 1));
+    }
+
+    // free the array item content, if required
+    if (pArray->m_pItem[index].m_AutoFree && pArray->m_pItem[index].m_pData)
+        free(pArray->m_pItem[index].m_pData);
+
+    // free the current array items
+    if (pArray->m_pItem)
+        free(pArray->m_pItem);
+
+    // update the array with the newly recreated items
+    pArray->m_pItem = pNewItem;
+    --pArray->m_Count;
+}
+//---------------------------------------------------------------------------
 // Buffer functions
 //---------------------------------------------------------------------------
 CSR_Buffer* csrBufferCreate(void)

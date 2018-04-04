@@ -124,7 +124,7 @@ CSR_Shader* csrShaderLoadFromStr(const char*               pVertex,
     CSR_Buffer* pFS;
     CSR_Shader* pShader;
 
-    // validate the input
+    // validate the inputs
     if (!pVertex || !vertexLength || !pFragment || !fragmentLength)
         return 0;
 
@@ -404,7 +404,7 @@ CSR_StaticBuffer* csrStaticBufferCreate(const CSR_Shader* pShader, const CSR_Buf
     if (!pShader)
         return 0;
 
-    // validate the input
+    // validate the inputs
     if (!pBuffer || !pBuffer->m_Length)
         return 0;
 

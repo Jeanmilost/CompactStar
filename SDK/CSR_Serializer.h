@@ -23,6 +23,7 @@
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
 #include "CSR_Renderer.h"
+#include "CSR_Scene.h"
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -307,19 +308,19 @@ struct CSR_WriteContext
                                          CSR_Model*       pModel);
 
         /**
-        * Reads a matrix list from a buffer
+        * Reads a matrix array from a buffer
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param size - size of data to read in buffer
-        *@param[in, out] pMatrixList - the matrix list to fill with data
+        *@param[in, out] pMatrixArray - the matrix array to fill with data
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerReadMatrixList(const CSR_ReadContext* pContext,
-                                        const CSR_Buffer*      pBuffer,
-                                              size_t*          pOffset,
-                                              size_t           size,
-                                              CSR_MatrixList*  pMatrixList);
+        int csrSerializerReadMatrixArray(const CSR_ReadContext* pContext,
+                                         const CSR_Buffer*      pBuffer,
+                                               size_t*          pOffset,
+                                               size_t           size,
+                                               CSR_Array*       pMatrixArray);
 
         /**
         * Reads a scene item from a buffer
@@ -583,19 +584,19 @@ struct CSR_WriteContext
         *@return 1 on success, otherwise 0
         */
         int csrSerializerWriteMatrixItem(const CSR_WriteContext* pContext,
-                                         const CSR_MatrixItem*   pMatrixItem,
+                                         const CSR_ArrayItem*    pMatrixItem,
                                                CSR_Buffer*       pBuffer);
 
         /**
-        * Writes a matrix list inside a buffer
+        * Writes a matrix array inside a buffer
         *@param pContext - write context, containing the write options
-        *@param pMatrixList - matrix list to write
+        *@param pMatrixArray - matrix array to write
         *@param[in, out] pBuffer - buffer to write in
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerWriteMatrixList(const CSR_WriteContext* pContext,
-                                         const CSR_MatrixList*   pMatrixList,
-                                               CSR_Buffer*       pBuffer);
+        int csrSerializerWriteMatrixArray(const CSR_WriteContext* pContext,
+                                          const CSR_Array*        pMatrixArray,
+                                                CSR_Buffer*       pBuffer);
 
         /**
         * Writes a scene item inside a buffer

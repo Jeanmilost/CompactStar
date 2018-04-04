@@ -44,6 +44,16 @@ struct CSR_AABBNode
     CSR_IndexedPolygonBuffer* m_pPolygonBuffer;
 };
 
+/**
+* Collision result
+*/
+typedef struct
+{
+    int                m_Collision;
+    CSR_Polygon3Buffer m_Polygons;
+    CSR_Plane          m_SlidingPlane;
+} CSR_CollisionResult;
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -73,8 +83,8 @@ struct CSR_AABBNode
         * Resolves AABB tree
         *@param pRay - ray against which tree items will be tested
         *@param pNode - root or parent node to resolve
-        *@param[out] pPolygons - polygons belonging to boxes hit by ray
         *@param deep - tree deep level, used internally, should be set to 0
+        *@param[out] pPolygons - polygons belonging to boxes hit by ray
         *@return 1 on success, otherwise 0
         */
         int csrAABBTreeResolve(const CSR_Ray3*           pRay,

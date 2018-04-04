@@ -19,37 +19,38 @@ object MainForm: TMainForm
   TextHeight = 13
   object spInspector: TSplitter
     Left = 914
-    Top = 20
-    Height = 652
+    Top = 50
+    Height = 622
     Align = alRight
     ResizeStyle = rsUpdate
     OnMoved = OnSplitterMoved
     ExplicitLeft = 1099
     ExplicitTop = 0
+    ExplicitHeight = 652
   end
   object paToolbox: TPanel
     Left = 0
     Top = 0
     Width = 1102
-    Height = 20
+    Height = 50
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
   end
   object paInspector: TPanel
     Left = 917
-    Top = 20
+    Top = 50
     Width = 185
-    Height = 652
+    Height = 622
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
   end
   object paViews: TPanel
     Left = 0
-    Top = 20
+    Top = 50
     Width = 914
-    Height = 652
+    Height = 622
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
@@ -57,7 +58,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 914
-      Height = 652
+      Height = 622
       ActivePage = tsDesigner
       Align = alClient
       TabOrder = 0
@@ -118,24 +119,25 @@ object MainForm: TMainForm
           Left = 0
           Top = 316
           Width = 906
-          Height = 308
+          Height = 278
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
           object spDesignerZ3D: TSplitter
             Left = 449
             Top = 0
-            Height = 308
+            Height = 278
             ResizeStyle = rsUpdate
             OnMoved = OnSplitterMoved
             ExplicitLeft = 446
             ExplicitTop = 3
+            ExplicitHeight = 308
           end
           object paDesignerZView: TPanel
             Left = 0
             Top = 0
             Width = 449
-            Height = 308
+            Height = 278
             Align = alLeft
             BevelOuter = bvNone
             Color = clWhite
@@ -146,7 +148,7 @@ object MainForm: TMainForm
             Left = 452
             Top = 0
             Width = 454
-            Height = 308
+            Height = 278
             Align = alClient
             BevelOuter = bvNone
             Color = clWhite
@@ -162,12 +164,12 @@ object MainForm: TMainForm
         ExplicitLeft = 0
         ExplicitTop = 0
         ExplicitWidth = 0
-        ExplicitHeight = 0
+        ExplicitHeight = 624
         object pa3DView: TPanel
           Left = 0
           Top = 0
           Width = 906
-          Height = 624
+          Height = 594
           Align = alClient
           BevelOuter = bvNone
           Color = clBlack
@@ -175,6 +177,7 @@ object MainForm: TMainForm
           ParentBackground = False
           ParentDoubleBuffered = False
           TabOrder = 0
+          ExplicitHeight = 624
         end
       end
     end

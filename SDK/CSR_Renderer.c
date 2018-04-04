@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_Renderer --------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the functions to draw a scene         *
+ * Description : This module provides the draw functions                    *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -155,7 +155,7 @@
         // unbind the texture buffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // set the scene size
+        // set the viewport size
         pMSAA->m_Width  = width;
         pMSAA->m_Height = height;
         pMSAA->m_Factor = factor;
@@ -327,9 +327,9 @@
 #endif
 //---------------------------------------------------------------------------
 #ifndef CSR_OPENGL_2_ONLY
-    void csrMSAASceneBegin(const CSR_Color* pColor, const CSR_MSAA* pMSAA)
+    void csrMSAADrawBegin(const CSR_Color* pColor, const CSR_MSAA* pMSAA)
     {
-        // do apply a multisample antialiasing on the scene
+        // do apply a multisample antialiasing?
         if (pMSAA && pMSAA->m_pShader)
         {
             // enable the MSAA shader
@@ -338,20 +338,20 @@
             // enable multisampling
             glEnable(GL_MULTISAMPLE);
 
-            // bind the frame buffer on which the scene should be drawn
+            // bind the frame buffer on which the final rendering should be performed
             glBindFramebuffer(GL_FRAMEBUFFER, pMSAA->m_FrameBufferID);
         }
 
-        // begin the scene
-        csrSceneBegin(pColor);
+        // begin the draw
+        csrDrawBegin(pColor);
     }
 #endif
 //---------------------------------------------------------------------------
 #ifndef CSR_OPENGL_2_ONLY
-    void csrMSAASceneEnd(const CSR_MSAA* pMSAA)
+    void csrMSAADrawEnd(const CSR_MSAA* pMSAA)
     {
-        // end the scene
-        csrSceneEnd();
+        // end the draw
+        csrDrawEnd();
 
         // do finalize the multisampling antialiasing effect?
         if (pMSAA && pMSAA->m_pShader && pMSAA->m_pStaticBuffer)
@@ -370,7 +370,7 @@
             // enable the MSAA shader
             csrShaderEnable(pMSAA->m_pShader);
 
-            // blit the multisampled buffer containing the drawn scene to the output texture buffer
+            // blit the multisampled buffer containing the drawing to the output texture buffer
             glBindFramebuffer(GL_READ_FRAMEBUFFER, pMSAA->m_FrameBufferID);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pMSAA->m_TextureBufferID);
             glBlitFramebuffer(0,
@@ -433,972 +433,45 @@
     }
 #endif
 //---------------------------------------------------------------------------
-// Scene item private functions
+// Draw private functions
 //---------------------------------------------------------------------------
-CSR_SceneItem* csrSceneItemDeleteModelFrom(CSR_SceneItem* pItem, size_t index, size_t count)
+void csrDrawArray(const CSR_VertexBuffer* pVB, size_t vertexCount)
 {
-    CSR_SceneItem* pNewItem;
-
-    // no item list to delete from?
-    if (!pItem)
-        return 0;
-
-    // was the last model in the scene?
-    if (count == 1)
-        // don't create a new scene item list
-        return 0;
-
-    // create a scene item list one item smaller than the existing one
-    pNewItem = (CSR_SceneItem*)csrMemoryAlloc(0, sizeof(CSR_SceneItem), count - 1);
-
-    // succeeded?
-    if (!pNewItem)
-        return 0;
-
-    // copy all the remaining items in the new list
-    if (!index)
-        memcpy(pNewItem, pItem + 1, (count - 1) * sizeof(CSR_SceneItem));
-    else
-    if (index == (count - 1))
-        memcpy(pNewItem, pItem, (count - 1) * sizeof(CSR_SceneItem));
-    else
+    // search for array type to draw
+    switch (pVB->m_Format.m_Type)
     {
-        memcpy(pNewItem,         pItem,             sizeof(CSR_SceneItem) *          index);
-        memcpy(pNewItem + index, pItem + index + 1, sizeof(CSR_SceneItem) * (count - index - 1));
+        case CSR_VT_Triangles:     glDrawArrays(GL_TRIANGLES,      0, vertexCount); break;
+        case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
+        case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
     }
-
-    // release the item content
-    csrSceneItemRelease(&pItem[index]);
-
-    return pNewItem;
 }
 //---------------------------------------------------------------------------
-CSR_MatrixItem* csrSceneItemDeleteMatrixFrom(CSR_MatrixItem* pItem, size_t index, size_t count)
+// Draw functions
+//---------------------------------------------------------------------------
+void csrDrawBegin(const CSR_Color* pColor)
 {
-    CSR_MatrixItem* pNewItem;
-
-    // no item list to delete from?
-    if (!pItem)
-        return 0;
-
-    // was the last matrix in the model?
-    if (count == 1)
-        // don't create a new matrix item list
-        return 0;
-
-    // create a matrix item list one item smaller than the existing one
-    pNewItem = (CSR_MatrixItem*)csrMemoryAlloc(0, sizeof(CSR_MatrixItem), count - 1);
-
-    // succeeded?
-    if (!pNewItem)
-        return 0;
-
-    // copy all the remaining items in the new list
-    if (!index)
-        memcpy(pNewItem, pItem + 1, (count - 1) * sizeof(CSR_MatrixItem));
-    else
-    if (index == (count - 1))
-        memcpy(pNewItem, pItem, (count - 1) * sizeof(CSR_MatrixItem));
-    else
-    {
-        memcpy(pNewItem,         pItem,             sizeof(CSR_MatrixItem) *          index);
-        memcpy(pNewItem + index, pItem + index + 1, sizeof(CSR_MatrixItem) * (count - index - 1));
-    }
-
-    return pNewItem;
-}
-//---------------------------------------------------------------------------
-// Scene context functions
-//---------------------------------------------------------------------------
-void csrSceneContextInit(CSR_SceneContext* pContext)
-{
-    // no context to initialize?
-    if (!pContext)
-        return;
-
-    // initialize the context
-    pContext->m_Handle             = 0;
-    pContext->m_fOnSceneBegin      = 0;
-    pContext->m_fOnSceneEnd        = 0;
-    pContext->m_fOnGetShader       = 0;
-    pContext->m_fOnGetModelIndex   = 0;
-    pContext->m_fOnGetMDLIndex     = 0;
-    pContext->m_fOnDetectCollision = 0;
-}
-//---------------------------------------------------------------------------
-// Scene item functions
-//---------------------------------------------------------------------------
-CSR_SceneItem* csrSceneItemCreate(void)
-{
-    // create a new scene item
-    CSR_SceneItem* pSceneItem = (CSR_SceneItem*)malloc(sizeof(CSR_SceneItem));
-
-    // succeeded?
-    if (!pSceneItem)
-        return 0;
-
-    // initialize the scene item content
-    csrSceneItemInit(pSceneItem);
-
-    return pSceneItem;
-}
-//---------------------------------------------------------------------------
-void csrSceneItemRelease(CSR_SceneItem* pSceneItem)
-{
-    // no scene item to release?
-    if (!pSceneItem)
-        return;
-
-    // release the model
-    if (pSceneItem->m_pModel)
-        switch (pSceneItem->m_Type)
-        {
-            case CSR_MT_Mesh:  csrMeshRelease(pSceneItem->m_pModel);  break;
-            case CSR_MT_Model: csrModelRelease(pSceneItem->m_pModel); break;
-            case CSR_MT_MDL:   csrMDLRelease(pSceneItem->m_pModel);   break;
-        }
-
-    // release the aligned-axis bounding box tree
-    if (pSceneItem->m_pAABBTree)
-    {
-        size_t i;
-
-        // release all the tree content
-        for (i = 0; i < pSceneItem->m_AABBTreeCount; ++i)
-        {
-            // get the AABB tree root node
-            CSR_AABBNode* pNode = &pSceneItem->m_pAABBTree[i];
-
-            // release all children on left side
-            if (pNode->m_pLeft)
-                csrAABBTreeRelease(pNode->m_pLeft);
-
-            // release all children on right side
-            if (pNode->m_pRight)
-                csrAABBTreeRelease(pNode->m_pRight);
-
-            // delete node content
-            csrAABBTreeNodeRelease(pNode);
-        }
-
-        // free the tree container
-        free(pSceneItem->m_pAABBTree);
-    }
-
-    // do release the matrix list?
-    if (pSceneItem->m_pMatrixList)
-    {
-        // release the matrix list items. NOTE don't release the item content, because the matrices
-        // are just linked with the item, not owned
-        if (pSceneItem->m_pMatrixList->m_pItem)
-            free(pSceneItem->m_pMatrixList->m_pItem);
-
-        // release the matrix list
-        free(pSceneItem->m_pMatrixList);
-    }
-
-    // NOTE don't release the shader, as it's just linked with the item, not owned
-}
-//---------------------------------------------------------------------------
-void csrSceneItemInit(CSR_SceneItem* pSceneItem)
-{
-    // no scene item to initialize?
-    if (!pSceneItem)
-        return;
-
-    pSceneItem->m_pModel        = 0;
-    pSceneItem->m_Type          = CSR_MT_Model;
-    pSceneItem->m_pMatrixList   = 0;
-    pSceneItem->m_pAABBTree     = 0;
-    pSceneItem->m_AABBTreeCount = 0;
-}
-//---------------------------------------------------------------------------
-void csrSceneItemDraw(const CSR_Scene*        pScene,
-                      const CSR_SceneContext* pContext,
-                      const CSR_SceneItem*    pItem)
-{
-    GLint       slot;
-    CSR_Shader* pShader;
-
-    // validate the input
-    if (!pScene || !pContext || !pItem)
-        return;
-
-    pShader = 0;
-
-    // get the shader to use with the model
-    if (pContext->m_fOnGetShader)
-        pShader = pContext->m_fOnGetShader(pItem->m_pModel, pItem->m_Type);
-
-    // found one?
-    if (!pShader)
-        return;
-
-    // enable the item shader
-    csrShaderEnable(pShader);
-
-    // get the view matrix slot from shader
-    slot = glGetUniformLocation(pShader->m_ProgramID, "csr_uView");
-
-    // connect view matrix to shader
-    if (slot >= 0)
-        glUniformMatrix4fv(slot, 1, 0, &pScene->m_Matrix.m_Table[0][0]);
-
-    // draw the model
-    switch (pItem->m_Type)
-    {
-        case CSR_MT_Mesh:
-        {
-            // notify the caller that a collision may be detected
-            if (pContext->m_fOnDetectCollision)
-                // AABB tree exists for the mesh?
-                if (pItem->m_pAABBTree && pItem->m_AABBTreeCount == 1)
-                    // several models will be drawn? (each matrix is in fact an standalone mesh copy)
-                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
-                    {
-                        size_t i;
-
-                        // detect the collision for each standalone mesh
-                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
-                            pContext->m_fOnDetectCollision
-                                    ((const CSR_Mesh*)pItem->m_pModel,
-                                                      pItem->m_pAABBTree,
-                                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
-                    }
-                    else
-                        // mesh matrix is processed externally, just send the collision data
-                        pContext->m_fOnDetectCollision
-                                ((const CSR_Mesh*)pItem->m_pModel, pItem->m_pAABBTree, 0);
-
-            // draw the mesh
-            csrSceneDrawMesh((const CSR_Mesh*)pItem->m_pModel,
-                                              pShader,
-                                              pItem->m_pMatrixList);
-            break;
-        }
-
-        case CSR_MT_Model:
-        {
-            size_t index = 0;
-
-            // notify the caller that the model is about to be drawn
-            if (pContext->m_fOnGetModelIndex)
-                pContext->m_fOnGetModelIndex((const CSR_Model*)pItem->m_pModel, &index);
-
-            // notify the caller that a collision may be detected
-            if (pContext->m_fOnDetectCollision)
-                // is AABB tree index out of bounds?
-                if (pItem->m_pAABBTree && index < pItem->m_AABBTreeCount)
-                {
-                    // get the model to check
-                    const CSR_Model* pModel = (const CSR_Model*)pItem->m_pModel;
-
-                    // do draw several models? (each matrix is in fact a standalone model copy)
-                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
-                    {
-                        size_t i;
-
-                        // detect the collision for each standalone model
-                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
-                            pContext->m_fOnDetectCollision
-                                    (&pModel->m_pMesh[index],
-                                     &pItem->m_pAABBTree[index],
-                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
-                    }
-                    else
-                        // mesh matrix is processed externally, just send the collision data
-                        pContext->m_fOnDetectCollision(&pModel->m_pMesh[index],
-                                                       &pItem->m_pAABBTree[index],
-                                                        0);
-                }
-
-            // draw the model
-            csrSceneDrawModel((const CSR_Model*)pItem->m_pModel,
-                                                index,
-                                                pShader,
-                                                pItem->m_pMatrixList);
-            break;
-        }
-
-        case CSR_MT_MDL:
-        {
-            size_t textureIndex = 0;
-            size_t modelIndex   = 0;
-            size_t meshIndex    = 0;
-
-            // notify the caller that the MDL model is about to be drawn
-            if (pContext->m_fOnGetMDLIndex)
-                pContext->m_fOnGetMDLIndex((const CSR_MDL*)pItem->m_pModel,
-                                                          &textureIndex,
-                                                          &modelIndex,
-                                                          &meshIndex);
-
-            // notify the caller that a collision may be detected
-            if (pContext->m_fOnDetectCollision)
-            {
-                // get the MDL model to check
-                const CSR_MDL* pMDL = (const CSR_MDL*)pItem->m_pModel;
-
-                // calculate the AABB tree index
-                const size_t index = (modelIndex * pMDL->m_ModelCount) + meshIndex;
-
-                // is AABB tree index out of bounds?
-                if (pItem->m_pAABBTree && index < pItem->m_AABBTreeCount)
-                    // several models will be drawn? (each matrix is in fact a standalone model copy)
-                    if (pItem->m_pMatrixList && pItem->m_pMatrixList->m_Count)
-                    {
-                        size_t i;
-
-                        // detect the collision for each standalone model
-                        for (i = 0; i < pItem->m_pMatrixList->m_Count; ++i)
-                            pContext->m_fOnDetectCollision
-                                    (&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
-                                     &pItem->m_pAABBTree[index],
-                                      pItem->m_pMatrixList->m_pItem[i].m_pMatrix);
-                    }
-                    else
-                        // mesh matrix is processed externally, just send the collision data
-                        pContext->m_fOnDetectCollision
-                                (&pMDL->m_pModel[modelIndex].m_pMesh[meshIndex],
-                                 &pItem->m_pAABBTree[index],
-                                  0);
-            }
-
-            // draw the MDL model
-            csrSceneDrawMDL((const CSR_MDL*)pItem->m_pModel,
-                                            pShader,
-                                            pItem->m_pMatrixList,
-                                            textureIndex,
-                                            modelIndex,
-                                            meshIndex);
-            break;
-        }
-    }
-
-    // disable the item shader
-    csrShaderEnable(0);
-}
-//---------------------------------------------------------------------------
-// Scene functions
-//---------------------------------------------------------------------------
-CSR_Scene* csrSceneCreate(void)
-{
-    // create a new scene
-    CSR_Scene* pScene = (CSR_Scene*)malloc(sizeof(CSR_Scene));
-
-    // succeeded?
-    if (!pScene)
-        return 0;
-
-    // initialize the scene content
-    csrSceneInit(pScene);
-
-    return pScene;
-}
-//---------------------------------------------------------------------------
-void csrSceneRelease(CSR_Scene* pScene)
-{
-    size_t i;
-
-    // no scene to release?
-    if (!pScene)
-        return;
-
-    // do free the normal items content?
-    if (pScene->m_pItem)
-    {
-        // iterate through each scene item to release, and release each of them
-        for (i = 0; i < pScene->m_ItemCount; ++i)
-            csrSceneItemRelease(&pScene->m_pItem[i]);
-
-        // free the scene items
-        free(pScene->m_pItem);
-    }
-
-    // do free the transparent items content?
-    if (pScene->m_pTransparentItem)
-    {
-        // iterate through each scene transparent item to release, and release each of them
-        for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-            csrSceneItemRelease(&pScene->m_pTransparentItem[i]);
-
-        // free the scene transparent items
-        free(pScene->m_pTransparentItem);
-    }
-
-    // free the scene
-    free(pScene);
-}
-//---------------------------------------------------------------------------
-void csrSceneInit(CSR_Scene* pScene)
-{
-    // no scene to initialize?
-    if (!pScene)
-        return;
-
-    // initialize the scene
-    pScene->m_Color.m_R            = 0.0f;
-    pScene->m_Color.m_G            = 0.0f;
-    pScene->m_Color.m_B            = 0.0f;
-    pScene->m_Color.m_A            = 1.0f;
-    pScene->m_pItem                = 0;
-    pScene->m_ItemCount            = 0;
-    pScene->m_pTransparentItem     = 0;
-    pScene->m_TransparentItemCount = 0;
-
-    // set the default item matrix to identity
-    csrMat4Identity(&pScene->m_Matrix);
-}
-//---------------------------------------------------------------------------
-void csrSceneBegin(const CSR_Color* pColor)
-{
-    // no scene background color?
+    // no background color?
     if (!pColor)
         return;
 
-    // clear scene background and depth buffer
+    // clear background and depth buffer
     glClearColor(pColor->m_R, pColor->m_G, pColor->m_B, pColor->m_A);
     glClearDepthf(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // configure the OpenGL depth testing for the scene
+    // configure the OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LEQUAL);
     glDepthRangef(0.0f, 1.0f);
 }
 //---------------------------------------------------------------------------
-void csrSceneEnd(void)
+void csrDrawEnd(void)
 {}
 //---------------------------------------------------------------------------
-int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb)
-{
-    CSR_SceneItem* pItem;
-    int            index;
-
-    // validate the input data
-    if (!pScene || !pMesh)
-        return 0;
-
-    // is mesh already added in the scene?
-    if (csrSceneGetItem(pScene, pMesh))
-        return 1;
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add a new item to the transparent items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_TransparentItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the item index to update
-        index = pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add a new item to the scene items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_ItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the scene item index to update
-        index = pScene->m_ItemCount;
-    }
-
-    // initialize the newly created item with the default values
-    csrSceneItemInit(&pItem[index]);
-
-    // configure the item
-    pItem[index].m_pModel = pMesh;
-    pItem[index].m_Type   = CSR_MT_Mesh;
-
-    // generate the aligned-axis bounding box tree for this mesh
-    if (aabb)
-    {
-        pItem[index].m_AABBTreeCount = 1;
-        pItem[index].m_pAABBTree     = csrAABBTreeFromMesh(pMesh);
-
-        // succeeded?
-        if (!pItem[index].m_pAABBTree)
-        {
-            // realloc to the previous size, thus the latest added item will be freed
-            if (transparent)
-                pScene->m_pTransparentItem =
-                        (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                       sizeof(CSR_SceneItem),
-                                                       pScene->m_TransparentItemCount);
-            else
-                pScene->m_pItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                 sizeof(CSR_SceneItem),
-                                                                 pScene->m_ItemCount);
-
-            return 0;
-        }
-    }
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add item to the transparent item list
-        pScene->m_pTransparentItem = pItem;
-        ++pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add item to the normal item list
-        pScene->m_pItem = pItem;
-        ++pScene->m_ItemCount;
-    }
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb)
-{
-    CSR_SceneItem* pItem;
-    int            index;
-
-    // validate the input data
-    if (!pScene || !pModel)
-        return 0;
-
-    // is model already added in the scene?
-    if (csrSceneGetItem(pScene, pModel))
-        return 1;
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add a new item to the transparent items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_TransparentItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the item index to update
-        index = pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add a new item to the scene items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_ItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the scene item index to update
-        index = pScene->m_ItemCount;
-    }
-
-    // initialize the newly created item with the default values
-    csrSceneItemInit(&pItem[index]);
-
-    // configure the item
-    pItem[index].m_pModel = pModel;
-    pItem[index].m_Type   = CSR_MT_Model;
-
-    // generate the aligned-axis bounding box tree for this model
-    if (aabb)
-    {
-        size_t i;
-
-        // reserve memory for all the AABB trees to create
-        pItem[index].m_AABBTreeCount = pModel->m_MeshCount;
-        pItem[index].m_pAABBTree     = (CSR_AABBNode*)csrMemoryAlloc(0,
-                                                                     sizeof(CSR_AABBNode),
-                                                                     pItem[index].m_AABBTreeCount);
-
-        // succeeded?
-        if (!pItem[index].m_pAABBTree)
-        {
-            // realloc to the previous size, thus the latest added item will be freed
-            if (transparent)
-                pScene->m_pTransparentItem =
-                        (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                       sizeof(CSR_SceneItem),
-                                                       pScene->m_TransparentItemCount);
-            else
-                pScene->m_pItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                 sizeof(CSR_SceneItem),
-                                                                 pScene->m_ItemCount);
-
-            return 0;
-        }
-
-        // iterate through the model meshes
-        for (i = 0; i < pModel->m_MeshCount; ++i)
-        {
-            // create a new tree for the mesh
-            CSR_AABBNode* pAABBTree = csrAABBTreeFromMesh(&pModel->m_pMesh[i]);
-
-            // succeeded?
-            if (!pAABBTree)
-            {
-                // realloc to the previous size, thus the latest added item will be freed
-                if (transparent)
-                    pScene->m_pTransparentItem =
-                            (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                           sizeof(CSR_SceneItem),
-                                                           pScene->m_TransparentItemCount);
-                else
-                    pScene->m_pItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                     sizeof(CSR_SceneItem),
-                                                                     pScene->m_ItemCount);
-
-                return 0;
-            }
-
-            // copy the tree content
-            memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
-
-            // release the source tree
-            csrAABBTreeRelease(pAABBTree);
-        }
-    }
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add item to the transparent item list
-        pScene->m_pTransparentItem = pItem;
-        ++pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add item to the normal item list
-        pScene->m_pItem = pItem;
-        ++pScene->m_ItemCount;
-    }
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
-{
-    CSR_SceneItem* pItem;
-    int            index;
-
-    // validate the input data
-    if (!pScene || !pMDL)
-        return 0;
-
-    // is model already added in the scene?
-    if (csrSceneGetItem(pScene, pMDL))
-        return 1;
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add a new item to the transparent items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pTransparentItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_TransparentItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the item index to update
-        index = pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add a new item to the scene items
-        pItem = (CSR_SceneItem*)csrMemoryAlloc(pScene->m_pItem,
-                                               sizeof(CSR_SceneItem),
-                                               pScene->m_ItemCount + 1);
-
-        // succeeded?
-        if (!pItem)
-            return 0;
-
-        // get the scene item index to update
-        index = pScene->m_ItemCount;
-    }
-
-    // initialize the newly created item with the default values
-    csrSceneItemInit(&pItem[index]);
-
-    // configure the item
-    pItem[index].m_pModel = pMDL;
-    pItem[index].m_Type   = CSR_MT_MDL;
-
-    // generate the aligned-axis bounding box tree for this model
-    if (aabb)
-    {
-        size_t i;
-        size_t j;
-
-        // reserve memory for all the AABB trees to create
-        pItem[index].m_AABBTreeCount = pMDL->m_ModelCount * pMDL->m_pModel->m_MeshCount;
-        pItem[index].m_pAABBTree     = (CSR_AABBNode*)csrMemoryAlloc(0,
-                                                                     sizeof(CSR_AABBNode),
-                                                                     pItem[index].m_AABBTreeCount);
-
-        // succeeded?
-        if (!pItem[index].m_pAABBTree)
-        {
-            // realloc to the previous size, thus the latest added item will be freed
-            if (transparent)
-                pScene->m_pTransparentItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                            sizeof(CSR_SceneItem),
-                                                                            pScene->m_TransparentItemCount);
-            else
-                pScene->m_pItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                 sizeof(CSR_SceneItem),
-                                                                 pScene->m_ItemCount);
-
-            return 0;
-        }
-
-        // iterate through the model meshes
-        for (i = 0; i < pMDL->m_ModelCount; ++i)
-            for (j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
-            {
-                // create a new tree for the mesh
-                CSR_AABBNode* pAABBTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
-
-                // succeeded?
-                if (!pAABBTree)
-                {
-                    // realloc to the previous size, thus the latest added item will be freed
-                    if (transparent)
-                        pScene->m_pTransparentItem =
-                                (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                               sizeof(CSR_SceneItem),
-                                                               pScene->m_TransparentItemCount);
-                    else
-                        pScene->m_pItem = (CSR_SceneItem*)csrMemoryAlloc(pItem,
-                                                                         sizeof(CSR_SceneItem),
-                                                                         pScene->m_ItemCount);
-
-                    return 0;
-                }
-
-                // copy the tree content
-                memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
-
-                // release the source tree
-                csrAABBTreeRelease(pAABBTree);
-            }
-    }
-
-    // do add a transparent item?
-    if (transparent)
-    {
-        // add item to the transparent item list
-        pScene->m_pTransparentItem = pItem;
-        ++pScene->m_TransparentItemCount;
-    }
-    else
-    {
-        // add item to the normal item list
-        pScene->m_pItem = pItem;
-        ++pScene->m_ItemCount;
-    }
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-int csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix)
-{
-    size_t          i;
-    CSR_SceneItem*  pSceneItem;
-    CSR_MatrixItem* pMatrixItem;
-
-    // validate inputs
-    if (!pScene || !pModel || !pMatrix)
-        return 0;
-
-    // get the scene item matching with the model for which the matrix should be added
-    pSceneItem = csrSceneGetItem(pScene, pModel);
-
-    // found it?
-    if (!pSceneItem)
-        return 0;
-
-    // do create a matrix list for the item?
-    if (!pSceneItem->m_pMatrixList)
-    {
-        // create a new matrix list
-        pSceneItem->m_pMatrixList = (CSR_MatrixList*)csrMemoryAlloc(0, sizeof(CSR_MatrixList), 1);
-
-        // succeeded?
-        if (!pSceneItem->m_pMatrixList)
-            return 0;
-    }
-    else
-        // check if matrix was already added to this model
-        for (i = 0; i < pSceneItem->m_pMatrixList->m_Count; ++i)
-            if (pSceneItem->m_pMatrixList->m_pItem[i].m_pMatrix == pMatrix)
-                return 1;
-
-    // add a new matrix item in the item matrix list
-    pMatrixItem = (CSR_MatrixItem*)csrMemoryAlloc(pSceneItem->m_pMatrixList->m_pItem,
-                                                  sizeof(CSR_Matrix4),
-                                                  pSceneItem->m_pMatrixList->m_Count + 1);
-
-    // succeeded?
-    if (!pMatrixItem)
-        return 0;
-
-    // add the matrix inside the scene item
-    pMatrixItem[pSceneItem->m_pMatrixList->m_Count].m_pMatrix = pMatrix;
-
-    // update the scene item
-    pSceneItem->m_pMatrixList->m_pItem = pMatrixItem;
-    ++pSceneItem->m_pMatrixList->m_Count;
-
-    return 1;
-}
-//---------------------------------------------------------------------------
-CSR_SceneItem* csrSceneGetItem(const CSR_Scene* pScene, const void* pKey)
-{
-    size_t i;
-    size_t j;
-
-    // validate inputs
-    if (!pScene || !pKey)
-        return 0;
-
-    // first search in the standard models
-    for (i = 0; i < pScene->m_ItemCount; ++i)
-    {
-        // found a matching model?
-        if (pScene->m_pItem[i].m_pModel == pKey)
-            return &pScene->m_pItem[i];
-
-        // check also if the key is a known matrix
-        if (pScene->m_pItem[i].m_pMatrixList)
-            for (j = 0; j < pScene->m_pItem[i].m_pMatrixList->m_Count; ++j)
-                if (&pScene->m_pItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                    return &pScene->m_pItem[i];
-    }
-
-    // then search in the transparent models
-    for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-    {
-        // found a matching model?
-        if (pScene->m_pTransparentItem[i].m_pModel == pKey)
-            return &pScene->m_pTransparentItem[i];
-
-        // check also if the key is a known matrix
-        if (pScene->m_pTransparentItem[i].m_pMatrixList)
-            for (j = 0; j < pScene->m_pTransparentItem[i].m_pMatrixList->m_Count; ++j)
-                if (&pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                    return &pScene->m_pTransparentItem[i];
-    }
-
-    // not found
-    return 0;
-}
-//---------------------------------------------------------------------------
-void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey)
-{
-    size_t          i;
-    size_t          j;
-    CSR_SceneItem*  pSceneItem;
-    CSR_MatrixItem* pMatrixItem;
-
-    // validate inputs
-    if (!pScene || !pKey)
-        return;
-
-    // first search in the standard models
-    for (i = 0; i < pScene->m_ItemCount; ++i)
-    {
-        // found a matching model?
-        if (pScene->m_pItem[i].m_pModel == pKey)
-        {
-            // delete the item from the list
-            pSceneItem = csrSceneItemDeleteModelFrom(pScene->m_pItem, i, pScene->m_ItemCount);
-
-            // update the scene content
-            free(pScene->m_pItem);
-            pScene->m_pItem = pSceneItem;
-            --pScene->m_ItemCount;
-
-            return;
-        }
-
-        // check also if the key is a known matrix
-        if (pScene->m_pItem[i].m_pMatrixList)
-            for (j = 0; j < pScene->m_pItem[i].m_pMatrixList->m_Count; ++j)
-                if (&pScene->m_pItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                {
-                    // delete the matrix
-                    pMatrixItem =
-                            csrSceneItemDeleteMatrixFrom(pScene->m_pItem[i].m_pMatrixList->m_pItem,
-                                                         j,
-                                                         pScene->m_pItem[i].m_pMatrixList->m_Count);
-
-                    // update the matrix list content
-                    free(pScene->m_pItem[i].m_pMatrixList->m_pItem);
-                    pScene->m_pItem[i].m_pMatrixList->m_pItem = pMatrixItem;
-                    --pScene->m_pItem[i].m_pMatrixList->m_Count;
-
-                    return;
-                }
-    }
-
-    // then search in the transparent models
-    for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-    {
-        // found a matching model?
-        if (pScene->m_pTransparentItem[i].m_pModel == pKey)
-        {
-            // delete the item from the list
-            pSceneItem = csrSceneItemDeleteModelFrom(pScene->m_pTransparentItem,
-                                                     i,
-                                                     pScene->m_TransparentItemCount);
-
-            // update the scene content
-            free(pScene->m_pTransparentItem);
-            pScene->m_pTransparentItem = pSceneItem;
-            --pScene->m_TransparentItemCount;
-
-            return;
-        }
-
-        // check also if the key is a known matrix
-        if (pScene->m_pTransparentItem[i].m_pMatrixList)
-            for (j = 0; j < pScene->m_pTransparentItem[i].m_pMatrixList->m_Count; ++j)
-                if (&pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem[j].m_pMatrix == pKey)
-                {
-                    // delete the matrix
-                    pMatrixItem =
-                            csrSceneItemDeleteMatrixFrom(pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem,
-                                                         j,
-                                                         pScene->m_pTransparentItem[i].m_pMatrixList->m_Count);
-
-                    // update the matrix list content
-                    free(pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem);
-                    pScene->m_pTransparentItem[i].m_pMatrixList->m_pItem = pMatrixItem;
-                    --pScene->m_pTransparentItem[i].m_pMatrixList->m_Count;
-
-                    return;
-                }
-    }
-}
-//---------------------------------------------------------------------------
-void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
-                              const CSR_Shader*       pShader,
-                              const CSR_MatrixList*   pMatrixList)
+void csrDrawVertexBuffer(const CSR_VertexBuffer* pVB,
+                         const CSR_Shader*       pShader,
+                         const CSR_Array*        pMatrixArray)
 {
     GLvoid* pCoords;
     GLvoid* pNormals;
@@ -1542,9 +615,9 @@ void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
     vertexCount = pVB->m_Count / pVB->m_Format.m_Stride;
 
     // do draw the vertex buffer several times?
-    if (pMatrixList && pMatrixList->m_Count)
+    if (pMatrixArray && pMatrixArray->m_Count)
         // yes, iterate through each matrix to use to draw the vertex buffer
-        for (i = 0; i < pMatrixList->m_Count; ++i)
+        for (i = 0; i < pMatrixArray->m_Count; ++i)
         {
             // get the model matrix slot from shader
             const GLint slot = glGetUniformLocation(pShader->m_ProgramID, "csr_uModel");
@@ -1554,24 +627,14 @@ void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
                 continue;
 
             // connect the model matrix to the shader
-            glUniformMatrix4fv(slot, 1, 0, &pMatrixList->m_pItem[i].m_pMatrix->m_Table[0][0]);
+            glUniformMatrix4fv(slot, 1, 0, &((CSR_Matrix4*)pMatrixArray->m_pItem[i].m_pData)->m_Table[0][0]);
 
             // draw the next buffer
-            switch (pVB->m_Format.m_Type)
-            {
-                case CSR_VT_Triangles:     glDrawArrays(GL_TRIANGLES,      0, vertexCount); break;
-                case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
-                case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
-            }
+            csrDrawArray(pVB, vertexCount);
         }
     else
         // no, draw the buffer
-        switch (pVB->m_Format.m_Type)
-        {
-            case CSR_VT_Triangles:     glDrawArrays(GL_TRIANGLES,      0, vertexCount); break;
-            case CSR_VT_TriangleStrip: glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); break;
-            case CSR_VT_TriangleFan:   glDrawArrays(GL_TRIANGLE_FAN,   0, vertexCount); break;
-        }
+        csrDrawArray(pVB, vertexCount);
 
     // disable vertices slots from shader
     glDisableVertexAttribArray(pShader->m_VertexSlot);
@@ -1589,9 +652,9 @@ void csrSceneDrawVertexBuffer(const CSR_VertexBuffer* pVB,
         glDisableVertexAttribArray(pShader->m_ColorSlot);
 }
 //---------------------------------------------------------------------------
-void csrSceneDrawMesh(const CSR_Mesh*       pMesh,
-                      const CSR_Shader*     pShader,
-                      const CSR_MatrixList* pMatrixList)
+void csrDrawMesh(const CSR_Mesh*   pMesh,
+                 const CSR_Shader* pShader,
+                 const CSR_Array*  pMatrixArray)
 {
     size_t i;
 
@@ -1636,29 +699,29 @@ void csrSceneDrawMesh(const CSR_Mesh*       pMesh,
         }
 
         // draw the next mesh vertex buffer
-        csrSceneDrawVertexBuffer(&pMesh->m_pVB[i], pShader, pMatrixList);
+        csrDrawVertexBuffer(&pMesh->m_pVB[i], pShader, pMatrixArray);
     }
 }
 //---------------------------------------------------------------------------
-void csrSceneDrawModel(const CSR_Model*      pModel,
-                             size_t          index,
-                       const CSR_Shader*     pShader,
-                       const CSR_MatrixList* pMatrixList)
+void csrDrawModel(const CSR_Model*  pModel,
+                        size_t      index,
+                  const CSR_Shader* pShader,
+                  const CSR_Array*  pMatrixArray)
 {
     // no model to draw?
     if (!pModel)
         return;
 
     // draw the model mesh
-    csrSceneDrawMesh(&pModel->m_pMesh[index % pModel->m_MeshCount], pShader, pMatrixList);
+    csrDrawMesh(&pModel->m_pMesh[index % pModel->m_MeshCount], pShader, pMatrixArray);
 }
 //---------------------------------------------------------------------------
-void csrSceneDrawMDL(const CSR_MDL*        pMDL,
-                     const CSR_Shader*     pShader,
-                     const CSR_MatrixList* pMatrixList,
-                           size_t          textureIndex,
-                           size_t          modelIndex,
-                           size_t          meshIndex)
+void csrDrawMDL(const CSR_MDL*    pMDL,
+                const CSR_Shader* pShader,
+                const CSR_Array*  pMatrixArray,
+                      size_t      textureIndex,
+                      size_t      modelIndex,
+                      size_t      meshIndex)
 {
     // get the current model mesh to draw
     const CSR_Mesh* pMesh = csrMDLGetMesh(pMDL, modelIndex, meshIndex);
@@ -1686,44 +749,6 @@ void csrSceneDrawMDL(const CSR_MDL*        pMDL,
         }
 
     // draw the model mesh
-    csrSceneDrawMesh(pMesh, pShader, pMatrixList);
-}
-//---------------------------------------------------------------------------
-void csrSceneDraw(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
-{
-    size_t i;
-    GLint  slot;
-
-    // no scene to draw?
-    if (!pScene)
-        return;
-
-    // no scene context?
-    if (!pContext)
-        return;
-
-    // begin the scene drawing
-    if (pContext->m_fOnSceneBegin)
-        pContext->m_fOnSceneBegin(pScene, pContext);
-    else
-        csrSceneBegin(&pScene->m_Color);
-
-    // first draw the standard models
-    for (i = 0; i < pScene->m_ItemCount; ++i)
-        csrSceneItemDraw(pScene,
-                         pContext,
-                        &pScene->m_pItem[i]);
-
-    // then draw the transparent models
-    for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-        csrSceneItemDraw(pScene,
-                         pContext,
-                        &pScene->m_pTransparentItem[i]);
-
-    // end the scene drawing
-    if (pContext->m_fOnSceneEnd)
-        pContext->m_fOnSceneEnd(pScene, pContext);
-    else
-        csrSceneEnd();
+    csrDrawMesh(pMesh, pShader, pMatrixArray);
 }
 //---------------------------------------------------------------------------
