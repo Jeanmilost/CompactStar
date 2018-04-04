@@ -296,7 +296,6 @@ void TMainForm::InitScene()
     m_SceneContext.m_fOnGetShader       = OnGetShaderCallback;
     m_SceneContext.m_fOnGetModelIndex   = 0;
     m_SceneContext.m_fOnGetMDLIndex     = 0;
-    m_SceneContext.m_fOnDetectCollision = 0;
 
     // configure the scene color
     csrRGBAToColor(0xFF, &m_pScene->m_Color);
@@ -456,7 +455,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
         // link the model matrix to the scene, if still not done
-        if (!m_pScene->m_pItem[i].m_pMatrixList)
+        if (!m_pScene->m_pItem[i].m_pMatrixArray)
             csrSceneAddModelMatrix(m_pScene, m_pScene->m_pItem[i].m_pModel, &m_ModelMatrix);
 
         // set translation
@@ -493,7 +492,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
     {
         // link the model matrix to the scene, if still not done
-        if (!m_pScene->m_pTransparentItem[i].m_pMatrixList)
+        if (!m_pScene->m_pTransparentItem[i].m_pMatrixArray)
             csrSceneAddModelMatrix(m_pScene, m_pScene->m_pTransparentItem[i].m_pModel, &m_ModelMatrix);
 
         // set translation

@@ -450,7 +450,7 @@ CSR_IndexedPolygonBuffer* csrIndexedPolygonBufferFromMesh(const CSR_Mesh* pMesh)
     CSR_IndexedPolygon        indexedPolygon;
     CSR_IndexedPolygonBuffer* pIPB;
 
-    // validate the input
+    // validate the inputs
     if (!pMesh || !pMesh->m_pVB || !pMesh->m_Count)
         return 0;
 

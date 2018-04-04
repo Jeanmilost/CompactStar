@@ -46,9 +46,10 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-#define M_CSR_Version    0.1
-#define M_CSR_Error_Code 0xFFFFFFFF // yes this is a 32 bit error code, but enough for this engine
-#define M_CSR_Epsilon    1.0E-3     // epsilon value used for tolerance
+#define M_CSR_Version        0.1
+#define M_CSR_Error_Code     0xFFFFFFFF // yes this is a 32 bit error code, but enough for this engine
+#define M_CSR_Unknown_Index -1
+#define M_CSR_Epsilon        1.0E-3     // epsilon value used for tolerance
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -78,6 +79,24 @@ typedef struct
     float m_B;
     float m_A;
 } CSR_Color;
+
+/**
+* Array item
+*/
+typedef struct
+{
+    void* m_pData;
+    int   m_AutoFree;
+} CSR_ArrayItem;
+
+/**
+* Array
+*/
+typedef struct
+{
+    CSR_ArrayItem* m_pItem;
+    size_t         m_Count;
+} CSR_Array;
 
 /**
 * Memory buffer
@@ -214,6 +233,93 @@ typedef struct
         *@return RGBA color
         */
         unsigned csrColorABGRToRGBA(unsigned color);
+
+        //-------------------------------------------------------------------
+        // Array functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a new array
+        *@return newly created array, 0 on error
+        *@note The array must be released when no longer used, see csrArrayRelease()
+        */
+        CSR_Array* csrArrayCreate(void);
+
+        /**
+        * Releases an array and frees his memory
+        *@param[in, out] pArray - array to release
+        */
+        void csrArrayRelease(CSR_Array* pArray);
+
+        /**
+        * Initializes an array structure
+        *@param[in, out] pArray - array to initialize
+        */
+        void csrArrayInit(CSR_Array* pArray);
+
+        /**
+        * Adds a data to an array
+        *@param pData - data to add
+        *@param[in, out] pArray - array to add to
+        *@param autoFree - if 1, the data will be freed while the array will be released
+        */
+        void csrArrayAdd(void* pData, CSR_Array* pArray, int autoFree);
+
+        /**
+        * Adds a data to an array, but only if not exists in the array
+        *@param pData - data to add
+        *@param[in, out] pArray - array to add to
+        *@param autoFree - if 1, the data will be freed while the array will be released
+        */
+        void csrArrayAddUnique(void* pData, CSR_Array* pArray, int autoFree);
+
+        /**
+        * Gets the index of a data
+        *@param pData - data for which the index should be found
+        *@param pArray - array to search in
+        *@return index, M_CSR_Unknown_Index if not found or on error
+        */
+        size_t csrArrayGetIndex(void* pData, const CSR_Array* pArray);
+
+        /**
+        * Gets the array item containing a data
+        *@param pData - data for which the array item should be found
+        *@param pArray - array to search in
+        *@return array item, 0 if not found or on error
+        */
+        CSR_ArrayItem* csrArrayGetItem(void* pData, const CSR_Array* pArray);
+
+        /**
+        * Gets the index of a data from a staring inndex
+        *@param pData - data for which the index should be found
+        *@param startIndex - start index to search from
+        *@param pArray - array to search in
+        *@return index, M_CSR_Unknown_Index if not found or on error
+        */
+        size_t csrArrayGetIndexFrom(void* pData, size_t startIndex, const CSR_Array* pArray);
+
+        /**
+        * Gets the array item containing a data from a staring inndex
+        *@param pData - data for which the array item should be found
+        *@param startIndex - start index to search from
+        *@param pArray - array to search in
+        *@return array item, 0 if not found or on error
+        */
+        CSR_ArrayItem* csrArrayGetItemFrom(void* pData, size_t startIndex, const CSR_Array* pArray);
+
+        /**
+        * Deletes an item from an array
+        *@param pData - item data to search and delete
+        *@param[in, out] pArray - array to delete from
+        */
+        void csrArrayDelete(void* pData, CSR_Array* pArray);
+
+        /**
+        * Deletes an item from an array
+        *@param index - item index to delete
+        *@param[in, out] pArray - array to delete from
+        */
+        void csrArrayDeleteAt(size_t index, CSR_Array* pArray);
 
         //-------------------------------------------------------------------
         // Buffer functions
