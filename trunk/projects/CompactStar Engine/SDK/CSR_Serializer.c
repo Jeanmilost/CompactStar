@@ -35,14 +35,13 @@
 #define M_CSR_Signature_Model          "modl"
 #define M_CSR_Signature_Model_Anim     "mani"
 #define M_CSR_Signature_MDL            "mdlm"
-#define M_CSR_Signature_Matrix_Item    "mati"
-#define M_CSR_Signature_Matrix_Array   "mata"
+#define M_CSR_Signature_Matrix_Array   "mxar"
 #define M_CSR_Signature_Scene_Item     "scit"
 #define M_CSR_Signature_Scene          "scne"
-#define M_CSR_Signature_Texture_Item   "txit"
-#define M_CSR_Signature_Texture_List   "txlt"
-#define M_CSR_Signature_Shader_Item    "sdit"
-#define M_CSR_Signature_Shader_List    "sdlt"
+#define M_CSR_Signature_Texture        "txtr"
+#define M_CSR_Signature_Texture_Array  "txar"
+#define M_CSR_Signature_Shader         "shdr"
+#define M_CSR_Signature_Shader_Array   "shar"
 //---------------------------------------------------------------------------
 // Serializer context functions
 //---------------------------------------------------------------------------
@@ -752,7 +751,7 @@ int csrSerializerReadMatrixArray(const CSR_ReadContext* pContext,
         }
 
         // search which chunk is reading
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_Item, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix, 4))
         {
             CSR_ArrayItem* pMatrixItem;
             size_t         index;
@@ -1286,17 +1285,17 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
-                                 const CSR_Buffer*      pBuffer,
-                                       size_t*          pOffset,
-                                       size_t           size,
-                                       CSR_TextureList* pTextureList)
+int csrSerializerReadTextureArray(const CSR_ReadContext*  pContext,
+                                  const CSR_Buffer*       pBuffer,
+                                        size_t*           pOffset,
+                                        size_t            size,
+                                        CSR_TextureArray* pTextureArray)
 {
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
     // validate the inputs
-    if (!pContext || !pBuffer || !pOffset || !pTextureList)
+    if (!pContext || !pBuffer || !pOffset || !pTextureArray)
         return 0;
 
     // create a header
@@ -1325,15 +1324,15 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
         }
 
         // search which chunk is reading
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture_Item, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture, 4))
         {
             CSR_TextureItem* pItem;
             size_t           index;
 
-            // add a new item to the texture list
-            pItem = (CSR_TextureItem*)csrMemoryAlloc(pTextureList->m_pItem,
+            // add a new texture item to the texture array
+            pItem = (CSR_TextureItem*)csrMemoryAlloc(pTextureArray->m_pItem,
                                                      sizeof(CSR_TextureItem),
-                                                     pTextureList->m_Count + 1);
+                                                     pTextureArray->m_Count + 1);
 
             // succeeded?
             if (!pItem)
@@ -1342,25 +1341,36 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                 return 0;
             }
 
-            // get the item index
-            index = pTextureList->m_Count;
+            // get the texture index
+            index = pTextureArray->m_Count;
 
-            // update the texture list
-            pTextureList->m_pItem = pItem;
-            ++pTextureList->m_Count;
+            // update the texture array
+            pTextureArray->m_pItem = pItem;
+            ++pTextureArray->m_Count;
 
             // initialize the texture item
-            csrTextureItemInit(&pTextureList->m_pItem[index]);
+            csrTextureItemInit(&pTextureArray->m_pItem[index]);
 
             // create memory for the texture pixel buffer
-            pTextureList->m_pItem[index].m_pTexture = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
+            pTextureArray->m_pItem[index].m_pBuffer = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
+
+            // read the texture image type
+            if (!csrBufferRead(pBuffer,
+                               pOffset,
+                               sizeof(CSR_EImageType),
+                               1,
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_ImageType))
+            {
+                free(pHeader);
+                return 0;
+            }
 
             // read the texture pixel type
             if (!csrBufferRead(pBuffer,
                                pOffset,
                                sizeof(CSR_EPixelType),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_PixelType))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_PixelType))
             {
                 free(pHeader);
                 return 0;
@@ -1371,7 +1381,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                                pOffset,
                                sizeof(unsigned),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_Width))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_Width))
             {
                 free(pHeader);
                 return 0;
@@ -1382,7 +1392,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                                pOffset,
                                sizeof(unsigned),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_Height))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_Height))
             {
                 free(pHeader);
                 return 0;
@@ -1393,7 +1403,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                                pOffset,
                                sizeof(unsigned),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_Stride))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_Stride))
             {
                 free(pHeader);
                 return 0;
@@ -1404,7 +1414,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                                pOffset,
                                sizeof(unsigned),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_BytePerPixel))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_BytePerPixel))
             {
                 free(pHeader);
                 return 0;
@@ -1415,7 +1425,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
                                pOffset,
                                sizeof(unsigned),
                                1,
-                              &pTextureList->m_pItem[index].m_pTexture->m_DataLength))
+                              &pTextureArray->m_pItem[index].m_pBuffer->m_DataLength))
             {
                 free(pHeader);
                 return 0;
@@ -1424,9 +1434,9 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
             // read the texture data content
             if (!csrBufferRead(pBuffer,
                                pOffset,
-                               pTextureList->m_pItem[index].m_pTexture->m_DataLength,
+                               pTextureArray->m_pItem[index].m_pBuffer->m_DataLength,
                                1,
-                               pTextureList->m_pItem[index].m_pTexture->m_pData))
+                               pTextureArray->m_pItem[index].m_pBuffer->m_pData))
             {
                 free(pHeader);
                 return 0;
@@ -1434,7 +1444,7 @@ int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
 
             // notify that a texture was read and should be created
             if (pContext->m_fOnCreateTexture)
-                pContext->m_fOnCreateTexture(pTextureList->m_pItem[index].m_pTexture);
+                pContext->m_fOnCreateTexture(pTextureArray->m_pItem[index].m_pBuffer);
 
             continue;
         }
@@ -1462,13 +1472,13 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
                                 const CSR_Buffer*      pBuffer,
                                       size_t*          pOffset,
                                       size_t           size,
-                                      CSR_ShaderList*  pShaderList)
+                                      CSR_ShaderArray* pShaderArray)
 {
     size_t               start;
     CSR_SceneFileHeader* pHeader;
 
     // validate the inputs
-    if (!pContext || !pBuffer || !pOffset || !pShaderList)
+    if (!pContext || !pBuffer || !pOffset || !pShaderArray)
         return 0;
 
     // create a header
@@ -1497,15 +1507,15 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
         }
 
         // search which chunk is reading
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader_Item, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader, 4))
         {
             CSR_ShaderItem* pItem;
             size_t          index;
 
-            // add a new item to the shader list
-            pItem = (CSR_ShaderItem*)csrMemoryAlloc(pShaderList->m_pItem,
+            // add a new shader item to the shader array
+            pItem = (CSR_ShaderItem*)csrMemoryAlloc(pShaderArray->m_pItem,
                                                     sizeof(CSR_ShaderItem),
-                                                    pShaderList->m_Count + 1);
+                                                    pShaderArray->m_Count + 1);
 
             // succeeded?
             if (!pItem)
@@ -1515,24 +1525,24 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
             }
 
             // get the item index
-            index = pShaderList->m_Count;
+            index = pShaderArray->m_Count;
 
-            // update the texture list
-            pShaderList->m_pItem = pItem;
-            ++pShaderList->m_Count;
+            // update the shader array
+            pShaderArray->m_pItem = pItem;
+            ++pShaderArray->m_Count;
 
             // initialize the shader item
-            csrShaderItemInit(&pShaderList->m_pItem[index]);
+            csrShaderItemInit(&pShaderArray->m_pItem[index]);
 
             // create memory for the shader content
-            pShaderList->m_pItem[index].m_pContent = (unsigned char*)malloc(pHeader->m_ChunkSize);
+            pShaderArray->m_pItem[index].m_pContent = (unsigned char*)malloc(pHeader->m_ChunkSize);
 
             // read the shader content
             if (!csrBufferRead(pBuffer,
                                pOffset,
                                pHeader->m_ChunkSize,
                                1,
-                               pShaderList->m_pItem[index].m_pContent))
+                               pShaderArray->m_pItem[index].m_pContent))
             {
                 free(pHeader);
                 return 0;
@@ -1540,7 +1550,7 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
 
             // notify that a shader was read and should be created
             if (pContext->m_fOnCreateShader)
-                pContext->m_fOnCreateShader(pShaderList->m_pItem[index].m_pContent, pHeader->m_ChunkSize);
+                pContext->m_fOnCreateShader(pShaderArray->m_pItem[index].m_pContent, pHeader->m_ChunkSize);
 
             continue;
         }
@@ -1564,11 +1574,11 @@ int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
     return 1;
 }
 //---------------------------------------------------------------------------
-int csrSerializerReadLevel(const CSR_ReadContext* pContext,
-                           const CSR_Buffer*      pBuffer,
-                                 CSR_TextureList* pTextures,
-                                 CSR_ShaderList*  pShaders,
-                                 CSR_Scene*       pScene)
+int csrSerializerReadLevel(const CSR_ReadContext*  pContext,
+                           const CSR_Buffer*       pBuffer,
+                                 CSR_TextureArray* pTextureArray,
+                                 CSR_ShaderArray*  pShaderArray,
+                                 CSR_Scene*        pScene)
 {
     size_t               start;
     size_t               offset;
@@ -1576,7 +1586,7 @@ int csrSerializerReadLevel(const CSR_ReadContext* pContext,
     CSR_SceneFileHeader* pHeader;
 
     // validate the inputs
-    if (!pContext || !pBuffer || !pTextures || !pShaders || !pScene)
+    if (!pContext || !pBuffer || !pTextureArray || !pShaderArray || !pScene)
         return 0;
 
     // create a header
@@ -1607,14 +1617,14 @@ int csrSerializerReadLevel(const CSR_ReadContext* pContext,
         }
 
         // search which chunk is reading
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture_List, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Texture_Array, 4))
         {
             // read the texture list
-            if (!csrSerializerReadTextureList(pContext,
-                                              pBuffer,
-                                             &offset,
-                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                              pTextures))
+            if (!csrSerializerReadTextureArray(pContext,
+                                               pBuffer,
+                                              &offset,
+                                               pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                               pTextureArray))
             {
                 free(pHeader);
                 return 0;
@@ -1623,14 +1633,14 @@ int csrSerializerReadLevel(const CSR_ReadContext* pContext,
             continue;
         }
         else
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader_List, 4))
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Shader_Array, 4))
         {
             // read the shader list
             if (!csrSerializerReadShaderList(pContext,
                                              pBuffer,
                                             &offset,
                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                             pShaders))
+                                             pShaderArray))
             {
                 free(pHeader);
                 return 0;
@@ -2361,7 +2371,7 @@ int csrSerializerWriteMatrixItem(const CSR_WriteContext* pContext,
 
     // write the header
     if (!csrSerializerWriteHeader(pContext,
-                                  M_CSR_Signature_Matrix_Item,
+                                  M_CSR_Signature_Matrix,
                                   sizeof(CSR_Matrix4),
                                   CSR_HO_None,
                                   pBuffer))
@@ -2592,16 +2602,16 @@ int csrSerializerWriteScene(const CSR_WriteContext* pContext,
 //---------------------------------------------------------------------------
 int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                             const CSR_Scene*        pScene,
-                            const CSR_TextureList*  pTextures,
-                            const CSR_ShaderList*   pShaders,
+                            const CSR_TextureArray* pTextureArray,
+                            const CSR_ShaderArray*  pShaderArray,
                                   CSR_Buffer*       pBuffer)
 {
     // validate the inputs
     if (!pContext || !pBuffer)
         return 0;
 
-    // write the textures
-    if (pTextures)
+    // write the texture array
+    if (pTextureArray)
     {
         size_t      i;
         CSR_Buffer* pChunkBuffer;
@@ -2610,12 +2620,12 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
         pChunkBuffer = csrBufferCreate();
 
         // iterate through textures to write
-        for (i = 0; i < pTextures->m_Count; ++i)
+        for (i = 0; i < pTextureArray->m_Count; ++i)
         {
-            // write the texture item header
+            // write the texture header
             if (!csrSerializerWriteHeader(pContext,
-                                          M_CSR_Signature_Texture_Item,
-                                          pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                                          M_CSR_Signature_Texture,
+                                          pTextureArray->m_pItem[i].m_pBuffer->m_DataLength,
                                           CSR_HO_None,
                                           pChunkBuffer))
             {
@@ -2623,9 +2633,19 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                 return 0;
             }
 
+            // write texture image type
+            if (!csrBufferWrite(pChunkBuffer,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_ImageType,
+                                sizeof(CSR_EImageType),
+                                1))
+            {
+                csrBufferRelease(pChunkBuffer);
+                return 0;
+            }
+
             // write texture pixel type
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_PixelType,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_PixelType,
                                 sizeof(CSR_EPixelType),
                                 1))
             {
@@ -2635,7 +2655,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture width
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_Width,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_Width,
                                 sizeof(unsigned),
                                 1))
             {
@@ -2645,7 +2665,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture height
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_Height,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_Height,
                                 sizeof(unsigned),
                                 1))
             {
@@ -2655,7 +2675,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture stride
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_Stride,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_Stride,
                                 sizeof(unsigned),
                                 1))
             {
@@ -2665,7 +2685,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture byte per pixels
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_BytePerPixel,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_BytePerPixel,
                                 sizeof(unsigned),
                                 1))
             {
@@ -2675,7 +2695,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture data length
             if (!csrBufferWrite(pChunkBuffer,
-                               &pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                               &pTextureArray->m_pItem[i].m_pBuffer->m_DataLength,
                                 sizeof(unsigned),
                                 1))
             {
@@ -2685,8 +2705,8 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write texture data content
             if (!csrBufferWrite(pChunkBuffer,
-                                pTextures->m_pItem[i].m_pTexture->m_pData,
-                                pTextures->m_pItem[i].m_pTexture->m_DataLength,
+                                pTextureArray->m_pItem[i].m_pBuffer->m_pData,
+                                pTextureArray->m_pItem[i].m_pBuffer->m_DataLength,
                                 1))
             {
                 csrBufferRelease(pChunkBuffer);
@@ -2694,9 +2714,9 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
             }
         }
 
-        // write the texture list header
+        // write the texture array header
         if (!csrSerializerWriteHeader(pContext,
-                                      M_CSR_Signature_Texture_List,
+                                      M_CSR_Signature_Texture_Array,
                                       pChunkBuffer->m_Length,
                                       CSR_HO_None,
                                       pBuffer))
@@ -2717,7 +2737,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
     }
 
     // write the shaders
-    if (pShaders)
+    if (pShaderArray)
     {
         size_t      i;
         CSR_Buffer* pChunkBuffer;
@@ -2726,12 +2746,12 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
         pChunkBuffer = csrBufferCreate();
 
         // iterate through shaders to write
-        for (i = 0; i < pShaders->m_Count; ++i)
+        for (i = 0; i < pShaderArray->m_Count; ++i)
         {
             // write the shader item header
             if (!csrSerializerWriteHeader(pContext,
-                                          M_CSR_Signature_Shader_Item,
-                                          sizeof(*pShaders->m_pItem[i].m_pContent),
+                                          M_CSR_Signature_Shader,
+                                          sizeof(*pShaderArray->m_pItem[i].m_pContent),
                                           CSR_HO_None,
                                           pChunkBuffer))
             {
@@ -2741,8 +2761,8 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
 
             // write shader data content
             if (!csrBufferWrite(pChunkBuffer,
-                                pShaders->m_pItem[i].m_pContent,
-                                sizeof(*pShaders->m_pItem[i].m_pContent),
+                                pShaderArray->m_pItem[i].m_pContent,
+                                sizeof(*pShaderArray->m_pItem[i].m_pContent),
                                 1))
             {
                 csrBufferRelease(pChunkBuffer);
@@ -2750,9 +2770,9 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
             }
         }
 
-        // write the shader list header
+        // write the shader array header
         if (!csrSerializerWriteHeader(pContext,
-                                      M_CSR_Signature_Shader_List,
+                                      M_CSR_Signature_Shader_Array,
                                       pChunkBuffer->m_Length,
                                       CSR_HO_None,
                                       pBuffer))
@@ -2761,7 +2781,7 @@ int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
             return 0;
         }
 
-        // write shader list data content
+        // write shader array data content
         if (!csrBufferWrite(pBuffer, pChunkBuffer->m_pData, pChunkBuffer->m_Length, 1))
         {
             csrBufferRelease(pChunkBuffer);

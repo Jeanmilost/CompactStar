@@ -71,7 +71,7 @@ CSR_SceneItem* csrSceneItemDeleteModelFrom(CSR_SceneItem* pItem, size_t index, s
     }
 
     // release the item content
-    csrSceneItemRelease(&pItem[index]);
+    csrSceneItemContentRelease(&pItem[index]);
 
     return pNewItem;
 }
@@ -93,7 +93,7 @@ CSR_SceneItem* csrSceneItemCreate(void)
     return pSceneItem;
 }
 //---------------------------------------------------------------------------
-void csrSceneItemRelease(CSR_SceneItem* pSceneItem)
+void csrSceneItemContentRelease(CSR_SceneItem* pSceneItem)
 {
     // no scene item to release?
     if (!pSceneItem)
@@ -121,14 +121,14 @@ void csrSceneItemRelease(CSR_SceneItem* pSceneItem)
 
             // release all children on left side
             if (pNode->m_pLeft)
-                csrAABBTreeRelease(pNode->m_pLeft);
+                csrAABBTreeNodeRelease(pNode->m_pLeft);
 
             // release all children on right side
             if (pNode->m_pRight)
-                csrAABBTreeRelease(pNode->m_pRight);
+                csrAABBTreeNodeRelease(pNode->m_pRight);
 
             // delete node content
-            csrAABBTreeNodeRelease(pNode);
+            csrAABBTreeNodeContentRelease(pNode);
         }
 
         // free the tree container
@@ -272,7 +272,7 @@ void csrSceneRelease(CSR_Scene* pScene)
     {
         // iterate through each scene item to release, and release each of them
         for (i = 0; i < pScene->m_ItemCount; ++i)
-            csrSceneItemRelease(&pScene->m_pItem[i]);
+            csrSceneItemContentRelease(&pScene->m_pItem[i]);
 
         // free the scene items
         free(pScene->m_pItem);
@@ -283,7 +283,7 @@ void csrSceneRelease(CSR_Scene* pScene)
     {
         // iterate through each scene transparent item to release, and release each of them
         for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-            csrSceneItemRelease(&pScene->m_pTransparentItem[i]);
+            csrSceneItemContentRelease(&pScene->m_pTransparentItem[i]);
 
         // free the scene transparent items
         free(pScene->m_pTransparentItem);
@@ -509,7 +509,7 @@ int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int 
             memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
 
             // release the source tree
-            csrAABBTreeRelease(pAABBTree);
+            csrAABBTreeNodeRelease(pAABBTree);
         }
     }
 
@@ -636,7 +636,7 @@ int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
                 memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
 
                 // release the source tree
-                csrAABBTreeRelease(pAABBTree);
+                csrAABBTreeNodeRelease(pAABBTree);
             }
     }
 
@@ -838,9 +838,9 @@ void csrSceneDraw(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
         csrDrawEnd();
 }
 //---------------------------------------------------------------------------
-void csrSceneDetectCollision(const CSR_Scene*           pScene,
-                             const CSR_Ray3*            pRay,
-                                   CSR_CollisionResult* pR)
+void csrSceneDetectCollision(const CSR_Scene*          pScene,
+                             const CSR_Ray3*           pRay,
+                                   CSR_SceneCollision* pR)
 {
     size_t      i;
     size_t      j;
@@ -849,9 +849,7 @@ void csrSceneDetectCollision(const CSR_Scene*           pScene,
     CSR_Vector3 rayPos;
     CSR_Vector3 rayDir;
     CSR_Vector3 rayDirN;
-    CSR_Matrix4 invertView;
     CSR_Matrix4 invertModel;
-    CSR_Ray3    rayView;
     CSR_Ray3    rayModel;
 
     // validate the inputs
@@ -864,15 +862,6 @@ void csrSceneDetectCollision(const CSR_Scene*           pScene,
     pR->m_SlidingPlane.m_B = 0;
     pR->m_SlidingPlane.m_C = 0;
     pR->m_SlidingPlane.m_D = 0;
-
-    // transform the ray to match with the view
-    csrMat4Inverse(&pScene->m_Matrix, &invertView, &determinant);
-    csrMat4ApplyToVector(&invertView, &pRay->m_Pos, &rayPos);
-    csrMat4ApplyToNormal(&invertView, &pRay->m_Dir, &rayDir);
-    csrVec3Normalize(&rayDir, &rayDirN);
-
-    // get the transformed ray
-    csrRay3FromPointDir(&rayPos, &rayDirN, &rayView);
 
     // iterate through the scene items
     for (i = 0; i < pScene->m_ItemCount; ++i)
@@ -888,8 +877,8 @@ void csrSceneDetectCollision(const CSR_Scene*           pScene,
             csrMat4Inverse((CSR_Matrix4*)pScene->m_pItem[i].m_pMatrixArray[j].m_pItem->m_pData,
                            &invertModel,
                            &determinant);
-            csrMat4ApplyToVector(&invertModel, &rayView.m_Pos, &rayPos);
-            csrMat4ApplyToNormal(&invertModel, &rayView.m_Dir, &rayDir);
+            csrMat4ApplyToVector(&invertModel, &pRay->m_Pos, &rayPos);
+            csrMat4ApplyToNormal(&invertModel, &pRay->m_Dir, &rayDir);
             csrVec3Normalize(&rayDir, &rayDirN);
 
             // get the transformed ray
@@ -897,16 +886,76 @@ void csrSceneDetectCollision(const CSR_Scene*           pScene,
 
             // iterate through AABB trees to check
             for (k = 0; k < pScene->m_pItem[i].m_AABBTreeCount; ++k)
-            {
-                CSR_Polygon3Buffer polygonBuffer;
-
                 // check for collision
                 pR->m_Collision |= csrAABBTreeResolve(&rayModel,
                                                       &pScene->m_pItem[i].m_pAABBTree[k],
-                                                       0,
-                                                      &polygonBuffer);
-            }
+                                                       1, // thus the polygon buffer will not be reseted
+                                                      &pR->m_Polygons);
         }
     }
+}
+//---------------------------------------------------------------------------
+void csrSceneTouchPosToViewportPos(const CSR_Vector2* pTouchPos,
+                                   const CSR_Rect*    pTouchRect,
+                                   const CSR_Rect*    pViewportRect,
+                                         CSR_Vector3* pViewportPos)
+{
+    float touchWidth;
+    float touchHeight;
+    float viewportWidth;
+    float viewportHeight;
+
+    // validate the inputs
+    if (!pTouchPos || !pTouchRect || !pViewportRect || !pViewportPos)
+        return;
+
+    // calculate the touch area width and height
+    touchWidth  = pTouchRect->m_Max.m_X - pTouchRect->m_Min.m_X;
+    touchHeight = pTouchRect->m_Max.m_Y - pTouchRect->m_Min.m_Y;
+
+    // invalid touch width or height?
+    if (!touchWidth || !touchHeight)
+    {
+        pViewportPos->m_X = 0.0f;
+        pViewportPos->m_Y = 0.0f;
+        pViewportPos->m_Z = 0.0f;
+        return;
+    }
+
+    viewportWidth  = pViewportRect->m_Max.m_X - pViewportRect->m_Min.m_X;
+    viewportHeight = pViewportRect->m_Min.m_Y - pViewportRect->m_Max.m_Y;
+
+    // convert touch position to viewport position
+    pViewportPos->m_X = pViewportRect->m_Min.m_X + ((pTouchPos->m_X * viewportWidth)  / touchWidth);
+    pViewportPos->m_Y = pViewportRect->m_Min.m_Y - ((pTouchPos->m_Y * viewportHeight) / touchHeight);
+    pViewportPos->m_Z = 0.0f;
+}
+//---------------------------------------------------------------------------
+void csrSceneGetTouchRay(const CSR_Vector2* pTouchPos,
+                         const CSR_Rect*    pTouchRect,
+                         const CSR_Matrix4* pProjectionMatrix,
+                         const CSR_Matrix4* pViewMatrix,
+                               CSR_Ray3*    pTouchRay)
+{
+    CSR_Rect viewportRect;
+
+    // validate the inputs
+    if (!pTouchPos || !pTouchRect || !pProjectionMatrix || !pViewMatrix || !pTouchRay)
+        return;
+
+    // get the viewport rectangle
+    viewportRect.m_Min.m_X = -1.0f;
+    viewportRect.m_Min.m_Y =  1.0f;
+    viewportRect.m_Max.m_X =  1.0f;
+    viewportRect.m_Max.m_Y = -1.0f;
+
+    // get the ray in the touch coordinate system
+    csrSceneTouchPosToViewportPos(pTouchPos, pTouchRect, &viewportRect, &pTouchRay->m_Pos);
+    pTouchRay->m_Dir.m_X =  pTouchRay->m_Pos.m_X;
+    pTouchRay->m_Dir.m_Y =  pTouchRay->m_Pos.m_Y;
+    pTouchRay->m_Dir.m_Z = -1.0f;
+
+    // put the ray in the viewport coordinates
+    csrMat4Unproject(pProjectionMatrix, pViewMatrix, pTouchRay);
 }
 //---------------------------------------------------------------------------

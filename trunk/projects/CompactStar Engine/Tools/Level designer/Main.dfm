@@ -45,6 +45,15 @@ object MainForm: TMainForm
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitLeft = 920
+    ExplicitTop = 56
+    object la1: TLabel
+      Left = 64
+      Top = 56
+      Width = 14
+      Height = 13
+      Caption = 'la1'
+    end
   end
   object paViews: TPanel
     Left = 0
@@ -161,10 +170,6 @@ object MainForm: TMainForm
       end
       object ts3DView: TTabSheet
         Caption = 'ts3DView'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 624
         object pa3DView: TPanel
           Left = 0
           Top = 0
@@ -177,7 +182,6 @@ object MainForm: TMainForm
           ParentBackground = False
           ParentDoubleBuffered = False
           TabOrder = 0
-          ExplicitHeight = 624
         end
       end
     end

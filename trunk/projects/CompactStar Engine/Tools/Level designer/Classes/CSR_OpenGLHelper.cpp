@@ -191,7 +191,10 @@ void CSR_OpenGLHelper::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
     ReleaseDC(hwnd, hDC);
 }
 //---------------------------------------------------------------------------
-void CSR_OpenGLHelper::CreateViewport(float w, float h, const CSR_Shader* pShader)
+void CSR_OpenGLHelper::CreateViewport(      float        w,
+                                            float        h,
+                                      const CSR_Shader*  pShader,
+                                            CSR_Matrix4& matrix)
 {
     if (!pShader)
         return;
@@ -213,7 +216,7 @@ void CSR_OpenGLHelper::CreateViewport(float w, float h, const CSR_Shader* pShade
     // create the OpenGL viewport
     glViewport(0, 0, w, h);
 
-    CSR_Matrix4 matrix;
+    // create the projection matrix
     csrMat4Perspective(fov, aspect, zNear, zFar, &matrix);
 
     // connect projection matrix to shader
@@ -221,7 +224,7 @@ void CSR_OpenGLHelper::CreateViewport(float w, float h, const CSR_Shader* pShade
     glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
 }
 //---------------------------------------------------------------------------
-void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader) const
+void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader, CSR_Matrix4& matrix) const
 {
     if (!pShader)
         return;
@@ -236,7 +239,7 @@ void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader) const
         csrShaderEnable(pShader);
 
         // update the viewport
-        CreateViewport(it->first->ClientWidth, it->first->ClientHeight, pShader);
+        CreateViewport(it->first->ClientWidth, it->first->ClientHeight, pShader, matrix);
     }
 }
 //---------------------------------------------------------------------------
