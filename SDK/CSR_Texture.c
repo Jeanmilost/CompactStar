@@ -57,6 +57,7 @@ void csrPixelBufferInit(CSR_PixelBuffer* pPB)
         return;
 
     // initialize the pixel buffer content
+    pPB->m_ImageType    = CSR_IT_Raw;
     pPB->m_PixelType    = CSR_PT_RGBA;
     pPB->m_Width        = 0;
     pPB->m_Height       = 0;
@@ -64,19 +65,6 @@ void csrPixelBufferInit(CSR_PixelBuffer* pPB)
     pPB->m_BytePerPixel = 0;
     pPB->m_DataLength   = 0;
     pPB->m_pData        = 0;
-}
-//---------------------------------------------------------------------------
-// Texture shader functions
-//---------------------------------------------------------------------------
-void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
-{
-    // no texture shader to initialize?
-    if (!pTextureShader)
-        return;
-
-    // initialize the texture shader content
-    pTextureShader->m_TextureID = M_CSR_Error_Code;
-    pTextureShader->m_BumpMapID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------
 // Texture item functions
@@ -96,23 +84,23 @@ CSR_TextureItem* csrTextureItemCreate(void)
     return pTI;
 }
 //---------------------------------------------------------------------------
-void csrTextureItemRelease(CSR_TextureItem* pTI)
+void csrTextureItemContentRelease(CSR_TextureItem* pTI)
 {
     // no texture item to release?
     if (!pTI)
         return;
 
+    // do release the texture buffer?
+    if (pTI->m_pBuffer)
+        csrPixelBufferRelease(pTI->m_pBuffer);
+
     // do release the file name?
     if (pTI->m_pFileName)
         free(pTI->m_pFileName);
 
-    // do release the texture?
-    if (pTI->m_pTexture)
-        csrPixelBufferRelease(pTI->m_pTexture);
-
     // do release the texture loaded on the GPU?
-    if (pTI->m_TextureID != M_CSR_Error_Code)
-        glDeleteTextures(1, &pTI->m_TextureID);
+    if (pTI->m_ID != M_CSR_Error_Code)
+        glDeleteTextures(1, &pTI->m_ID);
 }
 //---------------------------------------------------------------------------
 void csrTextureItemInit(CSR_TextureItem* pTI)
@@ -122,59 +110,72 @@ void csrTextureItemInit(CSR_TextureItem* pTI)
         return;
 
     // initialize the texture item content
+    pTI->m_pBuffer   = 0;
     pTI->m_pFileName = 0;
-    pTI->m_pTexture  = 0;
-    pTI->m_TextureID = M_CSR_Error_Code;
+    pTI->m_ID        = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------
-// Texture list functions
+// Texture array functions
 //---------------------------------------------------------------------------
-CSR_TextureList* csrTextureListCreate(void)
+CSR_TextureArray* csrTextureArrayCreate(void)
 {
-    // create a new texture list
-    CSR_TextureList* pTL = (CSR_TextureList*)malloc(sizeof(CSR_TextureList));
+    // create a new texture array
+    CSR_TextureArray* pTA = (CSR_TextureArray*)malloc(sizeof(CSR_TextureArray));
 
     // succeeded?
-    if (!pTL)
+    if (!pTA)
         return 0;
 
-    // initialize the texture list content
-    csrTextureListInit(pTL);
+    // initialize the texture array content
+    csrTextureArrayInit(pTA);
 
-    return pTL;
+    return pTA;
 }
 //---------------------------------------------------------------------------
-void csrTextureListRelease(CSR_TextureList* pTL)
+void csrTextureArrayRelease(CSR_TextureArray* pTA)
 {
     size_t i;
 
-    // no texture list to release?
-    if (!pTL)
+    // no texture array to release?
+    if (!pTA)
         return;
 
     // do free the texture items?
-    if (pTL->m_pItem)
+    if (pTA->m_pItem)
     {
-        // iterate through texture items to free
-        for (i = 0; i < pTL->m_Count; ++i)
-            csrTextureItemRelease(&pTL->m_pItem[i]);
+        // iterate through texture items and release their content
+        for (i = 0; i < pTA->m_Count; ++i)
+            csrTextureItemContentRelease(&pTA->m_pItem[i]);
 
         // free the texture items
-        free(pTL->m_pItem);
+        free(pTA->m_pItem);
     }
 
-    // Free the texture list
-    free(pTL);
+    // free the texture array
+    free(pTA);
 }
 //---------------------------------------------------------------------------
-void csrTextureListInit(CSR_TextureList* pTL)
+void csrTextureArrayInit(CSR_TextureArray* pTA)
 {
-    // no texture list to initialize?
-    if (!pTL)
+    // no texture array to initialize?
+    if (!pTA)
         return;
 
-    // initialize the texture list content
-    pTL->m_pItem = 0;
-    pTL->m_Count = 0;
+    // initialize the texture array content
+    pTA->m_pItem = 0;
+    pTA->m_Count = 0;
+}
+//---------------------------------------------------------------------------
+// Texture shader functions
+//---------------------------------------------------------------------------
+void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
+{
+    // no texture shader to initialize?
+    if (!pTextureShader)
+        return;
+
+    // initialize the texture shader content
+    pTextureShader->m_TextureID = M_CSR_Error_Code;
+    pTextureShader->m_BumpMapID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------

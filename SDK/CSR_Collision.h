@@ -44,16 +44,6 @@ struct CSR_AABBNode
     CSR_IndexedPolygonBuffer* m_pPolygonBuffer;
 };
 
-/**
-* Collision result
-*/
-typedef struct
-{
-    int                m_Collision;
-    CSR_Polygon3Buffer m_Polygons;
-    CSR_Plane          m_SlidingPlane;
-} CSR_CollisionResult;
-
 #ifdef __cplusplus
     extern "C"
     {
@@ -97,13 +87,13 @@ typedef struct
         *@param[in, out] pNode - node for which content should be released
         *@note Only the node content is released, the node itself is not released
         */
-        void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
+        void csrAABBTreeNodeContentRelease(CSR_AABBNode* pNode);
 
         /**
-        * Releases an AABB tree
+        * Releases an AABB tree node and all his children
         *@param[in, out] pNode - AABB tree root node to release from
         */
-        void csrAABBTreeRelease(CSR_AABBNode* pNode);
+        void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
 
 #ifdef __cplusplus
     }

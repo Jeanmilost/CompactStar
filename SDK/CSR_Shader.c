@@ -343,55 +343,55 @@ void csrShaderItemInit(CSR_ShaderItem* pSI)
     pSI->m_pShader   = 0;
 }
 //---------------------------------------------------------------------------
-// Shader list functions
+// Shader array functions
 //---------------------------------------------------------------------------
-CSR_ShaderList* csrShaderListCreate(void)
+CSR_ShaderArray* csrShaderArrayCreate(void)
 {
-    // create a new shader list
-    CSR_ShaderList* pSL = (CSR_ShaderList*)malloc(sizeof(CSR_ShaderList));
+    // create a new shader array
+    CSR_ShaderArray* pSA = (CSR_ShaderArray*)malloc(sizeof(CSR_ShaderArray));
 
     // succeeded?
-    if (!pSL)
+    if (!pSA)
         return 0;
 
-    // initialize the shader list content
-    csrShaderListInit(pSL);
+    // initialize the shader array content
+    csrShaderArrayInit(pSA);
 
-    return pSL;
+    return pSA;
 }
 //---------------------------------------------------------------------------
-void csrShaderListRelease(CSR_ShaderList* pSL)
+void csrShaderArrayRelease(CSR_ShaderArray* pSA)
 {
     size_t i;
 
-    // no shader list to release?
-    if (!pSL)
+    // no shader array to release?
+    if (!pSA)
         return;
 
     // do free the shader items?
-    if (pSL->m_pItem)
+    if (pSA->m_pItem)
     {
-        // iterate through shader items to free
-        for (i = 0; i < pSL->m_Count; ++i)
-            csrShaderItemRelease(&pSL->m_pItem[i]);
+        // iterate through shader items and release their content
+        for (i = 0; i < pSA->m_Count; ++i)
+            csrShaderItemRelease(&pSA->m_pItem[i]);
 
         // free the shader items
-        free(pSL->m_pItem);
+        free(pSA->m_pItem);
     }
 
-    // Free the shader list
-    free(pSL);
+    // free the shader array
+    free(pSA);
 }
 //---------------------------------------------------------------------------
-void csrShaderListInit(CSR_ShaderList* pSL)
+void csrShaderArrayInit(CSR_ShaderArray* pSA)
 {
-    // no shader list to initialize?
-    if (!pSL)
+    // no shader array to initialize?
+    if (!pSA)
         return;
 
-    // initialize the shader list content
-    pSL->m_pItem = 0;
-    pSL->m_Count = 0;
+    // initialize the shader array content
+    pSA->m_pItem = 0;
+    pSA->m_Count = 0;
 }
 //---------------------------------------------------------------------------
 // Static buffer functions

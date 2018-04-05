@@ -60,6 +60,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_pScene(NULL),
     m_pCurrentShader(NULL),
+    m_pCurrentMatrix(NULL),
     m_pLoadingModel(NULL),
     m_pLoadingTexture(NULL),
     m_PreviousTime(0),
@@ -124,7 +125,10 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
     if (!m_pScene)
         return;
 
-    m_OpenGLHelper.ResizeViews(m_pCurrentShader);
+    if (!m_pCurrentMatrix)
+        return;
+
+    m_OpenGLHelper.ResizeViews(m_pCurrentShader, *m_pCurrentMatrix);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnSplitterMoved(TObject* pSender)
@@ -132,7 +136,10 @@ void __fastcall TMainForm::OnSplitterMoved(TObject* pSender)
     if (!m_pScene)
         return;
 
-    m_OpenGLHelper.ResizeViews(m_pCurrentShader);
+    if (!m_pCurrentMatrix)
+        return;
+
+    m_OpenGLHelper.ResizeViews(m_pCurrentShader, *m_pCurrentMatrix);
 }
 //---------------------------------------------------------------------------
 bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
@@ -283,6 +290,92 @@ int TMainForm::OnGetShaderIndexCallback(const void* pModel)
 
     return pMainForm->OnGetShaderIndex(pModel);
 }
+//---------------------------------------------------------------------------
+// REM TODEL
+CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
+{
+    TPanel* pView = paDesigner3DView;
+
+    CSR_Vector3 result;
+
+    // invalid client width or height?
+    if (!pView->ClientWidth || !pView->ClientHeight)
+    {
+        result.m_X = 0.0f;
+        result.m_Y = 0.0f;
+        result.m_Z = 0.0f;
+        return result;
+    }
+
+    // convert mouse position to viewport position
+    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / pView->ClientWidth);
+    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Min.m_Y - viewRect.m_Max.m_Y)) / pView->ClientHeight);
+    result.m_Z = 0.0f;
+    return result;
+}
+//---------------------------------------------------------------------------
+void TMainForm::CalculateMouseRay()
+{
+    TPanel* pView = paDesigner3DView;
+
+    // get the mouse position in screen coordinates
+    TPoint mousePos = Mouse->CursorPos;
+
+    // convert to view coordinates
+    if (!::ScreenToClient(pView->Handle, &mousePos))
+        return;
+
+    CSR_Vector2 clientPos;
+    clientPos.m_X = mousePos.X;
+    clientPos.m_Y = mousePos.Y;
+
+    CSR_Rect clientRect;
+    clientRect.m_Min.m_X = 0.0f;
+    clientRect.m_Min.m_Y = 0.0f;
+    clientRect.m_Max.m_X = pView->ClientWidth;
+    clientRect.m_Max.m_Y = pView->ClientHeight;
+
+    CSR_Rect viewRect;
+
+    // get the viewport rectangle
+    viewRect.m_Min.m_X = -1.0f;
+    viewRect.m_Min.m_Y =  1.0f;
+    viewRect.m_Max.m_X =  1.0f;
+    viewRect.m_Max.m_Y = -1.0f;
+
+    // calculate the mouse ray in the viewport coordinate system
+    csrSceneGetTouchRay(&clientPos, &clientRect, m_pCurrentMatrix, &m_pScene->m_Matrix, &m_Ray);
+
+    // REM TODEL START
+    CSR_Ray3 ray2;
+    // get the ray in the Windows coordinate
+    ray2.m_Pos     =  MousePosToViewportPos(mousePos, viewRect);
+    ray2.m_Dir.m_X =  ray2.m_Pos.m_X;
+    ray2.m_Dir.m_Y =  ray2.m_Pos.m_Y;
+    ray2.m_Dir.m_Z = -1.0f;
+
+    // put the ray in the world coordinates
+    csrMat4Unproject(m_pCurrentMatrix, &m_pScene->m_Matrix, &ray2);
+    // REM TODEL END
+
+    /*REM
+    float determinant;
+
+    CSR_Vector3 rayPos;
+    CSR_Vector3 rayDir;
+    CSR_Vector3 rayDirN;
+
+    // now transform the ray to match with the model position
+    CSR_Matrix4 invertModel;
+    csrMat4Inverse(&m_ModelMatrix, &invertModel, &determinant);
+    csrMat4ApplyToVector(&invertModel, &m_Ray.m_Pos, &rayPos);
+    csrMat4ApplyToNormal(&invertModel, &m_Ray.m_Dir, &rayDir);
+    csrVec3Normalize(&rayDir, &rayDirN);
+
+    // get the transformed ray
+    csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
+    */
+}
 //------------------------------------------------------------------------------
 void TMainForm::InitScene()
 {
@@ -326,9 +419,17 @@ void TMainForm::InitScene()
             pShader->m_VertexSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aVertices");
             pShader->m_ColorSlot  = glGetAttribLocation(pShader->m_ProgramID, "csr_aColor");
 
-            m_OpenGLHelper.CreateViewport(it.First()->ClientWidth, it.First()->ClientHeight, pShader);
+            std::auto_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
 
+            m_OpenGLHelper.CreateViewport(it.First()->ClientWidth,
+                                          it.First()->ClientHeight,
+                                          pShader,
+                                          *pMatrix.get());
+
+            m_Matrices.push_back(pMatrix.get());
             m_Shaders.push_back(pShader);
+
+            pMatrix.release();
             pShader = NULL;
         }
         __finally
@@ -367,7 +468,7 @@ void TMainForm::InitScene()
     csrFileSave("Scene1.bin", pBuffer);
     csrBufferRelease(pBuffer);
 
-    csrSceneDeleteFrom(m_pScene, pSphere);
+    csrSceneDeleteFrom(m_pScene, pBox);
 
     CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\player.mdl",
                                0,
@@ -437,6 +538,10 @@ void TMainForm::DeleteScene()
     // release the scene
     csrSceneRelease(m_pScene);
     m_pScene = NULL;
+
+    // release the matrices
+    for (std::size_t i = 0; i < m_Matrices.size(); ++i)
+        delete m_Matrices[i];
 
     // release the shader
     for (std::size_t i = 0; i < m_Shaders.size(); ++i)
@@ -525,6 +630,17 @@ void TMainForm::UpdateScene(float elapsedTime)
         csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
         csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
     }
+
+    // calculate the ray from current mouse position
+    CalculateMouseRay();
+
+    CSR_SceneCollision sceneCollision;
+    csrSceneDetectCollision(m_pScene, &m_Ray, &sceneCollision);
+
+    //for (std::size_t i = 0; i < sceneCollision.m_Polygons.m_Count; ++i)
+    free(sceneCollision.m_Polygons.m_pPolygon);
+
+    la1->Caption = sceneCollision.m_Collision ? L"En collision" : L"Rien ne se passe";
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -548,6 +664,7 @@ void TMainForm::OnDrawScene(bool resize)
     for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
     {
         m_pCurrentShader = m_Shaders[count];
+        m_pCurrentMatrix = m_Matrices[count];
         ++count;
 
         // is view control visible?

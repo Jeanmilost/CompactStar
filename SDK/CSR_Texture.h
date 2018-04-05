@@ -24,6 +24,14 @@
 //---------------------------------------------------------------------------
 
 /**
+* Image type
+*/
+typedef enum
+{
+    CSR_IT_Raw
+} CSR_EImageType;
+
+/**
 * Pixel type
 */
 typedef enum
@@ -45,6 +53,7 @@ typedef enum
 */
 typedef struct
 {
+    CSR_EImageType m_ImageType;
     CSR_EPixelType m_PixelType;
     unsigned       m_Width;
     unsigned       m_Height;
@@ -55,6 +64,25 @@ typedef struct
 } CSR_PixelBuffer;
 
 /**
+* Texture item
+*/
+typedef struct
+{
+    CSR_PixelBuffer* m_pBuffer;
+    char*            m_pFileName;
+    GLuint           m_ID;
+} CSR_TextureItem;
+
+/**
+* Texture array
+*/
+typedef struct
+{
+    CSR_TextureItem* m_pItem;
+    size_t           m_Count;
+} CSR_TextureArray;
+
+/**
 * Texture shader (i.e. the GPU loaded textures that should be connected to the shader)
 */
 typedef struct
@@ -62,25 +90,6 @@ typedef struct
     GLuint m_TextureID;
     GLuint m_BumpMapID;
 } CSR_TextureShader;
-
-/**
-* Texture item
-*/
-typedef struct
-{
-    char*            m_pFileName;
-    CSR_PixelBuffer* m_pTexture;
-    GLuint           m_TextureID;
-} CSR_TextureItem;
-
-/**
-* Texture list
-*/
-typedef struct
-{
-    CSR_TextureItem* m_pItem;
-    size_t           m_Count;
-} CSR_TextureList;
 
 #ifdef __cplusplus
     extern "C"
@@ -110,16 +119,6 @@ typedef struct
         void csrPixelBufferInit(CSR_PixelBuffer* pPB);
 
         //-------------------------------------------------------------------
-        // Texture shader functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Initializes a texture shader structure
-        *@param[in, out] pTextureShader - texture shader to initialize
-        */
-        void csrTextureShaderInit(CSR_TextureShader* pTextureShader);
-
-        //-------------------------------------------------------------------
         // Texture item functions
         //-------------------------------------------------------------------
 
@@ -131,40 +130,50 @@ typedef struct
         CSR_TextureItem* csrTextureItemCreate(void);
 
         /**
-        * Releases a texture item
-        *@param[in, out] pTI - texture item to release
+        * Releases a texture item content
+        *@param[in, out] pTI - texture item for which the content should be released
         *@note Only the item content is released, the item itself is not released
         */
-        void csrTextureItemRelease(CSR_TextureItem* pTI);
+        void csrTextureItemContentRelease(CSR_TextureItem* pTI);
 
         /**
-        * Initializes a texture item structure
+        * Initializes a texture item
         *@param[in, out] pTI - texture item to initialize
         */
         void csrTextureItemInit(CSR_TextureItem* pTI);
 
         //-------------------------------------------------------------------
-        // Texture list functions
+        // Texture array functions
         //-------------------------------------------------------------------
 
         /**
-        * Creates a texture list
-        *@return newly created texture list, 0 on error
-        *@note The texture list must be released when no longer used, see csrTextureListRelease()
+        * Creates a texture array
+        *@return newly created texture array, 0 on error
+        *@note The texture array must be released when no longer used, see csrTextureArrayRelease()
         */
-        CSR_TextureList* csrTextureListCreate(void);
+        CSR_TextureArray* csrTextureArrayCreate(void);
 
         /**
-        * Releases a texture list
-        *@param[in, out] pTL - texture list to release
+        * Releases a texture array
+        *@param[in, out] pTA - texture array to release
         */
-        void csrTextureListRelease(CSR_TextureList* pTL);
+        void csrTextureArrayRelease(CSR_TextureArray* pTA);
 
         /**
-        * Initializes a texture list structure
-        *@param[in, out] pTL - texture list to initialize
+        * Initializes a texture array structure
+        *@param[in, out] pTA - texture array to initialize
         */
-        void csrTextureListInit(CSR_TextureList* pTL);
+        void csrTextureArrayInit(CSR_TextureArray* pTA);
+
+        //-------------------------------------------------------------------
+        // Texture shader functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Initializes a texture shader structure
+        *@param[in, out] pTextureShader - texture shader to initialize
+        */
+        void csrTextureShaderInit(CSR_TextureShader* pTextureShader);
 
 #ifdef __cplusplus
     }

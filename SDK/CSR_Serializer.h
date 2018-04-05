@@ -163,54 +163,6 @@ struct CSR_WriteContext
     {
 #endif
         //-------------------------------------------------------------------
-        // Shader item functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Creates a scene item
-        *@return newly created scene item, 0 on error
-        *@note The scene item must be released when no longer used, see csrSceneItemRelease()
-        */
-        CSR_SceneItem* csrSceneItemCreate(void);
-
-        /**
-        * Releases a scene item
-        *@param[in, out] pSceneItem - scene item to release
-        *@note Only the item content is released, the item itself is not released
-        */
-        void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
-
-        /**
-        * Initializes a scene item structure
-        *@param[in, out] pSceneItem - scene item to initialize
-        */
-        void csrSceneItemInit(CSR_SceneItem* pSceneItem);
-
-        //-------------------------------------------------------------------
-        // Shader list functions
-        //-------------------------------------------------------------------
-
-        /**
-        * Creates a scene item
-        *@return newly created scene item, 0 on error
-        *@note The scene item must be released when no longer used, see csrSceneItemRelease()
-        */
-        CSR_SceneItem* csrSceneItemCreate(void);
-
-        /**
-        * Releases a scene item
-        *@param[in, out] pSceneItem - scene item to release
-        *@note Only the item content is released, the item itself is not released
-        */
-        void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
-
-        /**
-        * Initializes a scene item structure
-        *@param[in, out] pSceneItem - scene item to initialize
-        */
-        void csrSceneItemInit(CSR_SceneItem* pSceneItem);
-
-        //-------------------------------------------------------------------
         // Serializer context functions
         //-------------------------------------------------------------------
 
@@ -355,49 +307,49 @@ struct CSR_WriteContext
                                          CSR_Scene*       pScene);
 
         /**
-        * Reads a texture list from a buffer
+        * Reads a texture array from a buffer
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
         *@param[in, out] pOffset - offset to read from, new offset position after function ends
         *@param size - size of data to read in buffer
-        *@param[in, out] pTextureList - the texture list to fill with data
+        *@param[in, out] pTextureArray - the texture array to fill with data
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerReadTextureList(const CSR_ReadContext* pContext,
+        int csrSerializerReadTextureArray(const CSR_ReadContext*  pContext,
+                                          const CSR_Buffer*       pBuffer,
+                                                size_t*           pOffset,
+                                                size_t            size,
+                                                CSR_TextureArray* pTextureArray);
+
+        /**
+        * Reads a shader array from a buffer
+        *@param pContext - read context, containing the read options
+        *@param pBuffer - buffer to read from
+        *@param[in, out] pOffset - offset to read from, new offset position after function ends
+        *@param size - size of data to read in buffer
+        *@param[in, out] pShaderArray - the shader array to fill with data
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerReadShaderArray(const CSR_ReadContext* pContext,
                                          const CSR_Buffer*      pBuffer,
                                                size_t*          pOffset,
                                                size_t           size,
-                                               CSR_TextureList* pTextureList);
-
-        /**
-        * Reads a shader list from a buffer
-        *@param pContext - read context, containing the read options
-        *@param pBuffer - buffer to read from
-        *@param[in, out] pOffset - offset to read from, new offset position after function ends
-        *@param size - size of data to read in buffer
-        *@param[in, out] pShaderList - the shader list to fill with data
-        *@return 1 on success, otherwise 0
-        */
-        int csrSerializerReadShaderList(const CSR_ReadContext* pContext,
-                                        const CSR_Buffer*      pBuffer,
-                                              size_t*          pOffset,
-                                              size_t           size,
-                                              CSR_ShaderList*  pShaderList);
+                                               CSR_ShaderArray* pShaderArray);
 
         /**
         * Reads a level from a buffer
         *@param pContext - read context, containing the read options
         *@param pBuffer - buffer to read from
-        *@param[in, out] pTextures - the texture list to fill with data
-        *@param[in, out] pShaders - the shader list to fill with data
+        *@param[in, out] pTextureArray - the texture array to fill with data
+        *@param[in, out] pShaderArray - the shader array to fill with data
         *@param[in, out] pScene - the scene to fill with data
         *@return 1 on success, otherwise 0
         */
-        int csrSerializerReadLevel(const CSR_ReadContext* pContext,
-                                   const CSR_Buffer*      pBuffer,
-                                         CSR_TextureList* pTextures,
-                                         CSR_ShaderList*  pShaders,
-                                         CSR_Scene*       pScene);
+        int csrSerializerReadLevel(const CSR_ReadContext*  pContext,
+                                   const CSR_Buffer*       pBuffer,
+                                         CSR_TextureArray* pTextureArray,
+                                         CSR_ShaderArray*  pShaderArray,
+                                         CSR_Scene*        pScene);
 
         //-------------------------------------------------------------------
         // Write functions
@@ -626,15 +578,15 @@ struct CSR_WriteContext
         * Writes a level inside a buffer
         *@param pContext - write context, containing the write options
         *@param pScene - scene to write
-        *@param pTextures - texture list to write
-        *@param pShaders - shaderlist to write
+        *@param pTextureArray - texture array to write
+        *@param pShaderArray - shader array to write
         *@param[in, out] pBuffer - buffer to write in
         *@return 1 on success, otherwise 0
         */
         int csrSerializerWriteLevel(const CSR_WriteContext* pContext,
                                     const CSR_Scene*        pScene,
-                                    const CSR_TextureList*  pTextures,
-                                    const CSR_ShaderList*   pShaders,
+                                    const CSR_TextureArray* pTextureArray,
+                                    const CSR_ShaderArray*  pShaderArray,
                                           CSR_Buffer*       pBuffer);
 
 #ifdef __cplusplus

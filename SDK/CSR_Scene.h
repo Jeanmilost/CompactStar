@@ -74,6 +74,16 @@ typedef struct
     size_t           m_TransparentItemCount;
 } CSR_Scene;
 
+/**
+* Scene collision, contains all the collisions happening in a scene
+*/
+typedef struct
+{
+    int                m_Collision;
+    CSR_Plane          m_SlidingPlane;
+    CSR_Polygon3Buffer m_Polygons;
+} CSR_SceneCollision;
+
 //---------------------------------------------------------------------------
 // Callbacks
 //---------------------------------------------------------------------------
@@ -164,17 +174,17 @@ struct CSR_SceneContext
         CSR_SceneItem* csrSceneItemCreate(void);
 
         /**
-        * Releases a scene item
-        *@param[in, out] pSceneItem - scene item to release
+        * Releases a scene item content
+        *@param[in, out] pSI - scene item for which the content should be released
         *@note Only the item content is released, the item itself is not released
         */
-        void csrSceneItemRelease(CSR_SceneItem* pSceneItem);
+        void csrSceneItemContentRelease(CSR_SceneItem* pSI);
 
         /**
         * Initializes a scene item structure
-        *@param[in, out] pSceneItem - scene item to initialize
+        *@param[in, out] pSI - scene item to initialize
         */
-        void csrSceneItemInit(CSR_SceneItem* pSceneItem);
+        void csrSceneItemInit(CSR_SceneItem* pSI);
 
         /**
         * Draws a scene item
@@ -284,9 +294,37 @@ struct CSR_SceneContext
         *@param pRay - ray describing the movement to check
         *@param[in, out] pR - collision result
         */
-        void csrSceneDetectCollision(const CSR_Scene*           pScene,
-                                     const CSR_Ray3*            pRay,
-                                           CSR_CollisionResult* pR);
+        void csrSceneDetectCollision(const CSR_Scene*          pScene,
+                                     const CSR_Ray3*           pRay,
+                                           CSR_SceneCollision* pR);
+
+        /**
+        * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position
+        *@param pTouchPos - touch position to convert
+        *@param pTouchRect - rect surrounding the area where a touch can happen (e.g. the client
+        *                    rect of a window or the screen of a device)
+        *@param pViewportRect - viewport rectangle
+        *@param[out] pViewportPos - viewport position
+        */
+        void csrSceneTouchPosToViewportPos(const CSR_Vector2* pTouchPos,
+                                           const CSR_Rect*    pTouchRect,
+                                           const CSR_Rect*    pViewportRect,
+                                                 CSR_Vector3* pViewportPos);
+
+        /**
+        * Gets the touch ray, in viewport coordinate system, from a touched position
+        *@param pTouchPos - touch position from which the ray should be get
+        *@param pTouchRect - rect surrounding the area where a touch can happen (e.g. the client
+        *                    rect of a window or the screen of a device)
+        *@param pProjectionMatrix - projection matrix used in the viewport
+        *@param pViewMatrix - view matrix matrix used in the viewport
+        *@param[out] pTouchRay - the touch ray, in viewport coordinate system
+        */
+        void csrSceneGetTouchRay(const CSR_Vector2* pTouchPos,
+                                 const CSR_Rect*    pTouchRect,
+                                 const CSR_Matrix4* pProjectionMatrix,
+                                 const CSR_Matrix4* pViewMatrix,
+                                       CSR_Ray3*    pTouchRay);
 
 #ifdef __cplusplus
     }

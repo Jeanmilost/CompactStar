@@ -23,6 +23,7 @@
 #include <map>
 
 // compactStar engine
+#include "CSR_Geometry.h"
 #include "CSR_Shader.h"
 
 /**
@@ -210,14 +211,19 @@ class CSR_OpenGLHelper
         *@param w - viewport width
         *@param h - viewport height
         *@param pShader - shader linked with the viewport
+        *@param[out] matrix - the projection matrix used for the viewport
         */
-        static void CreateViewport(float w, float h, const CSR_Shader* pShader);
+        static void CreateViewport(      float        w,
+                                         float        h,
+                                   const CSR_Shader*  pShader,
+                                         CSR_Matrix4& matrix);
 
         /**
         * Resizes all the views
         *@param pShader - shader linked with the view
+        *@param[out] matrix - the projection matrix used for the viewport
         */
-        virtual void ResizeViews(const CSR_Shader* pShader) const;
+        virtual void ResizeViews(const CSR_Shader* pShader, CSR_Matrix4& matrix) const;
 
         /**
         * Adds an OpenGL context to a control

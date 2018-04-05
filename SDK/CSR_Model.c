@@ -2430,6 +2430,7 @@ CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin* pSkin,
         return 0;
 
     // populate the pixel buffer and calculate the start offset
+    pPB->m_ImageType    = CSR_IT_Raw;
     pPB->m_PixelType    = CSR_PT_RGB;
     pPB->m_Width        = width;
     pPB->m_Height       = height;

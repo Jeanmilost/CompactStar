@@ -57,6 +57,7 @@ class TMainForm : public TForm
         TPanel *paDesignerZView;
         TPanel *paDesigner3DView;
         TSplitter *spDesignerZ3D;
+    TLabel *la1;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
@@ -121,7 +122,8 @@ class TMainForm : public TForm
         static int OnGetShaderIndexCallback(const void* pModel);
 
     private:
-        typedef std::vector<CSR_Shader*> IShaders;
+        typedef std::vector<CSR_Shader*>  IShaders;
+        typedef std::vector<CSR_Matrix4*> IMatrices;
 
         CSR_OpenGLHelper                    m_OpenGLHelper;
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewXHook;
@@ -132,12 +134,23 @@ class TMainForm : public TForm
         CSR_Scene*                          m_pScene;
         CSR_SceneContext                    m_SceneContext;
         IShaders                            m_Shaders;
+        IMatrices                           m_Matrices;
         CSR_Shader*                         m_pCurrentShader;
+        CSR_Matrix4*                        m_pCurrentMatrix;
         void*                               m_pLoadingModel;
         CSR_Buffer*                         m_pLoadingTexture;
         CSR_Matrix4                         m_ModelMatrix;
+        CSR_Ray3                            m_Ray;
         unsigned __int64                    m_PreviousTime;
         TWndMethod                          m_fViewWndProc_Backup;
+
+        //REM TODEL
+        CSR_Vector3 MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect);
+
+        /**
+        * Calculates the ray starting from the mouse in the viewport coordinate system
+        */
+        void CalculateMouseRay();
 
         /**
         * Initializes the scene
