@@ -231,7 +231,7 @@ typedef void (*CSR_fOnLinkStaticVB)(const CSR_Shader* pShader, const void* pCust
         * Creates a static buffer
         *@param pShader - shader that will contain the buffer
         *@param pSA - shader attributes
-        *@aram pBuffer - buffer to make static
+        *@param pBuffer - buffer to make static
         *@return newly created static buffer, 0 on error
         *@note Once the static buffer is created, the source buffer may be deleted or reused for
         *      another task

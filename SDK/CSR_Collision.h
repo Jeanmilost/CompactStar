@@ -44,6 +44,27 @@ struct CSR_AABBNode
     CSR_IndexedPolygonBuffer* m_pPolygonBuffer;
 };
 
+/**
+* Collision model info
+*/
+typedef struct
+{
+    void*  m_pItem;
+    size_t m_MatrixIndex;
+    size_t m_AABBTreeItem;
+} CSR_CollisionModelInfo;
+
+/**
+* Collision info
+*/
+typedef struct
+{
+    int                m_Collision;
+    CSR_Plane          m_SlidingPlane;
+    CSR_Polygon3Buffer m_Polygons;
+    CSR_Array*         m_pModels;
+} CSR_CollisionInfo;
+
 #ifdef __cplusplus
     extern "C"
     {
@@ -94,6 +115,35 @@ struct CSR_AABBNode
         *@param[in, out] pNode - AABB tree root node to release from
         */
         void csrAABBTreeNodeRelease(CSR_AABBNode* pNode);
+
+        //-------------------------------------------------------------------
+        // Collision info functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a collision info
+        *@return newly created collision info, 0 on error
+        *@note The collision info must be released when no longer used, see csrCollisionInfoRelease()
+        */
+        CSR_CollisionInfo* csrCollisionInfoCreate(void);
+
+        /**
+        * Releases a collision info
+        *@param[in, out] pCI - collision info to release
+        */
+        void csrCollisionInfoRelease(CSR_CollisionInfo* pCI);
+
+        /**
+        * Initializes a collision info structure
+        *@param[in, out] pCI - collision info to initialize
+        */
+        void csrCollisionInfoInit(CSR_CollisionInfo* pCI);
+
+        /**
+        * Calculates the sliding plane from a collision info structure
+        *@param[in, out] pCI - collision info for which the sliding plane should be calculated
+        */
+        void csrCollisionInfoCalculateSlidingPlane(CSR_CollisionInfo* pCollisionInfo);
 
 #ifdef __cplusplus
     }

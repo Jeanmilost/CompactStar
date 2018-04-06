@@ -421,7 +421,7 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
         * Updates the MDL model indexes (e.g. before getting the next mesh to show)
         *@param pMDL - MDL model
         *@param fps - frame per seconds to apply
-        *@aram animationIndex - animation index
+        *@param animationIndex - animation index
         *@param[in, out] pTextureIndex - texture index, new texture index on function ends
         *@param[in, out] pModelIndex - model index, new model index on function ends
         *@param[in, out] pMeshIndex - mesh index, new mesh index on function ends
