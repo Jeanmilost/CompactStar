@@ -428,3 +428,64 @@ void csrAABBTreeNodeRelease(CSR_AABBNode* pNode)
     free(pNode);
 }
 //---------------------------------------------------------------------------
+// Collision info functions
+//---------------------------------------------------------------------------
+CSR_CollisionInfo* csrCollisionInfoCreate(void)
+{
+    // create a new collision info
+    CSR_CollisionInfo* pCI = (CSR_CollisionInfo*)malloc(sizeof(CSR_CollisionInfo));
+
+    // succeeded?
+    if (!pCI)
+        return 0;
+
+    // initialize the collision info content
+    csrCollisionInfoInit(pCI);
+
+    return pCI;
+}
+//---------------------------------------------------------------------------
+void csrCollisionInfoRelease(CSR_CollisionInfo* pCI)
+{
+    size_t i;
+
+    // no collision info to release?
+    if (!pCI)
+        return;
+
+    // free the polygon buffer
+    if (pCI->m_Polygons.m_pPolygon)
+        free(pCI->m_Polygons.m_pPolygon);
+
+    // free the model array
+    if (pCI->m_pModels)
+        csrArrayRelease(pCI->m_pModels);
+
+    // free the scene
+    free(pCI);
+}
+//---------------------------------------------------------------------------
+void csrCollisionInfoInit(CSR_CollisionInfo* pCI)
+{
+    // no collision info to initialize?
+    if (!pCI)
+        return;
+
+    // initialize the collision info
+    pCI->m_Collision           = 0;
+    pCI->m_SlidingPlane.m_A    = 0.0f;
+    pCI->m_SlidingPlane.m_B    = 0.0f;
+    pCI->m_SlidingPlane.m_C    = 0.0f;
+    pCI->m_SlidingPlane.m_D    = 0.0f;
+    pCI->m_Polygons.m_pPolygon = 0;
+    pCI->m_Polygons.m_Count    = 0;
+    pCI->m_pModels             = 0;
+}
+//---------------------------------------------------------------------------
+void csrCollisionInfoCalculateSlidingPlane(CSR_CollisionInfo* pCollisionInfo)
+{
+    // validate the input
+    if (!pCollisionInfo)
+        return;
+}
+//---------------------------------------------------------------------------

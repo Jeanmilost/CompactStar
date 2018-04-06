@@ -74,16 +74,6 @@ typedef struct
     size_t           m_TransparentItemCount;
 } CSR_Scene;
 
-/**
-* Scene collision, contains all the collisions happening in a scene
-*/
-typedef struct
-{
-    int                m_Collision;
-    CSR_Plane          m_SlidingPlane;
-    CSR_Polygon3Buffer m_Polygons;
-} CSR_SceneCollision;
-
 //---------------------------------------------------------------------------
 // Callbacks
 //---------------------------------------------------------------------------
@@ -196,6 +186,17 @@ struct CSR_SceneContext
                               const CSR_SceneContext* pContext,
                               const CSR_SceneItem*    pItem);
 
+        /**
+        * Detects the collisions happening against a scene item
+        *@param pScene - scene item against which the collision should be detected
+        *@param pRay - ray describing the movement to check
+        *@param[in, out] pCollisionInfo - collision info
+        *@return 1 if a collision with the scene item was found, otherwise 0
+        */
+        int csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
+                                        const CSR_Ray3*          pRay,
+                                              CSR_CollisionInfo* pCollisionInfo);
+
         //-------------------------------------------------------------------
         // Scene functions
         //-------------------------------------------------------------------
@@ -290,13 +291,14 @@ struct CSR_SceneContext
 
         /**
         * Detects the collisions happening in a scene
-        *@param pScene - scene to draw
+        *@param pScene - scene in which the collisions should be detected
         *@param pRay - ray describing the movement to check
-        *@param[in, out] pR - collision result
+        *@param[in, out] pCollisionInfo - collision info
+        *@return 1 if a collision was found in the scene, otherwise 0
         */
-        void csrSceneDetectCollision(const CSR_Scene*          pScene,
-                                     const CSR_Ray3*           pRay,
-                                           CSR_SceneCollision* pR);
+        int csrSceneDetectCollision(const CSR_Scene*         pScene,
+                                    const CSR_Ray3*          pRay,
+                                          CSR_CollisionInfo* pCollisionInfo);
 
         /**
         * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position

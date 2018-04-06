@@ -461,8 +461,13 @@ CSR_IndexedPolygonBuffer* csrIndexedPolygonBufferFromMesh(const CSR_Mesh* pMesh)
     if (!pIPB)
         return 0;
 
+    // iterate through meshes
     for (i = 0; i < pMesh->m_Count; ++i)
     {
+        // is mesh empty?
+        if (!pMesh->m_pVB[i].m_Count)
+            continue;
+
         // assign the reference to the source vertex buffer
         indexedPolygon.m_pVB = &pMesh->m_pVB[i];
 

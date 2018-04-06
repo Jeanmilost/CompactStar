@@ -652,8 +652,8 @@ CSR_Mesh* csrShapeCreateSphere(      float                 radius,
         return 0;
 
     // initialize global values
-    majorStep    = (M_PI          / slices);
-    minorStep    = ((2.0f * M_PI) / stacks);
+    majorStep = (M_PI          / slices);
+    minorStep = ((2.0f * M_PI) / stacks);
 
     // iterate through vertex slices
     for (i = 0; i < slices; ++i)

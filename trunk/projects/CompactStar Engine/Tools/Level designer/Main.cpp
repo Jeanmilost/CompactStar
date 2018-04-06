@@ -634,13 +634,13 @@ void TMainForm::UpdateScene(float elapsedTime)
     // calculate the ray from current mouse position
     CalculateMouseRay();
 
-    CSR_SceneCollision sceneCollision;
-    csrSceneDetectCollision(m_pScene, &m_Ray, &sceneCollision);
+    CSR_CollisionInfo* pCollisionInfo = csrCollisionInfoCreate();
 
-    //for (std::size_t i = 0; i < sceneCollision.m_Polygons.m_Count; ++i)
-    free(sceneCollision.m_Polygons.m_pPolygon);
+    csrSceneDetectCollision(m_pScene, &m_Ray, pCollisionInfo);
 
-    la1->Caption = sceneCollision.m_Collision ? L"En collision" : L"Rien ne se passe";
+    la1->Caption = pCollisionInfo->m_Collision ? L"En collision" : L"Rien ne se passe";
+
+    csrCollisionInfoRelease(pCollisionInfo);
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
