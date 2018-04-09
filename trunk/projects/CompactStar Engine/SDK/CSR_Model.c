@@ -2719,29 +2719,6 @@ CSR_Model* csrWaveFrontCreate(const CSR_Buffer*           pBuffer,
                 continue;
 
             case 'v':
-                // do begin to read a new wavefront object or group?
-                if (objectChanging || groupChanging)
-                {
-                    // free the local buffers
-                    free(pVertex->m_pData);
-                    free(pNormal->m_pData);
-                    free(pUV->m_pData);
-                    free(pFace->m_pData);
-
-                    // reset the values
-                    pVertex->m_pData = 0;
-                    pVertex->m_Count = 0;
-                    pNormal->m_pData = 0;
-                    pNormal->m_Count = 0;
-                    pUV->m_pData     = 0;
-                    pUV->m_Count     = 0;
-                    pFace->m_pData   = 0;
-                    pFace->m_Count   = 0;
-
-                    objectChanging = 0;
-                    groupChanging  = 0;
-                }
-
                 // check if line contains a normal or a texture coordinate
                 if (i + 1 < pBuffer->m_Length)
                 {
