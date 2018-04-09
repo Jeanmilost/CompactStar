@@ -453,12 +453,15 @@ void TMainForm::InitScene()
     bm.m_Transparent = 0;
     bm.m_Wireframe   = 0;
 
-    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
-    CSR_Mesh* pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+    //CSR_Mesh*  pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
+    //CSR_Mesh*  pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
+    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
 
-    csrSceneAddMesh(m_pScene, pSphere, 0, 1);
-    csrSceneAddMesh(m_pScene, pBox, 0, 1);
+    //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
+    //csrSceneAddMesh(m_pScene, pBox, 0, 1);
+    csrSceneAddModel(m_pScene, pModel, 0, 1);
 
+    /*
     CSR_WriteContext writeContext;
     writeContext.m_fOnGetTextureIndex = OnGetTextureIndexCallback;
     writeContext.m_fOnGetShaderIndex  = OnGetShaderIndexCallback;
@@ -525,6 +528,7 @@ void TMainForm::InitScene()
     csrBufferRelease(pBuffer);
 
     csrSceneRelease(pScene);
+    */
 
     // configure OpenGL depth testing
     glEnable(GL_DEPTH_TEST);
@@ -552,10 +556,13 @@ void TMainForm::UpdateScene(float elapsedTime)
 {
     CSR_Vector3 t;
     CSR_Vector3 r;
+    CSR_Vector3 factor;
     CSR_Matrix4 translateMatrix;
     CSR_Matrix4 xRotateMatrix;
     CSR_Matrix4 yRotateMatrix;
-    CSR_Matrix4 rotateMatrix;
+    CSR_Matrix4 scaleMatrix;
+    CSR_Matrix4 combinedMatrixLevel1;
+    CSR_Matrix4 combinedMatrixLevel2;
 
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
@@ -565,8 +572,8 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // set translation
         t.m_X =  0.0f;
-        t.m_Y =  0.0f;
-        t.m_Z = -2.0f;
+        t.m_Y = -2.0f;//0.0f;
+        t.m_Z = -5.0f;
 
         csrMat4Translate(&t, &translateMatrix);
 
@@ -576,7 +583,7 @@ void TMainForm::UpdateScene(float elapsedTime)
         r.m_Z = 0.0f;
 
         // rotate 90 degrees
-        const float xAngle = 1.57075f;
+        const float xAngle = 0.0f;//1.57075f;
 
         csrMat4Rotate(xAngle, &r, &xRotateMatrix);
 
@@ -589,9 +596,17 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         csrMat4Rotate(yAngle, &r, &yRotateMatrix);
 
+        // set scale factor
+        factor.m_X = 0.25f;//25.0f;//0.25f;
+        factor.m_Y = 0.25f;//25.0f;//0.25f;
+        factor.m_Z = 0.25f;//25.0f;//0.25f;
+
+        csrMat4Scale(&factor, &scaleMatrix);
+
         // build model view matrix
-        csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
+        csrMat4Multiply(&scaleMatrix,          &xRotateMatrix,   &combinedMatrixLevel1);
+        csrMat4Multiply(&combinedMatrixLevel1, &yRotateMatrix,   &combinedMatrixLevel2);
+        csrMat4Multiply(&combinedMatrixLevel1, &translateMatrix, &m_ModelMatrix);
     }
 
     for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
@@ -626,9 +641,17 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         csrMat4Rotate(yAngle, &r, &yRotateMatrix);
 
+        // set scale factor
+        factor.m_X = 5.0f;
+        factor.m_Y = 5.0f;
+        factor.m_Z = 5.0f;
+
+        csrMat4Scale(&factor, &scaleMatrix);
+
         // build model view matrix
-        csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-        csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
+        csrMat4Multiply(&scaleMatrix,          &xRotateMatrix,   &combinedMatrixLevel1);
+        csrMat4Multiply(&combinedMatrixLevel1, &yRotateMatrix,   &combinedMatrixLevel2);
+        csrMat4Multiply(&combinedMatrixLevel1, &translateMatrix, &m_ModelMatrix);
     }
 
     // calculate the ray from current mouse position
