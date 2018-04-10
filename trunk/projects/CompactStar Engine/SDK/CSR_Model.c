@@ -2719,6 +2719,13 @@ CSR_Model* csrWaveFrontCreate(const CSR_Buffer*           pBuffer,
                 continue;
 
             case 'v':
+                // do begin to read a new wavefront object or group?
+                if (objectChanging || groupChanging)
+                {
+                    objectChanging = 0;
+                    groupChanging  = 0;
+                }
+
                 // check if line contains a normal or a texture coordinate
                 if (i + 1 < pBuffer->m_Length)
                 {
