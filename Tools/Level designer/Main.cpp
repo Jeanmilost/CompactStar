@@ -52,6 +52,17 @@ const char* miniGetFSColored()
            "}";
 }
 //---------------------------------------------------------------------------
+// TMainForm::IArcBall
+//---------------------------------------------------------------------------
+TMainForm::IArcBall::IArcBall() :
+    m_AngleX(0.0f),
+    m_AngleY(0.0f),
+    m_Radius(2.0f)
+{}
+//---------------------------------------------------------------------------
+TMainForm::IArcBall::~IArcBall()
+{}
+//---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
 TMainForm* MainForm;
@@ -129,6 +140,23 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
         return;
 
     m_OpenGLHelper.ResizeViews(m_pCurrentShader, *m_pCurrentMatrix);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
+{
+    switch (msg.message)
+    {
+        case WM_KEYDOWN:
+            switch (msg.wParam)
+            {
+                case VK_LEFT:  m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY + 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_RIGHT: m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY - 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_UP:    m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX + 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_DOWN:  m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX - 0.05f, M_PI * 2.0f); handled = true; break;
+            }
+
+            return;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnSplitterMoved(TObject* pSender)
@@ -455,7 +483,9 @@ void TMainForm::InitScene()
 
     //CSR_Mesh*  pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
     //CSR_Mesh*  pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
-    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
+    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\untitled.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Model.obj", &vf, NULL, &sm, NULL, NULL);
 
     //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
@@ -564,6 +594,12 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 combinedMatrixLevel1;
     CSR_Matrix4 combinedMatrixLevel2;
 
+    // build the scene view matrix
+    csrSceneArcBallToMatrix(m_ArcBall.m_Radius,
+                            m_ArcBall.m_AngleX,
+                            m_ArcBall.m_AngleY,
+                           &m_pScene->m_Matrix);
+
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
         // link the model matrix to the scene, if still not done
@@ -572,8 +608,10 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // set translation
         t.m_X =  0.0f;
-        t.m_Y = -2.0f;//0.0f;
-        t.m_Z = -5.0f;
+        t.m_Y =  0.0f;
+        //t.m_Y = -2.0f;//0.0f;
+        t.m_Z = -1.0f;
+        //t.m_Z = -5.0f;
 
         csrMat4Translate(&t, &translateMatrix);
 
@@ -583,6 +621,7 @@ void TMainForm::UpdateScene(float elapsedTime)
         r.m_Z = 0.0f;
 
         // rotate 90 degrees
+        //const float xAngle = 1.57075f;
         const float xAngle = 0.0f;//1.57075f;
 
         csrMat4Rotate(xAngle, &r, &xRotateMatrix);
@@ -597,9 +636,15 @@ void TMainForm::UpdateScene(float elapsedTime)
         csrMat4Rotate(yAngle, &r, &yRotateMatrix);
 
         // set scale factor
-        factor.m_X = 0.25f;//25.0f;//0.25f;
-        factor.m_Y = 0.25f;//25.0f;//0.25f;
-        factor.m_Z = 0.25f;//25.0f;//0.25f;
+        //factor.m_X = 0.05f;//0.25f;//25.0f;//0.25f;
+        //factor.m_Y = 0.05f;//0.25f;//25.0f;//0.25f;
+        //factor.m_Z = 0.05f;//0.25f;//25.0f;//0.25f;
+        factor.m_X = 5.0f;
+        factor.m_Y = 5.0f;
+        factor.m_Z = 5.0f;
+        //factor.m_X = 0.05f;//25.0f;//0.25f;
+        //factor.m_Y = 0.05f;//25.0f;//0.25f;
+        //factor.m_Z = 0.05f;//25.0f;//0.25f;
 
         csrMat4Scale(&factor, &scaleMatrix);
 

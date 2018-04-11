@@ -228,6 +228,66 @@ void csrMat4Perspective(float fovyDeg, float aspect, float zNear, float zFar, CS
     csrMat4Frustum(negMaxX, maxX, negMaxY, maxY, zNear, zFar, pR);
 }
 //---------------------------------------------------------------------------
+void csrMat4LookAtLH(const CSR_Vector3* pPos,
+                     const CSR_Vector3* pDir,
+                     const CSR_Vector3* pUp,
+                           CSR_Matrix4* pR)
+{
+    float       xAxisDotPos;
+    float       yAxisDotPos;
+    float       zAxisDotPos;
+    CSR_Vector3 xAxis;
+    CSR_Vector3 yAxis;
+    CSR_Vector3 zAxis;
+    CSR_Vector3 vec;
+
+    // compute per axis transformations
+    csrVec3Sub(pDir, pPos, &vec);
+    csrVec3Normalize(&vec, &zAxis);
+    csrVec3Cross(pUp, &zAxis, &vec);
+    csrVec3Normalize(&vec, &xAxis);
+    csrVec3Cross(&zAxis, &xAxis, &yAxis);
+    csrVec3Dot(&xAxis, pPos, &xAxisDotPos);
+    csrVec3Dot(&yAxis, pPos, &yAxisDotPos);
+    csrVec3Dot(&zAxis, pPos, &zAxisDotPos);
+
+    // create look at matrix, translate eye position
+    pR->m_Table[0][0] =  xAxis.m_X;   pR->m_Table[1][0] =  yAxis.m_X;   pR->m_Table[2][0] =  zAxis.m_X;   pR->m_Table[3][0] = 0.0f;
+    pR->m_Table[0][1] =  xAxis.m_Y;   pR->m_Table[1][1] =  yAxis.m_Y;   pR->m_Table[2][1] =  zAxis.m_Y;   pR->m_Table[3][1] = 0.0f;
+    pR->m_Table[0][2] =  xAxis.m_Z;   pR->m_Table[1][2] =  yAxis.m_Z;   pR->m_Table[2][2] =  zAxis.m_Z;   pR->m_Table[3][2] = 0.0f;
+    pR->m_Table[0][3] = -xAxisDotPos; pR->m_Table[1][3] = -yAxisDotPos; pR->m_Table[2][3] = -zAxisDotPos; pR->m_Table[3][3] = 1.0f;
+}
+//---------------------------------------------------------------------------
+void csrMat4LookAtRH(const CSR_Vector3* pPos,
+                     const CSR_Vector3* pDir,
+                     const CSR_Vector3* pUp,
+                           CSR_Matrix4* pR)
+{
+    float       xAxisDotPos;
+    float       yAxisDotPos;
+    float       zAxisDotPos;
+    CSR_Vector3 xAxis;
+    CSR_Vector3 yAxis;
+    CSR_Vector3 zAxis;
+    CSR_Vector3 vec;
+
+    // compute per axis transformations
+    csrVec3Sub(pDir, pPos, &vec);
+    csrVec3Normalize(&vec, &zAxis);
+    csrVec3Cross(pUp, &zAxis, &vec);
+    csrVec3Normalize(&vec, &xAxis);
+    csrVec3Cross(&zAxis, &xAxis, &yAxis);
+    csrVec3Dot(&xAxis, pPos, &xAxisDotPos);
+    csrVec3Dot(&yAxis, pPos, &yAxisDotPos);
+    csrVec3Dot(&zAxis, pPos, &zAxisDotPos);
+
+    // create look at matrix, translate eye position
+    pR->m_Table[0][0] = xAxis.m_X;   pR->m_Table[1][0] = yAxis.m_X;   pR->m_Table[2][0] = zAxis.m_X;   pR->m_Table[3][0] = 0.0f;
+    pR->m_Table[0][1] = xAxis.m_Y;   pR->m_Table[1][1] = yAxis.m_Y;   pR->m_Table[2][1] = zAxis.m_Y;   pR->m_Table[3][1] = 0.0f;
+    pR->m_Table[0][2] = xAxis.m_Z;   pR->m_Table[1][2] = yAxis.m_Z;   pR->m_Table[2][2] = zAxis.m_Z;   pR->m_Table[3][2] = 0.0f;
+    pR->m_Table[0][3] = xAxisDotPos; pR->m_Table[1][3] = yAxisDotPos; pR->m_Table[2][3] = zAxisDotPos; pR->m_Table[3][3] = 1.0f;
+}
+//---------------------------------------------------------------------------
 void csrMat4Translate(const CSR_Vector3* pT, CSR_Matrix4* pR)
 {
     csrMat4Identity(pR);

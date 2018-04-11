@@ -13,6 +13,7 @@
 #include <Vcl.ToolWin.hpp>
 #include <Vcl.ActnList.hpp>
 #include <Vcl.ImgList.hpp>
+#include <Vcl.AppEvnts.hpp>
 
 // std
 #include <memory>
@@ -57,10 +58,12 @@ class TMainForm : public TForm
         TPanel *paDesignerZView;
         TPanel *paDesigner3DView;
         TSplitter *spDesignerZ3D;
+        TApplicationEvents *aeEvents;
     TLabel *la1;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
         void __fastcall OnSplitterMoved(TObject* pSender);
 
     public:
@@ -122,6 +125,16 @@ class TMainForm : public TForm
         static int OnGetShaderIndexCallback(const void* pModel);
 
     private:
+        struct IArcBall
+        {
+            float m_AngleX;
+            float m_AngleY;
+            float m_Radius;
+
+            IArcBall();
+            virtual ~IArcBall();
+        };
+
         typedef std::vector<CSR_Shader*>  IShaders;
         typedef std::vector<CSR_Matrix4*> IMatrices;
 
@@ -139,6 +152,7 @@ class TMainForm : public TForm
         CSR_Matrix4*                        m_pCurrentMatrix;
         void*                               m_pLoadingModel;
         CSR_Buffer*                         m_pLoadingTexture;
+        IArcBall                            m_ArcBall;
         CSR_Matrix4                         m_ModelMatrix;
         CSR_Ray3                            m_Ray;
         unsigned __int64                    m_PreviousTime;
