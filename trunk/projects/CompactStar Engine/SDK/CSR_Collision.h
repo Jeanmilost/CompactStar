@@ -60,7 +60,6 @@ typedef struct
 typedef struct
 {
     int                m_Collision;
-    CSR_Plane          m_SlidingPlane;
     CSR_Polygon3Buffer m_Polygons;
     CSR_Array*         m_pModels;
 } CSR_CollisionInfo;
