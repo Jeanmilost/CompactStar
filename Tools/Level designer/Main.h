@@ -158,9 +158,6 @@ class TMainForm : public TForm
         unsigned __int64                    m_PreviousTime;
         TWndMethod                          m_fViewWndProc_Backup;
 
-        //REM TODEL
-        CSR_Vector3 MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect);
-
         /**
         * Calculates the ray starting from the mouse in the viewport coordinate system
         */

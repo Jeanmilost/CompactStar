@@ -319,29 +319,6 @@ int TMainForm::OnGetShaderIndexCallback(const void* pModel)
     return pMainForm->OnGetShaderIndex(pModel);
 }
 //---------------------------------------------------------------------------
-// REM TODEL
-CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
-{
-    TPanel* pView = paDesigner3DView;
-
-    CSR_Vector3 result;
-
-    // invalid client width or height?
-    if (!pView->ClientWidth || !pView->ClientHeight)
-    {
-        result.m_X = 0.0f;
-        result.m_Y = 0.0f;
-        result.m_Z = 0.0f;
-        return result;
-    }
-
-    // convert mouse position to viewport position
-    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / pView->ClientWidth);
-    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Min.m_Y - viewRect.m_Max.m_Y)) / pView->ClientHeight);
-    result.m_Z = 0.0f;
-    return result;
-}
-//---------------------------------------------------------------------------
 void TMainForm::CalculateMouseRay()
 {
     TPanel* pView = paDesigner3DView;
@@ -373,36 +350,6 @@ void TMainForm::CalculateMouseRay()
 
     // calculate the mouse ray in the viewport coordinate system
     csrSceneGetTouchRay(&clientPos, &clientRect, m_pCurrentMatrix, &m_pScene->m_Matrix, &m_Ray);
-
-    // REM TODEL START
-    CSR_Ray3 ray2;
-    // get the ray in the Windows coordinate
-    ray2.m_Pos     =  MousePosToViewportPos(mousePos, viewRect);
-    ray2.m_Dir.m_X =  ray2.m_Pos.m_X;
-    ray2.m_Dir.m_Y =  ray2.m_Pos.m_Y;
-    ray2.m_Dir.m_Z = -1.0f;
-
-    // put the ray in the world coordinates
-    csrMat4Unproject(m_pCurrentMatrix, &m_pScene->m_Matrix, &ray2);
-    // REM TODEL END
-
-    /*REM
-    float determinant;
-
-    CSR_Vector3 rayPos;
-    CSR_Vector3 rayDir;
-    CSR_Vector3 rayDirN;
-
-    // now transform the ray to match with the model position
-    CSR_Matrix4 invertModel;
-    csrMat4Inverse(&m_ModelMatrix, &invertModel, &determinant);
-    csrMat4ApplyToVector(&invertModel, &m_Ray.m_Pos, &rayPos);
-    csrMat4ApplyToNormal(&invertModel, &m_Ray.m_Dir, &rayDir);
-    csrVec3Normalize(&rayDir, &rayDirN);
-
-    // get the transformed ray
-    csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
-    */
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene()
