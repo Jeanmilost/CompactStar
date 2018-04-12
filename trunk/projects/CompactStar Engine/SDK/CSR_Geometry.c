@@ -458,43 +458,27 @@ void csrMat4Unproject(const CSR_Matrix4* pP, const CSR_Matrix4* pV, CSR_Ray3* pR
     float       determinant;
     CSR_Matrix4 invertProj;
     CSR_Matrix4 invertView;
-    CSR_Matrix4 unprojectMat;
     CSR_Vector3 unprojRayPos;
     CSR_Vector3 unprojRayDir;
-
-    // get infinite value (NOTE this is the only case where a division by 0 is allowed)
-    const float inf = 1.0f / 0.0f;
+    CSR_Vector3 unprojRayDirN;
 
     // unproject the ray to make it in the viewport coordinates
     csrMat4Inverse(pP, &invertProj, &determinant);
+    csrMat4ApplyToVector(&invertProj, &pR->m_Pos, &unprojRayPos);
+    csrMat4ApplyToVector(&invertProj, &pR->m_Dir, &unprojRayDir);
+    csrVec3Normalize(&unprojRayDir, &unprojRayDirN);
+    csrRay3FromPointDir(&unprojRayPos, &unprojRayDirN, pR);
+
+    // do unproject the viewport only?
+    if (!pV)
+        return;
+
+    // unproject the ray to make it in the view coordinates
     csrMat4Inverse(pV, &invertView, &determinant);
-    csrMat4Multiply(&invertProj, &invertView, &unprojectMat);
-    csrMat4ApplyToVector(&unprojectMat, &pR->m_Pos, &unprojRayPos);
-    csrMat4ApplyToVector(&unprojectMat, &pR->m_Dir, &unprojRayDir);
-
-    // copy resulting ray position
-    pR->m_Pos.m_X = unprojRayPos.m_X;
-    pR->m_Pos.m_Y = unprojRayPos.m_Y;
-    pR->m_Pos.m_Z = unprojRayPos.m_Z;
-
-    // normalize and copy resulting ray direction
-    csrVec3Normalize(&unprojRayDir, &pR->m_Dir);
-
-    // recompute the ray inverted direction
-    if (!pR->m_Dir.m_X)
-        pR->m_InvDir.m_X = inf;
-    else
-        pR->m_InvDir.m_X = 1.0f / pR->m_Dir.m_X;
-
-    if (!pR->m_Dir.m_Y)
-        pR->m_InvDir.m_Y = inf;
-    else
-        pR->m_InvDir.m_Y = 1.0f / pR->m_Dir.m_Y;
-
-    if (!pR->m_Dir.m_Z)
-        pR->m_InvDir.m_Z = inf;
-    else
-        pR->m_InvDir.m_Z = 1.0f / pR->m_Dir.m_Z;
+    csrMat4ApplyToVector(&invertView, &pR->m_Pos, &unprojRayPos);
+    csrMat4ApplyToNormal(&invertView, &pR->m_Dir, &unprojRayDir);
+    csrVec3Normalize(&unprojRayDir, &unprojRayDirN);
+    csrRay3FromPointDir(&unprojRayPos, &unprojRayDirN, pR);
 }
 //---------------------------------------------------------------------------
 void csrMat4TranslationFrom(const CSR_Matrix4* pM, float* pX, float* pY, float* pZ)

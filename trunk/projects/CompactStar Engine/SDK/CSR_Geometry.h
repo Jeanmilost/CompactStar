@@ -502,7 +502,7 @@ typedef struct
         /**
         * Unprojects a ray (i.e. transforms it in viewport coordinates)
         *@param pP - projection matrix
-        *@param pV - view matrix
+        *@param pV - view matrix, ignored if 0
         *@param[in, out] pR - ray to unproject, unprojected ray on function ends
         *@note The inverted direction is also calculated in the resulting ray
         */
