@@ -1109,11 +1109,7 @@ int csrSceneDetectCollision(const CSR_Scene*         pScene,
         return 0;
 
     // initialize the collision info
-    pCollisionInfo->m_Collision        = 0;
-    pCollisionInfo->m_SlidingPlane.m_A = 0;
-    pCollisionInfo->m_SlidingPlane.m_B = 0;
-    pCollisionInfo->m_SlidingPlane.m_C = 0;
-    pCollisionInfo->m_SlidingPlane.m_D = 0;
+    pCollisionInfo->m_Collision = 0;
 
     // release any previously found polygon
     if (pCollisionInfo->m_Polygons.m_pPolygon)
