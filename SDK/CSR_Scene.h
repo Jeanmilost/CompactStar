@@ -55,7 +55,7 @@ typedef enum
 // Prototypes
 //---------------------------------------------------------------------------
 
-// Scene context prototype
+// scene context prototype
 typedef struct CSR_SceneContext CSR_SceneContext;
 
 //---------------------------------------------------------------------------
@@ -185,7 +185,7 @@ struct CSR_SceneContext
         /**
         * Creates a scene item
         *@return newly created scene item, 0 on error
-        *@note The scene item must be released when no longer used, see csrSceneItemRelease()
+        *@note The scene item must be released when no longer used, see csrSceneItemContentRelease()
         */
         CSR_SceneItem* csrSceneItemCreate(void);
 

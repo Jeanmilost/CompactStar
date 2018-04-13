@@ -148,6 +148,7 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     if (!pSceneItem)
         return;
 
+    // initialize the scene item
     pSceneItem->m_pModel        = 0;
     pSceneItem->m_Type          = CSR_MT_Model;
     pSceneItem->m_pMatrixArray  = 0;
@@ -1124,8 +1125,6 @@ int csrSceneDetectCollision(const CSR_Scene*         pScene,
     // iterate through the scene transparent items
     for (i = 0; i < pScene->m_TransparentItemCount; ++i)
         collision |= csrSceneItemDetectCollision(&pScene->m_pTransparentItem[i], pRay, pCollisionInfo);
-
-    csrCollisionInfoCalculateSlidingPlane(pCollisionInfo);
 
     return collision;
 }

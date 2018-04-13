@@ -478,10 +478,3 @@ void csrCollisionInfoInit(CSR_CollisionInfo* pCI)
     pCI->m_pModels             = 0;
 }
 //---------------------------------------------------------------------------
-void csrCollisionInfoCalculateSlidingPlane(CSR_CollisionInfo* pCollisionInfo)
-{
-    // validate the input
-    if (!pCollisionInfo)
-        return;
-}
-//---------------------------------------------------------------------------
