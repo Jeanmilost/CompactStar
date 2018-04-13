@@ -30,7 +30,7 @@ __fastcall TModelSelection::TModelSelection(TComponent* pOwner) :
     UnicodeString modelDir = ::ExtractFilePath(Application->ExeName);
                   modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
                   modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
-                  modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
+                  modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models\\MDL";
 
     // dir exists?
     if (!::DirectoryExists(modelDir))
@@ -41,7 +41,7 @@ __fastcall TModelSelection::TModelSelection(TComponent* pOwner) :
         modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
         modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
         modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
-        modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
+        modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models\\MDL";
     }
 
     // set the default dir in open dialog, if exists

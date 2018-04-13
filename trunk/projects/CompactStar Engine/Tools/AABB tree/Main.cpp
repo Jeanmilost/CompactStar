@@ -657,7 +657,7 @@ void TMainForm::ClearModelsAndMeshes()
 {
     // release the AABB trees
     for (std::size_t i = 0; i < m_AABBTrees.size(); ++i)
-        csrAABBTreeRelease(m_AABBTrees[i]);
+        csrAABBTreeNodeRelease(m_AABBTrees[i]);
 
     m_AABBTrees.clear();
 
@@ -914,21 +914,21 @@ void TMainForm::DrawScene()
 {
     try
     {
-        // begin the scene
-        csrMSAASceneBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
+        // begin the drawing
+        csrMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
 
         if (m_pMesh)
             // draw the mesh
-            csrSceneDrawMesh(m_pMesh, m_pShader_ColoredMesh, 0);
+            csrDrawMesh(m_pMesh, m_pShader_ColoredMesh, 0);
         else
         if (m_pMDL)
             // draw the MDL model
-            csrSceneDrawMDL(m_pMDL,
-                            m_pShader_TexturedMesh,
-                            0,
-                            m_TextureIndex,
-                            m_ModelIndex,
-                            m_MeshIndex);
+            csrDrawMDL(m_pMDL,
+                       m_pShader_TexturedMesh,
+                       0,
+                       m_TextureIndex,
+                       m_ModelIndex,
+                       m_MeshIndex);
         else
             return;
 
@@ -950,8 +950,8 @@ void TMainForm::DrawScene()
     }
     __finally
     {
-        // end the scene
-        csrMSAASceneEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
+        // end the drawing
+        csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
     }
 }
 //---------------------------------------------------------------------------
@@ -1071,7 +1071,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
             m_PolygonArray[20] = 1.0f;
 
             // draw the polygon
-            csrSceneDrawMesh(&mesh, m_pShader_ColoredMesh, 0);
+            csrDrawMesh(&mesh, m_pShader_ColoredMesh, 0);
         }
 
         free(mesh.m_pVB);
@@ -1176,7 +1176,7 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
         }
 
         // draw the AABB box
-        csrSceneDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0);
+        csrDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0);
     }
 }
 //---------------------------------------------------------------------------

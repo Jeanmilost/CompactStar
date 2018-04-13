@@ -430,9 +430,9 @@ void TMainForm::InitScene()
 
     //CSR_Mesh*  pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
     //CSR_Mesh*  pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
-    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
-    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\untitled.obj", &vf, NULL, &sm, NULL, NULL);
-    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Model.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
+    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Balloon.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Model.obj", &vf, NULL, &sm, NULL, NULL);
 
     //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
@@ -450,7 +450,7 @@ void TMainForm::InitScene()
 
     csrSceneDeleteFrom(m_pScene, pBox);
 
-    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\player.mdl",
+    CSR_MDL* pMDL = csrMDLOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\MDL\\player.mdl",
                                0,
                                0,
                                0,

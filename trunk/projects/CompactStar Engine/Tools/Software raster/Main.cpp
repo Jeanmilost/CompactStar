@@ -123,7 +123,7 @@ UnicodeString TMainForm::GetModelsDir() const
     UnicodeString modelDir = ::ExtractFilePath(Application->ExeName);
                   modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
                   modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
-                  modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
+                  modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models\\MDL";
 
     // dir exists?
     if (::DirectoryExists(modelDir))
@@ -135,7 +135,7 @@ UnicodeString TMainForm::GetModelsDir() const
     modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
     modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
     modelDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(modelDir));
-    modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models";
+    modelDir = ::ExcludeTrailingPathDelimiter(modelDir) + L"\\Common\\Models\\MDL";
 
     // set the default dir in open dialog, if exists
     if (::DirectoryExists(modelDir))
