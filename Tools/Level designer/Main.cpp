@@ -1,3 +1,14 @@
+/*****************************************************************************
+ * ==> Main -----------------------------------------------------------------*
+ *****************************************************************************
+ * Description : This module contains the level designer main form           *
+ * Developer   : Jean-Milost Reymond                                         *
+ * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
+ *               free to copy or redistribute this file, modify it, or use   *
+ *               it for your own projects, commercial or not. This file is   *
+ *               provided "as is", without ANY WARRANTY OF ANY KIND          *
+ *****************************************************************************/
+
 #include <vcl.h>
 #pragma hdrstop
 #include "Main.h"
@@ -12,6 +23,7 @@
 #include "CSR_Sound.h"
 
 // classes
+#include "CSR_DesignerHelper.h"
 #include "CSR_DesignerViewHelper.h"
 
 #pragma package(smart_init)
@@ -23,34 +35,6 @@
 #pragma link "OpenAL32E.lib"
 #pragma resource "*.dfm"
 
-//----------------------------------------------------------------------------
-//FIXME
-const char* miniGetVSColored()
-{
-    return "precision mediump float;"
-           "attribute vec4 csr_aVertices;"
-           "attribute vec4 csr_aColor;"
-           "uniform   mat4 csr_uProjection;"
-           "uniform   mat4 csr_uView;"
-           "uniform   mat4 csr_uModel;"
-           "varying   vec4 csr_vColor;"
-           "void main(void)"
-           "{"
-           "    csr_vColor   = csr_aColor;"
-           "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * csr_aVertices;"
-           "}";
-}
-//----------------------------------------------------------------------------
-//FIXME
-const char* miniGetFSColored()
-{
-    return "precision mediump float;"
-           "varying lowp vec4 csr_vColor;"
-           "void main(void)"
-           "{"
-           "    gl_FragColor = csr_vColor;"
-           "}";
-}
 //---------------------------------------------------------------------------
 // TMainForm::IArcBall
 //---------------------------------------------------------------------------
@@ -69,7 +53,9 @@ TMainForm* MainForm;
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
+    m_pCurrentView(NULL),
     m_pScene(NULL),
+    m_pCollisionInfo(NULL),
     m_pCurrentShader(NULL),
     m_pCurrentMatrix(NULL),
     m_pLoadingModel(NULL),
@@ -149,10 +135,12 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY + 0.05f, M_PI * 2.0f); handled = true; break;
-                case VK_RIGHT: m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY - 0.05f, M_PI * 2.0f); handled = true; break;
-                case VK_UP:    m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX + 0.05f, M_PI * 2.0f); handled = true; break;
-                case VK_DOWN:  m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX - 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_LEFT:     m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY + 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_RIGHT:    m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY - 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_UP:       m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX + 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_DOWN:     m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX - 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_ADD:      m_ArcBall.m_Radius =           m_ArcBall.m_Radius + 0.05f;               handled = true; break;
+                case VK_SUBTRACT: m_ArcBall.m_Radius =           m_ArcBall.m_Radius - 0.05f;               handled = true; break;
             }
 
             return;
@@ -319,10 +307,8 @@ int TMainForm::OnGetShaderIndexCallback(const void* pModel)
     return pMainForm->OnGetShaderIndex(pModel);
 }
 //---------------------------------------------------------------------------
-void TMainForm::CalculateMouseRay()
+void TMainForm::CalculateMouseRay(TPanel* pView)
 {
-    TPanel* pView = paDesigner3DView;
-
     // get the mouse position in screen coordinates
     TPoint mousePos = Mouse->CursorPos;
 
@@ -368,8 +354,8 @@ void TMainForm::InitScene()
     // configure the scene color
     csrRGBAToColor(0xFF, &m_pScene->m_Color);
 
-    const std::string vsColored = miniGetVSColored();
-    const std::string fsColored = miniGetFSColored();
+    const std::string vsColored = CSR_DesignerHelper::GetVertexShader(CSR_DesignerHelper::IE_ST_Color);
+    const std::string fsColored = CSR_DesignerHelper::GetFragmentShader(CSR_DesignerHelper::IE_ST_Color);
 
     // iterate through views to initialize
     for (CSR_OpenGLHelper::IContextIterator it = m_OpenGLHelper.Begin(); it != m_OpenGLHelper.End(); ++it)
@@ -399,7 +385,7 @@ void TMainForm::InitScene()
             m_OpenGLHelper.CreateViewport(it.First()->ClientWidth,
                                           it.First()->ClientHeight,
                                           pShader,
-                                          *pMatrix.get());
+                                         *pMatrix.get());
 
             m_Matrices.push_back(pMatrix.get());
             m_Shaders.push_back(pShader);
@@ -416,7 +402,7 @@ void TMainForm::InitScene()
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 0;
-    vf.m_HasPerVertexColor = 1;
+    vf.m_HasPerVertexColor = 0;
 
     CSR_Material sm;
     sm.m_Color       = 0xFFFF;
@@ -516,6 +502,9 @@ void TMainForm::InitScene()
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
+    // release the last collision result
+    csrCollisionInfoRelease(m_pCollisionInfo);
+
     // release the scene
     csrSceneRelease(m_pScene);
     m_pScene = NULL;
@@ -646,16 +635,54 @@ void TMainForm::UpdateScene(float elapsedTime)
         csrMat4Multiply(&combinedMatrixLevel1, &translateMatrix, &m_ModelMatrix);
     }
 
-    // calculate the ray from current mouse position
-    CalculateMouseRay();
+    // has a current view?
+    if (m_pCurrentView)
+    {
+        // get the mouse position and transform it in the current view coordinate system
+        TPoint mousePos = Mouse->CursorPos;
+        ::ScreenToClient(m_pCurrentView->Handle, &mousePos);
 
-    CSR_CollisionInfo* pCollisionInfo = csrCollisionInfoCreate();
+        // do calculate the collisions?
+        if (m_pCurrentView->ClientRect.Contains(mousePos))
+        {
+            // calculate the ray from current mouse position
+            CalculateMouseRay(m_pCurrentView);
 
-    csrSceneDetectCollision(m_pScene, &m_Ray, pCollisionInfo);
+            // release the previous collision result (a new one will be generated)
+            csrCollisionInfoRelease(m_pCollisionInfo);
 
-    la1->Caption = pCollisionInfo->m_Collision ? L"En collision" : L"Rien ne se passe";
+            // create a new collision result
+            m_pCollisionInfo = csrCollisionInfoCreate();
 
-    csrCollisionInfoRelease(pCollisionInfo);
+            // check the collisions happening in the scene, against the mouse ray
+            csrSceneDetectCollision(m_pScene, &m_Ray, m_pCollisionInfo);
+
+            /*REM FIXME
+            if (m_pCollisionInfo->m_pModels)
+            for (std::size_t i = 0; i < m_pCollisionInfo->m_pModels->m_Count; ++i)
+            {
+                CSR_CollisionModelInfo* pModelInfo =
+                        static_cast<pModelInfo*>(m_pCollisionInfo->m_pModels[i].m_pItem->m_pData);
+
+                if (!pModelInfo)
+                    continue;
+
+                switch (pModelInfo->m_Type)
+                {
+                    case CSR_MT_Mesh:
+                    {
+                        CSR_Mesh* pMesh = static_cast<CSR_Mesh*>(pModelInfo->m_pModel);
+
+                        if (!pMesh)
+                            continue;
+
+                        pMesh->m_pVB[0].m_Material.m_Color = 0xFF0000FF;
+                    }
+                }
+            }
+            */
+        }
+    }
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -686,15 +713,24 @@ void TMainForm::OnDrawScene(bool resize)
         if (!CSR_VCLHelper::IsVisible(it.First()))
             continue;
 
-        // enable view context
-        wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
-        m_SceneContext.m_Handle = std::size_t(it.Second().m_hRC);
+        try
+        {
+            m_pCurrentView = dynamic_cast<TPanel*>(it.First());
 
-        // update and draw the scene
-        UpdateScene(resize ? 0.0f : elapsedTime);
-        DrawScene();
+            // enable view context
+            wglMakeCurrent(it.Second().m_hDC, it.Second().m_hRC);
+            m_SceneContext.m_Handle = std::size_t(it.Second().m_hRC);
 
-        ::SwapBuffers(it.Second().m_hDC);
+            // update and draw the scene
+            UpdateScene(resize ? 0.0f : elapsedTime);
+            DrawScene();
+
+            ::SwapBuffers(it.Second().m_hDC);
+        }
+        __finally
+        {
+            m_pCurrentView = NULL;
+        }
     }
 }
 //---------------------------------------------------------------------------
