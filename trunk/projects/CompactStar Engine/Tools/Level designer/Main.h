@@ -1,3 +1,14 @@
+/*****************************************************************************
+ * ==> Main -----------------------------------------------------------------*
+ *****************************************************************************
+ * Description : This module contains the level designer main form           *
+ * Developer   : Jean-Milost Reymond                                         *
+ * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
+ *               free to copy or redistribute this file, modify it, or use   *
+ *               it for your own projects, commercial or not. This file is   *
+ *               provided "as is", without ANY WARRANTY OF ANY KIND          *
+ *****************************************************************************/
+
 #ifndef MainH
 #define MainH
 
@@ -14,6 +25,7 @@
 #include <Vcl.ActnList.hpp>
 #include <Vcl.ImgList.hpp>
 #include <Vcl.AppEvnts.hpp>
+#include <Vcl.Buttons.hpp>
 
 // std
 #include <memory>
@@ -59,7 +71,8 @@ class TMainForm : public TForm
         TPanel *paDesigner3DView;
         TSplitter *spDesignerZ3D;
         TApplicationEvents *aeEvents;
-    TLabel *la1;
+        TSpeedButton *btAddItem;
+        TCategoryPanelGroup *cgInspector;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
@@ -144,8 +157,10 @@ class TMainForm : public TForm
         std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
         std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
         std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
+        TPanel*                             m_pCurrentView;
         CSR_Scene*                          m_pScene;
         CSR_SceneContext                    m_SceneContext;
+        CSR_CollisionInfo*                  m_pCollisionInfo;
         IShaders                            m_Shaders;
         IMatrices                           m_Matrices;
         CSR_Shader*                         m_pCurrentShader;
@@ -160,8 +175,9 @@ class TMainForm : public TForm
 
         /**
         * Calculates the ray starting from the mouse in the viewport coordinate system
+        *@param pView - view on which the scene is drawn
         */
-        void CalculateMouseRay();
+        void CalculateMouseRay(TPanel* pView);
 
         /**
         * Initializes the scene

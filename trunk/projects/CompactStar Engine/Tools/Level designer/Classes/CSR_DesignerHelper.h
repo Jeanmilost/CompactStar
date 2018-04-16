@@ -1,8 +1,7 @@
 /****************************************************************************
- * ==> CSR_DesignerViewHelper ----------------------------------------------*
+ * ==> CSR_DesignerHelper --------------------------------------------------*
  ****************************************************************************
  * Description : This module provides an helper class for the designer      *
- *               views                                                      *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -14,39 +13,41 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef CSR_DesignerViewHelperH
-#define CSR_DesignerViewHelperH
+#ifndef CSR_DesignerHelperH
+#define CSR_DesignerHelperH
 
-// vcl
-#include <Vcl.Graphics.hpp>
+// std
+#include <string>
 
 /**
-* Designer view helper
+* Designer helper
 *@author Jean-Milost Reymond
 */
-class CSR_DesignerViewHelper
+class CSR_DesignerHelper
 {
     public:
         /**
-        * Grid options
+        * Shader type
         */
-        struct IGridOptions
+        enum IEShaderType
         {
-            TColor      m_BgColor;
-            TColor      m_GridColor;
-            std::size_t m_Offset;
-
-            IGridOptions();
-            virtual ~IGridOptions();
+            IE_ST_Color,
+            IE_ST_Texture
         };
 
         /**
-        * Draws a grid on a device context
-        *@param rect - rect surrounding the grid area to fill
-        *@param options - grid options
-        *@param hDC - device context to paint on
+        * Gets a vertex shader
+        *@param type - shader type to get
+        *@return the vertex shader
         */
-        static void DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC);
+        static std::string GetVertexShader(IEShaderType type);
+
+        /**
+        * Gets a fragment shader
+        *@param type - shader type to get
+        *@return the fragment shader
+        */
+        static std::string GetFragmentShader(IEShaderType type);
 };
 
 #endif

@@ -36,6 +36,15 @@ object MainForm: TMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitTop = -6
+    object btAddItem: TSpeedButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 44
+      Height = 44
+      Align = alLeft
+    end
   end
   object paInspector: TPanel
     Left = 917
@@ -45,12 +54,20 @@ object MainForm: TMainForm
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
-    object la1: TLabel
-      Left = 64
-      Top = 56
-      Width = 14
-      Height = 13
-      Caption = 'la1'
+    object cgInspector: TCategoryPanelGroup
+      Left = 0
+      Top = 0
+      Height = 622
+      VertScrollBar.Tracking = True
+      HeaderFont.Charset = DEFAULT_CHARSET
+      HeaderFont.Color = clWindowText
+      HeaderFont.Height = -11
+      HeaderFont.Name = 'Tahoma'
+      HeaderFont.Style = []
+      TabOrder = 0
+      ExplicitLeft = 80
+      ExplicitTop = 112
+      ExplicitHeight = 350
     end
   end
   object paViews: TPanel
