@@ -18,6 +18,7 @@
 
 // vcl
 #include <Vcl.Controls.hpp>
+#include <Vcl.ComCtrls.hpp>
 
 /**
 * Helper class for the VCL
@@ -32,6 +33,14 @@ class CSR_VCLHelper
         *@return true if the control is visible, otherwise false
         */
         static bool IsVisible(TControl* pControl);
+
+        /**
+        * Changes the visibility of all page control tabs, and select the default tab
+        *@param pPageControl - page control on which the tabs visibility should be changed
+        *@param pActivePage - active page to show, if NULL no page will be selected
+        *@param show - if true all the tabs will be shown, hidden otherwise
+        */
+        static void ChangeTabsVisibility(TPageControl* pPageControl, TTabSheet* pActivePage, bool show);
 };
 
 #endif

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 6.8791664 6.8791671"
+   height="26"
+   width="26">
+  <defs
+     id="defs2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-290.12082)"
+     id="layer1" />
+  <ellipse
+     ry="1.0936403"
+     rx="3.3425987"
+     cy="1.1906251"
+     cx="3.4395833"
+     id="path5214"
+     style="fill:none;stroke:#394447;stroke-width:0.19396941;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:2.29993343;stroke-opacity:1;paint-order:markers fill stroke" />
+  <path
+     id="path5214-4"
+     d="m 6.782182,5.6885419 c 0,0.6040009 -1.4965324,1.0936403 -3.3425987,1.0936403 -1.8460663,0 -3.34259868,-0.4896394 -3.34259868,-1.0936403"
+     style="fill:none;stroke:#394447;stroke-width:0.19396941;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:2.29993343;stroke-opacity:1;paint-order:markers fill stroke" />
+  <path
+     id="path5231"
+     d="m 0.10180788,1.2023968 c -0.0072873,4.4379369 -0.0068452,4.510077 -0.0068452,4.510077"
+     style="fill:none;stroke:#394447;stroke-width:0.18944167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <path
+     id="path5231-3"
+     d="M 6.784446,1.1784649 C 6.777156,5.6164017 6.7842531,5.7030113 6.7842531,5.7030113"
+     style="fill:none;stroke:#394447;stroke-width:0.18944167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+</svg>

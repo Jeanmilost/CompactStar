@@ -26,6 +26,9 @@
 #include "CSR_DesignerHelper.h"
 #include "CSR_DesignerViewHelper.h"
 
+// dialogs
+#include "TAddItemDialog.h"
+
 #pragma package(smart_init)
 #ifdef __llvm__
     #pragma link "glewSL.a"
@@ -778,3 +781,13 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
     OnDrawScene(false);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::btAddItemClick(TObject* pSender)
+{
+    std::auto_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
+
+    // show the add item wizard dialog
+    if (pDialog->ShowModal() != mrOk)
+        return;
+}
+//---------------------------------------------------------------------------
+

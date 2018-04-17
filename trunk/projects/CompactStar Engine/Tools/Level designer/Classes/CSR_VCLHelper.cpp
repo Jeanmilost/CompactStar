@@ -40,3 +40,16 @@ bool CSR_VCLHelper::IsVisible(TControl* pControl)
     return (!pControl->Parent || CSR_VCLHelper::IsVisible(pControl->Parent));
 }
 //---------------------------------------------------------------------------
+void CSR_VCLHelper::ChangeTabsVisibility(TPageControl* pPageControl, TTabSheet* pActivePage, bool show)
+{
+    if (!pPageControl)
+        return;
+
+    // change the visibility of all tabs
+    for (int i = 0; i < pPageControl->PageCount; ++i)
+        pPageControl->Pages[i]->TabVisible = show;
+
+    // select the default page to show
+    pPageControl->ActivePage = pActivePage;
+}
+//---------------------------------------------------------------------------
