@@ -52,22 +52,21 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <UsingDelphiRTL>true</UsingDelphiRTL>
         <BCC_weff>false</BCC_weff>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>Classes\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Dialogs\;Classes\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
-        <IncludePath>Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
+        <IncludePath>Dialogs\;Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
-        <DynamicRTL>true</DynamicRTL>
-        <UsePackages>true</UsePackages>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
         <FinalOutputDir>.\$(Platform)\$(Config)</FinalOutputDir>
         <BCC_wpar>false</BCC_wpar>
@@ -110,9 +109,9 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <LinkPackageStatics>rtl.lib;vcl.lib</LinkPackageStatics>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <LinkPackageImports>rtl.bpi;vcl.bpi</LinkPackageImports>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -231,6 +230,12 @@
         <PCHCompile Include="CompactStar_LevelDesigner_PCH.h">
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
+        <CppCompile Include="Dialogs\TAddItemDialog.cpp">
+            <Form>AddItemDialog</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>Dialogs\TAddItemDialog.h</DependentOn>
+            <BuildOrder>34</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
             <FormType>dfm</FormType>
@@ -238,6 +243,7 @@
             <BuildOrder>2</BuildOrder>
         </CppCompile>
         <FormResources Include="Main.dfm"/>
+        <FormResources Include="Dialogs\TAddItemDialog.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

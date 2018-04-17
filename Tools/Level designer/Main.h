@@ -78,6 +78,7 @@ class TMainForm : public TForm
         void __fastcall FormResize(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
         void __fastcall OnSplitterMoved(TObject* pSender);
+        void __fastcall btAddItemClick(TObject* pSender);
 
     public:
         __fastcall TMainForm(TComponent* pOwner);

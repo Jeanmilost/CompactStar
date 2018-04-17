@@ -36,7 +36,6 @@ object MainForm: TMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = -6
     object btAddItem: TSpeedButton
       AlignWithMargins = True
       Left = 3
@@ -44,6 +43,7 @@ object MainForm: TMainForm
       Width = 44
       Height = 44
       Align = alLeft
+      OnClick = btAddItemClick
     end
   end
   object paInspector: TPanel
@@ -65,9 +65,6 @@ object MainForm: TMainForm
       HeaderFont.Name = 'Tahoma'
       HeaderFont.Style = []
       TabOrder = 0
-      ExplicitLeft = 80
-      ExplicitTop = 112
-      ExplicitHeight = 350
     end
   end
   object paViews: TPanel
