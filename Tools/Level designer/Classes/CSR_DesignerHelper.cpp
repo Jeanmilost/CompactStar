@@ -81,3 +81,13 @@ std::string CSR_DesignerHelper::GetFragmentShader(IEShaderType type)
     return "";
 }
 //---------------------------------------------------------------------------
+std::wstring CSR_DesignerHelper::GetApplicationDir()
+{
+    return ::ExtractFilePath(Application->ExeName).c_str();
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_DesignerHelper::GetSceneDir()
+{
+    return GetApplicationDir() + L"Scene\\";
+}
+//---------------------------------------------------------------------------

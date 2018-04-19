@@ -18,8 +18,10 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
+USEFORM("Dialogs\Frames\TTextureSelectionFrame.cpp", TextureSelectionFrame); /* TFrame: File Type */
 USEFORM("Main.cpp", MainForm);
 USEFORM("Dialogs\TAddItemDialog.cpp", AddItemDialog);
+USEFORM("Dialogs\TImageInfoDialog.cpp", ImageInfoDialog);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -29,6 +31,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
          Application->MainFormOnTaskBar = true;
          Application->CreateForm(__classid(TMainForm), &MainForm);
          Application->CreateForm(__classid(TAddItemDialog), &AddItemDialog);
+         Application->CreateForm(__classid(TImageInfoDialog), &ImageInfoDialog);
          Application->Run();
     }
     catch (Exception &exception)

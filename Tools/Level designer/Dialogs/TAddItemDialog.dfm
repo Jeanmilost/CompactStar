@@ -26,8 +26,6 @@ object AddItemDialog: TAddItemDialog
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 439
-    ExplicitWidth = 554
     object btOK: TButton
       AlignWithMargins = True
       Left = 372
@@ -38,10 +36,8 @@ object AddItemDialog: TAddItemDialog
       Caption = 'OK'
       Default = True
       Enabled = False
-      TabOrder = 1
+      TabOrder = 2
       OnClick = btOKClick
-      ExplicitLeft = 371
-      ExplicitTop = 2
     end
     object btCancel: TButton
       AlignWithMargins = True
@@ -53,8 +49,18 @@ object AddItemDialog: TAddItemDialog
       Caption = 'Cancel'
       TabOrder = 0
       OnClick = btCancelClick
-      ExplicitLeft = 395
-      ExplicitTop = 6
+    end
+    object btBack: TButton
+      AlignWithMargins = True
+      Left = 291
+      Top = 3
+      Width = 75
+      Height = 25
+      Align = alRight
+      Caption = '<< Back'
+      Enabled = False
+      TabOrder = 1
+      OnClick = btBackClick
     end
   end
   object paMain: TPanel
@@ -71,12 +77,11 @@ object AddItemDialog: TAddItemDialog
       Top = 0
       Width = 450
       Height = 433
-      ActivePage = tsSelectItem
+      ActivePage = tsAddSurface
       Align = alTop
       TabOrder = 0
       object tsSelectItem: TTabSheet
         Caption = 'tsSelectItem'
-        ExplicitHeight = 339
         object laSelectItemTitle: TLabel
           AlignWithMargins = True
           Left = 3
@@ -91,7 +96,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 4
+          ExplicitWidth = 224
         end
         object btSelectItemAddSurface: TSpeedButton
           AlignWithMargins = True
@@ -716,7 +721,7 @@ object AddItemDialog: TAddItemDialog
           Spacing = 10
           ExplicitTop = 355
         end
-        object blSeparator: TBevel
+        object blSelectItemSeparator: TBevel
           Left = 0
           Top = 31
           Width = 442
@@ -730,6 +735,82 @@ object AddItemDialog: TAddItemDialog
       object tsAddSurface: TTabSheet
         Caption = 'tsAddSurface'
         ImageIndex = 1
+        object laAddSurfaceTitle: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 436
+          Height = 25
+          Align = alTop
+          Caption = 'Add a surface'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -21
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitTop = 4
+        end
+        object blAddSurfaceSeparator: TBevel
+          Left = 0
+          Top = 31
+          Width = 442
+          Height = 1
+          Align = alTop
+          Shape = bsTopLine
+          ExplicitLeft = 16
+          ExplicitTop = 27
+        end
+        object laAddSurfaceTextureTitle: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 35
+          Width = 436
+          Height = 19
+          Align = alTop
+          Caption = 'Select a texture'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 108
+        end
+        object laAddSurfaceBumpmapTitle: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 166
+          Width = 436
+          Height = 19
+          Align = alTop
+          Caption = 'Select a bump map'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 136
+        end
+        inline tsfAddSurfaceTexture: TTextureSelectionFrame
+          Left = 0
+          Top = 57
+          Width = 442
+          Height = 106
+          Align = alTop
+          TabOrder = 0
+          ExplicitTop = 57
+        end
+        inline tsfAddSurfaceBumpmap: TTextureSelectionFrame
+          Left = 0
+          Top = 188
+          Width = 442
+          Height = 106
+          Align = alTop
+          TabOrder = 1
+          ExplicitTop = 188
+        end
       end
     end
   end
