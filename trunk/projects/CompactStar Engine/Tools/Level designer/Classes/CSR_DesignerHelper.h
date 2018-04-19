@@ -16,6 +16,10 @@
 #ifndef CSR_DesignerHelperH
 #define CSR_DesignerHelperH
 
+// vcl
+#include <System.Classes.hpp>
+#include <Vcl.Forms.hpp>
+
 // std
 #include <string>
 
@@ -48,6 +52,18 @@ class CSR_DesignerHelper
         *@return the fragment shader
         */
         static std::string GetFragmentShader(IEShaderType type);
+
+        /**
+        * Gets the current application dir
+        *@return the current application dir
+        */
+        static std::wstring GetApplicationDir();
+
+        /**
+        * Gets the default scene dir
+        *@return the default scene dir
+        */
+        static std::wstring GetSceneDir();
 };
 
 #endif

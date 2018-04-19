@@ -20,6 +20,9 @@
 #include <Vcl.Controls.hpp>
 #include <Vcl.ComCtrls.hpp>
 
+// std
+#include <string>
+
 /**
 * Helper class for the VCL
 *@author Jean-Milost Reymond
@@ -27,6 +30,17 @@
 class CSR_VCLHelper
 {
     public:
+        /**
+        * Image types
+        */
+        enum IEImageType
+        {
+            IE_IT_Unknown = 0,
+            IE_IT_Bitmap,
+            IE_IT_JPEG,
+            IE_IT_PNG
+        };
+
         /**
         * Checks if a control is visible, considering also all his parents
         *@param pControl - control to check
@@ -41,6 +55,27 @@ class CSR_VCLHelper
         *@param show - if true all the tabs will be shown, hidden otherwise
         */
         static void ChangeTabsVisibility(TPageControl* pPageControl, TTabSheet* pActivePage, bool show);
+
+        /**
+        * Gets the type of an image contained in a picture
+        *@param pPicture - picture containing the image for which the type should be get
+        *@return picture image type
+        */
+        static IEImageType GetImageType(TPicture* pPicture);
+
+        /**
+        * Converts an image type to a human readable type
+        *@param type - image ty to convert
+        *@return image type as string
+        */
+        static std::wstring ImageTypeToStr(IEImageType type);
+
+        /**
+        * Gets the bit per pixels of an image contained in a picture
+        *@param pPicture - picture containing the image for which the byte per pixels should be get
+        *@return the byte per pixels, 0 if not found or on error
+        */
+        static unsigned GetBitPerPixel(TPicture* pPicture);
 };
 
 #endif

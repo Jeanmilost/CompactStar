@@ -383,7 +383,7 @@ void TMainForm::InitScene()
             pShader->m_VertexSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aVertices");
             pShader->m_ColorSlot  = glGetAttribLocation(pShader->m_ProgramID, "csr_aColor");
 
-            std::auto_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
+            std::unique_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
 
             m_OpenGLHelper.CreateViewport(it.First()->ClientWidth,
                                           it.First()->ClientHeight,
@@ -783,7 +783,7 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btAddItemClick(TObject* pSender)
 {
-    std::auto_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
+    std::unique_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
 
     // show the add item wizard dialog
     if (pDialog->ShowModal() != mrOk)

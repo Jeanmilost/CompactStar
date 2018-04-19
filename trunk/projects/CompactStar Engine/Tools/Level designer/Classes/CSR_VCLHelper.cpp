@@ -16,6 +16,8 @@
 #include "CSR_VCLHelper.h"
 
 // vcl
+#include <Vcl.Imaging.Jpeg.hpp>
+#include <Vcl.Imaging.PngImage.hpp>
 #include <Vcl.ComCtrls.hpp>
 
 //---------------------------------------------------------------------------
@@ -51,5 +53,73 @@ void CSR_VCLHelper::ChangeTabsVisibility(TPageControl* pPageControl, TTabSheet* 
 
     // select the default page to show
     pPageControl->ActivePage = pActivePage;
+}
+//---------------------------------------------------------------------------
+CSR_VCLHelper::IEImageType CSR_VCLHelper::GetImageType(TPicture* pPicture)
+{
+    if (dynamic_cast<TBitmap*>(pPicture->Graphic))
+        return IE_IT_Bitmap;
+
+    if (dynamic_cast<TJPEGImage*>(pPicture->Graphic))
+        return IE_IT_JPEG;
+
+    if (dynamic_cast<TPngImage*>(pPicture->Graphic))
+        return IE_IT_PNG;
+
+    return IE_IT_Unknown;
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_VCLHelper::ImageTypeToStr(IEImageType type)
+{
+    switch (type)
+    {
+        case IE_IT_Bitmap: return L"Bitmap";
+        case IE_IT_JPEG:   return L"JPEG";
+        case IE_IT_PNG:    return L"PNG";
+        default:           return L"Unknown";
+    }
+}
+//---------------------------------------------------------------------------
+unsigned CSR_VCLHelper::GetBitPerPixel(TPicture* pPicture)
+{
+    // no picture?
+    if (!pPicture)
+        return 0;
+
+    // picture contains a bitmap?
+    if (dynamic_cast<TBitmap*>(pPicture->Graphic))
+        switch (pPicture->Bitmap->PixelFormat)
+        {
+            case pf1bit:   return 1;
+            case pf4bit:   return 4;
+            case pf8bit:   return 8;
+            case pf15bit:  return 15;
+            case pf16bit:  return 16;
+            case pf24bit:  return 24;
+            case pf32bit:  return 32;
+            default:       return 0;
+        }
+
+    // picture contains a JPG?
+    if (dynamic_cast<TJPEGImage*>(pPicture->Graphic))
+        return 24;
+
+    // picture contains a PNG?
+    if (dynamic_cast<TPngImage*>(pPicture->Graphic))
+    {
+        TPngImage* pPng = static_cast<TPngImage*>(pPicture->Graphic);
+
+        switch (pPng->Header->ColorType)
+        {
+            case COLOR_GRAYSCALEALPHA: return pPng->Header->BitDepth * 2;
+            case COLOR_RGB:            return pPng->Header->BitDepth * 3;
+            case COLOR_RGBALPHA:       return pPng->Header->BitDepth * 4;
+            case COLOR_GRAYSCALE:
+            case COLOR_PALETTE:        return pPng->Header->BitDepth;
+            default:                   return 0;
+        }
+    }
+
+    return 0;
 }
 //---------------------------------------------------------------------------

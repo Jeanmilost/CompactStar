@@ -58,12 +58,12 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>Dialogs\;Classes\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Dialogs\Frames\;Dialogs\;Classes\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
-        <IncludePath>Dialogs\;Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
+        <IncludePath>Dialogs\Frames\;Dialogs\;Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
-        <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
+        <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -109,7 +109,7 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <LinkPackageStatics>rtl.lib;vcl.lib</LinkPackageStatics>
+        <LinkPackageStatics>rtl.lib;vcl.lib;vclimg.lib</LinkPackageStatics>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
@@ -230,11 +230,24 @@
         <PCHCompile Include="CompactStar_LevelDesigner_PCH.h">
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
+        <CppCompile Include="Dialogs\Frames\TTextureSelectionFrame.cpp">
+            <Form>TextureSelectionFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>Dialogs\Frames\TTextureSelectionFrame.h</DependentOn>
+            <BuildOrder>35</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Dialogs\TAddItemDialog.cpp">
             <Form>AddItemDialog</Form>
             <FormType>dfm</FormType>
             <DependentOn>Dialogs\TAddItemDialog.h</DependentOn>
             <BuildOrder>34</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Dialogs\TImageInfoDialog.cpp">
+            <Form>ImageInfoDialog</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>Dialogs\TImageInfoDialog.h</DependentOn>
+            <BuildOrder>36</BuildOrder>
         </CppCompile>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
@@ -242,8 +255,10 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="Dialogs\TAddItemDialog.dfm"/>
+        <FormResources Include="Dialogs\TImageInfoDialog.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
