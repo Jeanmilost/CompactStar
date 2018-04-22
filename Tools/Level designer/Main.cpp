@@ -427,6 +427,14 @@ void TMainForm::InitScene()
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
     csrSceneAddModel(m_pScene, pModel, 0, 1);
 
+    std::unique_ptr<TBitmap> pBitmap(new TBitmap());
+    pBitmap->Width = 100;
+    pBitmap->Height = 100;
+
+    std::unique_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
+    pDialog->DrawModelToBitmap("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\MDL\\wizard.mdl", pBitmap->Width, pBitmap->Height, pBitmap.get());
+
+    pBitmap->SaveToFile(L"__TEST.bmp");
     /*
     CSR_WriteContext writeContext;
     writeContext.m_fOnGetTextureIndex = OnGetTextureIndexCallback;
@@ -790,4 +798,3 @@ void __fastcall TMainForm::btAddItemClick(TObject* pSender)
         return;
 }
 //---------------------------------------------------------------------------
-

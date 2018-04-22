@@ -206,7 +206,7 @@ object ImageInfoDialog: TImageInfoDialog
       Height = 25
       Align = alBottom
       BevelOuter = bvNone
-      TabOrder = 3
+      TabOrder = 5
       object btClose: TButton
         Left = 169
         Top = 0
@@ -274,7 +274,7 @@ object ImageInfoDialog: TImageInfoDialog
       Margins.Bottom = 0
       Align = alTop
       BevelOuter = bvNone
-      TabOrder = 5
+      TabOrder = 3
       object laImageTypeCaption: TLabel
         AlignWithMargins = True
         Left = 3

@@ -36,7 +36,7 @@ object AddItemDialog: TAddItemDialog
       Caption = 'OK'
       Default = True
       Enabled = False
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btOKClick
     end
     object btCancel: TButton
@@ -52,7 +52,7 @@ object AddItemDialog: TAddItemDialog
     end
     object btBack: TButton
       AlignWithMargins = True
-      Left = 291
+      Left = 210
       Top = 3
       Width = 75
       Height = 25
@@ -61,6 +61,18 @@ object AddItemDialog: TAddItemDialog
       Enabled = False
       TabOrder = 1
       OnClick = btBackClick
+    end
+    object btNext: TButton
+      AlignWithMargins = True
+      Left = 291
+      Top = 3
+      Width = 75
+      Height = 25
+      Align = alRight
+      Caption = 'Next >>'
+      Enabled = False
+      TabOrder = 2
+      OnClick = OnNextClick
     end
   end
   object paMain: TPanel
@@ -77,16 +89,20 @@ object AddItemDialog: TAddItemDialog
       Top = 0
       Width = 450
       Height = 433
-      ActivePage = tsAddSurface
+      ActivePage = tsModel
       Align = alTop
       TabOrder = 0
       object tsSelectItem: TTabSheet
         Caption = 'tsSelectItem'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object laSelectItemTitle: TLabel
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 436
+          Width = 224
           Height = 25
           Align = alTop
           Caption = 'Select an item to create'
@@ -96,7 +112,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitWidth = 224
         end
         object btSelectItemAddSurface: TSpeedButton
           AlignWithMargins = True
@@ -106,6 +121,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Surface'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -173,7 +189,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
-          OnClick = btSelectItemAddSurfaceClick
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 34
         end
         object btSelectItemAddBox: TSpeedButton
@@ -184,6 +201,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Box'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -251,6 +269,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 84
           ExplicitWidth = 452
         end
@@ -262,6 +282,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Sphere'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -329,6 +350,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 140
           ExplicitWidth = 452
         end
@@ -340,6 +363,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Cylinder'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -407,6 +431,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 196
           ExplicitWidth = 452
         end
@@ -418,6 +444,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Disk'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -485,6 +512,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 252
           ExplicitWidth = 452
         end
@@ -496,6 +525,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Spiral'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -563,6 +593,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 364
           ExplicitWidth = 452
         end
@@ -574,6 +606,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Ring'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -641,6 +674,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 308
           ExplicitWidth = 452
         end
@@ -652,6 +687,7 @@ object AddItemDialog: TAddItemDialog
           Height = 40
           Cursor = crHandPoint
           Align = alTop
+          GroupIndex = 1
           Caption = 'Model'
           Flat = True
           Font.Charset = DEFAULT_CHARSET
@@ -719,6 +755,8 @@ object AddItemDialog: TAddItemDialog
           Margin = 10
           ParentFont = False
           Spacing = 10
+          OnClick = OnSelectItemButtonClick
+          OnDblClick = OnNextClick
           ExplicitTop = 355
         end
         object blSelectItemSeparator: TBevel
@@ -728,30 +766,97 @@ object AddItemDialog: TAddItemDialog
           Height = 1
           Align = alTop
           Shape = bsTopLine
-          ExplicitLeft = -3
+          ExplicitLeft = -32
           ExplicitTop = 27
         end
       end
-      object tsAddSurface: TTabSheet
-        Caption = 'tsAddSurface'
-        ImageIndex = 1
-        object laAddSurfaceTitle: TLabel
+      object tsModel: TTabSheet
+        Caption = 'tsModel'
+        ImageIndex = 2
+        object blModelSeparator1: TBevel
+          Left = 0
+          Top = 31
+          Width = 442
+          Height = 1
+          Align = alTop
+          Shape = bsTopLine
+          ExplicitTop = 8
+        end
+        object laModelTitle: TLabel
           AlignWithMargins = True
           Left = 3
           Top = 3
           Width = 436
           Height = 25
           Align = alTop
-          Caption = 'Add a surface'
+          Caption = 'Model'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -21
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 4
+          ExplicitWidth = 55
         end
-        object blAddSurfaceSeparator: TBevel
+        object laModelFileNameCaption: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 35
+          Width = 436
+          Height = 19
+          Align = alTop
+          Caption = 'Select a file'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 80
+        end
+        inline ffModelFile: TFileFrame
+          Left = 0
+          Top = 57
+          Width = 442
+          Height = 25
+          Align = alTop
+          TabOrder = 0
+          ExplicitTop = 57
+          ExplicitWidth = 442
+          inherited edFileName: TEdit
+            Width = 403
+            ExplicitWidth = 403
+          end
+          inherited btBrowse: TButton
+            Left = 409
+            ExplicitLeft = 409
+          end
+        end
+      end
+      object tsConfig: TTabSheet
+        Caption = 'tsConfig'
+        ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object laConfigTitle: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 436
+          Height = 25
+          Align = alTop
+          Caption = 'Configuration'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -21
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 126
+        end
+        object blConfigSeparator: TBevel
           Left = 0
           Top = 31
           Width = 442
@@ -761,10 +866,10 @@ object AddItemDialog: TAddItemDialog
           ExplicitLeft = 16
           ExplicitTop = 27
         end
-        object laAddSurfaceTextureTitle: TLabel
+        object laConfigTextureTitle: TLabel
           AlignWithMargins = True
           Left = 3
-          Top = 35
+          Top = 130
           Width = 436
           Height = 19
           Align = alTop
@@ -777,10 +882,10 @@ object AddItemDialog: TAddItemDialog
           ParentFont = False
           ExplicitWidth = 108
         end
-        object laAddSurfaceBumpmapTitle: TLabel
+        object laConfigBumpTitle: TLabel
           AlignWithMargins = True
           Left = 3
-          Top = 166
+          Top = 267
           Width = 436
           Height = 19
           Align = alTop
@@ -793,23 +898,114 @@ object AddItemDialog: TAddItemDialog
           ParentFont = False
           ExplicitWidth = 136
         end
-        inline tsfAddSurfaceTexture: TTextureSelectionFrame
+        object laConfigOptions: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 35
+          Width = 436
+          Height = 19
+          Align = alTop
+          Caption = 'Options'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 55
+        end
+        object blConfigSeparator2: TBevel
+          AlignWithMargins = True
           Left = 0
-          Top = 57
+          Top = 94
+          Width = 442
+          Height = 1
+          Margins.Left = 0
+          Margins.Top = 5
+          Margins.Right = 0
+          Margins.Bottom = 0
+          Align = alTop
+          Shape = bsTopLine
+          ExplicitLeft = -1
+          ExplicitTop = 74
+        end
+        object blConfigSeparator3: TBevel
+          AlignWithMargins = True
+          Left = 0
+          Top = 126
+          Width = 442
+          Height = 1
+          Margins.Left = 0
+          Margins.Top = 0
+          Margins.Right = 0
+          Margins.Bottom = 0
+          Align = alTop
+          Shape = bsTopLine
+          ExplicitTop = 125
+        end
+        object blConfigSeparator4: TBevel
+          AlignWithMargins = True
+          Left = 0
+          Top = 263
+          Width = 442
+          Height = 1
+          Margins.Left = 0
+          Margins.Top = 5
+          Margins.Right = 0
+          Margins.Bottom = 0
+          Align = alTop
+          Shape = bsTopLine
+          ExplicitTop = 254
+        end
+        inline tsfConfigTexture: TTextureSelectionFrame
+          Left = 0
+          Top = 152
           Width = 442
           Height = 106
           Align = alTop
-          TabOrder = 0
-          ExplicitTop = 57
+          TabOrder = 2
+          ExplicitTop = 152
         end
-        inline tsfAddSurfaceBumpmap: TTextureSelectionFrame
+        inline tsfConfigBump: TTextureSelectionFrame
           Left = 0
-          Top = 188
+          Top = 289
           Width = 442
           Height = 106
+          Align = alTop
+          TabOrder = 3
+          ExplicitTop = 289
+        end
+        object clConfigOptions: TCheckListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 60
+          Width = 436
+          Height = 26
+          Align = alTop
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          Columns = 2
+          IntegralHeight = True
+          ItemHeight = 13
+          Items.Strings = (
+            'Use normals'
+            'Use textures'
+            'Use per-vertex colors'
+            'Add a pre-calculated directional light')
+          TabOrder = 0
+        end
+        inline vcfConfigVertexColor: TVertexColorFrame
+          Left = 0
+          Top = 95
+          Width = 442
+          Height = 31
           Align = alTop
           TabOrder = 1
-          ExplicitTop = 188
+          ExplicitTop = 95
+          inherited paMain: TPanel
+            ExplicitTop = 3
+          end
         end
       end
     end

@@ -180,6 +180,8 @@ object TextureSelectionFrame: TTextureSelectionFrame
             DADADADADADADADADADADADADADADADADADADADADADAD2D2D2B7B7B7AAAAAAA1
             A1A1A3A3A3ACACACC6C6C6DADADADADADADADADADADADADADADA}
           OnClick = btInfoClick
+          ExplicitLeft = 255
+          ExplicitTop = -3
         end
         object btConfig: TSpeedButton
           Left = 286
@@ -217,7 +219,7 @@ object TextureSelectionFrame: TTextureSelectionFrame
             B0D3D3D3DADADADADADADADADADADADADADADADADADADADADADADADADADADAA2
             A2A29F9F9FD8D8D8DADADADADADADADADADADADADADADADADADA}
           OnClick = btConfigClick
-          ExplicitLeft = 311
+          ExplicitLeft = 255
         end
       end
     end

@@ -15,13 +15,21 @@
 
 #include <vcl.h>
 #pragma hdrstop
+#pragma package(smart_init) // madExcept
+#pragma link "madExcept"
+#pragma link "madLinkDisAsm"
+#pragma link "madListHardware"
+#pragma link "madListProcesses"
+#pragma link "madListModules"
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
-USEFORM("Dialogs\Frames\TTextureSelectionFrame.cpp", TextureSelectionFrame); /* TFrame: File Type */
-USEFORM("Main.cpp", MainForm);
 USEFORM("Dialogs\TAddItemDialog.cpp", AddItemDialog);
+USEFORM("Dialogs\Frames\TVertexColorFrame.cpp", VertexColorFrame); /* TFrame: File Type */
+USEFORM("Main.cpp", MainForm);
 USEFORM("Dialogs\TImageInfoDialog.cpp", ImageInfoDialog);
+USEFORM("Dialogs\Frames\TTextureSelectionFrame.cpp", TextureSelectionFrame); /* TFrame: File Type */
+USEFORM("Dialogs\Frames\TFileFrame.cpp", FileFrame); /* TFrame: File Type */
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

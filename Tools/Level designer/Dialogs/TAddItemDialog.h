@@ -21,7 +21,16 @@
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.Buttons.hpp>
 #include <Vcl.Imaging.pngimage.hpp>
+#include <Vcl.CheckLst.hpp>
+
+// frames
 #include "TTextureSelectionFrame.h"
+#include "TVertexColorFrame.h"
+#include "TFileFrame.h"
+
+// compactStar engine
+#include "CSR_Collision.h"
+#include "CSR_Model.h"
 
 /**
 * Add an item dialog box
@@ -32,7 +41,7 @@ class TAddItemDialog : public TForm
     __published:
         TPageControl *pcWizard;
         TTabSheet *tsSelectItem;
-        TTabSheet *tsAddSurface;
+        TTabSheet *tsConfig;
         TBevel *blSelectItemSeparator;
         TPanel *paNavigation;
         TButton *btOK;
@@ -47,24 +56,85 @@ class TAddItemDialog : public TForm
         TSpeedButton *btSelectItemAddRing;
         TSpeedButton *btSelectItemAddModel;
         TPanel *paMain;
-        TLabel *laAddSurfaceTitle;
-        TBevel *blAddSurfaceSeparator;
+        TLabel *laConfigTitle;
+        TBevel *blConfigSeparator;
         TButton *btBack;
-        TTextureSelectionFrame *tsfAddSurfaceTexture;
-        TLabel *laAddSurfaceTextureTitle;
-        TLabel *laAddSurfaceBumpmapTitle;
-        TTextureSelectionFrame *tsfAddSurfaceBumpmap;
+        TTextureSelectionFrame *tsfConfigTexture;
+        TLabel *laConfigTextureTitle;
+        TLabel *laConfigBumpTitle;
+        TTextureSelectionFrame *tsfConfigBump;
+        TCheckListBox *clConfigOptions;
+        TLabel *laConfigOptions;
+        TBevel *blConfigSeparator2;
+        TBevel *blConfigSeparator3;
+        TBevel *blConfigSeparator4;
+        TTabSheet *tsModel;
+        TButton *btNext;
+        TVertexColorFrame *vcfConfigVertexColor;
+        TFileFrame *ffModelFile;
+        TBevel *blModelSeparator1;
+        TLabel *laModelTitle;
+        TLabel *laModelFileNameCaption;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
-        void __fastcall btOKClick(TObject* pSender);
-        void __fastcall btSelectItemAddSurfaceClick(TObject* pSender);
         void __fastcall btBackClick(TObject* pSender);
+        void __fastcall OnNextClick(TObject* pSender);
+        void __fastcall btOKClick(TObject* pSender);
+        void __fastcall OnSelectItemButtonClick(TObject* pSender);
 
     public:
+        /**
+        * Model types
+        */
+        enum IEModelType
+        {
+            IE_MT_Unknown = 0,
+            IE_MT_Surface,
+            IE_MT_Box,
+            IE_MT_Sphere,
+            IE_MT_Cylinder,
+            IE_MT_Disk,
+            IE_MT_Ring,
+            IE_MT_Spiral,
+            IE_MT_Model
+        };
+
+        /**
+        * Constructor
+        *@aram pOwner - form owner
+        */
         __fastcall TAddItemDialog(TComponent* pOwner);
 
+        /**
+        * Gets the selected model type to create
+        *@return the model type
+        */
+        IEModelType GetModelType() const;
+
+        void DrawModelToBitmap(const std::string& fileName, int width, int height, TBitmap* pBitmap);
+
+        void GetBitmapFromOpenGL(TBitmap* pBitmap);
+
+        void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
+
+        float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
+
     private:
+        IEModelType m_ModelType;
+
+        /**
+        * Checks if a model file exists
+        *@return true if the model file exists, otherwise false
+        */
+        bool ModelFileExists() const;
+
+        /**
+        * Called when a file was selected
+        *@param pSender - event sender
+        *@param fileName - newly selected file name
+        */
+        void __fastcall OnFileSelected(TObject* pSender, const std::wstring& fileName);
 };
 extern PACKAGE TAddItemDialog* AddItemDialog;
 #endif
