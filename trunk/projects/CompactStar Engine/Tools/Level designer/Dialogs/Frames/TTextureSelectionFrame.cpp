@@ -62,6 +62,9 @@ void __fastcall TTextureSelectionFrame::btTextureFileOpenClick(TObject* pSender)
                          TMsgDlgButtons() << mbOK,
                          0);
         }
+
+    // update the interface
+    imTexture->Cursor = crHandPoint;
 }
 //---------------------------------------------------------------------------
 void __fastcall TTextureSelectionFrame::btInfoClick(TObject* pSender)

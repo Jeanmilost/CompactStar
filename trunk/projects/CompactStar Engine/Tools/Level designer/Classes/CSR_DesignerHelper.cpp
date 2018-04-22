@@ -38,7 +38,7 @@ std::string CSR_DesignerHelper::GetVertexShader(IEShaderType type)
             return "precision mediump float;"
                    "attribute    vec4 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
-                   "attribute    vec2 csr_vTexCoord;"
+                   "attribute    vec2 csr_aTexCoord;"
                    "uniform      mat4 csr_uProjection;"
                    "uniform      mat4 csr_uView;"
                    "uniform      mat4 csr_uModel;"
@@ -74,7 +74,7 @@ std::string CSR_DesignerHelper::GetFragmentShader(IEShaderType type)
                    "varying      vec2      csr_vTexCoord;"
                    "void main(void)"
                    "{"
-                   "    gl_FragColor = csr_fColor * texture2D(csr_sTexture, csr_fTexCoord);"
+                   "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
                    "}";
     }
 

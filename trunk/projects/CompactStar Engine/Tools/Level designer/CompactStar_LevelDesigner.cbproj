@@ -63,7 +63,7 @@
         <IncludePath>Dialogs\Frames\;Dialogs\;Classes\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_LevelDesigner</SanitizedProjectName>
-        <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
+        <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib;vclx.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <Multithreaded>true</Multithreaded>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -109,7 +109,7 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <LinkPackageStatics>rtl.lib;vcl.lib;vclimg.lib</LinkPackageStatics>
+        <LinkPackageStatics>rtl.lib;vcl.lib;vclimg.lib;vclx.lib</LinkPackageStatics>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
@@ -230,12 +230,26 @@
         <PCHCompile Include="CompactStar_LevelDesigner_PCH.h">
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
+        <CppCompile Include="Dialogs\Frames\TFileFrame.cpp">
+            <Form>FileFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>Dialogs\Frames\TFileFrame.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Dialogs\Frames\TTextureSelectionFrame.cpp">
             <Form>TextureSelectionFrame</Form>
             <FormType>dfm</FormType>
             <DesignClass>TFrame</DesignClass>
             <DependentOn>Dialogs\Frames\TTextureSelectionFrame.h</DependentOn>
             <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Dialogs\Frames\TVertexColorFrame.cpp">
+            <Form>VertexColorFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>Dialogs\Frames\TVertexColorFrame.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
         </CppCompile>
         <CppCompile Include="Dialogs\TAddItemDialog.cpp">
             <Form>AddItemDialog</Form>
@@ -255,10 +269,12 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
-        <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="Dialogs\TAddItemDialog.dfm"/>
+        <FormResources Include="Dialogs\Frames\TVertexColorFrame.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <FormResources Include="Dialogs\TImageInfoDialog.dfm"/>
+        <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
+        <FormResources Include="Dialogs\Frames\TFileFrame.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
