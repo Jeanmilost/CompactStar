@@ -31,6 +31,10 @@ object FileFrame: TFileFrame
     OnClick = btBrowseClick
   end
   object odOpen: TOpenDialog
+    Filter = 
+      'Quake I Models|*.mdl|WaveFront Models|*.obj|All Model Files|*.md' +
+      'l; *.obj'
+    FilterIndex = 3
     Left = 368
   end
 end

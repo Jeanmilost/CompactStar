@@ -24,6 +24,7 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
+#include "CSR_Collision.h"
 #include "CSR_Shader.h"
 
 /**
@@ -217,6 +218,31 @@ class CSR_OpenGLHelper
                                          float        h,
                                    const CSR_Shader*  pShader,
                                          CSR_Matrix4& matrix);
+
+        /**
+        * Exports the current OpenGL drawing in a bitmap
+        *@param[in, out] pBitmap - bitmap in which the OpenGL scene will be exported
+        */
+        static void GetBitmapFromOpenGL(TBitmap* pBitmap);
+
+        /**
+        * Applies a Full-Scene AntiAliasing (FSAA) on a bitmap
+        *@param pSource - source bitmap on which the antialiasing should be applied
+        *@param[in, out] pDest - destination bitmap containing the antialiased image
+        *@param factor - antialiasing factor, should match with the size difference between the both bitmaps
+        */
+        static void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
+
+        /**
+        * Gets the best possible model matrix based on the model bounding box
+        *@param pBox - model bounding box, if 0 a box with each edges equals to 1 will be used
+        *@param zPos - the z position of the model
+        *@param rotated - if true, the model is rotated of 90° on the x axis
+        *@return the best possible model matrix
+        *@note Using this function, the model will be centered in the scene, with a normalized size
+        *      and a rotation of 45° on the y axis
+        */
+        static CSR_Matrix4 GetBestModelMatrix(const CSR_Box* pBox, float zPos, bool rotated);
 
         /**
         * Resizes all the views

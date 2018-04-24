@@ -404,7 +404,7 @@ void TMainForm::InitScene()
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
-    vf.m_HasTexCoords      = 0;
+    vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 0;
 
     CSR_Material sm;
@@ -420,21 +420,13 @@ void TMainForm::InitScene()
     //CSR_Mesh*  pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
     //CSR_Mesh*  pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
     //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
-    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Balloon.obj", &vf, NULL, &sm, NULL, NULL);
-    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Model.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Balloon.obj", &vf, NULL, &sm, NULL, NULL);
+    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Model.obj", &vf, NULL, &sm, NULL, NULL);
 
     //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
     csrSceneAddModel(m_pScene, pModel, 0, 1);
 
-    std::unique_ptr<TBitmap> pBitmap(new TBitmap());
-    pBitmap->Width = 100;
-    pBitmap->Height = 100;
-
-    std::unique_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
-    pDialog->DrawModelToBitmap("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\MDL\\wizard.mdl", pBitmap->Width, pBitmap->Height, pBitmap.get());
-
-    pBitmap->SaveToFile(L"__TEST.bmp");
     /*
     CSR_WriteContext writeContext;
     writeContext.m_fOnGetTextureIndex = OnGetTextureIndexCallback;

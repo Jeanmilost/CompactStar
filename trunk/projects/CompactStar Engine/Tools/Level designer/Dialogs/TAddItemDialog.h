@@ -75,6 +75,10 @@ class TAddItemDialog : public TForm
         TBevel *blModelSeparator1;
         TLabel *laModelTitle;
         TLabel *laModelFileNameCaption;
+        TImage *imScreenshot;
+        TPanel *paModelScreenshot;
+        TLabel *laModelScreenshot;
+        TPanel *paModelScreenshotLeft;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
@@ -106,19 +110,13 @@ class TAddItemDialog : public TForm
         */
         __fastcall TAddItemDialog(TComponent* pOwner);
 
+        virtual __fastcall ~TAddItemDialog();
+
         /**
         * Gets the selected model type to create
         *@return the model type
         */
         IEModelType GetModelType() const;
-
-        void DrawModelToBitmap(const std::string& fileName, int width, int height, TBitmap* pBitmap);
-
-        void GetBitmapFromOpenGL(TBitmap* pBitmap);
-
-        void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
-
-        float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
     private:
         IEModelType m_ModelType;
@@ -128,6 +126,20 @@ class TAddItemDialog : public TForm
         *@return true if the model file exists, otherwise false
         */
         bool ModelFileExists() const;
+
+        /**
+        * Draws the currently selected model in a bitmal
+        *@param fileName - model file name to load in a bitmap
+        *@param width - bitmap width
+        *@param height - bitmap height
+        *@param viewMatrix - the view matrix to use
+        *@param[in, out] pBitmap - bitmap which will contain the drawn model
+        */
+        void DrawModelToBitmap(const std::string& fileName,
+                                     int          width,
+                                     int          height,
+                                     CSR_Matrix4  viewMatrix,
+                                     TBitmap*     pBitmap);
 
         /**
         * Called when a file was selected

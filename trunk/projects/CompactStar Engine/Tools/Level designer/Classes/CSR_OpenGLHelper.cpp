@@ -223,6 +223,208 @@ void CSR_OpenGLHelper::CreateViewport(      float        w,
     const GLint projectionUniform = glGetUniformLocation(pShader->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
 }
+//--------------------------------------------------------------------------------------------------
+void CSR_OpenGLHelper::GetBitmapFromOpenGL(TBitmap* pBitmap)
+{
+    // no bitmap?
+    if (!pBitmap)
+        return;
+
+    GLint dimensions[4];
+
+    // get viewport dimensions
+    glGetIntegerv(GL_VIEWPORT, dimensions);
+
+    TRGBQuad* pPixels = NULL;
+
+    try
+    {
+        // create bits to contain bitmap
+        pPixels = new TRGBQuad[dimensions[2] * dimensions[3] * 4];
+
+        // flush OpenGL
+        glFinish();
+        glPixelStorei(GL_PACK_ALIGNMENT,   4);
+        glPixelStorei(GL_PACK_ROW_LENGTH,  0);
+        glPixelStorei(GL_PACK_SKIP_ROWS,   0);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+
+        // get pixels from last OpenGL rendering
+        glReadPixels(0, 0, dimensions[2], dimensions[3], GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+
+        // configure destination bitmap
+        pBitmap->PixelFormat = pf32bit;
+        pBitmap->SetSize(dimensions[2], dimensions[3]);
+
+        // iterate through lines to copy
+        for (GLint y = 0; y < dimensions[3]; ++y)
+        {
+            // get next line to copy and calculate y position (origin is on the left bottom on the
+            // source, but on the left top on the destination)
+            TRGBQuad*         pLine = static_cast<TRGBQuad*>(pBitmap->ScanLine[y]);
+            const std::size_t yPos  = ((dimensions[3] - 1) - y) * dimensions[2];
+
+            // iterate through pixels to copy
+            for (GLint x = 0; x < dimensions[2]; ++x)
+            {
+                // take the opportunity to swap the pixel RGB values
+                pLine[x].rgbRed      = pPixels[yPos + x].rgbBlue;
+                pLine[x].rgbGreen    = pPixels[yPos + x].rgbGreen;
+                pLine[x].rgbBlue     = pPixels[yPos + x].rgbRed;
+                pLine[x].rgbReserved = pPixels[yPos + x].rgbReserved;
+            }
+        }
+    }
+    __finally
+    {
+        if (pPixels)
+            delete[] pPixels;
+    }
+}
+//--------------------------------------------------------------------------------------------------
+void CSR_OpenGLHelper::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor)
+{
+    // no source bitmap?
+    if (!pSource)
+        return;
+
+    // no destination bitmap?
+    if (!pDest)
+        return;
+
+    // configure destination bitmap
+    pDest->PixelFormat = pSource->PixelFormat;
+    pDest->AlphaFormat = pSource->AlphaFormat;
+    pDest->SetSize(pSource->Width / factor, pSource->Height / factor);
+
+    // set stretch mode to half tones (thus resizing will be smooth)
+    int prevMode = ::SetStretchBltMode(pDest->Canvas->Handle, HALFTONE);
+
+    try
+    {
+        // apply antialiasing on the destination image
+        ::StretchBlt(pDest->Canvas->Handle,
+                     0,
+                     0,
+                     pDest->Width,
+                     pDest->Height,
+                     pSource->Canvas->Handle,
+                     0,
+                     0,
+                     pSource->Width,
+                     pSource->Height,
+                     SRCCOPY);
+    }
+    __finally
+    {
+        // restore previous stretch blit mode
+        ::SetStretchBltMode(pDest->Canvas->Handle, prevMode);
+    }
+}
+//---------------------------------------------------------------------------
+CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos, bool rotated)
+{
+    float       angle;
+    CSR_Vector3 t;
+    CSR_Vector3 r;
+    CSR_Vector3 factor;
+    CSR_Matrix4 translateMatrix;
+    CSR_Matrix4 rotateMatrixX;
+    CSR_Matrix4 rotateMatrixY;
+    CSR_Matrix4 rotateMatrixZ;
+    CSR_Matrix4 scaleMatrix;
+    CSR_Matrix4 combinedMatrix1;
+    CSR_Matrix4 combinedMatrix2;
+    CSR_Matrix4 combinedMatrix3;
+    CSR_Matrix4 matrix;
+
+    float x           = 1.0f;
+    float y           = 1.0f;
+    float z           = 1.0f;
+    float scaleFactor = 1.0f;
+
+    // calculate the length of each model bounding box edge
+    if (pBox)
+    {
+        x = std::fabs(pBox->m_Max.m_X - pBox->m_Min.m_X);
+        y = std::fabs(pBox->m_Max.m_Y - pBox->m_Min.m_Y);
+        z = std::fabs(pBox->m_Max.m_Z - pBox->m_Min.m_Z);
+
+        // search for longest axis
+        const float longestAxis = std::max(std::max(x, y), z) * 2.0f;
+
+        // calculate the scale factor (viewport size / longest axis)
+        scaleFactor = std::fabs(zPos) / longestAxis;
+
+        // set translation. NOTE invert X and Y axis because the model will be rotated 90° on the x axis
+        if (rotated)
+        {
+            t.m_X = - ((pBox->m_Max.m_X + pBox->m_Min.m_X) / 2.0f) * scaleFactor;
+            t.m_Y = - ((pBox->m_Max.m_Z + pBox->m_Min.m_Z) / 2.0f) * scaleFactor;
+            t.m_Z = -(((pBox->m_Max.m_Y + pBox->m_Min.m_Y) / 2.0f) * scaleFactor) + zPos;
+        }
+        else
+        {
+            t.m_X = - ((pBox->m_Max.m_X + pBox->m_Min.m_X) / 2.0f) * scaleFactor;
+            t.m_Y = - ((pBox->m_Max.m_Y + pBox->m_Min.m_Y) / 2.0f) * scaleFactor;
+            t.m_Z = -(((pBox->m_Max.m_Z + pBox->m_Min.m_Z) / 2.0f) * scaleFactor) + zPos;
+        }
+    }
+    else
+    {
+        // set translation
+        t.m_X = 0.0f;
+        t.m_Y = 0.0f;
+        t.m_Z = zPos;
+    }
+
+    csrMat4Translate(&t, &translateMatrix);
+
+    // set rotation axis
+    r.m_X = 1.0f;
+    r.m_Y = 0.0f;
+    r.m_Z = 0.0f;
+
+    // set rotation angle
+    angle = rotated ? -M_PI * 0.5f : 0.0f;
+
+    csrMat4Rotate(angle, &r, &rotateMatrixX);
+
+    // set rotation axis
+    r.m_X = 0.0f;
+    r.m_Y = 1.0f;
+    r.m_Z = 0.0f;
+
+    // set rotation angle
+    angle = rotated ? -M_PI * 0.25f : M_PI * 0.25f;
+
+    csrMat4Rotate(angle, &r, &rotateMatrixY);
+
+    // set rotation axis
+    r.m_X = 0.0f;
+    r.m_Y = 0.0f;
+    r.m_Z = 1.0f;
+
+    // set rotation angle
+    angle = 0.0f;
+
+    csrMat4Rotate(angle, &r, &rotateMatrixZ);
+
+    // set scale factor
+    factor.m_X = scaleFactor;
+    factor.m_Y = scaleFactor;
+    factor.m_Z = scaleFactor;
+
+    csrMat4Scale(&factor, &scaleMatrix);
+
+    // calculate model view matrix
+    csrMat4Multiply(&scaleMatrix,     &rotateMatrixX,   &combinedMatrix1);
+    csrMat4Multiply(&combinedMatrix1, &rotateMatrixY,   &combinedMatrix2);
+    csrMat4Multiply(&combinedMatrix2, &rotateMatrixZ,   &combinedMatrix3);
+    csrMat4Multiply(&combinedMatrix3, &translateMatrix, &matrix);
+
+    return matrix;
+}
 //---------------------------------------------------------------------------
 void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader, CSR_Matrix4& matrix) const
 {

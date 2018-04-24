@@ -94,15 +94,11 @@ object AddItemDialog: TAddItemDialog
       TabOrder = 0
       object tsSelectItem: TTabSheet
         Caption = 'tsSelectItem'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object laSelectItemTitle: TLabel
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 224
+          Width = 436
           Height = 25
           Align = alTop
           Caption = 'Select an item to create'
@@ -112,6 +108,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
+          ExplicitWidth = 224
         end
         object btSelectItemAddSurface: TSpeedButton
           AlignWithMargins = True
@@ -832,14 +829,65 @@ object AddItemDialog: TAddItemDialog
             ExplicitLeft = 409
           end
         end
+        object paModelScreenshot: TPanel
+          AlignWithMargins = True
+          Left = 3
+          Top = 85
+          Width = 436
+          Height = 229
+          Align = alTop
+          BevelOuter = bvNone
+          TabOrder = 1
+          object laModelScreenshot: TLabel
+            AlignWithMargins = True
+            Left = 0
+            Top = 3
+            Width = 436
+            Height = 19
+            Margins.Left = 0
+            Margins.Right = 0
+            Align = alTop
+            Caption = 'Configure the screenshot (will be shown in the toolbox)'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -16
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            ExplicitWidth = 393
+          end
+          object paModelScreenshotLeft: TPanel
+            AlignWithMargins = True
+            Left = 1
+            Top = 26
+            Width = 200
+            Height = 202
+            Margins.Left = 1
+            Margins.Top = 1
+            Margins.Right = 1
+            Margins.Bottom = 1
+            Align = alLeft
+            BevelOuter = bvNone
+            BorderStyle = bsSingle
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 0
+            object imScreenshot: TImage
+              Left = 0
+              Top = 0
+              Width = 198
+              Height = 200
+              Align = alTop
+              Center = True
+              Proportional = True
+              ExplicitWidth = 200
+            end
+          end
+        end
       end
       object tsConfig: TTabSheet
         Caption = 'tsConfig'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object laConfigTitle: TLabel
           AlignWithMargins = True
           Left = 3
@@ -965,6 +1013,13 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 2
           ExplicitTop = 152
+          inherited paBackground: TPanel
+            inherited paLeft: TPanel
+              inherited laTextureFile: TLabel
+                Width = 330
+              end
+            end
+          end
         end
         inline tsfConfigBump: TTextureSelectionFrame
           Left = 0
@@ -974,6 +1029,13 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 3
           ExplicitTop = 289
+          inherited paBackground: TPanel
+            inherited paLeft: TPanel
+              inherited laTextureFile: TLabel
+                Width = 330
+              end
+            end
+          end
         end
         object clConfigOptions: TCheckListBox
           AlignWithMargins = True
