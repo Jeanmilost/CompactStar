@@ -31,6 +31,8 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TAddItemDialog
+//---------------------------------------------------------------------------
 TAddItemDialog* AddItemDialog;
 //---------------------------------------------------------------------------
 __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
@@ -41,6 +43,9 @@ __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
 
     ffModelFile->Set_OnFileSelected(OnFileSelected);
 }
+//---------------------------------------------------------------------------
+__fastcall TAddItemDialog::~TAddItemDialog()
+{}
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::FormShow(TObject* pSender)
 {
@@ -170,10 +175,36 @@ bool TAddItemDialog::ModelFileExists() const
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnFileSelected(TObject* pSender, const std::wstring& fileName)
 {
-    btNext->Enabled = ModelFileExists();
+    const bool modelExists = ModelFileExists();
+
+    btNext->Enabled = modelExists;
+
+    if (modelExists)
+    {
+        std::unique_ptr<TBitmap> pBitmap(new TBitmap());
+
+        CSR_Matrix4 viewMatrix;
+
+        // create the view matrix
+        csrMat4Identity(&viewMatrix);
+
+        // draw the model in a bitmap
+        DrawModelToBitmap(AnsiString(ffModelFile->edFileName->Text).c_str(),
+                          imScreenshot->Width,
+                          imScreenshot->Height,
+                          viewMatrix,
+                          pBitmap.get());
+
+        // show the loaded model
+        imScreenshot->Picture->Assign(pBitmap.get());
+    }
 }
 //--------------------------------------------------------------------------------------------------
-void TAddItemDialog::DrawModelToBitmap(const std::string& fileName, int width, int height, TBitmap* pBitmap)
+void TAddItemDialog::DrawModelToBitmap(const std::string& fileName,
+                                             int          width,
+                                             int          height,
+                                             CSR_Matrix4  viewMatrix,
+                                             TBitmap*     pBitmap)
 {
     // file exists?
     if (fileName.empty() || !::FileExists(UnicodeString(AnsiString(fileName.c_str())), false))
@@ -200,16 +231,19 @@ void TAddItemDialog::DrawModelToBitmap(const std::string& fileName, int width, i
     // initialize OpenGL
     CSR_OpenGLHelper::EnableOpenGL(pOverlayForm->Handle, &hDC, &hRC);
 
-    CSR_Shader* pShader = NULL;
-    CSR_MDL*    pModel  = NULL;
+    CSR_Shader*   pShader   = NULL;
+    CSR_MDL*      pMDL      = NULL;
+    CSR_Model*    pModel    = NULL;
+    CSR_AABBNode* pAABBTree = NULL;
 
     try
     {
         // configure OpenGL
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LEQUAL);
+        glDepthRangef(0.0f, 1.0f);
 
         const std::string vsTextured = CSR_DesignerHelper::GetVertexShader(CSR_DesignerHelper::IE_ST_Texture);
         const std::string fsTextured = CSR_DesignerHelper::GetFragmentShader(CSR_DesignerHelper::IE_ST_Texture);
@@ -217,6 +251,7 @@ void TAddItemDialog::DrawModelToBitmap(const std::string& fileName, int width, i
         // enable view context
         wglMakeCurrent(hDC, hRC);
 
+        // load the shader
         pShader = csrShaderLoadFromStr(vsTextured.c_str(),
                                        vsTextured.length(),
                                        fsTextured.c_str(),
@@ -232,247 +267,95 @@ void TAddItemDialog::DrawModelToBitmap(const std::string& fileName, int width, i
         // get shader attributes
         pShader->m_VertexSlot   = glGetAttribLocation(pShader->m_ProgramID, "csr_aVertices");
         pShader->m_ColorSlot    = glGetAttribLocation(pShader->m_ProgramID, "csr_aColor");
-        pShader->m_TexCoordSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aTexCoord");
+        pShader->m_TexCoordSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aTexCoord");
 
-        CSR_VertexFormat vf;
-        vf.m_HasNormal         = 0;
+        bool rotated = false;
+
+        CSR_VertexFormat vf;
+        vf.m_HasNormal         = 0;
         vf.m_HasTexCoords      = 1;
         vf.m_HasPerVertexColor = 1;
 
         CSR_Material sm;
-        sm.m_Color       = 0xFFFF;
+        sm.m_Color       = 0xFFFFFFFF;
         sm.m_Transparent = 0;
         sm.m_Wireframe   = 0;
 
-        pModel = csrMDLOpen(fileName.c_str(), 0, &vf, NULL, &sm, NULL, NULL);
+        // do load the model?
+        if (!pModel && !pMDL)
+            if (fileName.rfind("mdl") == fileName.length() - 3)
+            {
+                pMDL = csrMDLOpen(fileName.c_str(), 0, &vf, NULL, &sm, NULL, NULL);
 
-        CSR_Matrix4 matrix;
+                if (pMDL && pMDL->m_ModelCount && pMDL->m_pModel->m_MeshCount)
+                    pAABBTree = csrAABBTreeFromMesh(&pMDL->m_pModel[0].m_pMesh[0]);
+
+                rotated = true;
+            }
+            else
+            if (fileName.rfind("obj") == fileName.length() - 3)
+            {
+                pModel = csrWaveFrontOpen(fileName.c_str(), &vf, NULL, &sm, NULL, NULL);
+
+                if (pModel && pModel->m_MeshCount)
+                    pAABBTree = csrAABBTreeFromMesh(&pModel->m_pMesh[0]);
+
+                rotated = false;
+            }
+
+        CSR_Matrix4 matrix;
 
         // create a viewport
         CSR_OpenGLHelper::CreateViewport(drawWidth, drawHeight, pShader, matrix);
 
-        // create the view matrix
-        csrMat4Identity(&matrix);
-
         // connect view matrix to shader
         const GLint viewUniform = glGetUniformLocation(pShader->m_ProgramID, "csr_uView");
-        glUniformMatrix4fv(viewUniform, 1, 0, &matrix.m_Table[0][0]);
+        glUniformMatrix4fv(viewUniform, 1, 0, &viewMatrix.m_Table[0][0]);
 
-        float       angle;
-        CSR_Vector3 t;
-        CSR_Vector3 r;
-        CSR_Vector3 factor;
-        CSR_Matrix4 translateMatrix;
-        CSR_Matrix4 rotateMatrixX;
-        CSR_Matrix4 rotateMatrixY;
-        CSR_Matrix4 rotateMatrixZ;
-        CSR_Matrix4 scaleMatrix;
-        CSR_Matrix4 combinedMatrix1;
-        CSR_Matrix4 combinedMatrix2;
-        CSR_Matrix4 combinedMatrix3;
-
-        // set translation
-        t.m_X =  0.0f;
-        t.m_Y =  0.0f;
-        t.m_Z = -2.0f;
-
-        csrMat4Translate(&t, &translateMatrix);
-
-        // set rotation axis
-        r.m_X = 1.0f;
-        r.m_Y = 0.0f;
-        r.m_Z = 0.0f;
-
-        // set rotation angle
-        angle = -M_PI * 0.5f;
-
-        csrMat4Rotate(angle, &r, &rotateMatrixX);
-
-        // set rotation axis
-        r.m_X = 0.0f;
-        r.m_Y = 1.0f;
-        r.m_Z = 0.0f;
-
-        // set rotation angle
-        angle = 0.0f;
-
-        csrMat4Rotate(angle, &r, &rotateMatrixY);
-
-        // set rotation axis
-        r.m_X = 0.0f;
-        r.m_Y = 0.0f;
-        r.m_Z = 1.0f;
-
-        // set rotation angle
-        angle = 0.0f;
-
-        csrMat4Rotate(angle, &r, &rotateMatrixZ);
-
-        // set scale factor
-        factor.m_X = 0.05f;
-        factor.m_Y = 0.05f;
-        factor.m_Z = 0.05f;
-
-        csrMat4Scale(&factor, &scaleMatrix);
-
-        // calculate model view matrix
-        csrMat4Multiply(&scaleMatrix,     &rotateMatrixX,   &combinedMatrix1);
-        csrMat4Multiply(&combinedMatrix1, &rotateMatrixY,   &combinedMatrix2);
-        csrMat4Multiply(&combinedMatrix2, &rotateMatrixZ,   &combinedMatrix3);
-        csrMat4Multiply(&combinedMatrix3, &translateMatrix, &matrix);
+        // get the best model matrix to show the model centered in the scene
+        matrix = CSR_OpenGLHelper::GetBestModelMatrix( pAABBTree ? pAABBTree->m_pBox : NULL,
+                                                      -5.0f,
+                                                       rotated);
 
         // connect the model view matrix to shader
         GLint modelMatrixSlot = glGetUniformLocation(pShader->m_ProgramID, "csr_uModel");
         glUniformMatrix4fv(modelMatrixSlot, 1, 0, &matrix.m_Table[0][0]);
 
         // clear scene
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw the model
-        csrDrawMDL(pModel, pShader, 0, 0, 0, 0);
-
-        if (pOverlayForm->Visible)
-            ::SwapBuffers(hDC);
+        if (pMDL)
+            csrDrawMDL(pMDL, pShader, 0, 0, 0, 0);
         else
-        {
-            glFlush();
+        if (pModel)
+            csrDrawModel(pModel, 0, pShader, 0);
 
-            // create image overlay
-            std::auto_ptr<TBitmap> pOverlay(new TBitmap());
-            GetBitmapFromOpenGL(pOverlay.get());
+        glFlush();
 
-            // create antialiased final image overlay
-            std::auto_ptr<TBitmap> pAntialiasedOverlay(new TBitmap());
+        // create image overlay
+        std::auto_ptr<TBitmap> pOverlay(new TBitmap());
+        CSR_OpenGLHelper::GetBitmapFromOpenGL(pOverlay.get());
 
-            // apply 4x4 antialiasing on the rendered image
-            ApplyAntialiasing(pOverlay.get(), pAntialiasedOverlay.get(), 4);
+        // create antialiased final image overlay
+        std::auto_ptr<TBitmap> pAntialiasedOverlay(new TBitmap());
 
-            // copy final image
-            pBitmap->Assign(pAntialiasedOverlay.get());
-        }
+        // apply 4x4 antialiasing on the rendered image
+        CSR_OpenGLHelper::ApplyAntialiasing(pOverlay.get(), pAntialiasedOverlay.get(), 4);
+
+        // copy final image
+        pBitmap->Assign(pAntialiasedOverlay.get());
     }
     __finally
     {
-        csrMDLRelease(pModel);
-
+        csrAABBTreeNodeRelease(pAABBTree);
+        csrModelRelease(pModel);
+        csrMDLRelease(pMDL);
         csrShaderRelease(pShader);
 
         // shutdown OpenGL
         CSR_OpenGLHelper::DisableOpenGL(pOverlayForm->Handle, hDC, hRC);
     }
-}
-//--------------------------------------------------------------------------------------------------
-void TAddItemDialog::GetBitmapFromOpenGL(TBitmap* pBitmap)
-{
-    // no bitmap?
-    if (!pBitmap)
-        return;
-
-    GLint dimensions[4];
-
-    // get viewport dimensions
-    glGetIntegerv(GL_VIEWPORT, dimensions);
-
-    TRGBQuad* pPixels = NULL;
-
-    try
-    {
-        // create bits to contain bitmap
-        pPixels = new TRGBQuad[dimensions[2] * dimensions[3] * 4];
-
-        // flush OpenGL
-        glFinish();
-        glPixelStorei(GL_PACK_ALIGNMENT,   4);
-        glPixelStorei(GL_PACK_ROW_LENGTH,  0);
-        glPixelStorei(GL_PACK_SKIP_ROWS,   0);
-        glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
-
-        // get pixels from last OpenGL rendering
-        glReadPixels(0, 0, dimensions[2], dimensions[3], GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-
-        // configure destination bitmap
-        pBitmap->PixelFormat = pf32bit;
-        pBitmap->SetSize(dimensions[2], dimensions[3]);
-
-        // iterate through lines to copy
-        for (GLint y = 0; y < dimensions[3]; ++y)
-        {
-            // get next line to copy and calculate y position (origin is on the left bottom on the
-            // source, but on the left top on the destination)
-            TRGBQuad*         pLine = static_cast<TRGBQuad*>(pBitmap->ScanLine[y]);
-            const std::size_t yPos  = ((dimensions[3] - 1) - y) * dimensions[2];
-
-            // iterate through pixels to copy
-            for (GLint x = 0; x < dimensions[2]; ++x)
-            {
-                // take the opportunity to swap the pixel RGB values
-                pLine[x].rgbRed      = pPixels[yPos + x].rgbBlue;
-                pLine[x].rgbGreen    = pPixels[yPos + x].rgbGreen;
-                pLine[x].rgbBlue     = pPixels[yPos + x].rgbRed;
-                pLine[x].rgbReserved = pPixels[yPos + x].rgbReserved;
-            }
-        }
-    }
-    __finally
-    {
-        if (pPixels)
-            delete[] pPixels;
-    }
-}
-//--------------------------------------------------------------------------------------------------
-void TAddItemDialog::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor)
-{
-    // no source bitmap?
-    if (!pSource)
-        return;
-
-    // no destination bitmap?
-    if (!pDest)
-        return;
-
-    // configure destination bitmap
-    pDest->PixelFormat = pSource->PixelFormat;
-    pDest->AlphaFormat = pSource->AlphaFormat;
-    pDest->SetSize(pSource->Width / factor, pSource->Height / factor);
-
-    // set stretch mode to half tones (thus resizing will be smooth)
-    int prevMode = ::SetStretchBltMode(pDest->Canvas->Handle, HALFTONE);
-
-    try
-    {
-        // apply antialiasing on the destination image
-        ::StretchBlt(pDest->Canvas->Handle,
-                     0,
-                     0,
-                     pDest->Width,
-                     pDest->Height,
-                     pSource->Canvas->Handle,
-                     0,
-                     0,
-                     pSource->Width,
-                     pSource->Height,
-                     SRCCOPY);
-    }
-    __finally
-    {
-        // restore previous stretch blit mode
-        ::SetStretchBltMode(pDest->Canvas->Handle, prevMode);
-    }
-}
-//---------------------------------------------------------------------------
-float TAddItemDialog::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
-{
-    // no tree or box?
-    if (!pTree || !pTree->m_pBox)
-        return 0.0f;
-
-    // is model rotated?
-    if (rotated)
-        // calculate the y position from the z axis
-        return (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
-
-    // calculate the y position from the z axis
-    return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //---------------------------------------------------------------------------
