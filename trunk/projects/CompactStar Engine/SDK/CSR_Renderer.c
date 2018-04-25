@@ -627,9 +627,12 @@ void csrDrawVertexBuffer(const CSR_VertexBuffer* pVB,
             {
                 // connect the model matrix to the shader
                 glUniformMatrix4fv(slot,
-                                   1,
-                                   0,
-                                   &((CSR_Matrix4*)pMatrixArray->m_pItem[i].m_pData)->m_Table[0][0]);
+
+                                   1,
+
+                                   0,
+
+                                   &((CSR_Matrix4*)pMatrixArray->m_pItem[i].m_pData)->m_Table[0][0]);
 
                 // draw the next buffer
                 csrDrawArray(pVB, vertexCount);

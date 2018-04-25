@@ -152,27 +152,27 @@ class TMainForm : public TForm
         typedef std::vector<CSR_Shader*>  IShaders;
         typedef std::vector<CSR_Matrix4*> IMatrices;
 
-        CSR_OpenGLHelper                    m_OpenGLHelper;
-        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewXHook;
-        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewYHook;
-        std::unique_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
-        std::unique_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
-        std::unique_ptr<CSR_VCLControlHook> m_p3DViewHook;
-        TPanel*                             m_pCurrentView;
-        CSR_Scene*                          m_pScene;
-        CSR_SceneContext                    m_SceneContext;
-        CSR_CollisionInfo*                  m_pCollisionInfo;
-        IShaders                            m_Shaders;
-        IMatrices                           m_Matrices;
-        CSR_Shader*                         m_pCurrentShader;
-        CSR_Matrix4*                        m_pCurrentMatrix;
-        void*                               m_pLoadingModel;
-        CSR_Buffer*                         m_pLoadingTexture;
-        IArcBall                            m_ArcBall;
-        CSR_Matrix4                         m_ModelMatrix;
-        CSR_Ray3                            m_Ray;
-        unsigned __int64                    m_PreviousTime;
-        TWndMethod                          m_fViewWndProc_Backup;
+        CSR_OpenGLHelper                  m_OpenGLHelper;
+        std::auto_ptr<CSR_VCLControlHook> m_pDesignerViewXHook;
+        std::auto_ptr<CSR_VCLControlHook> m_pDesignerViewYHook;
+        std::auto_ptr<CSR_VCLControlHook> m_pDesignerViewZHook;
+        std::auto_ptr<CSR_VCLControlHook> m_pDesigner3DViewHook;
+        std::auto_ptr<CSR_VCLControlHook> m_p3DViewHook;
+        TPanel*                           m_pCurrentView;
+        CSR_Scene*                        m_pScene;
+        CSR_SceneContext                  m_SceneContext;
+        CSR_CollisionInfo*                m_pCollisionInfo;
+        IShaders                          m_Shaders;
+        IMatrices                         m_Matrices;
+        CSR_Shader*                       m_pCurrentShader;
+        CSR_Matrix4*                      m_pCurrentMatrix;
+        void*                             m_pLoadingModel;
+        CSR_Buffer*                       m_pLoadingTexture;
+        IArcBall                          m_ArcBall;
+        CSR_Matrix4                       m_ModelMatrix;
+        CSR_Ray3                          m_Ray;
+        unsigned __int64                  m_PreviousTime;
+        TWndMethod                        m_fViewWndProc_Backup;
 
         /**
         * Calculates the ray starting from the mouse in the viewport coordinate system
@@ -200,7 +200,8 @@ class TMainForm : public TForm
         * Draws the scene
         */
         void DrawScene();
-
+
+
         /**
         * Called when the scene should be drawn
         *@param resize - if true, the scene should be repainted during a resize

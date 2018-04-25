@@ -99,11 +99,10 @@ object TextureSelectionFrame: TTextureSelectionFrame
         AlignWithMargins = True
         Left = 3
         Top = 63
-        Width = 330
+        Width = 76
         Height = 13
         Align = alBottom
         Caption = 'Image file name'
-        ExplicitWidth = 76
       end
       object paTextureFile: TPanel
         Left = 0

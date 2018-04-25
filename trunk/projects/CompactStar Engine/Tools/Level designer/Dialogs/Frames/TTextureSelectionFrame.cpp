@@ -9,7 +9,7 @@
  *               it for your own projects, commercial or not. This file is   *
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *
  *****************************************************************************/
-
+
 #include <vcl.h>
 #pragma hdrstop
 #include "TTextureSelectionFrame.h"
@@ -74,7 +74,7 @@ void __fastcall TTextureSelectionFrame::btInfoClick(TObject* pSender)
         return;
 
     // create the image info dialog
-    std::unique_ptr<TImageInfoDialog> pDialog
+    std::auto_ptr<TImageInfoDialog> pDialog
             (new TImageInfoDialog(this,
                                   imTexture->Picture,
                                   ::ExtractFileName(edTextureFile->Text).c_str()));
@@ -83,7 +83,6 @@ void __fastcall TTextureSelectionFrame::btInfoClick(TObject* pSender)
     pDialog->ShowModal();
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TTextureSelectionFrame::btConfigClick(TObject* pSender)
 {
     // calculate the point where the popup menu sould be shown
