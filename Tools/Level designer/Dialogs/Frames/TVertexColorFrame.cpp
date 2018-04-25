@@ -9,7 +9,7 @@
  *               it for your own projects, commercial or not. This file is   *
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *
  *****************************************************************************/
-
+
 #include <vcl.h>
 #pragma hdrstop
 

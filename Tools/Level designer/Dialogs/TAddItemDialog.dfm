@@ -5,7 +5,7 @@ object AddItemDialog: TAddItemDialog
   BorderStyle = bsDialog
   Caption = 'Add a new item'
   ClientHeight = 464
-  ClientWidth = 450
+  ClientWidth = 513
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -21,14 +21,14 @@ object AddItemDialog: TAddItemDialog
   object paNavigation: TPanel
     Left = 0
     Top = 433
-    Width = 450
+    Width = 513
     Height = 31
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object btOK: TButton
       AlignWithMargins = True
-      Left = 372
+      Left = 435
       Top = 3
       Width = 75
       Height = 25
@@ -52,7 +52,7 @@ object AddItemDialog: TAddItemDialog
     end
     object btBack: TButton
       AlignWithMargins = True
-      Left = 210
+      Left = 273
       Top = 3
       Width = 75
       Height = 25
@@ -64,7 +64,7 @@ object AddItemDialog: TAddItemDialog
     end
     object btNext: TButton
       AlignWithMargins = True
-      Left = 291
+      Left = 354
       Top = 3
       Width = 75
       Height = 25
@@ -78,7 +78,7 @@ object AddItemDialog: TAddItemDialog
   object paMain: TPanel
     Left = 0
     Top = 0
-    Width = 450
+    Width = 513
     Height = 433
     Align = alTop
     AutoSize = True
@@ -87,7 +87,7 @@ object AddItemDialog: TAddItemDialog
     object pcWizard: TPageControl
       Left = 0
       Top = 0
-      Width = 450
+      Width = 513
       Height = 433
       ActivePage = tsModel
       Align = alTop
@@ -98,7 +98,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 436
+          Width = 499
           Height = 25
           Align = alTop
           Caption = 'Select an item to create'
@@ -114,7 +114,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 35
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -189,12 +189,13 @@ object AddItemDialog: TAddItemDialog
           OnClick = OnSelectItemButtonClick
           OnDblClick = OnNextClick
           ExplicitTop = 34
+          ExplicitWidth = 436
         end
         object btSelectItemAddBox: TSpeedButton
           AlignWithMargins = True
           Left = 3
           Top = 81
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -275,7 +276,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 127
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -356,7 +357,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 173
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -437,7 +438,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 219
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -518,7 +519,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 311
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -599,7 +600,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 265
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -680,7 +681,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 357
-          Width = 436
+          Width = 499
           Height = 40
           Cursor = crHandPoint
           Align = alTop
@@ -755,16 +756,18 @@ object AddItemDialog: TAddItemDialog
           OnClick = OnSelectItemButtonClick
           OnDblClick = OnNextClick
           ExplicitTop = 355
+          ExplicitWidth = 436
         end
         object blSelectItemSeparator: TBevel
           Left = 0
           Top = 31
-          Width = 442
+          Width = 505
           Height = 1
           Align = alTop
           Shape = bsTopLine
           ExplicitLeft = -32
           ExplicitTop = 27
+          ExplicitWidth = 442
         end
       end
       object tsModel: TTabSheet
@@ -773,17 +776,18 @@ object AddItemDialog: TAddItemDialog
         object blModelSeparator1: TBevel
           Left = 0
           Top = 31
-          Width = 442
+          Width = 505
           Height = 1
           Align = alTop
           Shape = bsTopLine
           ExplicitTop = 8
+          ExplicitWidth = 442
         end
         object laModelTitle: TLabel
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 436
+          Width = 499
           Height = 25
           Align = alTop
           Caption = 'Model'
@@ -799,7 +803,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 35
-          Width = 436
+          Width = 499
           Height = 19
           Align = alTop
           Caption = 'Select a file'
@@ -814,26 +818,26 @@ object AddItemDialog: TAddItemDialog
         inline ffModelFile: TFileFrame
           Left = 0
           Top = 57
-          Width = 442
+          Width = 505
           Height = 25
           Align = alTop
           TabOrder = 0
           ExplicitTop = 57
-          ExplicitWidth = 442
+          ExplicitWidth = 505
           inherited edFileName: TEdit
-            Width = 403
-            ExplicitWidth = 403
+            Width = 466
+            ExplicitWidth = 466
           end
           inherited btBrowse: TButton
-            Left = 409
-            ExplicitLeft = 409
+            Left = 472
+            ExplicitLeft = 472
           end
         end
         object paModelScreenshot: TPanel
           AlignWithMargins = True
           Left = 3
           Top = 85
-          Width = 436
+          Width = 499
           Height = 229
           Align = alTop
           BevelOuter = bvNone
@@ -842,7 +846,7 @@ object AddItemDialog: TAddItemDialog
             AlignWithMargins = True
             Left = 0
             Top = 3
-            Width = 436
+            Width = 499
             Height = 19
             Margins.Left = 0
             Margins.Right = 0
@@ -860,7 +864,7 @@ object AddItemDialog: TAddItemDialog
             AlignWithMargins = True
             Left = 1
             Top = 26
-            Width = 200
+            Width = 202
             Height = 202
             Margins.Left = 1
             Margins.Top = 1
@@ -875,12 +879,69 @@ object AddItemDialog: TAddItemDialog
             object imScreenshot: TImage
               Left = 0
               Top = 0
-              Width = 198
+              Width = 200
               Height = 200
               Align = alTop
               Center = True
               Proportional = True
-              ExplicitWidth = 200
+            end
+          end
+          object paModelScreenshotRight: TPanel
+            Left = 204
+            Top = 25
+            Width = 295
+            Height = 204
+            Align = alClient
+            BevelOuter = bvNone
+            TabOrder = 1
+            object paModelScreenshotBgColor: TPanel
+              AlignWithMargins = True
+              Left = 0
+              Top = 0
+              Width = 295
+              Height = 26
+              Margins.Left = 0
+              Margins.Top = 0
+              Margins.Right = 0
+              Margins.Bottom = 0
+              Align = alTop
+              BevelOuter = bvNone
+              TabOrder = 0
+              object laModelScreenshotBgColorCaption: TLabel
+                AlignWithMargins = True
+                Left = 3
+                Top = 0
+                Width = 82
+                Height = 26
+                Margins.Top = 0
+                Margins.Right = 0
+                Margins.Bottom = 0
+                Align = alLeft
+                Caption = 'Background color'
+                Layout = tlCenter
+                ExplicitLeft = 0
+                ExplicitHeight = 13
+              end
+              object paModelScreenshotBgColorValue: TPanel
+                AlignWithMargins = True
+                Left = 275
+                Top = 0
+                Width = 20
+                Height = 23
+                Cursor = crHandPoint
+                Margins.Top = 0
+                Margins.Right = 0
+                Align = alRight
+                BevelOuter = bvNone
+                BorderStyle = bsSingle
+                Color = clBlack
+                ParentBackground = False
+                TabOrder = 0
+                OnClick = paModelScreenshotBgColorValueClick
+                ExplicitLeft = 272
+                ExplicitTop = 3
+                ExplicitHeight = 20
+              end
             end
           end
         end
@@ -892,7 +953,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 436
+          Width = 499
           Height = 25
           Align = alTop
           Caption = 'Configuration'
@@ -907,18 +968,19 @@ object AddItemDialog: TAddItemDialog
         object blConfigSeparator: TBevel
           Left = 0
           Top = 31
-          Width = 442
+          Width = 505
           Height = 1
           Align = alTop
           Shape = bsTopLine
           ExplicitLeft = 16
           ExplicitTop = 27
+          ExplicitWidth = 442
         end
         object laConfigTextureTitle: TLabel
           AlignWithMargins = True
           Left = 3
           Top = 130
-          Width = 436
+          Width = 499
           Height = 19
           Align = alTop
           Caption = 'Select a texture'
@@ -934,7 +996,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 267
-          Width = 436
+          Width = 499
           Height = 19
           Align = alTop
           Caption = 'Select a bump map'
@@ -950,7 +1012,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 35
-          Width = 436
+          Width = 499
           Height = 19
           Align = alTop
           Caption = 'Options'
@@ -966,7 +1028,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 0
           Top = 94
-          Width = 442
+          Width = 505
           Height = 1
           Margins.Left = 0
           Margins.Top = 5
@@ -976,12 +1038,13 @@ object AddItemDialog: TAddItemDialog
           Shape = bsTopLine
           ExplicitLeft = -1
           ExplicitTop = 74
+          ExplicitWidth = 442
         end
         object blConfigSeparator3: TBevel
           AlignWithMargins = True
           Left = 0
           Top = 126
-          Width = 442
+          Width = 505
           Height = 1
           Margins.Left = 0
           Margins.Top = 0
@@ -990,12 +1053,13 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           Shape = bsTopLine
           ExplicitTop = 125
+          ExplicitWidth = 442
         end
         object blConfigSeparator4: TBevel
           AlignWithMargins = True
           Left = 0
           Top = 263
-          Width = 442
+          Width = 505
           Height = 1
           Margins.Left = 0
           Margins.Top = 5
@@ -1004,19 +1068,49 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           Shape = bsTopLine
           ExplicitTop = 254
+          ExplicitWidth = 442
         end
         inline tsfConfigTexture: TTextureSelectionFrame
           Left = 0
           Top = 152
-          Width = 442
+          Width = 505
           Height = 106
           Align = alTop
           TabOrder = 2
           ExplicitTop = 152
+          ExplicitWidth = 505
           inherited paBackground: TPanel
+            Width = 499
+            ExplicitWidth = 499
             inherited paLeft: TPanel
+              Width = 399
+              ExplicitWidth = 399
               inherited laTextureFile: TLabel
-                Width = 330
+                Width = 393
+              end
+              inherited paTextureFile: TPanel
+                Width = 399
+                ExplicitWidth = 399
+                inherited btTextureFileOpen: TButton
+                  Left = 364
+                  ExplicitLeft = 364
+                end
+                inherited edTextureFile: TEdit
+                  Width = 358
+                  ExplicitWidth = 358
+                end
+              end
+              inherited paButtons: TPanel
+                Width = 399
+                ExplicitWidth = 399
+                inherited btInfo: TSpeedButton
+                  Left = 374
+                  ExplicitLeft = 374
+                end
+                inherited btConfig: TSpeedButton
+                  Left = 349
+                  ExplicitLeft = 349
+                end
               end
             end
           end
@@ -1024,15 +1118,44 @@ object AddItemDialog: TAddItemDialog
         inline tsfConfigBump: TTextureSelectionFrame
           Left = 0
           Top = 289
-          Width = 442
+          Width = 505
           Height = 106
           Align = alTop
           TabOrder = 3
           ExplicitTop = 289
+          ExplicitWidth = 505
           inherited paBackground: TPanel
+            Width = 499
+            ExplicitWidth = 499
             inherited paLeft: TPanel
+              Width = 399
+              ExplicitWidth = 399
               inherited laTextureFile: TLabel
-                Width = 330
+                Width = 393
+              end
+              inherited paTextureFile: TPanel
+                Width = 399
+                ExplicitWidth = 399
+                inherited btTextureFileOpen: TButton
+                  Left = 364
+                  ExplicitLeft = 364
+                end
+                inherited edTextureFile: TEdit
+                  Width = 358
+                  ExplicitWidth = 358
+                end
+              end
+              inherited paButtons: TPanel
+                Width = 399
+                ExplicitWidth = 399
+                inherited btInfo: TSpeedButton
+                  Left = 374
+                  ExplicitLeft = 374
+                end
+                inherited btConfig: TSpeedButton
+                  Left = 349
+                  ExplicitLeft = 349
+                end
               end
             end
           end
@@ -1041,7 +1164,7 @@ object AddItemDialog: TAddItemDialog
           AlignWithMargins = True
           Left = 3
           Top = 60
-          Width = 436
+          Width = 499
           Height = 26
           Align = alTop
           BevelInner = bvNone
@@ -1060,16 +1183,30 @@ object AddItemDialog: TAddItemDialog
         inline vcfConfigVertexColor: TVertexColorFrame
           Left = 0
           Top = 95
-          Width = 442
+          Width = 505
           Height = 31
           Align = alTop
           TabOrder = 1
           ExplicitTop = 95
+          ExplicitWidth = 505
           inherited paMain: TPanel
+            Width = 499
             ExplicitTop = 3
+            ExplicitWidth = 499
+            inherited paColor: TPanel
+              Left = 474
+              ExplicitLeft = 474
+            end
+            inherited tbOpacity: TTrackBar
+              Left = 314
+              ExplicitLeft = 314
+            end
           end
         end
       end
     end
+  end
+  object cdColor: TColorDialog
+    Left = 480
   end
 end

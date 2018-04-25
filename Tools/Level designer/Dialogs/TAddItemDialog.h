@@ -8,7 +8,7 @@
  *               it for your own projects, commercial or not. This file is   *
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *
  *****************************************************************************/
-
+
 #ifndef TAddItemDialogH
 #define TAddItemDialogH
 
@@ -23,14 +23,18 @@
 #include <Vcl.Imaging.pngimage.hpp>
 #include <Vcl.CheckLst.hpp>
 
+// compactStar engine
+#include "CSR_Collision.h"
+#include "CSR_Model.h"
+
+// classes
+#include "CSR_OpenGLHelper.h"
+
 // frames
 #include "TTextureSelectionFrame.h"
 #include "TVertexColorFrame.h"
 #include "TFileFrame.h"
-
-// compactStar engine
-#include "CSR_Collision.h"
-#include "CSR_Model.h"
+#include <Vcl.Dialogs.hpp>
 
 /**
 * Add an item dialog box
@@ -79,8 +83,14 @@ class TAddItemDialog : public TForm
         TPanel *paModelScreenshot;
         TLabel *laModelScreenshot;
         TPanel *paModelScreenshotLeft;
+        TPanel *paModelScreenshotBgColor;
+        TPanel *paModelScreenshotRight;
+        TLabel *laModelScreenshotBgColorCaption;
+        TPanel *paModelScreenshotBgColorValue;
+        TColorDialog *cdColor;
 
         void __fastcall FormShow(TObject* pSender);
+        void __fastcall paModelScreenshotBgColorValueClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
         void __fastcall btBackClick(TObject* pSender);
         void __fastcall OnNextClick(TObject* pSender);
@@ -113,33 +123,56 @@ class TAddItemDialog : public TForm
         virtual __fastcall ~TAddItemDialog();
 
         /**
+        * Gets a screenshot of the model belonging to the item
+        *@param pBitmap - bitmap in which the screenshot should be drawn
+        *@return true on success, otherwise false
+        */
+        bool GetScreenshot(TBitmap* pBitmap) const;
+
+        /**
         * Gets the selected model type to create
         *@return the model type
         */
         IEModelType GetModelType() const;
 
     private:
-        IEModelType m_ModelType;
+        CSR_OpenGLHelper::IContext m_SceneContext;
+        TForm*                     m_pSceneOverlayForm;
+        CSR_Shader*                m_pSceneShader;
+        CSR_Color                  m_SceneColor;
+        CSR_MDL*                   m_pMDL;
+        CSR_Model*                 m_pModel;
+        CSR_AABBNode*              m_pAABBTree;
+        CSR_Matrix4                m_ViewMatrix;
+        IEModelType                m_ModelType;
+        int                        m_AntialiasingFactor;
+
+        /**
+        * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
+        *@param fileName - model file name to export as a screenshot
+        *@param width - screenshot width
+        *@param height - screenshot height
+        *@return true on success, otherwise false
+        */
+        bool CreateScreenshotScene(const std::string& fileName, int width, int height);
+
+        /**
+        * Releases a previously created screenshot scene
+        */
+        void ReleaseScreenshotScene();
+
+        /**
+        * Draws a screenshot scene in a bitmap
+        *@param pBitmap - bitmap in which the screenshot should be drawn
+        *@return true on success, otherwise false
+        */
+        bool DrawScreenshotScene(TBitmap* pBitmap) const;
 
         /**
         * Checks if a model file exists
         *@return true if the model file exists, otherwise false
         */
         bool ModelFileExists() const;
-
-        /**
-        * Draws the currently selected model in a bitmal
-        *@param fileName - model file name to load in a bitmap
-        *@param width - bitmap width
-        *@param height - bitmap height
-        *@param viewMatrix - the view matrix to use
-        *@param[in, out] pBitmap - bitmap which will contain the drawn model
-        */
-        void DrawModelToBitmap(const std::string& fileName,
-                                     int          width,
-                                     int          height,
-                                     CSR_Matrix4  viewMatrix,
-                                     TBitmap*     pBitmap);
 
         /**
         * Called when a file was selected

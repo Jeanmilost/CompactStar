@@ -347,12 +347,12 @@ void TMainForm::InitScene()
     m_pScene = csrSceneCreate();
 
     // initialize the scene context
-    m_SceneContext.m_Handle             = 0;
-    m_SceneContext.m_fOnSceneBegin      = 0;
-    m_SceneContext.m_fOnSceneEnd        = 0;
-    m_SceneContext.m_fOnGetShader       = OnGetShaderCallback;
-    m_SceneContext.m_fOnGetModelIndex   = 0;
-    m_SceneContext.m_fOnGetMDLIndex     = 0;
+    m_SceneContext.m_Handle           = 0;
+    m_SceneContext.m_fOnSceneBegin    = 0;
+    m_SceneContext.m_fOnSceneEnd      = 0;
+    m_SceneContext.m_fOnGetShader     = OnGetShaderCallback;
+    m_SceneContext.m_fOnGetModelIndex = 0;
+    m_SceneContext.m_fOnGetMDLIndex   = 0;
 
     // configure the scene color
     csrRGBAToColor(0xFF, &m_pScene->m_Color);
@@ -382,8 +382,8 @@ void TMainForm::InitScene()
             // get shader attributes
             pShader->m_VertexSlot = glGetAttribLocation(pShader->m_ProgramID, "csr_aVertices");
             pShader->m_ColorSlot  = glGetAttribLocation(pShader->m_ProgramID, "csr_aColor");
-
-            std::unique_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
+
+            std::auto_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
 
             m_OpenGLHelper.CreateViewport(it.First()->ClientWidth,
                                           it.First()->ClientHeight,
@@ -783,10 +783,10 @@ void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btAddItemClick(TObject* pSender)
 {
-    std::unique_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
+    std::auto_ptr<TAddItemDialog> pDialog(new TAddItemDialog(this));
 
     // show the add item wizard dialog
-    if (pDialog->ShowModal() != mrOk)
-        return;
+    if (pDialog->ShowModal() == mrOk)
+    {}
 }
 //---------------------------------------------------------------------------

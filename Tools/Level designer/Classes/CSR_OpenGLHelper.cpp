@@ -27,6 +27,16 @@
 #endif
 
 //---------------------------------------------------------------------------
+// CSR_OpenGLHelper::IContext
+//---------------------------------------------------------------------------
+CSR_OpenGLHelper::IContext::IContext() :
+    m_hDC(NULL),
+    m_hRC(NULL)
+{}
+//---------------------------------------------------------------------------
+CSR_OpenGLHelper::IContext::~IContext()
+{}
+//---------------------------------------------------------------------------
 // CSR_OpenGLHelper::IContextIterator
 //---------------------------------------------------------------------------
 CSR_OpenGLHelper::IContextIterator::IContextIterator()
@@ -131,16 +141,6 @@ const CSR_OpenGLHelper::IContext& CSR_OpenGLHelper::IContextConstIterator::Secon
     return m_Iterator->second;
 }
 //---------------------------------------------------------------------------
-// CSR_OpenGLHelper::IContext
-//---------------------------------------------------------------------------
-CSR_OpenGLHelper::IContext::IContext() :
-    m_hDC(NULL),
-    m_hRC(NULL)
-{}
-//---------------------------------------------------------------------------
-CSR_OpenGLHelper::IContext::~IContext()
-{}
-//---------------------------------------------------------------------------
 // CSR_OpenGLHelper
 //---------------------------------------------------------------------------
 CSR_OpenGLHelper::CSR_OpenGLHelper()
@@ -183,7 +183,7 @@ void CSR_OpenGLHelper::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
     *hRC = wglCreateContext(*hDC);
     wglMakeCurrent(*hDC, *hRC);
 }
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_OpenGLHelper::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
 {
     wglMakeCurrent(NULL, NULL);
@@ -223,7 +223,7 @@ void CSR_OpenGLHelper::CreateViewport(      float        w,
     const GLint projectionUniform = glGetUniformLocation(pShader->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &matrix.m_Table[0][0]);
 }
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_OpenGLHelper::GetBitmapFromOpenGL(TBitmap* pBitmap)
 {
     // no bitmap?
@@ -281,7 +281,7 @@ void CSR_OpenGLHelper::GetBitmapFromOpenGL(TBitmap* pBitmap)
             delete[] pPixels;
     }
 }
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_OpenGLHelper::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor)
 {
     // no source bitmap?
@@ -442,8 +442,10 @@ void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader, CSR_Matrix4& matri
 
         // update the viewport
         CreateViewport(it->first->ClientWidth, it->first->ClientHeight, pShader, matrix);
-    }
-}
+
+    }
+
+}
 //---------------------------------------------------------------------------
 void CSR_OpenGLHelper::AddContext(TWinControl* pControl)
 {
