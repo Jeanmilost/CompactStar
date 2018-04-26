@@ -42,7 +42,6 @@
 // classes
 #include "CSR_OpenGLHelper.h"
 #include "CSR_VCLHelper.h"
-#include "CSR_VCLControlHook.h"
 
 class TMainForm : public TForm
 {

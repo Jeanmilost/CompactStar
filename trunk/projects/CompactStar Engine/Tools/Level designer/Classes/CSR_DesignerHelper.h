@@ -40,6 +40,27 @@ class CSR_DesignerHelper
         };
 
         /**
+        * Grid options
+        */
+        struct IGridOptions
+        {
+            TColor      m_BgColor;
+            TColor      m_GridColor;
+            std::size_t m_Offset;
+
+            IGridOptions();
+            virtual ~IGridOptions();
+        };
+
+        /**
+        * Draws a grid on a device context
+        *@param rect - rect surrounding the grid area to fill
+        *@param options - grid options
+        *@param hDC - device context to paint on
+        */
+        static void DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC);
+
+        /**
         * Gets a vertex shader
         *@param type - shader type to get
         *@return the vertex shader

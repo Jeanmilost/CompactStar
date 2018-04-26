@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_VCLHelper -------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides an helper class for the VCL           *
+ * Description : This module provides helper classes to deal with the VCL   *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -20,6 +20,36 @@
 #include <Vcl.Imaging.PngImage.hpp>
 #include <Vcl.ComCtrls.hpp>
 
+//---------------------------------------------------------------------------
+// CSR_VCLControlHook
+//---------------------------------------------------------------------------
+CSR_VCLControlHook::CSR_VCLControlHook(TControl* pControl, ITfOnMessage fOnMessage) :
+    m_pControl(pControl),
+    m_fOnMessage(fOnMessage),
+    m_fCtrlOriginalProc(NULL)
+{
+    // hook the control
+    m_fCtrlOriginalProc    = m_pControl->WindowProc;
+    m_pControl->WindowProc = ControlWndProc;
+}
+//---------------------------------------------------------------------------
+CSR_VCLControlHook::~CSR_VCLControlHook()
+{
+    m_fOnMessage = NULL;
+
+    if (m_fCtrlOriginalProc)
+        m_pControl->WindowProc = m_fCtrlOriginalProc;
+}
+//---------------------------------------------------------------------------
+void __fastcall CSR_VCLControlHook::ControlWndProc(TMessage& message)
+{
+    if (m_fOnMessage && m_fOnMessage(m_pControl, message, m_fCtrlOriginalProc))
+        return;
+
+    m_fCtrlOriginalProc(message);
+}
+//---------------------------------------------------------------------------
+// CSR_VCLHelper
 //---------------------------------------------------------------------------
 bool CSR_VCLHelper::IsVisible(TControl* pControl)
 {
@@ -121,5 +151,45 @@ unsigned CSR_VCLHelper::GetBitPerPixel(TPicture* pPicture)
     }
 
     return 0;
+}
+//---------------------------------------------------------------------------
+void CSR_VCLHelper::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor)
+{
+    // no source bitmap?
+    if (!pSource)
+        return;
+
+    // no destination bitmap?
+    if (!pDest)
+        return;
+
+    // configure destination bitmap
+    pDest->PixelFormat = pSource->PixelFormat;
+    pDest->AlphaFormat = pSource->AlphaFormat;
+    pDest->SetSize(pSource->Width / factor, pSource->Height / factor);
+
+    // set stretch mode to half tones (thus resizing will be smooth)
+    int prevMode = ::SetStretchBltMode(pDest->Canvas->Handle, HALFTONE);
+
+    try
+    {
+        // apply antialiasing on the destination image
+        ::StretchBlt(pDest->Canvas->Handle,
+                     0,
+                     0,
+                     pDest->Width,
+                     pDest->Height,
+                     pSource->Canvas->Handle,
+                     0,
+                     0,
+                     pSource->Width,
+                     pSource->Height,
+                     SRCCOPY);
+    }
+    __finally
+    {
+        // restore previous stretch blit mode
+        ::SetStretchBltMode(pDest->Canvas->Handle, prevMode);
+    }
 }
 //---------------------------------------------------------------------------

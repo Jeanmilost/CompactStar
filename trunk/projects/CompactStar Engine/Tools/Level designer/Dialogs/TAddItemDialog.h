@@ -22,19 +22,13 @@
 #include <Vcl.Buttons.hpp>
 #include <Vcl.Imaging.pngimage.hpp>
 #include <Vcl.CheckLst.hpp>
-
-// compactStar engine
-#include "CSR_Collision.h"
-#include "CSR_Model.h"
-
-// classes
-#include "CSR_OpenGLHelper.h"
+#include <Vcl.Dialogs.hpp>
 
 // frames
 #include "TTextureSelectionFrame.h"
 #include "TVertexColorFrame.h"
-#include "TFileFrame.h"
-#include <Vcl.Dialogs.hpp>
+#include "TFileNameFrame.h"
+#include "TScreenshotFrame.h"
 
 /**
 * Add an item dialog box
@@ -75,22 +69,20 @@ class TAddItemDialog : public TForm
         TTabSheet *tsModel;
         TButton *btNext;
         TVertexColorFrame *vcfConfigVertexColor;
-        TFileFrame *ffModelFile;
+        TFileNameFrame *ffModelFile;
         TBevel *blModelSeparator1;
         TLabel *laModelTitle;
         TLabel *laModelFileNameCaption;
-        TImage *imScreenshot;
-        TPanel *paModelScreenshot;
-        TLabel *laModelScreenshot;
-        TPanel *paModelScreenshotLeft;
-        TPanel *paModelScreenshotBgColor;
-        TPanel *paModelScreenshotRight;
-        TLabel *laModelScreenshotBgColorCaption;
-        TPanel *paModelScreenshotBgColorValue;
         TColorDialog *cdColor;
+        TPanel *paSelectItemLeft;
+        TPanel *paSelectItemRight;
+        TImage *imSelectItemIcon;
+        TTabSheet *tsIcon;
+        TBevel *blIconSeparator;
+        TLabel *laIconTitle;
+        TScreenshotFrame *sfScreenshot;
 
         void __fastcall FormShow(TObject* pSender);
-        void __fastcall paModelScreenshotBgColorValueClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
         void __fastcall btBackClick(TObject* pSender);
         void __fastcall OnNextClick(TObject* pSender);
@@ -123,11 +115,11 @@ class TAddItemDialog : public TForm
         virtual __fastcall ~TAddItemDialog();
 
         /**
-        * Gets a screenshot of the model belonging to the item
-        *@param pBitmap - bitmap in which the screenshot should be drawn
+        * Gets the item icon to show in the toolbox
+        *@param pBitmap - bitmap to fill with the icon
         *@return true on success, otherwise false
         */
-        bool GetScreenshot(TBitmap* pBitmap) const;
+        bool GetIcon(TBitmap* pBitmap) const;
 
         /**
         * Gets the selected model type to create
@@ -136,37 +128,7 @@ class TAddItemDialog : public TForm
         IEModelType GetModelType() const;
 
     private:
-        CSR_OpenGLHelper::IContext m_SceneContext;
-        TForm*                     m_pSceneOverlayForm;
-        CSR_Shader*                m_pSceneShader;
-        CSR_Color                  m_SceneColor;
-        CSR_MDL*                   m_pMDL;
-        CSR_Model*                 m_pModel;
-        CSR_AABBNode*              m_pAABBTree;
-        CSR_Matrix4                m_ViewMatrix;
-        IEModelType                m_ModelType;
-        int                        m_AntialiasingFactor;
-
-        /**
-        * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
-        *@param fileName - model file name to export as a screenshot
-        *@param width - screenshot width
-        *@param height - screenshot height
-        *@return true on success, otherwise false
-        */
-        bool CreateScreenshotScene(const std::string& fileName, int width, int height);
-
-        /**
-        * Releases a previously created screenshot scene
-        */
-        void ReleaseScreenshotScene();
-
-        /**
-        * Draws a screenshot scene in a bitmap
-        *@param pBitmap - bitmap in which the screenshot should be drawn
-        *@return true on success, otherwise false
-        */
-        bool DrawScreenshotScene(TBitmap* pBitmap) const;
+        IEModelType m_ModelType;
 
         /**
         * Checks if a model file exists

@@ -24,7 +24,6 @@
 
 // classes
 #include "CSR_DesignerHelper.h"
-#include "CSR_DesignerViewHelper.h"
 
 // dialogs
 #include "TAddItemDialog.h"
@@ -190,9 +189,9 @@ bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWn
                     return false;
 
                 // draw the background grid
-                CSR_DesignerViewHelper::DrawGrid(pControl->ClientRect,
-                                                 CSR_DesignerViewHelper::IGridOptions(),
-                                                 hDC);
+                CSR_DesignerHelper::DrawGrid(pControl->ClientRect,
+                                             CSR_DesignerHelper::IGridOptions(),
+                                             hDC);
             }
             __finally
             {

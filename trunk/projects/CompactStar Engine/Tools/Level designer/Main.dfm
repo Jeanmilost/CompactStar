@@ -13,6 +13,7 @@ object MainForm: TMainForm
   Font.Style = []
   Menu = mmMenu
   OldCreateOrder = False
+  Scaled = False
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
