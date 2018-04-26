@@ -29,7 +29,8 @@ USEFORM("Dialogs\Frames\TVertexColorFrame.cpp", VertexColorFrame); /* TFrame: Fi
 USEFORM("Main.cpp", MainForm);
 USEFORM("Dialogs\TImageInfoDialog.cpp", ImageInfoDialog);
 USEFORM("Dialogs\Frames\TTextureSelectionFrame.cpp", TextureSelectionFrame); /* TFrame: File Type */
-USEFORM("Dialogs\Frames\TFileFrame.cpp", FileFrame); /* TFrame: File Type */
+USEFORM("Dialogs\Frames\TScreenshotFrame.cpp", ScreenshotFrame); /* TFrame: File Type */
+USEFORM("Dialogs\Frames\TFileNameFrame.cpp", FileNameFrame); /* TFrame: File Type */
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

@@ -208,17 +208,9 @@
             <DependentOn>Classes\CSR_DesignerHelper.h</DependentOn>
             <BuildOrder>33</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\CSR_DesignerViewHelper.cpp">
-            <DependentOn>Classes\CSR_DesignerViewHelper.h</DependentOn>
-            <BuildOrder>25</BuildOrder>
-        </CppCompile>
         <CppCompile Include="Classes\CSR_OpenGLHelper.cpp">
             <DependentOn>Classes\CSR_OpenGLHelper.h</DependentOn>
             <BuildOrder>26</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\CSR_VCLControlHook.cpp">
-            <DependentOn>Classes\CSR_VCLControlHook.h</DependentOn>
-            <BuildOrder>27</BuildOrder>
         </CppCompile>
         <CppCompile Include="Classes\CSR_VCLHelper.cpp">
             <DependentOn>Classes\CSR_VCLHelper.h</DependentOn>
@@ -230,12 +222,19 @@
         <PCHCompile Include="CompactStar_LevelDesigner_PCH.h">
             <BuildOrder>1</BuildOrder>
         </PCHCompile>
-        <CppCompile Include="Dialogs\Frames\TFileFrame.cpp">
-            <Form>FileFrame</Form>
+        <CppCompile Include="Dialogs\Frames\TFileNameFrame.cpp">
+            <Form>FileNameFrame</Form>
             <FormType>dfm</FormType>
             <DesignClass>TFrame</DesignClass>
-            <DependentOn>Dialogs\Frames\TFileFrame.h</DependentOn>
-            <BuildOrder>38</BuildOrder>
+            <DependentOn>Dialogs\Frames\TFileNameFrame.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Dialogs\Frames\TScreenshotFrame.cpp">
+            <Form>ScreenshotFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>Dialogs\Frames\TScreenshotFrame.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
         </CppCompile>
         <CppCompile Include="Dialogs\Frames\TTextureSelectionFrame.cpp">
             <Form>TextureSelectionFrame</Form>
@@ -274,7 +273,8 @@
         <FormResources Include="Main.dfm"/>
         <FormResources Include="Dialogs\TImageInfoDialog.dfm"/>
         <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
-        <FormResources Include="Dialogs\Frames\TFileFrame.dfm"/>
+        <FormResources Include="Dialogs\Frames\TScreenshotFrame.dfm"/>
+        <FormResources Include="Dialogs\Frames\TFileNameFrame.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

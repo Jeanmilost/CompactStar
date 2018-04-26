@@ -1,5 +1,5 @@
 /*****************************************************************************
- * ==> TFileFrame -----------------------------------------------------------*
+ * ==> TFileNameFrame -------------------------------------------------------*
  *****************************************************************************
  * Description : This module provides a frame to open a file                 *
  * Developer   : Jean-Milost Reymond                                         *
@@ -9,8 +9,8 @@
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *
  *****************************************************************************/
 
-#ifndef TFileFrameH
-#define TFileFrameH
+#ifndef TFileNameFrameH
+#define TFileNameFrameH
 
 // vcl
 #include <System.Classes.hpp>
@@ -26,7 +26,7 @@
 * Frame allowing to select a file
 *@author Jean-Milost Reymond
 */
-class TFileFrame : public TFrame
+class TFileNameFrame : public TFrame
 {
     __published:
         TEdit *edFileName;
@@ -48,7 +48,7 @@ class TFileFrame : public TFrame
         * Constructor
         *@aram pOwner - frame owner
         */
-        __fastcall TFileFrame(TComponent* pOwner);
+        __fastcall TFileNameFrame(TComponent* pOwner);
 
         /**
         * Set OnFileSelected callback function
@@ -60,5 +60,5 @@ class TFileFrame : public TFrame
         std::wstring      m_DefaultDir;
         ITfOnFileSelected m_fOnFileSelected;
 };
-extern PACKAGE TFileFrame* FileFrame;
+extern PACKAGE TFileNameFrame* FileNameFrame;
 #endif

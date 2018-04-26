@@ -1,5 +1,5 @@
 /*****************************************************************************
- * ==> TFileFrame -----------------------------------------------------------*
+ * ==> TFileNameFrame -------------------------------------------------------*
  *****************************************************************************
  * Description : This module provides a frame to open a file                 *
  * Developer   : Jean-Milost Reymond                                         *
@@ -11,7 +11,7 @@
 
 #include <vcl.h>
 #pragma hdrstop
-#include "TFileFrame.h"
+#include "TFileNameFrame.h"
 
 // classes
 #include "CSR_DesignerHelper.h"
@@ -20,9 +20,9 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
-TFileFrame* FileFrame;
+TFileNameFrame* FileNameFrame;
 //---------------------------------------------------------------------------
-__fastcall TFileFrame::TFileFrame(TComponent* pOwner) :
+__fastcall TFileNameFrame::TFileNameFrame(TComponent* pOwner) :
     TFrame(pOwner),
     m_fOnFileSelected(NULL)
 {
@@ -31,7 +31,7 @@ __fastcall TFileFrame::TFileFrame(TComponent* pOwner) :
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
 //---------------------------------------------------------------------------
-void __fastcall TFileFrame::btBrowseClick(TObject* pSender)
+void __fastcall TFileNameFrame::btBrowseClick(TObject* pSender)
 {
     // prompt the user to select a model file
     if (!odOpen->Execute())
@@ -44,7 +44,7 @@ void __fastcall TFileFrame::btBrowseClick(TObject* pSender)
         m_fOnFileSelected(this, edFileName->Text.c_str());
 }
 //---------------------------------------------------------------------------
-void TFileFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
+void TFileNameFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
 {
     m_fOnFileSelected = fHandler;
 }

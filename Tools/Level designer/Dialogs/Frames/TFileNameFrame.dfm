@@ -1,4 +1,4 @@
-object FileFrame: TFileFrame
+object FileNameFrame: TFileNameFrame
   Left = 0
   Top = 0
   Width = 436

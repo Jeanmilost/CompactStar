@@ -226,14 +226,6 @@ class CSR_OpenGLHelper
         static void GetBitmapFromOpenGL(TBitmap* pBitmap);
 
         /**
-        * Applies a Full-Scene AntiAliasing (FSAA) on a bitmap
-        *@param pSource - source bitmap on which the antialiasing should be applied
-        *@param[in, out] pDest - destination bitmap containing the antialiased image
-        *@param factor - antialiasing factor, should match with the size difference between the both bitmaps
-        */
-        static void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
-
-        /**
         * Gets the best possible model matrix based on the model bounding box
         *@param pBox - model bounding box, if 0 a box with each edges equals to 1 will be used
         *@param zPos - the z position of the model

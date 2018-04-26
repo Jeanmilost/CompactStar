@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> CSR_VCLHelper -------------------------------------------------------*
  ****************************************************************************
- * Description : This module provides an helper class for the VCL           *
+ * Description : This module provides helper classes to deal with the VCL   *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -22,6 +22,45 @@
 
 // std
 #include <string>
+
+/**
+* VCL control hook
+*@author Jean-Milost Reymond
+*/
+class CSR_VCLControlHook
+{
+    public:
+        /**
+        * Called when a hooked control receives a Windows message
+        *@param pControl - hooked control
+        *@param message - Windows message
+        *@param fCtrlOriginalProc - control original Windows procedure
+        *@return true if the message was resolved and should no longer be handled, otherwise false
+        */
+        typedef bool (__closure *ITfOnMessage)(TControl*  pControl,
+                                               TMessage&  message,
+                                               TWndMethod fCtrlOriginalProc);
+
+        /**
+        * Constructor
+        *@param pControl - control to hook
+        *@param fOnMessage - callback function to call when a Windows message is received
+        */
+        CSR_VCLControlHook(TControl* pControl, ITfOnMessage fOnMessage);
+
+        virtual ~CSR_VCLControlHook();
+
+    private:
+        TControl*    m_pControl;
+        ITfOnMessage m_fOnMessage;
+        TWndMethod   m_fCtrlOriginalProc;
+
+        /**
+        * Hooked control main procedure
+        *@param message- Windows procedure message
+        */
+        void __fastcall ControlWndProc(TMessage& message);
+};
 
 /**
 * Helper class for the VCL
@@ -76,6 +115,17 @@ class CSR_VCLHelper
         *@return the byte per pixels, 0 if not found or on error
         */
         static unsigned GetBitPerPixel(TPicture* pPicture);
+
+        /**
+        * Applies a Full-Scene AntiAliasing (FSAA) on a bitmap
+        *@param pSource - source bitmap on which the antialiasing should be applied
+        *@param[in, out] pDest - destination bitmap containing the antialiased image
+        *@param factor - antialiasing factor
+        *@note The resulting destination image will be smaller than the source in a ratio defined by
+        *      the factor parameter. For example, a source image of 400x400 pixels, on which an
+        *      antialiasing factor of 4 is applied, will result to an image of 100x100 pixels
+        */
+        static void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
 };
 
 #endif
