@@ -149,6 +149,13 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     else
     if (pcWizard->ActivePage == tsModel)
         pcWizard->ActivePage = tsConfig;
+    else
+    if (pcWizard->ActivePage == tsConfig)
+    {
+        pcWizard->ActivePage = tsIcon;
+        btNext->Enabled      = false;
+        btOK->Enabled        = true;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
@@ -180,13 +187,18 @@ bool TAddItemDialog::ModelFileExists() const
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnFileSelected(TObject* pSender, const std::wstring& fileName)
 {
-    const bool modelExists = ModelFileExists();
-
-    btNext->Enabled = modelExists;
-
-    if (modelExists)
+    // model file exists and can be loaded
+    if (ModelFileExists() && sfScreenshot->LoadModel(AnsiString(UnicodeString(fileName.c_str())).c_str()))
     {
-        // FIXME
+        btNext->Enabled = true;
+        return;
     }
+
+    btNext->Enabled = false;
+
+    ::MessageDlg(L"The model you're trying to load is invalid.\n\nPlease check the model file and try again.",
+                 mtError,
+                 TMsgDlgButtons() << mbOK,
+                 0);
 }
 //---------------------------------------------------------------------------

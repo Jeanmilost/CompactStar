@@ -26,8 +26,6 @@ object AddItemDialog: TAddItemDialog
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitLeft = -16
-    ExplicitTop = 450
     object btOK: TButton
       AlignWithMargins = True
       Left = 472
@@ -40,7 +38,6 @@ object AddItemDialog: TAddItemDialog
       Enabled = False
       TabOrder = 3
       OnClick = btOKClick
-      ExplicitLeft = 435
     end
     object btCancel: TButton
       AlignWithMargins = True
@@ -64,7 +61,6 @@ object AddItemDialog: TAddItemDialog
       Enabled = False
       TabOrder = 1
       OnClick = btBackClick
-      ExplicitLeft = 273
     end
     object btNext: TButton
       AlignWithMargins = True
@@ -77,7 +73,6 @@ object AddItemDialog: TAddItemDialog
       Enabled = False
       TabOrder = 2
       OnClick = OnNextClick
-      ExplicitLeft = 354
     end
   end
   object paMain: TPanel
@@ -93,13 +88,11 @@ object AddItemDialog: TAddItemDialog
       Top = 0
       Width = 363
       Height = 434
-      ActivePage = tsSelectItem
+      ActivePage = tsIcon
       Align = alClient
       TabOrder = 0
       object tsSelectItem: TTabSheet
         Caption = 'tsSelectItem'
-        ExplicitWidth = 505
-        ExplicitHeight = 405
         object paSelectItemRight: TPanel
           Left = 0
           Top = 0
@@ -109,8 +102,6 @@ object AddItemDialog: TAddItemDialog
           AutoSize = True
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitWidth = 542
-          ExplicitHeight = 400
           object laSelectItemTitle: TLabel
             AlignWithMargins = True
             Left = 3
@@ -797,8 +788,6 @@ object AddItemDialog: TAddItemDialog
       object tsModel: TTabSheet
         Caption = 'tsModel'
         ImageIndex = 2
-        ExplicitWidth = 505
-        ExplicitHeight = 405
         object blModelSeparator1: TBevel
           AlignWithMargins = True
           Left = 3
@@ -827,8 +816,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitLeft = 59
-          ExplicitTop = -16
+          ExplicitWidth = 55
         end
         object laModelFileNameCaption: TLabel
           AlignWithMargins = True
@@ -845,8 +833,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitLeft = -2
-          ExplicitTop = 312
+          ExplicitWidth = 80
         end
         inline ffModelFile: TFileNameFrame
           Left = 0
@@ -855,24 +842,21 @@ object AddItemDialog: TAddItemDialog
           Height = 25
           Align = alTop
           TabOrder = 0
-          ExplicitLeft = 3
-          ExplicitTop = 220
+          ExplicitTop = 214
           ExplicitWidth = 355
           inherited edFileName: TEdit
             Width = 316
-            ExplicitWidth = 466
+            ExplicitWidth = 316
           end
           inherited btBrowse: TButton
             Left = 322
-            ExplicitLeft = 472
+            ExplicitLeft = 322
           end
         end
       end
       object tsConfig: TTabSheet
         Caption = 'tsConfig'
         ImageIndex = 1
-        ExplicitWidth = 505
-        ExplicitHeight = 405
         object laConfigTitle: TLabel
           AlignWithMargins = True
           Left = 3
@@ -1005,31 +989,31 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 2
           ExplicitTop = 152
-          ExplicitWidth = 505
+          ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
-            ExplicitWidth = 499
+            ExplicitWidth = 349
             inherited paLeft: TPanel
               Width = 249
-              ExplicitWidth = 399
+              ExplicitWidth = 249
               inherited laTextureFile: TLabel
                 Width = 243
               end
               inherited paTextureFile: TPanel
                 Width = 249
-                ExplicitWidth = 399
+                ExplicitWidth = 249
                 inherited btTextureFileOpen: TButton
                   Left = 214
-                  ExplicitLeft = 364
+                  ExplicitLeft = 214
                 end
                 inherited edTextureFile: TEdit
                   Width = 208
-                  ExplicitWidth = 358
+                  ExplicitWidth = 208
                 end
               end
               inherited paButtons: TPanel
                 Width = 249
-                ExplicitWidth = 399
+                ExplicitWidth = 249
                 inherited btInfo: TSpeedButton
                   Left = 224
                   ExplicitLeft = 374
@@ -1050,31 +1034,31 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 3
           ExplicitTop = 289
-          ExplicitWidth = 505
+          ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
-            ExplicitWidth = 499
+            ExplicitWidth = 349
             inherited paLeft: TPanel
               Width = 249
-              ExplicitWidth = 399
+              ExplicitWidth = 249
               inherited laTextureFile: TLabel
                 Width = 243
               end
               inherited paTextureFile: TPanel
                 Width = 249
-                ExplicitWidth = 399
+                ExplicitWidth = 249
                 inherited btTextureFileOpen: TButton
                   Left = 214
-                  ExplicitLeft = 364
+                  ExplicitLeft = 214
                 end
                 inherited edTextureFile: TEdit
                   Width = 208
-                  ExplicitWidth = 358
+                  ExplicitWidth = 208
                 end
               end
               inherited paButtons: TPanel
                 Width = 249
-                ExplicitWidth = 399
+                ExplicitWidth = 249
                 inherited btInfo: TSpeedButton
                   Left = 224
                   ExplicitLeft = 374
@@ -1115,18 +1099,18 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 1
           ExplicitTop = 95
-          ExplicitWidth = 505
+          ExplicitWidth = 355
           inherited paMain: TPanel
             Width = 349
             ExplicitTop = 3
-            ExplicitWidth = 499
+            ExplicitWidth = 349
             inherited paColor: TPanel
               Left = 324
-              ExplicitLeft = 474
+              ExplicitLeft = 324
             end
             inherited tbOpacity: TTrackBar
               Left = 164
-              ExplicitLeft = 314
+              ExplicitLeft = 164
             end
           end
         end
@@ -1168,33 +1152,61 @@ object AddItemDialog: TAddItemDialog
           Left = 3
           Top = 35
           Width = 349
-          Height = 200
+          Height = 185
           Margins.Bottom = 0
           Align = alTop
           TabOrder = 0
-          ExplicitLeft = -144
-          ExplicitTop = 184
+          ExplicitLeft = 3
+          ExplicitTop = 35
+          ExplicitWidth = 349
           inherited paBackground: TPanel
             Width = 349
+            ExplicitWidth = 349
             inherited paRight: TPanel
-              Width = 149
-              ExplicitLeft = 200
-              ExplicitTop = 0
-              ExplicitWidth = 147
-              ExplicitHeight = 200
-              inherited laCameraType: TLabel
-                Width = 143
+              Width = 164
+              ExplicitLeft = 185
+              ExplicitWidth = 199
+              inherited blSeparator: TBevel
+                Width = 158
+              end
+              inherited laCameraCaption: TLabel
+                Width = 158
               end
               inherited paColor: TPanel
-                Width = 146
+                Width = 161
+                ExplicitWidth = 146
                 inherited paColorValue: TPanel
-                  Left = 126
-                  ExplicitLeft = 274
-                  ExplicitHeight = 20
+                  Left = 141
+                  ExplicitLeft = 126
                 end
               end
               inherited paCameraType: TPanel
-                Width = 149
+                Width = 158
+                ExplicitLeft = 3
+                ExplicitTop = 164
+                ExplicitWidth = 143
+                inherited rbFirstViewPerson: TRadioButton
+                  Left = 62
+                  ExplicitLeft = 47
+                end
+              end
+              inherited paCamera: TPanel
+                Width = 164
+                inherited paCameraCaption: TPanel
+                  inherited laCameraX: TLabel
+                    Height = 13
+                    ExplicitLeft = 16
+                    ExplicitHeight = 13
+                  end
+                  inherited laCameraY: TLabel
+                    Height = 13
+                    ExplicitLeft = 57
+                  end
+                  inherited laCameraZ: TLabel
+                    Height = 13
+                    ExplicitLeft = 98
+                  end
+                end
               end
             end
           end
@@ -1219,7 +1231,6 @@ object AddItemDialog: TAddItemDialog
       ParentBackground = False
       ParentCtl3D = False
       TabOrder = 1
-      ExplicitHeight = 431
       object imSelectItemIcon: TImage
         AlignWithMargins = True
         Left = 6

@@ -44,6 +44,89 @@ __fastcall TScreenshotFrame::~TScreenshotFrame()
     ReleaseScene();
 }
 //---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::FrameResize(TObject* pSender)
+{
+    paCamera->Margins->Left    = (paRight->Width - (btCameraBack->Left + btCameraBack->Width)) >> 1;
+    paCamera->Margins->Top     = 0;
+    paCamera->Margins->Right   = 0;
+    paCamera->Margins->Bottom  = 0;
+    paCamera->AlignWithMargins = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraLeftClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraRightClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraUpClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraDownClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
+{
+    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+
+    // draw the model in a bitmap
+    if (!DrawScene(pBitmap.get()))
+        return;
+
+    // show the loaded model
+    imScreenshot->Picture->Assign(pBitmap.get());
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::rbFirstViewPersonClick(TObject* pSender)
+{
+    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+
+    // draw the model in a bitmap
+    if (!DrawScene(pBitmap.get()))
+        return;
+
+    // show the loaded model
+    imScreenshot->Picture->Assign(pBitmap.get());
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
+{
+    cdColor->Color = paColorValue->Color;
+
+    // notify user about selecting a color
+    if (!cdColor->Execute())
+        return;
+
+    paColorValue->Color = cdColor->Color;
+
+    // update the scene color
+    csrRGBAToColor(csrColorBGRToRGBA(::ColorToRGB(paColorValue->Color)), &m_SceneColor);
+
+    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+
+    // redraw the model screenshot
+    if (DrawScene(pBitmap.get()))
+        imScreenshot->Picture->Assign(pBitmap.get());
+}
+//---------------------------------------------------------------------------
 bool TScreenshotFrame::LoadModel(const std::string& fileName)
 {
     // create a scene to draw the model screenshot
@@ -74,26 +157,6 @@ bool TScreenshotFrame::GetScreenshot(TBitmap* pBitmap) const
 
     // export the screenshot
     return DrawScene(pBitmap);
-}
-//---------------------------------------------------------------------------
-void __fastcall TScreenshotFrame::paColorValueClick(TObject *Sender)
-{
-    cdColor->Color = paColorValue->Color;
-
-    // notify user about selecting a color
-    if (!cdColor->Execute())
-        return;
-
-    paColorValue->Color = cdColor->Color;
-
-    // update the scene color
-    csrRGBAToColor(csrColorBGRToRGBA(::ColorToRGB(paColorValue->Color)), &m_SceneColor);
-
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
-
-    // redraw the model screenshot
-    if (DrawScene(pBitmap.get()))
-        imScreenshot->Picture->Assign(pBitmap.get());
 }
 //---------------------------------------------------------------------------
 bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int height)
@@ -147,8 +210,22 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     // create a viewport
     CSR_OpenGLHelper::CreateViewport(drawWidth, drawHeight, m_pSceneShader, matrix);
 
-    // initialize the view matrix to identity
-    csrMat4Identity(&m_ViewMatrix);
+    // initialize the arcball default values
+    m_ArcBall.m_AngleX = 0.0f;
+    m_ArcBall.m_AngleY = 0.0f;
+    m_ArcBall.m_Radius = 1.0f;
+
+    // initialize the camera default values
+    m_Camera.m_Position.m_X =  0.0f;
+    m_Camera.m_Position.m_Y =  0.0f;
+    m_Camera.m_Position.m_Z = -1.0f;
+    m_Camera.m_xAngle       =  0.0f;
+    m_Camera.m_yAngle       =  0.0f;
+    m_Camera.m_zAngle       =  0.0f;
+    m_Camera.m_Factor.m_X   =  1.0f;
+    m_Camera.m_Factor.m_Y   =  1.0f;
+    m_Camera.m_Factor.m_Z   =  1.0f;
+    m_Camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
 
     // configure the scene color
     m_SceneColor.m_R = 0.0f;
@@ -197,9 +274,9 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     }
 
     // get the best model matrix to show the model centered in the scene
-    matrix = CSR_OpenGLHelper::GetBestModelMatrix( m_pAABBTree ? m_pAABBTree->m_pBox : NULL,
-                                                  -5.0f,
-                                                  !isWaveFront);
+    matrix = CSR_OpenGLHelper::GetBestModelMatrix(m_pAABBTree ? m_pAABBTree->m_pBox : NULL,
+                                                 -1.0f,
+                                                 !isWaveFront);
 
     // connect the model view matrix to shader
     const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
@@ -267,9 +344,20 @@ bool TScreenshotFrame::DrawScene(TBitmap* pBitmap) const
     glClearColor(m_SceneColor.m_R, m_SceneColor.m_G, m_SceneColor.m_B, m_SceneColor.m_A);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    CSR_Matrix4 viewMatrix;
+
+    // initialize the view matrix to identity
+    csrMat4Identity(&viewMatrix);
+
+    // get the view matrix to use
+    if (rbArcball->Checked)
+        csrSceneArcBallToMatrix(&m_ArcBall, &viewMatrix);
+    else
+        csrSceneCameraToMatrix(&m_Camera, &viewMatrix);
+
     // connect view matrix to shader
     const GLint viewUniform = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uView");
-    glUniformMatrix4fv(viewUniform, 1, 0, &m_ViewMatrix.m_Table[0][0]);
+    glUniformMatrix4fv(viewUniform, 1, 0, &viewMatrix.m_Table[0][0]);
 
     // draw the model
     if (m_pMDL)

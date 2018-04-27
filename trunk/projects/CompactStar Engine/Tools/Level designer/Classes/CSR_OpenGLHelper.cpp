@@ -314,7 +314,7 @@ CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos
         const float longestAxis = std::max(std::max(x, y), z) * 2.0f;
 
         // calculate the scale factor (viewport size / longest axis)
-        scaleFactor = std::fabs(zPos) / longestAxis;
+        scaleFactor = (zPos ? std::fabs(zPos) : 2.0f) / longestAxis;
 
         // set translation. NOTE invert X and Y axis because the model will be rotated 90° on the x axis
         if (rotated)
@@ -402,9 +402,7 @@ void CSR_OpenGLHelper::ResizeViews(const CSR_Shader* pShader, CSR_Matrix4& matri
 
         // update the viewport
         CreateViewport(it->first->ClientWidth, it->first->ClientHeight, pShader, matrix);
-
     }
-
 }
 //---------------------------------------------------------------------------
 void CSR_OpenGLHelper::AddContext(TWinControl* pControl)
