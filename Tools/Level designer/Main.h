@@ -138,16 +138,6 @@ class TMainForm : public TForm
         static int OnGetShaderIndexCallback(const void* pModel);
 
     private:
-        struct IArcBall
-        {
-            float m_AngleX;
-            float m_AngleY;
-            float m_Radius;
-
-            IArcBall();
-            virtual ~IArcBall();
-        };
-
         typedef std::vector<CSR_Shader*>  IShaders;
         typedef std::vector<CSR_Matrix4*> IMatrices;
 
@@ -167,7 +157,7 @@ class TMainForm : public TForm
         CSR_Matrix4*                      m_pCurrentMatrix;
         void*                             m_pLoadingModel;
         CSR_Buffer*                       m_pLoadingTexture;
-        IArcBall                          m_ArcBall;
+        CSR_ArcBall                       m_ArcBall;
         CSR_Matrix4                       m_ModelMatrix;
         CSR_Ray3                          m_Ray;
         unsigned __int64                  m_PreviousTime;

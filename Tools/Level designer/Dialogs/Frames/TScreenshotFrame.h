@@ -19,14 +19,17 @@
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
 #include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Dialogs.hpp>
+#include <Vcl.Buttons.hpp>
+#include <Vcl.AppEvnts.hpp>
 
 // compactStar engine
 #include "CSR_Collision.h"
 #include "CSR_Model.h"
+#include "CSR_Scene.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
-#include <Vcl.Dialogs.hpp>
 
 /**
 * Frame allowing to create a screenshot from a model
@@ -42,15 +45,36 @@ class TScreenshotFrame : public TFrame
         TPanel *paColor;
         TLabel *laColorCaption;
         TPanel *paColorValue;
-    TColorDialog *cdColor;
-    TPanel *paCameraType;
-    TLabel *laCameraTypeCaption;
-    TRadioButton *rbArcball;
-    TRadioButton *rbFirstViewPerson;
-    TBevel *blSeparator1;
-    TBevel *blSeparator2;
-    TLabel *laCameraCaption;
-    void __fastcall paColorValueClick(TObject *Sender);
+        TColorDialog *cdColor;
+        TPanel *paCameraType;
+        TRadioButton *rbArcball;
+        TRadioButton *rbFirstViewPerson;
+        TBevel *blSeparator;
+        TLabel *laCameraCaption;
+        TPanel *paCameraCaption;
+        TPanel *paCameraUp;
+        TPanel *paCameraDown;
+        TSpeedButton *btCameraLeft;
+        TSpeedButton *btCameraUp;
+        TSpeedButton *btCameraBack;
+        TSpeedButton *btCameraRight;
+        TSpeedButton *btCameraDown;
+        TSpeedButton *btCameraFront;
+        TLabel *laCameraX;
+        TLabel *laCameraY;
+        TLabel *laCameraZ;
+        TPanel *paCamera;
+
+        void __fastcall FrameResize(TObject* pSender);
+        void __fastcall btCameraLeftClick(TObject* pSender);
+        void __fastcall btCameraRightClick(TObject* pSender);
+        void __fastcall btCameraUpClick(TObject* pSender);
+        void __fastcall btCameraDownClick(TObject* pSender);
+        void __fastcall btCameraBackClick(TObject* pSender);
+        void __fastcall btCameraFrontClick(TObject* pSender);
+        void __fastcall rbArcballClick(TObject* pSender);
+        void __fastcall rbFirstViewPersonClick(TObject* pSender);
+        void __fastcall paColorValueClick(TObject* pSender);
 
     public:
         /**
@@ -83,7 +107,8 @@ class TScreenshotFrame : public TFrame
         CSR_MDL*                   m_pMDL;
         CSR_Model*                 m_pModel;
         CSR_AABBNode*              m_pAABBTree;
-        CSR_Matrix4                m_ViewMatrix;
+        CSR_ArcBall                m_ArcBall;
+        CSR_Camera                 m_Camera;
         int                        m_AntialiasingFactor;
 
         /**

@@ -38,17 +38,6 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
-// TMainForm::IArcBall
-//---------------------------------------------------------------------------
-TMainForm::IArcBall::IArcBall() :
-    m_AngleX(0.0f),
-    m_AngleY(0.0f),
-    m_Radius(2.0f)
-{}
-//---------------------------------------------------------------------------
-TMainForm::IArcBall::~IArcBall()
-{}
-//---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
 TMainForm* MainForm;
@@ -342,6 +331,11 @@ void TMainForm::CalculateMouseRay(TPanel* pView)
 //------------------------------------------------------------------------------
 void TMainForm::InitScene()
 {
+    // set the default arcball values
+    m_ArcBall.m_Radius = 2.0f;
+    m_ArcBall.m_AngleX = 0.0f;
+    m_ArcBall.m_AngleY = 0.0f;
+
     // create a scene
     m_pScene = csrSceneCreate();
 
@@ -419,8 +413,8 @@ void TMainForm::InitScene()
     //CSR_Mesh*  pSphere = csrShapeCreateSphere(0.5f, 20, 20, &vf, NULL, &sm, NULL);
     //CSR_Mesh*  pBox    = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, NULL, &bm, NULL);
     //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Ahsoka_Tano.obj", &vf, NULL, &sm, NULL, NULL);
-    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Balloon.obj", &vf, NULL, &sm, NULL, NULL);
-    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Model.obj", &vf, NULL, &sm, NULL, NULL);
+    CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Balloon.obj", &vf, NULL, &sm, NULL, NULL);
+    //CSR_Model* pModel  = csrWaveFrontOpen("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Common\\Models\\WaveFront\\Model.obj", &vf, NULL, &sm, NULL, NULL);
 
     //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
@@ -533,10 +527,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 combinedMatrixLevel2;
 
     // build the scene view matrix
-    csrSceneArcBallToMatrix(m_ArcBall.m_Radius,
-                            m_ArcBall.m_AngleX,
-                            m_ArcBall.m_AngleY,
-                           &m_pScene->m_Matrix);
+    csrSceneArcBallToMatrix(&m_ArcBall, &m_pScene->m_Matrix);
 
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
