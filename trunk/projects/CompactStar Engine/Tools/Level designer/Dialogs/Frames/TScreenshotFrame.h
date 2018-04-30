@@ -109,7 +109,9 @@ class TScreenshotFrame : public TFrame
         CSR_AABBNode*              m_pAABBTree;
         CSR_ArcBall                m_ArcBall;
         CSR_Camera                 m_Camera;
+        CSR_Matrix4                m_ModelMatrix;
         int                        m_AntialiasingFactor;
+        float                      m_Offset;
 
         /**
         * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
@@ -131,6 +133,12 @@ class TScreenshotFrame : public TFrame
         *@return true on success, otherwise false
         */
         bool DrawScene(TBitmap* pBitmap) const;
+
+        /**
+        * Draws a screenshot scene and show it in the preview image
+        *@return true on success, otherwise false
+        */
+        bool DrawScene() const;
 };
 extern PACKAGE TScreenshotFrame* ScreenshotFrame;
 #endif

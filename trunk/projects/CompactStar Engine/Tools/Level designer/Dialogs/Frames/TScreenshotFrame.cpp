@@ -75,36 +75,65 @@ void __fastcall TScreenshotFrame::btCameraDownClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
 {
-    //
+    // move the camera
+    m_Camera.m_Position.m_Z -= m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
 {
-    //
+    // move the camera
+    m_Camera.m_Position.m_Z += m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
 {
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
+    if (m_pAABBTree)
+        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
+    else
+        csrMat4Identity(&m_ModelMatrix);
 
-    // draw the model in a bitmap
-    if (!DrawScene(pBitmap.get()))
-        return;
+    // get the offset to use to position the model (1/10 of the camera distance)
+    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
 
-    // show the loaded model
-    imScreenshot->Picture->Assign(pBitmap.get());
+    // for the arcball mode, update the arcball radius but let the model on the scene center
+    m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2];
+    m_ModelMatrix.m_Table[3][2] =  0.0f;
+
+    // connect the model view matrix to shader
+    const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
+    glUniformMatrix4fv(modelMatrixSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbFirstViewPersonClick(TObject* pSender)
 {
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
+    if (m_pAABBTree)
+        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
+    else
+        csrMat4Identity(&m_ModelMatrix);
 
-    // draw the model in a bitmap
-    if (!DrawScene(pBitmap.get()))
-        return;
+    // get the offset to use to position the model (1/10 of the camera distance)
+    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
 
-    // show the loaded model
-    imScreenshot->Picture->Assign(pBitmap.get());
+    // reset the camera z position
+    m_Camera.m_Position.m_Z = 0.0f;
+
+    // connect the model view matrix to shader
+    const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
+    glUniformMatrix4fv(modelMatrixSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
@@ -120,11 +149,8 @@ void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
     // update the scene color
     csrRGBAToColor(csrColorBGRToRGBA(::ColorToRGB(paColorValue->Color)), &m_SceneColor);
 
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
-
-    // redraw the model screenshot
-    if (DrawScene(pBitmap.get()))
-        imScreenshot->Picture->Assign(pBitmap.get());
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 bool TScreenshotFrame::LoadModel(const std::string& fileName)
@@ -133,14 +159,8 @@ bool TScreenshotFrame::LoadModel(const std::string& fileName)
     if (!CreateScene(fileName.c_str(), imScreenshot->Width, imScreenshot->Height))
         return false;
 
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
-
-    // draw the model in a bitmap
-    if (!DrawScene(pBitmap.get()))
-        return false;
-
-    // show the loaded model
-    imScreenshot->Picture->Assign(pBitmap.get());
+    // draw the scene
+    DrawScene();
 
     return true;
 }
@@ -216,15 +236,15 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     m_ArcBall.m_Radius = 1.0f;
 
     // initialize the camera default values
-    m_Camera.m_Position.m_X =  0.0f;
-    m_Camera.m_Position.m_Y =  0.0f;
-    m_Camera.m_Position.m_Z = -1.0f;
-    m_Camera.m_xAngle       =  0.0f;
-    m_Camera.m_yAngle       =  0.0f;
-    m_Camera.m_zAngle       =  0.0f;
-    m_Camera.m_Factor.m_X   =  1.0f;
-    m_Camera.m_Factor.m_Y   =  1.0f;
-    m_Camera.m_Factor.m_Z   =  1.0f;
+    m_Camera.m_Position.m_X = 0.0f;
+    m_Camera.m_Position.m_Y = 0.0f;
+    m_Camera.m_Position.m_Z = 0.0f;
+    m_Camera.m_xAngle       = 0.0f;
+    m_Camera.m_yAngle       = 0.0f;
+    m_Camera.m_zAngle       = 0.0f;
+    m_Camera.m_Factor.m_X   = 1.0f;
+    m_Camera.m_Factor.m_Y   = 1.0f;
+    m_Camera.m_Factor.m_Z   = 1.0f;
     m_Camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
 
     // configure the scene color
@@ -240,8 +260,6 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     glDepthFunc(GL_LEQUAL);
     glDepthRangef(0.0f, 1.0f);
 
-    bool isWaveFront;
-
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
@@ -252,6 +270,8 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     sm.m_Transparent = 0;
     sm.m_Wireframe   = 0;
 
+    bool isMDL = false;
+
     // load the model
     if (fileName.rfind("mdl") == fileName.length() - 3)
     {
@@ -260,7 +280,7 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
         if (m_pMDL && m_pMDL->m_ModelCount && m_pMDL->m_pModel->m_MeshCount)
             m_pAABBTree = csrAABBTreeFromMesh(&m_pMDL->m_pModel[0].m_pMesh[0]);
 
-        isWaveFront = false;
+        isMDL = true;
     }
     else
     if (fileName.rfind("obj") == fileName.length() - 3)
@@ -269,18 +289,27 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
 
         if (m_pModel && m_pModel->m_MeshCount)
             m_pAABBTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
-
-        isWaveFront = true;
     }
 
-    // get the best model matrix to show the model centered in the scene
-    matrix = CSR_OpenGLHelper::GetBestModelMatrix(m_pAABBTree ? m_pAABBTree->m_pBox : NULL,
-                                                 -1.0f,
-                                                 !isWaveFront);
+    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
+    if (m_pAABBTree)
+        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
+    else
+        csrMat4Identity(&m_ModelMatrix);
+
+    // get the offset to use to position the model (1/10 if the camera distance)
+    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
+
+    // for the arcball mode, replace the model position by the arcball radius
+    if (rbArcball->Checked)
+    {
+        m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2];
+        m_ModelMatrix.m_Table[3][2] =  0.0f;
+    }
 
     // connect the model view matrix to shader
     const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
-    glUniformMatrix4fv(modelMatrixSlot, 1, 0, &matrix.m_Table[0][0]);
+    glUniformMatrix4fv(modelMatrixSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 
     return true;
 }
@@ -383,6 +412,22 @@ bool TScreenshotFrame::DrawScene(TBitmap* pBitmap) const
     // copy final image
     pBitmap->Assign(pAntialiasedOverlay.get());
 
+    return true;
+}
+//---------------------------------------------------------------------------
+bool TScreenshotFrame::DrawScene() const
+{
+    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+
+    // draw the model in a bitmap
+    if (!DrawScene(pBitmap.get()))
+    {
+        imScreenshot->Picture->Assign(NULL);
+        return false;
+    }
+
+    // show the model in the preview image
+    imScreenshot->Picture->Assign(pBitmap.get());
     return true;
 }
 //---------------------------------------------------------------------------

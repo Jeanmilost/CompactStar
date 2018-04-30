@@ -226,15 +226,16 @@ class CSR_OpenGLHelper
         static void GetBitmapFromOpenGL(TBitmap* pBitmap);
 
         /**
-        * Gets the best possible model matrix based on the model bounding box
-        *@param pBox - model bounding box, if 0 a box with each edges equals to 1 will be used
-        *@param zPos - the z position of the model
-        *@param rotated - if true, the model is rotated of 90° on the x axis
-        *@return the best possible model matrix
+        * Gets a model matrix which make a model to fit the viewport (as closest as possible)
+        *@param pBox - model bounding box, if 0 an identity matrix will be returned
+        *@param fov - vield of view used in the viewport, in radians
+        *@param rotated - if true, the model is rotated by default of 90° on the x axis (this is
+        *                 generally the case for the MDL models)
+        *@return the model matrix
         *@note Using this function, the model will be centered in the scene, with a normalized size
         *      and a rotation of 45° on the y axis
         */
-        static CSR_Matrix4 GetBestModelMatrix(const CSR_Box* pBox, float zPos, bool rotated);
+        static CSR_Matrix4 FitModelInView(const CSR_Box* pBox, float fov, bool rotated);
 
         /**
         * Resizes all the views
