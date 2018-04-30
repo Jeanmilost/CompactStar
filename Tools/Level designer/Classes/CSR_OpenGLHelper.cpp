@@ -282,63 +282,19 @@ void CSR_OpenGLHelper::GetBitmapFromOpenGL(TBitmap* pBitmap)
     }
 }
 //---------------------------------------------------------------------------
-CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos, bool rotated)
+CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, bool rotated)
 {
-    float       angle;
-    CSR_Vector3 t;
-    CSR_Vector3 r;
-    CSR_Vector3 factor;
-    CSR_Matrix4 translateMatrix;
-    CSR_Matrix4 rotateMatrixX;
-    CSR_Matrix4 rotateMatrixY;
-    CSR_Matrix4 rotateMatrixZ;
-    CSR_Matrix4 scaleMatrix;
-    CSR_Matrix4 combinedMatrix1;
-    CSR_Matrix4 combinedMatrix2;
-    CSR_Matrix4 combinedMatrix3;
     CSR_Matrix4 matrix;
 
-    float x           = 1.0f;
-    float y           = 1.0f;
-    float z           = 1.0f;
-    float scaleFactor = 1.0f;
-
-    // calculate the length of each model bounding box edge
-    if (pBox)
+    if (!pBox)
     {
-        x = std::fabs(pBox->m_Max.m_X - pBox->m_Min.m_X);
-        y = std::fabs(pBox->m_Max.m_Y - pBox->m_Min.m_Y);
-        z = std::fabs(pBox->m_Max.m_Z - pBox->m_Min.m_Z);
-
-        // search for longest axis
-        const float longestAxis = std::max(std::max(x, y), z) * 2.0f;
-
-        // calculate the scale factor (viewport size / longest axis)
-        scaleFactor = (zPos ? std::fabs(zPos) : 2.0f) / longestAxis;
-
-        // set translation. NOTE invert X and Y axis because the model will be rotated 90° on the x axis
-        if (rotated)
-        {
-            t.m_X = - ((pBox->m_Max.m_X + pBox->m_Min.m_X) / 2.0f) * scaleFactor;
-            t.m_Y = - ((pBox->m_Max.m_Z + pBox->m_Min.m_Z) / 2.0f) * scaleFactor;
-            t.m_Z = -(((pBox->m_Max.m_Y + pBox->m_Min.m_Y) / 2.0f) * scaleFactor) + zPos;
-        }
-        else
-        {
-            t.m_X = - ((pBox->m_Max.m_X + pBox->m_Min.m_X) / 2.0f) * scaleFactor;
-            t.m_Y = - ((pBox->m_Max.m_Y + pBox->m_Min.m_Y) / 2.0f) * scaleFactor;
-            t.m_Z = -(((pBox->m_Max.m_Z + pBox->m_Min.m_Z) / 2.0f) * scaleFactor) + zPos;
-        }
-    }
-    else
-    {
-        // set translation
-        t.m_X = 0.0f;
-        t.m_Y = 0.0f;
-        t.m_Z = zPos;
+        csrMat4Identity(&matrix);
+        return matrix;
     }
 
-    csrMat4Translate(&t, &translateMatrix);
+    float       angle;
+    CSR_Vector3 r;
+    CSR_Matrix4 rotateMatrixX;
 
     // set rotation axis
     r.m_X = 1.0f;
@@ -350,6 +306,8 @@ CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos
 
     csrMat4Rotate(angle, &r, &rotateMatrixX);
 
+    CSR_Matrix4 rotateMatrixY;
+
     // set rotation axis
     r.m_X = 0.0f;
     r.m_Y = 1.0f;
@@ -359,6 +317,8 @@ CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos
     angle = rotated ? -M_PI * 0.25f : M_PI * 0.25f;
 
     csrMat4Rotate(angle, &r, &rotateMatrixY);
+
+    CSR_Matrix4 rotateMatrixZ;
 
     // set rotation axis
     r.m_X = 0.0f;
@@ -370,17 +330,50 @@ CSR_Matrix4 CSR_OpenGLHelper::GetBestModelMatrix(const CSR_Box* pBox, float zPos
 
     csrMat4Rotate(angle, &r, &rotateMatrixZ);
 
+    CSR_Vector3 factor;
+    CSR_Matrix4 scaleMatrix;
+
     // set scale factor
-    factor.m_X = scaleFactor;
-    factor.m_Y = scaleFactor;
-    factor.m_Z = scaleFactor;
+    factor.m_X = 1.0f;
+    factor.m_Y = 1.0f;
+    factor.m_Z = 1.0f;
 
     csrMat4Scale(&factor, &scaleMatrix);
 
-    // calculate model view matrix
-    csrMat4Multiply(&scaleMatrix,     &rotateMatrixX,   &combinedMatrix1);
-    csrMat4Multiply(&combinedMatrix1, &rotateMatrixY,   &combinedMatrix2);
-    csrMat4Multiply(&combinedMatrix2, &rotateMatrixZ,   &combinedMatrix3);
+    CSR_Matrix4 combinedMatrix1;
+    CSR_Matrix4 combinedMatrix2;
+    CSR_Matrix4 combinedMatrix3;
+
+    // calculate the intermediate matrix (on which only the rotation and scaling were applied)
+    csrMat4Multiply(&scaleMatrix,     &rotateMatrixX, &combinedMatrix1);
+    csrMat4Multiply(&combinedMatrix1, &rotateMatrixY, &combinedMatrix2);
+    csrMat4Multiply(&combinedMatrix2, &rotateMatrixZ, &combinedMatrix3);
+
+    CSR_Box rotatedBox;
+    csrMat4ApplyToVector(&combinedMatrix3, &pBox->m_Min, &rotatedBox.m_Min);
+    csrMat4ApplyToVector(&combinedMatrix3, &pBox->m_Max, &rotatedBox.m_Max);
+
+    // calculate the box size (on the x and y axis
+    const float x = std::fabs(rotatedBox.m_Max.m_X - rotatedBox.m_Min.m_X);
+    const float y = std::fabs(rotatedBox.m_Max.m_Y - rotatedBox.m_Min.m_Y);
+
+    // search for longest axis and the longest viewport edge
+    const float longestAxis = std::max(x, y);
+
+    // Calculate the camera distance
+    const float distance = std::fabs(longestAxis / std::sinf(fov / 2.0f)) * 0.25f;
+
+    CSR_Vector3 t;
+    CSR_Matrix4 translateMatrix;
+
+    // set translation
+    t.m_X = -(rotatedBox.m_Min.m_X + rotatedBox.m_Max.m_X) / 2.0f;
+    t.m_Y = -(rotatedBox.m_Min.m_Y + rotatedBox.m_Max.m_Y) / 2.0f;
+    t.m_Z = -distance;
+
+    csrMat4Translate(&t, &translateMatrix);
+
+    // calculate the final model view matrix
     csrMat4Multiply(&combinedMatrix3, &translateMatrix, &matrix);
 
     return matrix;

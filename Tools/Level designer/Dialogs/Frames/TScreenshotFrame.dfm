@@ -18,7 +18,6 @@ object ScreenshotFrame: TScreenshotFrame
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitHeight = 200
     object paLeft: TPanel
       AlignWithMargins = True
       Left = 0
@@ -62,10 +61,6 @@ object ScreenshotFrame: TScreenshotFrame
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitLeft = 203
-      ExplicitTop = -16
-      ExplicitWidth = 299
-      ExplicitHeight = 200
       object blSeparator: TBevel
         AlignWithMargins = True
         Left = 3
@@ -92,7 +87,6 @@ object ScreenshotFrame: TScreenshotFrame
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        ExplicitTop = 70
         ExplicitWidth = 54
       end
       object paColor: TPanel
@@ -107,7 +101,6 @@ object ScreenshotFrame: TScreenshotFrame
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 296
         object laColorCaption: TLabel
           AlignWithMargins = True
           Left = 3
@@ -145,7 +138,6 @@ object ScreenshotFrame: TScreenshotFrame
           ParentBackground = False
           TabOrder = 0
           OnClick = paColorValueClick
-          ExplicitLeft = 276
         end
       end
       object paCameraType: TPanel
@@ -158,8 +150,6 @@ object ScreenshotFrame: TScreenshotFrame
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 19
-        ExplicitTop = 182
         object rbArcball: TRadioButton
           Left = 0
           Top = 0
@@ -181,7 +171,6 @@ object ScreenshotFrame: TScreenshotFrame
           Caption = '1st view person'
           TabOrder = 1
           OnClick = rbFirstViewPersonClick
-          ExplicitLeft = 197
         end
       end
       object paCamera: TPanel
@@ -192,9 +181,6 @@ object ScreenshotFrame: TScreenshotFrame
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
-        ExplicitLeft = 2
-        ExplicitTop = 69
-        ExplicitWidth = 125
         object paCameraCaption: TPanel
           AlignWithMargins = True
           Left = 3
@@ -204,9 +190,6 @@ object ScreenshotFrame: TScreenshotFrame
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitLeft = 11
-          ExplicitTop = 0
-          ExplicitWidth = 179
           object laCameraX: TLabel
             AlignWithMargins = True
             Left = 16
@@ -220,7 +203,7 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'X'
             Layout = tlCenter
-            ExplicitLeft = 0
+            ExplicitHeight = 13
           end
           object laCameraY: TLabel
             AlignWithMargins = True
@@ -235,7 +218,6 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Y'
             Layout = tlCenter
-            ExplicitLeft = 54
             ExplicitHeight = 13
           end
           object laCameraZ: TLabel
@@ -251,7 +233,6 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Z'
             Layout = tlCenter
-            ExplicitLeft = 92
             ExplicitHeight = 13
           end
         end
@@ -264,9 +245,6 @@ object ScreenshotFrame: TScreenshotFrame
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 1
-          ExplicitLeft = -5
-          ExplicitTop = 91
-          ExplicitWidth = 179
           object btCameraRight: TSpeedButton
             Left = 0
             Top = 0
@@ -679,7 +657,6 @@ object ScreenshotFrame: TScreenshotFrame
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 2
-          ExplicitTop = 26
           object btCameraLeft: TSpeedButton
             Left = 0
             Top = 0
