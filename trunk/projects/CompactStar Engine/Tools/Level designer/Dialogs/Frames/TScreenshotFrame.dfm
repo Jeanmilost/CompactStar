@@ -73,22 +73,6 @@ object ScreenshotFrame: TScreenshotFrame
         Shape = bsTopLine
         ExplicitWidth = 293
       end
-      object laCameraCaption: TLabel
-        AlignWithMargins = True
-        Left = 3
-        Top = 24
-        Width = 308
-        Height = 19
-        Align = alTop
-        Caption = 'Camera'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        ExplicitWidth = 54
-      end
       object paColor: TPanel
         AlignWithMargins = True
         Left = 3
@@ -134,7 +118,7 @@ object ScreenshotFrame: TScreenshotFrame
           Align = alRight
           BevelOuter = bvNone
           BorderStyle = bsSingle
-          Color = clBlack
+          Color = clWhite
           ParentBackground = False
           TabOrder = 0
           OnClick = paColorValueClick
@@ -1058,6 +1042,46 @@ object ScreenshotFrame: TScreenshotFrame
             OnClick = btCameraBackClick
             ExplicitLeft = 126
           end
+        end
+      end
+      object paCameraTitle: TPanel
+        Left = 0
+        Top = 21
+        Width = 314
+        Height = 25
+        Align = alTop
+        BevelOuter = bvNone
+        TabOrder = 3
+        object laCameraTitle: TLabel
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 258
+          Height = 19
+          Align = alClient
+          Caption = 'Camera'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -16
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitTop = 0
+          ExplicitWidth = 308
+        end
+        object btReset: TButton
+          AlignWithMargins = True
+          Left = 264
+          Top = 3
+          Width = 50
+          Height = 19
+          Margins.Left = 0
+          Margins.Right = 0
+          Align = alRight
+          Caption = 'Reset'
+          TabOrder = 0
+          OnClick = btResetClick
+          ExplicitLeft = 256
         end
       end
     end

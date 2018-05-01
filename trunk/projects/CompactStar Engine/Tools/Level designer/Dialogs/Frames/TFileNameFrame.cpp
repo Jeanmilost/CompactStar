@@ -44,6 +44,12 @@ void __fastcall TFileNameFrame::btBrowseClick(TObject* pSender)
         m_fOnFileSelected(this, edFileName->Text.c_str());
 }
 //---------------------------------------------------------------------------
+void TFileNameFrame::Enable(bool value)
+{
+    edFileName->Enabled = value;
+    btBrowse->Enabled   = value;
+}
+//---------------------------------------------------------------------------
 void TFileNameFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
 {
     m_fOnFileSelected = fHandler;

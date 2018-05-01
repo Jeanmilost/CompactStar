@@ -50,7 +50,7 @@ class TScreenshotFrame : public TFrame
         TRadioButton *rbArcball;
         TRadioButton *rbFirstViewPerson;
         TBevel *blSeparator;
-        TLabel *laCameraCaption;
+        TLabel *laCameraTitle;
         TPanel *paCameraCaption;
         TPanel *paCameraUp;
         TPanel *paCameraDown;
@@ -64,6 +64,8 @@ class TScreenshotFrame : public TFrame
         TLabel *laCameraY;
         TLabel *laCameraZ;
         TPanel *paCamera;
+        TButton *btReset;
+        TPanel *paCameraTitle;
 
         void __fastcall FrameResize(TObject* pSender);
         void __fastcall btCameraLeftClick(TObject* pSender);
@@ -72,6 +74,7 @@ class TScreenshotFrame : public TFrame
         void __fastcall btCameraDownClick(TObject* pSender);
         void __fastcall btCameraBackClick(TObject* pSender);
         void __fastcall btCameraFrontClick(TObject* pSender);
+        void __fastcall btResetClick(TObject* pSender);
         void __fastcall rbArcballClick(TObject* pSender);
         void __fastcall rbFirstViewPersonClick(TObject* pSender);
         void __fastcall paColorValueClick(TObject* pSender);
@@ -84,6 +87,12 @@ class TScreenshotFrame : public TFrame
         __fastcall TScreenshotFrame(TComponent* pOwner);
 
         __fastcall ~TScreenshotFrame();
+
+        /**
+        * Enables or disables the frame
+        *@param value - if true, the frame is enabled, disabled otherwise
+        */
+        void Enable(bool value);
 
         /**
         * Loads the model for which the screenshot should be created
@@ -112,6 +121,8 @@ class TScreenshotFrame : public TFrame
         CSR_Matrix4                m_ModelMatrix;
         int                        m_AntialiasingFactor;
         float                      m_Offset;
+        float                      m_ArcBallOffset;
+        bool                       m_Reseting;
 
         /**
         * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
@@ -121,6 +132,11 @@ class TScreenshotFrame : public TFrame
         *@return true on success, otherwise false
         */
         bool CreateScene(const std::string& fileName, int width, int height);
+
+        /**
+        * Resets the scene to his default value
+        */
+        void ResetScene();
 
         /**
         * Releases a previously created screenshot scene
