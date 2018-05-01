@@ -36,7 +36,10 @@ __fastcall TScreenshotFrame::TScreenshotFrame(TComponent* pOwner) :
     m_pMDL(NULL),
     m_pModel(NULL),
     m_pAABBTree(NULL),
-    m_AntialiasingFactor(4)
+    m_AntialiasingFactor(4),
+    m_Offset(0.0f),
+    m_ArcBallOffset(0.1f),
+    m_Reseting(false)
 {}
 //---------------------------------------------------------------------------
 __fastcall TScreenshotFrame::~TScreenshotFrame()
@@ -55,28 +58,59 @@ void __fastcall TScreenshotFrame::FrameResize(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraLeftClick(TObject* pSender)
 {
-    //
+    // move the camera
+    if (rbArcball->Checked)
+        m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY - m_ArcBallOffset, M_PI * 2.0f);
+    else
+        m_Camera.m_Position.m_X -= m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraRightClick(TObject* pSender)
 {
-    //
+    // move the camera
+    if (rbArcball->Checked)
+        m_ArcBall.m_AngleY = std::fmod(m_ArcBall.m_AngleY + m_ArcBallOffset, M_PI * 2.0f);
+    else
+        m_Camera.m_Position.m_X += m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraUpClick(TObject* pSender)
 {
-    //
+    // move the camera
+    if (rbArcball->Checked)
+        m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX + m_ArcBallOffset, M_PI * 2.0f);
+    else
+        m_Camera.m_Position.m_Y += m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraDownClick(TObject* pSender)
 {
-    //
+    // move the camera
+    if (rbArcball->Checked)
+        m_ArcBall.m_AngleX = std::fmod(m_ArcBall.m_AngleX - m_ArcBallOffset, M_PI * 2.0f);
+    else
+        m_Camera.m_Position.m_Y -= m_Offset;
+
+    // redraw the scene
+    DrawScene();
 }
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
 {
     // move the camera
-    m_Camera.m_Position.m_Z -= m_Offset;
+    if (rbArcball->Checked)
+        m_ArcBall.m_Radius += m_Offset;
+    else
+        m_Camera.m_Position.m_Z -= m_Offset;
 
     // redraw the scene
     DrawScene();
@@ -85,7 +119,30 @@ void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
 void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
 {
     // move the camera
-    m_Camera.m_Position.m_Z += m_Offset;
+    if (rbArcball->Checked)
+        m_ArcBall.m_Radius -= m_Offset;
+    else
+        m_Camera.m_Position.m_Z += m_Offset;
+
+    // redraw the scene
+    DrawScene();
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::btResetClick(TObject* pSender)
+{
+    // if the scene was not initialized, do nothing
+    if (!m_SceneContext.m_hDC || !m_SceneContext.m_hRC || !m_pSceneShader)
+    {
+        imScreenshot->Picture->Assign(NULL);
+        return;
+    }
+
+    // enable view context and shader
+    wglMakeCurrent(m_SceneContext.m_hDC, m_SceneContext.m_hRC);
+    csrShaderEnable(m_pSceneShader);
+
+    // reset the scene to his default state
+    ResetScene();
 
     // redraw the scene
     DrawScene();
@@ -93,18 +150,23 @@ void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
 {
-    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
-    if (m_pAABBTree)
-        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
-    else
-        csrMat4Identity(&m_ModelMatrix);
+    if (m_Reseting)
+        return;
 
-    // get the offset to use to position the model (1/10 of the camera distance)
-    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
+    // if the scene was not initialized, do nothing
+    if (!m_SceneContext.m_hDC || !m_SceneContext.m_hRC || !m_pSceneShader)
+    {
+        imScreenshot->Picture->Assign(NULL);
+        return;
+    }
 
     // for the arcball mode, update the arcball radius but let the model on the scene center
-    m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2];
+    m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2] - m_Camera.m_Position.m_Z;
     m_ModelMatrix.m_Table[3][2] =  0.0f;
+
+    // enable view context and shader
+    wglMakeCurrent(m_SceneContext.m_hDC, m_SceneContext.m_hRC);
+    csrShaderEnable(m_pSceneShader);
 
     // connect the model view matrix to shader
     const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
@@ -116,17 +178,23 @@ void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbFirstViewPersonClick(TObject* pSender)
 {
-    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
-    if (m_pAABBTree)
-        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
-    else
-        csrMat4Identity(&m_ModelMatrix);
+    if (m_Reseting)
+        return;
 
-    // get the offset to use to position the model (1/10 of the camera distance)
-    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
+    // if the scene was not initialized, do nothing
+    if (!m_SceneContext.m_hDC || !m_SceneContext.m_hRC || !m_pSceneShader)
+    {
+        imScreenshot->Picture->Assign(NULL);
+        return;
+    }
 
-    // reset the camera z position
-    m_Camera.m_Position.m_Z = 0.0f;
+    // for the first view mode, update the model z position and replace the camera on the center
+    m_ModelMatrix.m_Table[3][2] = -m_ArcBall.m_Radius;
+    m_Camera.m_Position.m_Z     =  0.0f;
+
+    // enable view context and shader
+    wglMakeCurrent(m_SceneContext.m_hDC, m_SceneContext.m_hRC);
+    csrShaderEnable(m_pSceneShader);
 
     // connect the model view matrix to shader
     const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
@@ -151,6 +219,20 @@ void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
 
     // redraw the scene
     DrawScene();
+}
+//---------------------------------------------------------------------------
+void TScreenshotFrame::Enable(bool value)
+{
+    paColorValue->Enabled      = value;
+    btCameraLeft->Enabled      = value;
+    btCameraUp->Enabled        = value;
+    btCameraBack->Enabled      = value;
+    btCameraRight->Enabled     = value;
+    btCameraDown->Enabled      = value;
+    btCameraFront->Enabled     = value;
+    btReset->Enabled           = value;
+    rbArcball->Enabled         = value;
+    rbFirstViewPerson->Enabled = value;
 }
 //---------------------------------------------------------------------------
 bool TScreenshotFrame::LoadModel(const std::string& fileName)
@@ -230,29 +312,6 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     // create a viewport
     CSR_OpenGLHelper::CreateViewport(drawWidth, drawHeight, m_pSceneShader, matrix);
 
-    // initialize the arcball default values
-    m_ArcBall.m_AngleX = 0.0f;
-    m_ArcBall.m_AngleY = 0.0f;
-    m_ArcBall.m_Radius = 1.0f;
-
-    // initialize the camera default values
-    m_Camera.m_Position.m_X = 0.0f;
-    m_Camera.m_Position.m_Y = 0.0f;
-    m_Camera.m_Position.m_Z = 0.0f;
-    m_Camera.m_xAngle       = 0.0f;
-    m_Camera.m_yAngle       = 0.0f;
-    m_Camera.m_zAngle       = 0.0f;
-    m_Camera.m_Factor.m_X   = 1.0f;
-    m_Camera.m_Factor.m_Y   = 1.0f;
-    m_Camera.m_Factor.m_Z   = 1.0f;
-    m_Camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
-
-    // configure the scene color
-    m_SceneColor.m_R = 0.0f;
-    m_SceneColor.m_G = 0.0f;
-    m_SceneColor.m_B = 0.0f;
-    m_SceneColor.m_A = 1.0f;
-
     // configure OpenGL
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
@@ -270,8 +329,6 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
     sm.m_Transparent = 0;
     sm.m_Wireframe   = 0;
 
-    bool isMDL = false;
-
     // load the model
     if (fileName.rfind("mdl") == fileName.length() - 3)
     {
@@ -279,8 +336,6 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
 
         if (m_pMDL && m_pMDL->m_ModelCount && m_pMDL->m_pModel->m_MeshCount)
             m_pAABBTree = csrAABBTreeFromMesh(&m_pMDL->m_pModel[0].m_pMesh[0]);
-
-        isMDL = true;
     }
     else
     if (fileName.rfind("obj") == fileName.length() - 3)
@@ -291,27 +346,67 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName, int width, int h
             m_pAABBTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
     }
 
-    // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
-    if (m_pAABBTree)
-        m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, isMDL);
-    else
-        csrMat4Identity(&m_ModelMatrix);
-
-    // get the offset to use to position the model (1/10 if the camera distance)
-    m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
-
-    // for the arcball mode, replace the model position by the arcball radius
-    if (rbArcball->Checked)
-    {
-        m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2];
-        m_ModelMatrix.m_Table[3][2] =  0.0f;
-    }
-
-    // connect the model view matrix to shader
-    const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
-    glUniformMatrix4fv(modelMatrixSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+    // set the scene to his default state
+    ResetScene();
 
     return true;
+}
+//---------------------------------------------------------------------------
+void TScreenshotFrame::ResetScene()
+{
+    try
+    {
+        m_Reseting = true;
+
+        // initialize the arcball default values
+        m_ArcBall.m_AngleX = 0.0f;
+        m_ArcBall.m_AngleY = 0.0f;
+        m_ArcBall.m_Radius = 1.0f;
+
+        // initialize the camera default values
+        m_Camera.m_Position.m_X = 0.0f;
+        m_Camera.m_Position.m_Y = 0.0f;
+        m_Camera.m_Position.m_Z = 0.0f;
+        m_Camera.m_xAngle       = 0.0f;
+        m_Camera.m_yAngle       = 0.0f;
+        m_Camera.m_zAngle       = 0.0f;
+        m_Camera.m_Factor.m_X   = 1.0f;
+        m_Camera.m_Factor.m_Y   = 1.0f;
+        m_Camera.m_Factor.m_Z   = 1.0f;
+        m_Camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
+
+        // configure the scene color
+        m_SceneColor.m_R = 1.0f;
+        m_SceneColor.m_G = 1.0f;
+        m_SceneColor.m_B = 1.0f;
+        m_SceneColor.m_A = 1.0f;
+
+        // update the interface
+        imScreenshot->Picture->Assign(NULL);
+        paColorValue->Color = clWhite;
+        rbArcball->Checked  = true;
+
+        // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
+        if (m_pAABBTree)
+            m_ModelMatrix = CSR_OpenGLHelper::FitModelInView(m_pAABBTree->m_pBox, M_PI / 8.0f, m_pMDL);
+        else
+            csrMat4Identity(&m_ModelMatrix);
+
+        // get the offset to use to position the model (1/10 if the camera distance)
+        m_Offset = std::fabs(m_ModelMatrix.m_Table[3][2]) / 10.0f;
+
+        // for the arcball mode, replace the model position by the arcball radius
+        m_ArcBall.m_Radius          = -m_ModelMatrix.m_Table[3][2];
+        m_ModelMatrix.m_Table[3][2] =  0.0f;
+
+        // connect the model view matrix to shader
+        const GLint modelMatrixSlot = glGetUniformLocation(m_pSceneShader->m_ProgramID, "csr_uModel");
+        glUniformMatrix4fv(modelMatrixSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+    }
+    __finally
+    {
+        m_Reseting = false;
+    }
 }
 //---------------------------------------------------------------------------
 void TScreenshotFrame::ReleaseScene()

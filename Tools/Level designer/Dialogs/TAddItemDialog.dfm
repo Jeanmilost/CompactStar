@@ -1118,6 +1118,8 @@ object AddItemDialog: TAddItemDialog
       object tsIcon: TTabSheet
         Caption = 'tsIcon'
         ImageIndex = 3
+        ExplicitLeft = 3
+        ExplicitTop = 25
         object blIconSeparator: TBevel
           AlignWithMargins = True
           Left = 3
@@ -1128,8 +1130,7 @@ object AddItemDialog: TAddItemDialog
           Margins.Bottom = 0
           Align = alTop
           Shape = bsTopLine
-          ExplicitLeft = 19
-          ExplicitTop = 18
+          ExplicitTop = 30
         end
         object laIconTitle: TLabel
           AlignWithMargins = True
@@ -1150,12 +1151,12 @@ object AddItemDialog: TAddItemDialog
         inline sfScreenshot: TScreenshotFrame
           AlignWithMargins = True
           Left = 3
-          Top = 35
+          Top = 115
           Width = 349
           Height = 185
           Margins.Bottom = 0
           Align = alTop
-          TabOrder = 0
+          TabOrder = 2
           ExplicitLeft = 3
           ExplicitTop = 35
           ExplicitWidth = 349
@@ -1164,51 +1165,120 @@ object AddItemDialog: TAddItemDialog
             ExplicitWidth = 349
             inherited paRight: TPanel
               Width = 164
-              ExplicitLeft = 185
-              ExplicitWidth = 199
+              ExplicitWidth = 164
               inherited blSeparator: TBevel
                 Width = 158
-              end
-              inherited laCameraCaption: TLabel
-                Width = 158
+                ExplicitWidth = 158
               end
               inherited paColor: TPanel
                 Width = 161
-                ExplicitWidth = 146
+                ExplicitWidth = 161
                 inherited paColorValue: TPanel
                   Left = 141
-                  ExplicitLeft = 126
+                  ExplicitLeft = 141
                 end
               end
               inherited paCameraType: TPanel
                 Width = 158
-                ExplicitLeft = 3
-                ExplicitTop = 164
-                ExplicitWidth = 143
+                ExplicitWidth = 158
                 inherited rbFirstViewPerson: TRadioButton
                   Left = 62
-                  ExplicitLeft = 47
+                  ExplicitLeft = 62
                 end
               end
               inherited paCamera: TPanel
                 Width = 164
+                ExplicitWidth = 164
                 inherited paCameraCaption: TPanel
-                  inherited laCameraX: TLabel
-                    Height = 13
-                    ExplicitLeft = 16
-                    ExplicitHeight = 13
-                  end
-                  inherited laCameraY: TLabel
-                    Height = 13
-                    ExplicitLeft = 57
-                  end
-                  inherited laCameraZ: TLabel
-                    Height = 13
-                    ExplicitLeft = 98
-                  end
+                  Width = 158
+                  ExplicitWidth = 158
+                end
+                inherited paCameraDown: TPanel
+                  Width = 158
+                  ExplicitWidth = 158
+                end
+                inherited paCameraUp: TPanel
+                  Width = 158
+                  ExplicitWidth = 158
+                end
+              end
+              inherited paCameraTitle: TPanel
+                Width = 164
+                ExplicitWidth = 164
+                inherited laCameraTitle: TLabel
+                  Width = 108
+                  ExplicitTop = 3
+                  ExplicitWidth = 54
+                end
+                inherited btReset: TButton
+                  Left = 114
+                  ExplicitLeft = 114
                 end
               end
             end
+          end
+        end
+        object rbIconDefault: TRadioButton
+          AlignWithMargins = True
+          Left = 3
+          Top = 52
+          Width = 349
+          Height = 17
+          Margins.Top = 20
+          Align = alTop
+          Caption = 'Use a default icon'
+          Checked = True
+          TabOrder = 0
+          TabStop = True
+          OnClick = rbIconDefaultClick
+          ExplicitLeft = 16
+          ExplicitTop = 15
+          ExplicitWidth = 355
+        end
+        object rbIconScreenshot: TRadioButton
+          AlignWithMargins = True
+          Left = 3
+          Top = 92
+          Width = 349
+          Height = 17
+          Margins.Top = 20
+          Align = alTop
+          Caption = 'Take a screenshot'
+          TabOrder = 1
+          OnClick = rbIconScreenshotClick
+          ExplicitLeft = 32
+          ExplicitTop = 35
+          ExplicitWidth = 355
+        end
+        object rbImage: TRadioButton
+          AlignWithMargins = True
+          Left = 3
+          Top = 320
+          Width = 349
+          Height = 17
+          Margins.Top = 20
+          Align = alTop
+          Caption = 'Use an external image'
+          TabOrder = 3
+          OnClick = rbImageClick
+          ExplicitLeft = -3
+          ExplicitTop = 325
+          ExplicitWidth = 355
+        end
+        inline fnIconImageFile: TFileNameFrame
+          Left = 0
+          Top = 340
+          Width = 355
+          Height = 25
+          Align = alTop
+          TabOrder = 4
+          ExplicitLeft = -81
+          ExplicitTop = 368
+          inherited edFileName: TEdit
+            Width = 316
+          end
+          inherited btBrowse: TButton
+            Left = 322
           end
         end
       end

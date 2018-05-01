@@ -41,6 +41,10 @@ __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
     // to compensate the hidden tabs height
     Height = Height - 26;
 
+    // set the default interface state
+    sfScreenshot->Enable(false);
+    fnIconImageFile->Enable(false);
+
     ffModelFile->Set_OnFileSelected(OnFileSelected);
 }
 //---------------------------------------------------------------------------
@@ -55,6 +59,27 @@ void __fastcall TAddItemDialog::FormShow(TObject* pSender)
                              8;
 }
 //---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::rbIconDefaultClick(TObject* pSender)
+{
+    // set the default interface state
+    sfScreenshot->Enable(false);
+    fnIconImageFile->Enable(false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::rbIconScreenshotClick(TObject* pSender)
+{
+    // set the default interface state
+    sfScreenshot->Enable(true);
+    fnIconImageFile->Enable(false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::rbImageClick(TObject* pSender)
+{
+    // set the default interface state
+    sfScreenshot->Enable(false);
+    fnIconImageFile->Enable(true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::btCancelClick(TObject* pSender)
 {
     ModalResult = mrCancel;
@@ -62,13 +87,16 @@ void __fastcall TAddItemDialog::btCancelClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
 {
+    // ok button is always disabled in this case
     btOK->Enabled = false;
 
+    // select the action to apply depending on the currently shown tab
     if (pcWizard->ActivePage == tsConfig)
     {
+        // configuring a model?
         if (m_ModelType == IE_MT_Model)
         {
-            btNext->Enabled      = false;
+            btNext->Enabled      = ModelFileExists();
             pcWizard->ActivePage = tsModel;
             return;
         }
@@ -86,6 +114,17 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
         btNext->Enabled      = true;
         pcWizard->ActivePage = tsSelectItem;
     }
+    else
+    if (pcWizard->ActivePage == tsIcon)
+    {
+        btNext->Enabled      = true;
+        pcWizard->ActivePage = tsConfig;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
+{
+    ModalResult = mrOk;
 }
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
@@ -158,15 +197,9 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
-{
-    ModalResult = mrOk;
-}
-//---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnSelectItemButtonClick(TObject* pSender)
 {
-    btNext->Enabled =
-            (pcWizard->ActivePage == tsSelectItem || (pcWizard->ActivePage == tsModel && ModelFileExists()));
+    btNext->Enabled = ModelFileExists();
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const

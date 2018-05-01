@@ -81,12 +81,19 @@ class TAddItemDialog : public TForm
         TBevel *blIconSeparator;
         TLabel *laIconTitle;
         TScreenshotFrame *sfScreenshot;
+        TRadioButton *rbIconDefault;
+        TRadioButton *rbIconScreenshot;
+        TRadioButton *rbImage;
+        TFileNameFrame *fnIconImageFile;
 
         void __fastcall FormShow(TObject* pSender);
+        void __fastcall rbIconDefaultClick(TObject* pSender);
+        void __fastcall rbIconScreenshotClick(TObject* pSender);
+        void __fastcall rbImageClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
         void __fastcall btBackClick(TObject* pSender);
-        void __fastcall OnNextClick(TObject* pSender);
         void __fastcall btOKClick(TObject* pSender);
+        void __fastcall OnNextClick(TObject* pSender);
         void __fastcall OnSelectItemButtonClick(TObject* pSender);
 
     public:

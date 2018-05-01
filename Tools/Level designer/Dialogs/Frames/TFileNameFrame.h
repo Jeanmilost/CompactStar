@@ -51,6 +51,12 @@ class TFileNameFrame : public TFrame
         __fastcall TFileNameFrame(TComponent* pOwner);
 
         /**
+        * Enables or disables the frame
+        *@param value - if true, the frame is enabled, disabled otherwise
+        */
+        void Enable(bool value);
+
+        /**
         * Set OnFileSelected callback function
         *@param fHandler - function handler
         */
