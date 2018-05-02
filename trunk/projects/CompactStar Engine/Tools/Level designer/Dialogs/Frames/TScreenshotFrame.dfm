@@ -90,7 +90,7 @@ object ScreenshotFrame: TScreenshotFrame
           Left = 3
           Top = 0
           Width = 123
-          Height = 20
+          Height = 19
           Margins.Top = 0
           Margins.Right = 0
           Margins.Bottom = 0
@@ -103,7 +103,6 @@ object ScreenshotFrame: TScreenshotFrame
           Font.Style = []
           ParentFont = False
           Layout = tlCenter
-          ExplicitHeight = 19
         end
         object paColorValue: TPanel
           AlignWithMargins = True
@@ -179,7 +178,7 @@ object ScreenshotFrame: TScreenshotFrame
             Left = 16
             Top = 0
             Width = 6
-            Height = 20
+            Height = 13
             Margins.Left = 16
             Margins.Top = 0
             Margins.Right = 16
@@ -187,14 +186,13 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'X'
             Layout = tlCenter
-            ExplicitHeight = 13
           end
           object laCameraY: TLabel
             AlignWithMargins = True
             Left = 57
             Top = 0
             Width = 6
-            Height = 20
+            Height = 13
             Margins.Left = 19
             Margins.Top = 0
             Margins.Right = 16
@@ -202,14 +200,13 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Y'
             Layout = tlCenter
-            ExplicitHeight = 13
           end
           object laCameraZ: TLabel
             AlignWithMargins = True
             Left = 98
             Top = 0
             Width = 6
-            Height = 20
+            Height = 13
             Margins.Left = 19
             Margins.Top = 0
             Margins.Right = 16
@@ -217,7 +214,6 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Z'
             Layout = tlCenter
-            ExplicitHeight = 13
           end
         end
         object paCameraDown: TPanel
@@ -1056,7 +1052,7 @@ object ScreenshotFrame: TScreenshotFrame
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 258
+          Width = 54
           Height = 19
           Align = alClient
           Caption = 'Camera'
@@ -1066,8 +1062,6 @@ object ScreenshotFrame: TScreenshotFrame
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 0
-          ExplicitWidth = 308
         end
         object btReset: TButton
           AlignWithMargins = True

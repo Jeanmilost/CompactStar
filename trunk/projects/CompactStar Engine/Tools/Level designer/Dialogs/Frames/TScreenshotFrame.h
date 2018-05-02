@@ -29,6 +29,7 @@
 #include "CSR_Scene.h"
 
 // classes
+#include "CSR_DesignerHelper.h"
 #include "CSR_OpenGLHelper.h"
 
 /**
@@ -96,10 +97,18 @@ class TScreenshotFrame : public TFrame
 
         /**
         * Loads the model for which the screenshot should be created
-        *@param fileName - model file name to load
+        *@param type - model type to create
+        *@param fileName - model file name to load, ignored if model type isn't set to IE_MT_Model
+        *@param textureFileName - model texture file name, ignored if empty
+        *@param bumpmapFileName - model bumpmap file name, ignored if empty
+        *@param color - vertex color
         *@return true on success, otherwise false
         */
-        bool LoadModel(const std::string& fileName);
+        bool LoadModel(      CSR_DesignerHelper::IEModelType type,
+                       const std::wstring&                   fileName,
+                       const std::wstring&                   textureFileName,
+                       const std::wstring&                   bumpmapFileName,
+                             unsigned                        color);
 
         /**
         * Gets a screenshot of the model belonging to the item
@@ -113,8 +122,9 @@ class TScreenshotFrame : public TFrame
         TForm*                     m_pSceneOverlayForm;
         CSR_Shader*                m_pSceneShader;
         CSR_Color                  m_SceneColor;
-        CSR_MDL*                   m_pMDL;
+        CSR_Mesh*                  m_pMesh;
         CSR_Model*                 m_pModel;
+        CSR_MDL*                   m_pMDL;
         CSR_AABBNode*              m_pAABBTree;
         CSR_ArcBall                m_ArcBall;
         CSR_Camera                 m_Camera;
@@ -126,17 +136,42 @@ class TScreenshotFrame : public TFrame
 
         /**
         * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
+        *@param type - model type to export as a screenshot
+        *@param width - screenshot width
+        *@param height - screenshot height
+        *@param color - vertex color
+        *@return true on success, otherwise false
+        */
+        bool CreateScene(CSR_DesignerHelper::IEModelType type,
+                         int                             width,
+                         int                             height,
+                         unsigned                        color);
+
+        /**
+        * Creates an offscreen scene in which the model can be drawn to be exported as a screenshot
         *@param fileName - model file name to export as a screenshot
         *@param width - screenshot width
         *@param height - screenshot height
+        *@param color - vertex color
         *@return true on success, otherwise false
         */
-        bool CreateScene(const std::string& fileName, int width, int height);
+        bool CreateScene(const std::string& fileName,
+                               int          width,
+                               int          height,
+                               unsigned     color);
 
         /**
         * Resets the scene to his default value
         */
         void ResetScene();
+
+        /**
+        * Initializes a screenshot scene
+        *@param width - screenshot width
+        *@param height - screenshot height
+        *@return true on success, otherwise false
+        */
+        bool InitializeScene(int width, int height);
 
         /**
         * Releases a previously created screenshot scene

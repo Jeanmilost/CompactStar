@@ -33,7 +33,7 @@ TAddItemDialog* AddItemDialog;
 //---------------------------------------------------------------------------
 __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
     TForm(pOwner),
-    m_ModelType(IE_MT_Unknown)
+    m_ModelType(CSR_DesignerHelper::IE_MT_Unknown)
 {
     // hide the wizard tabs
     CSR_VCLHelper::ChangeTabsVisibility(pcWizard, tsSelectItem, false);
@@ -94,14 +94,14 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
     if (pcWizard->ActivePage == tsConfig)
     {
         // configuring a model?
-        if (m_ModelType == IE_MT_Model)
+        if (m_ModelType == CSR_DesignerHelper::IE_MT_Model)
         {
             btNext->Enabled      = ModelFileExists();
             pcWizard->ActivePage = tsModel;
             return;
         }
 
-        m_ModelType          = IE_MT_Unknown;
+        m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
         btBack->Enabled      = false;
         btNext->Enabled      = true;
         pcWizard->ActivePage = tsSelectItem;
@@ -109,7 +109,7 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
     else
     if (pcWizard->ActivePage == tsModel)
     {
-        m_ModelType          = IE_MT_Unknown;
+        m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
         btBack->Enabled      = false;
         btNext->Enabled      = true;
         pcWizard->ActivePage = tsSelectItem;
@@ -129,58 +129,59 @@ void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
 {
-    // search for selected page
+    // select the action to apply depending on the currently shown tab
     if (pcWizard->ActivePage == tsSelectItem)
     {
         btBack->Enabled = true;
+        btNext->Enabled = true;
         btOK->Enabled   = false;
 
         // search for selected item
         if (btSelectItemAddSurface->Down)
         {
-            m_ModelType          = IE_MT_Surface;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Surface;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddBox->Down)
         {
-            m_ModelType          = IE_MT_Box;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Box;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddSphere->Down)
         {
-            m_ModelType          = IE_MT_Sphere;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Sphere;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddCylinder->Down)
         {
-            m_ModelType          = IE_MT_Cylinder;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Cylinder;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddDisk->Down)
         {
-            m_ModelType          = IE_MT_Disk;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Disk;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddRing->Down)
         {
-            m_ModelType          = IE_MT_Ring;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Ring;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddSpiral->Down)
         {
-            m_ModelType          = IE_MT_Spiral;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Spiral;
             pcWizard->ActivePage = tsConfig;
         }
         else
         if (btSelectItemAddModel->Down)
         {
-            m_ModelType          = IE_MT_Model;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Model;
             btNext->Enabled      = ModelFileExists();
             pcWizard->ActivePage = tsModel;
         }
@@ -191,6 +192,22 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     else
     if (pcWizard->ActivePage == tsConfig)
     {
+        // take a screenshot of the model. This also will check if the model can be built
+        if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
+            if (!sfScreenshot->LoadModel(m_ModelType,
+                                         L"",
+                                         tsConfigTexture->edTextureFile->Text.c_str(),
+                                         tsConfigBump->edTextureFile->Text.c_str(),
+                                         GetVertexColor()))
+            {
+                ::MessageDlg(L"An error occurred while the model was opened.\n\nPlease check your parameters and try again.",
+                             mtError,
+                             TMsgDlgButtons() << mbOK,
+                             0);
+
+                return;
+            }
+
         pcWizard->ActivePage = tsIcon;
         btNext->Enabled      = false;
         btOK->Enabled        = true;
@@ -199,7 +216,7 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnSelectItemButtonClick(TObject* pSender)
 {
-    btNext->Enabled = ModelFileExists();
+    btNext->Enabled = (m_ModelType != CSR_DesignerHelper::IE_MT_Model || ModelFileExists());
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
@@ -207,9 +224,15 @@ bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
     // FIXME
 }
 //---------------------------------------------------------------------------
-TAddItemDialog::IEModelType TAddItemDialog::GetModelType() const
+CSR_DesignerHelper::IEModelType TAddItemDialog::GetModelType() const
 {
     return m_ModelType;
+}
+//---------------------------------------------------------------------------
+unsigned TAddItemDialog::GetVertexColor() const
+{
+    return csrColorBGRToRGBA(::ColorToRGB(vcConfigVertexColor->paColor->Color)) |
+            (((vcConfigVertexColor->tbOpacity->Position * 255) / 100) & 0xFF);
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::ModelFileExists() const
@@ -221,7 +244,11 @@ bool TAddItemDialog::ModelFileExists() const
 void __fastcall TAddItemDialog::OnFileSelected(TObject* pSender, const std::wstring& fileName)
 {
     // model file exists and can be loaded
-    if (ModelFileExists() && sfScreenshot->LoadModel(AnsiString(UnicodeString(fileName.c_str())).c_str()))
+    if (ModelFileExists() && sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
+                                                     fileName,
+                                                     tsConfigTexture->edTextureFile->Text.c_str(),
+                                                     tsConfigBump->edTextureFile->Text.c_str(),
+                                                     GetVertexColor()))
     {
         btNext->Enabled = true;
         return;
