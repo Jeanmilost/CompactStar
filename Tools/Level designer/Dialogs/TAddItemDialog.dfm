@@ -88,7 +88,7 @@ object AddItemDialog: TAddItemDialog
       Top = 0
       Width = 363
       Height = 434
-      ActivePage = tsIcon
+      ActivePage = tsConfig
       Align = alClient
       TabOrder = 0
       object tsSelectItem: TTabSheet
@@ -981,7 +981,7 @@ object AddItemDialog: TAddItemDialog
           ExplicitTop = 254
           ExplicitWidth = 442
         end
-        inline tsfConfigTexture: TTextureSelectionFrame
+        inline tsConfigTexture: TTextureSelectionFrame
           Left = 0
           Top = 152
           Width = 355
@@ -1026,7 +1026,7 @@ object AddItemDialog: TAddItemDialog
             end
           end
         end
-        inline tsfConfigBump: TTextureSelectionFrame
+        inline tsConfigBump: TTextureSelectionFrame
           Left = 0
           Top = 289
           Width = 355
@@ -1091,7 +1091,7 @@ object AddItemDialog: TAddItemDialog
             'Use pre-calculated light')
           TabOrder = 0
         end
-        inline vcfConfigVertexColor: TVertexColorFrame
+        inline vcConfigVertexColor: TVertexColorFrame
           Left = 0
           Top = 95
           Width = 355
@@ -1118,8 +1118,6 @@ object AddItemDialog: TAddItemDialog
       object tsIcon: TTabSheet
         Caption = 'tsIcon'
         ImageIndex = 3
-        ExplicitLeft = 3
-        ExplicitTop = 25
         object blIconSeparator: TBevel
           AlignWithMargins = True
           Left = 3
@@ -1158,7 +1156,7 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 2
           ExplicitLeft = 3
-          ExplicitTop = 35
+          ExplicitTop = 115
           ExplicitWidth = 349
           inherited paBackground: TPanel
             Width = 349
@@ -1173,6 +1171,9 @@ object AddItemDialog: TAddItemDialog
               inherited paColor: TPanel
                 Width = 161
                 ExplicitWidth = 161
+                inherited laColorCaption: TLabel
+                  Height = 20
+                end
                 inherited paColorValue: TPanel
                   Left = 141
                   ExplicitLeft = 141
@@ -1192,6 +1193,15 @@ object AddItemDialog: TAddItemDialog
                 inherited paCameraCaption: TPanel
                   Width = 158
                   ExplicitWidth = 158
+                  inherited laCameraX: TLabel
+                    Height = 20
+                  end
+                  inherited laCameraY: TLabel
+                    Height = 20
+                  end
+                  inherited laCameraZ: TLabel
+                    Height = 20
+                  end
                 end
                 inherited paCameraDown: TPanel
                   Width = 158
@@ -1207,8 +1217,6 @@ object AddItemDialog: TAddItemDialog
                 ExplicitWidth = 164
                 inherited laCameraTitle: TLabel
                   Width = 108
-                  ExplicitTop = 3
-                  ExplicitWidth = 54
                 end
                 inherited btReset: TButton
                   Left = 114
@@ -1231,9 +1239,6 @@ object AddItemDialog: TAddItemDialog
           TabOrder = 0
           TabStop = True
           OnClick = rbIconDefaultClick
-          ExplicitLeft = 16
-          ExplicitTop = 15
-          ExplicitWidth = 355
         end
         object rbIconScreenshot: TRadioButton
           AlignWithMargins = True
@@ -1246,9 +1251,6 @@ object AddItemDialog: TAddItemDialog
           Caption = 'Take a screenshot'
           TabOrder = 1
           OnClick = rbIconScreenshotClick
-          ExplicitLeft = 32
-          ExplicitTop = 35
-          ExplicitWidth = 355
         end
         object rbImage: TRadioButton
           AlignWithMargins = True
@@ -1261,9 +1263,6 @@ object AddItemDialog: TAddItemDialog
           Caption = 'Use an external image'
           TabOrder = 3
           OnClick = rbImageClick
-          ExplicitLeft = -3
-          ExplicitTop = 325
-          ExplicitWidth = 355
         end
         inline fnIconImageFile: TFileNameFrame
           Left = 0
@@ -1272,13 +1271,15 @@ object AddItemDialog: TAddItemDialog
           Height = 25
           Align = alTop
           TabOrder = 4
-          ExplicitLeft = -81
-          ExplicitTop = 368
+          ExplicitTop = 340
+          ExplicitWidth = 355
           inherited edFileName: TEdit
             Width = 316
+            ExplicitWidth = 316
           end
           inherited btBrowse: TButton
             Left = 322
+            ExplicitLeft = 322
           end
         end
       end

@@ -30,6 +30,9 @@
 #include "TFileNameFrame.h"
 #include "TScreenshotFrame.h"
 
+// classes
+#include "CSR_DesignerHelper.h"
+
 /**
 * Add an item dialog box
 *@author Jean-Milost Reymond
@@ -57,10 +60,10 @@ class TAddItemDialog : public TForm
         TLabel *laConfigTitle;
         TBevel *blConfigSeparator;
         TButton *btBack;
-        TTextureSelectionFrame *tsfConfigTexture;
+        TTextureSelectionFrame *tsConfigTexture;
         TLabel *laConfigTextureTitle;
         TLabel *laConfigBumpTitle;
-        TTextureSelectionFrame *tsfConfigBump;
+        TTextureSelectionFrame *tsConfigBump;
         TCheckListBox *clConfigOptions;
         TLabel *laConfigOptions;
         TBevel *blConfigSeparator2;
@@ -68,7 +71,7 @@ class TAddItemDialog : public TForm
         TBevel *blConfigSeparator4;
         TTabSheet *tsModel;
         TButton *btNext;
-        TVertexColorFrame *vcfConfigVertexColor;
+        TVertexColorFrame *vcConfigVertexColor;
         TFileNameFrame *ffModelFile;
         TBevel *blModelSeparator1;
         TLabel *laModelTitle;
@@ -98,22 +101,6 @@ class TAddItemDialog : public TForm
 
     public:
         /**
-        * Model types
-        */
-        enum IEModelType
-        {
-            IE_MT_Unknown = 0,
-            IE_MT_Surface,
-            IE_MT_Box,
-            IE_MT_Sphere,
-            IE_MT_Cylinder,
-            IE_MT_Disk,
-            IE_MT_Ring,
-            IE_MT_Spiral,
-            IE_MT_Model
-        };
-
-        /**
         * Constructor
         *@aram pOwner - form owner
         */
@@ -132,10 +119,16 @@ class TAddItemDialog : public TForm
         * Gets the selected model type to create
         *@return the model type
         */
-        IEModelType GetModelType() const;
+        CSR_DesignerHelper::IEModelType GetModelType() const;
+
+        /**
+        * Gets the vertex color
+        *@return the vertex color
+        */
+        unsigned GetVertexColor() const;
 
     private:
-        IEModelType m_ModelType;
+        CSR_DesignerHelper::IEModelType m_ModelType;
 
         /**
         * Checks if a model file exists

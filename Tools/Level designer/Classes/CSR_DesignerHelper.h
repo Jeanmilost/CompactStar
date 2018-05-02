@@ -31,6 +31,22 @@ class CSR_DesignerHelper
 {
     public:
         /**
+        * Model type
+        */
+        enum IEModelType
+        {
+            IE_MT_Unknown = 0,
+            IE_MT_Surface,
+            IE_MT_Box,
+            IE_MT_Sphere,
+            IE_MT_Cylinder,
+            IE_MT_Disk,
+            IE_MT_Ring,
+            IE_MT_Spiral,
+            IE_MT_Model
+        };
+
+        /**
         * Shader type
         */
         enum IEShaderType

@@ -853,9 +853,19 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
         // vertex has UV texture coordinates?
         if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
-            // add texture coordinates data to buffer
-            uv.m_X = 1.0f / i;
-            uv.m_Y = 0.0f;
+            // is the first point to calculate?
+            if (!i)
+            {
+                // add texture coordinates data to buffer
+                uv.m_X = 0.0f;
+                uv.m_Y = 0.0f;
+            }
+            else
+            {
+                // add texture coordinates data to buffer
+                uv.m_X = 1.0f / (float)i;
+                uv.m_Y = 0.0f;
+            }
         }
 
         // add the vertex to the buffer
@@ -878,9 +888,19 @@ CSR_Mesh* csrShapeCreateCylinder(      float                 radius,
         // vertex has UV texture coordinates?
         if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
-            // add texture coordinates data to buffer
-            uv.m_X = 1.0f / i;
-            uv.m_Y = 1.0f;
+            // is the first point to calculate?
+            if (!i)
+            {
+                // add texture coordinates data to buffer
+                uv.m_X = 0.0f;
+                uv.m_Y = 1.0f;
+            }
+            else
+            {
+                // add texture coordinates data to buffer
+                uv.m_X = 1.0f / (float)i;
+                uv.m_Y = 1.0f;
+            }
         }
 
         // add the vertex to the buffer
