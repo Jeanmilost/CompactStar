@@ -41,7 +41,7 @@ object ImageInfoDialog: TImageInfoDialog
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 244
+      Width = 102
       Height = 25
       Align = alTop
       Caption = 'Image info'
@@ -51,7 +51,6 @@ object ImageInfoDialog: TImageInfoDialog
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 102
     end
     object blSeparator: TBevel
       Left = 0
@@ -78,10 +77,10 @@ object ImageInfoDialog: TImageInfoDialog
       TabOrder = 0
       object laWidthCaption: TLabel
         AlignWithMargins = True
-        Left = 3
+        Left = 71
         Top = 0
         Width = 100
-        Height = 20
+        Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
@@ -92,8 +91,6 @@ object ImageInfoDialog: TImageInfoDialog
         Constraints.MinWidth = 100
         ParentBiDiMode = False
         Layout = tlCenter
-        ExplicitLeft = 71
-        ExplicitHeight = 13
       end
       object laWidthValue: TLabel
         Left = 106
@@ -123,10 +120,10 @@ object ImageInfoDialog: TImageInfoDialog
       TabOrder = 1
       object laHeightCaption: TLabel
         AlignWithMargins = True
-        Left = 3
+        Left = 68
         Top = 0
         Width = 100
-        Height = 20
+        Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
@@ -137,8 +134,6 @@ object ImageInfoDialog: TImageInfoDialog
         Constraints.MinWidth = 100
         ParentBiDiMode = False
         Layout = tlCenter
-        ExplicitLeft = 68
-        ExplicitHeight = 13
       end
       object laHeightValue: TLabel
         Left = 106
@@ -168,10 +163,10 @@ object ImageInfoDialog: TImageInfoDialog
       TabOrder = 2
       object laBPPCaption: TLabel
         AlignWithMargins = True
-        Left = 3
+        Left = 46
         Top = 0
         Width = 100
-        Height = 20
+        Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
@@ -182,8 +177,6 @@ object ImageInfoDialog: TImageInfoDialog
         Constraints.MinWidth = 100
         ParentBiDiMode = False
         Layout = tlCenter
-        ExplicitLeft = 46
-        ExplicitHeight = 13
       end
       object laBPPValue: TLabel
         Left = 106
@@ -233,10 +226,10 @@ object ImageInfoDialog: TImageInfoDialog
       TabOrder = 4
       object laFileNameCaption: TLabel
         AlignWithMargins = True
-        Left = 3
+        Left = 54
         Top = 0
         Width = 100
-        Height = 20
+        Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
@@ -247,8 +240,6 @@ object ImageInfoDialog: TImageInfoDialog
         Constraints.MinWidth = 100
         ParentBiDiMode = False
         Layout = tlCenter
-        ExplicitLeft = 54
-        ExplicitHeight = 13
       end
       object laFileNameValue: TLabel
         Left = 106
@@ -277,10 +268,10 @@ object ImageInfoDialog: TImageInfoDialog
       TabOrder = 3
       object laImageTypeCaption: TLabel
         AlignWithMargins = True
-        Left = 3
+        Left = 44
         Top = 0
         Width = 100
-        Height = 20
+        Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alLeft
@@ -291,8 +282,6 @@ object ImageInfoDialog: TImageInfoDialog
         Constraints.MinWidth = 100
         ParentBiDiMode = False
         Layout = tlCenter
-        ExplicitLeft = 44
-        ExplicitHeight = 13
       end
       object laImageTypeValue: TLabel
         Left = 106

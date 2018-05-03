@@ -26,6 +26,7 @@
 #include <Vcl.Menus.hpp>
 
 // std
+#include <memory>
 #include <string>
 
 /**
@@ -48,20 +49,38 @@ class TTextureSelectionFrame : public TFrame
         TSpeedButton *btConfig;
         TPopupMenu *pmConfig;
         TMenuItem *miCopyToLocalDir;
+        TMenuItem *miDeleteTexture;
 
+        void __fastcall miDeleteTextureClick(TObject* pSender);
         void __fastcall btTextureFileOpenClick(TObject* pSender);
         void __fastcall btInfoClick(TObject* pSender);
         void __fastcall btConfigClick(TObject* pSender);
 
     public:
         /**
+        * Called when a file was selected
+        *@param pSender - event sender
+        *@param fileName - newly selected file name
+        */
+        typedef void __fastcall (__closure *ITfOnFileSelected)(      TObject*      pSender,
+                                                               const std::wstring& fileName);
+
+        /**
         * Constructor
         *@param pOwner - frame owner
         */
         __fastcall TTextureSelectionFrame(TComponent* pOwner);
 
+        /**
+        * Set OnFileSelected callback function
+        *@param fHandler - function handler
+        */
+        void Set_OnFileSelected(ITfOnFileSelected fHandler);
+
     private:
-        std::wstring m_DefaultDir;
+        std::auto_ptr<TPicture> m_pDefaultPicture;
+        std::wstring            m_DefaultDir;
+        ITfOnFileSelected       m_fOnFileSelected;
 };
 extern PACKAGE TTextureSelectionFrame* TextureSelectionFrame;
 #endif

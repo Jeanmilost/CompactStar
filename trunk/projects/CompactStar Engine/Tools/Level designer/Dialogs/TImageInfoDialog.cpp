@@ -20,6 +20,8 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TImageInfoDialog
+//---------------------------------------------------------------------------
 TImageInfoDialog* ImageInfoDialog;
 //---------------------------------------------------------------------------
 __fastcall TImageInfoDialog::TImageInfoDialog(      TComponent*   pOwner,

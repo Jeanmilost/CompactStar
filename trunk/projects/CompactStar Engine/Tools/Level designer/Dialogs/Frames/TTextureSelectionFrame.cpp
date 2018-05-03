@@ -14,10 +14,8 @@
 #pragma hdrstop
 #include "TTextureSelectionFrame.h"
 
-// std
-#include <memory>
-
 // classes
+#include "CSR_MessageHelper.h"
 #include "CSR_DesignerHelper.h"
 
 // dialogs
@@ -27,14 +25,33 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TTextureSelectionFrame
+//---------------------------------------------------------------------------
 TTextureSelectionFrame* TextureSelectionFrame;
 //---------------------------------------------------------------------------
 __fastcall TTextureSelectionFrame::TTextureSelectionFrame(TComponent* pOwner) :
-    TFrame(pOwner)
+    TFrame(pOwner),
+    m_fOnFileSelected(NULL)
 {
+    // keep the default picture in case it should be restored
+    m_pDefaultPicture.reset(new TPicture());
+    m_pDefaultPicture->Assign(imTexture->Picture);
+
     // set the default scene items dir
-    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + L"Textures\\").c_str();
+    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + CSR_MessageHelper::Get()->GetTexturesDir() + L"\\").c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
+}
+//---------------------------------------------------------------------------
+void __fastcall TTextureSelectionFrame::miDeleteTextureClick(TObject* pSender)
+{
+    // reset the interface in his default state
+    imTexture->Picture->Assign(m_pDefaultPicture.get());
+    imTexture->Cursor   = crDefault;
+    edTextureFile->Text = L"";
+
+    // notify that the texture was deleted
+    if (m_fOnFileSelected)
+        m_fOnFileSelected(this, L"");
 }
 //---------------------------------------------------------------------------
 void __fastcall TTextureSelectionFrame::btTextureFileOpenClick(TObject* pSender)
@@ -57,14 +74,18 @@ void __fastcall TTextureSelectionFrame::btTextureFileOpenClick(TObject* pSender)
                         true))
         {
             // show an error message to user on failure
-            ::MessageDlg((L"Failed to copy the texture in the scene directory.\r\n\r\nPlease verify if another texture with the same name was not previously copied in this dir:\r\n" + m_DefaultDir).c_str(),
-                         mtError,
-                         TMsgDlgButtons() << mbOK,
-                         0);
+            ::MessageDlg((CSR_MessageHelper::Get()->GetError_CopyTexture() + m_DefaultDir).c_str(),
+                          mtError,
+                          TMsgDlgButtons() << mbOK,
+                          0);
         }
 
     // update the interface
     imTexture->Cursor = crHandPoint;
+
+    // notify that a file was selected
+    if (m_fOnFileSelected)
+        m_fOnFileSelected(this, edTextureFile->Text.c_str());
 }
 //---------------------------------------------------------------------------
 void __fastcall TTextureSelectionFrame::btInfoClick(TObject* pSender)
@@ -93,5 +114,10 @@ void __fastcall TTextureSelectionFrame::btConfigClick(TObject* pSender)
 
     // show the config popup menu
     pmConfig->Popup(popupPos.X, popupPos.Y);
+}
+//---------------------------------------------------------------------------
+void TTextureSelectionFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
+{
+    m_fOnFileSelected = fHandler;
 }
 //---------------------------------------------------------------------------

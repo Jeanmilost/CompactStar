@@ -90,6 +90,7 @@ class TAddItemDialog : public TForm
         TFileNameFrame *fnIconImageFile;
 
         void __fastcall FormShow(TObject* pSender);
+        void __fastcall clConfigOptionsClickCheck(TObject* pSender);
         void __fastcall rbIconDefaultClick(TObject* pSender);
         void __fastcall rbIconScreenshotClick(TObject* pSender);
         void __fastcall rbImageClick(TObject* pSender);
@@ -107,6 +108,13 @@ class TAddItemDialog : public TForm
         __fastcall TAddItemDialog(TComponent* pOwner);
 
         virtual __fastcall ~TAddItemDialog();
+
+        /**
+        * Gets the default item icon to show in the toolbox
+        *@param pBitmap - bitmap to fill with the icon
+        *@return true on success, otherwise false
+        */
+        bool GetDefaultIcon(TBitmap* pBitmap) const;
 
         /**
         * Gets the item icon to show in the toolbox
@@ -127,6 +135,13 @@ class TAddItemDialog : public TForm
         */
         unsigned GetVertexColor() const;
 
+        /* FIXME
+        std::string GetModelFileName() const;
+        bool GetTexture(TBitmap* pBitmap) const;
+        bool GetBumpMap(TBitmap* pBitmap) const;
+        IEOptions GetOptions() const;
+        */
+
     private:
         CSR_DesignerHelper::IEModelType m_ModelType;
 
@@ -137,11 +152,18 @@ class TAddItemDialog : public TForm
         bool ModelFileExists() const;
 
         /**
-        * Called when a file was selected
+        * Called when a texture file was selected
         *@param pSender - event sender
         *@param fileName - newly selected file name
         */
-        void __fastcall OnFileSelected(TObject* pSender, const std::wstring& fileName);
+        void __fastcall OnTextureFileSelected(TObject* pSender, const std::wstring& fileName);
+
+        /**
+        * Called when a model file was selected
+        *@param pSender - event sender
+        *@param fileName - newly selected file name
+        */
+        void __fastcall OnModelFileSelected(TObject* pSender, const std::wstring& fileName);
 };
 extern PACKAGE TAddItemDialog* AddItemDialog;
 #endif

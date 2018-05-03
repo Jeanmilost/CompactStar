@@ -19,6 +19,8 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TVertexColorFrame
+//---------------------------------------------------------------------------
 TVertexColorFrame* pVertexColorFrame;
 //---------------------------------------------------------------------------
 __fastcall TVertexColorFrame::TVertexColorFrame(TComponent* pOwner) :
