@@ -336,43 +336,8 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 }
             }
 
-            // create new OpenGL texture
-            if (m_pMesh)
-            {
-                glGenTextures(1, &m_pMesh->m_Shader.m_TextureID);
-                glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_TextureID);
-            }
-            else
-            if (m_pModel)
-            {
-                glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-                glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-            }
-            else
-            if (m_pMDL)
-            {
-                glGenTextures(1, &m_pMDL->m_pTexture[0].m_TextureID);
-                glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_TextureID);
-            }
-
-            // set texture filtering
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            // set texture wrapping mode
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            // generate texture from pixel array
-            glTexImage2D(GL_TEXTURE_2D,
-                         0,
-                         pixelType,
-                         pBitmap->Width,
-                         pBitmap->Height,
-                         0,
-                         pixelType,
-                         GL_UNSIGNED_BYTE,
-                         pPixels);
+            // set the texture
+            SetTexture(pBitmap->Width, pBitmap->Height, pixelType, pPixels);
         }
         __finally
         {
@@ -392,44 +357,85 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
         unsigned pixels[1];
         pixels[0] = color;
 
-        // create new OpenGL texture
-        if (m_pMesh)
-        {
-            glGenTextures(1, &m_pMesh->m_Shader.m_TextureID);
-            glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_TextureID);
-        }
-        else
-        if (m_pModel)
-        {
-            glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-            glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-        }
-        else
-        if (m_pMDL)
-        {
-            glGenTextures(1, &m_pMDL->m_pTexture[0].m_TextureID);
-            glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_TextureID);
-        }
-
-        // set texture filtering
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // set texture wrapping mode
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        // generate texture from pixel array
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGB,
-                     pixelWidth,
-                     pixelHeight,
-                     0,
-                     GL_RGB,
-                     GL_UNSIGNED_BYTE,
-                     &pixels);
+        // set the texture
+        SetTexture(pixelWidth, pixelHeight, GL_RGB, (unsigned char*)&pixels);
     }
+
+    /*FIXME
+    // do use a bump map?
+    if (!bumpmapFileName.empty())
+    {
+        // load the texture image
+        std::auto_ptr<TPicture> pPicture(new TPicture());
+        pPicture->LoadFromFile(bumpmapFileName.c_str());
+
+        // convert it to bitmap
+        std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+        pBitmap->Assign(pPicture->Graphic);
+
+        int   pixelSize;
+        GLint pixelType;
+
+        // search for bitmap pixel format
+        switch (pBitmap->PixelFormat)
+        {
+            case pf24bit: pixelSize = 3; pixelType = GL_RGB;  break;
+            case pf32bit: pixelSize = 4; pixelType = GL_RGBA; break;
+            default:      return false;
+        }
+
+        unsigned char* pPixels = NULL;
+
+        try
+        {
+            // reserve memory for the pixel array
+            pPixels = new unsigned char[pBitmap->Width * pBitmap->Height * pixelSize];
+
+            TRGBTriple* pLineRGB;
+            TRGBQuad*   pLineRGBA;
+
+            // iterate through lines to copy
+            for (int y = 0; y < pBitmap->Height; ++y)
+            {
+                // get the next pixel line from bitmap
+                if (pixelSize == 3)
+                    pLineRGB  = static_cast<TRGBTriple*>(pBitmap->ScanLine[y]);
+                else
+                    pLineRGBA = static_cast<TRGBQuad*>(pBitmap->ScanLine[y]);
+
+                // calculate the start y position
+                const int yPos = ((pBitmap->Height - 1) - y) * pBitmap->Width * pixelSize;
+
+                // iterate through pixels to copy
+                for (int x = 0; x < pBitmap->Width; ++x)
+                {
+                    // copy to pixel array and take the opportunity to swap the pixel RGB values
+                    if (pixelSize == 3)
+                    {
+                        pPixels[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                        pPixels[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                        pPixels[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                    }
+                    else
+                    {
+                        pPixels[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                        pPixels[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                        pPixels[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                        pPixels[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                    }
+                }
+            }
+
+            // set the texture
+            SetTexture(pBitmap->Width, pBitmap->Height, pixelType, pPixels);
+        }
+        __finally
+        {
+            if (pPixels)
+                delete[] pPixels;
+        }
+    }
+    */
 
     // draw the scene
     DrawScene();
@@ -793,5 +799,46 @@ bool TScreenshotFrame::DrawScene() const
     // show the model in the preview image
     imScreenshot->Picture->Assign(pBitmap.get());
     return true;
+}
+//---------------------------------------------------------------------------
+void TScreenshotFrame::SetTexture(int width, int height, int pixelType, const unsigned char* pPixels) const
+{
+    // create new OpenGL texture
+    if (m_pMesh)
+    {
+        glGenTextures(1, &m_pMesh->m_Shader.m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_TextureID);
+    }
+    else
+    if (m_pModel)
+    {
+        glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+    }
+    else
+    if (m_pMDL)
+    {
+        glGenTextures(1, &m_pMDL->m_pTexture[0].m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_TextureID);
+    }
+
+    // set texture filtering
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // set texture wrapping mode
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // generate texture from pixel array
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 pixelType,
+                 width,
+                 height,
+                 0,
+                 pixelType,
+                 GL_UNSIGNED_BYTE,
+                 pPixels);
 }
 //---------------------------------------------------------------------------

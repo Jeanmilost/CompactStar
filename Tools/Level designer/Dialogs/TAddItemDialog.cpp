@@ -17,6 +17,7 @@
 #include <memory>
 
 // classes
+#include "CSR_MessageHelper.h"
 #include "CSR_VCLHelper.h"
 
 #pragma package(smart_init)
@@ -45,7 +46,9 @@ __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
     sfScreenshot->Enable(false);
     fnIconImageFile->Enable(false);
 
-    ffModelFile->Set_OnFileSelected(OnFileSelected);
+    // set the callbacks
+    tsConfigTexture->Set_OnFileSelected(OnTextureFileSelected);
+    ffModelFile->Set_OnFileSelected(OnModelFileSelected);
 }
 //---------------------------------------------------------------------------
 __fastcall TAddItemDialog::~TAddItemDialog()
@@ -57,6 +60,13 @@ void __fastcall TAddItemDialog::FormShow(TObject* pSender)
                              btSelectItemAddModel->Height          +
                              btSelectItemAddModel->Margins->Bottom +
                              8;
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::clConfigOptionsClickCheck(TObject* pSender)
+{
+    // the normals must be enabled if pre-calculated lighting is used
+    if (clConfigOptions->Checked[3])
+        clConfigOptions->Checked[0] = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::rbIconDefaultClick(TObject* pSender)
@@ -192,21 +202,49 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     else
     if (pcWizard->ActivePage == tsConfig)
     {
-        // take a screenshot of the model. This also will check if the model can be built
-        if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
-            if (!sfScreenshot->LoadModel(m_ModelType,
-                                         L"",
-                                         tsConfigTexture->edTextureFile->Text.c_str(),
-                                         tsConfigBump->edTextureFile->Text.c_str(),
-                                         GetVertexColor()))
-            {
-                ::MessageDlg(L"An error occurred while the model was opened.\n\nPlease check your parameters and try again.",
-                             mtError,
-                             TMsgDlgButtons() << mbOK,
-                             0);
+        try
+        {
+            Screen->Cursor = crHourGlass;
 
-                return;
+            // take a screenshot of the model. This also will check if the model can be built
+            if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
+            {
+                // load a shape
+                if (!sfScreenshot->LoadModel(m_ModelType,
+                                             L"",
+                                             tsConfigTexture->edTextureFile->Text.c_str(),
+                                             tsConfigBump->edTextureFile->Text.c_str(),
+                                             GetVertexColor()))
+                {
+                    ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
+                                 mtError,
+                                 TMsgDlgButtons() << mbOK,
+                                 0);
+
+                    return;
+                }
             }
+            else
+            {
+                // load a model from file
+                if (!sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
+                                             ffModelFile->edFileName->Text.c_str(),
+                                             tsConfigTexture->edTextureFile->Text.c_str(),
+                                             tsConfigBump->edTextureFile->Text.c_str(),
+                                             GetVertexColor()))
+                {
+                    ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
+                                 mtError,
+                                 TMsgDlgButtons() << mbOK,
+                                 0);
+                    return;
+                }
+            }
+        }
+        __finally
+        {
+            Screen->Cursor = crDefault;
+        }
 
         pcWizard->ActivePage = tsIcon;
         btNext->Enabled      = false;
@@ -219,9 +257,40 @@ void __fastcall TAddItemDialog::OnSelectItemButtonClick(TObject* pSender)
     btNext->Enabled = (m_ModelType != CSR_DesignerHelper::IE_MT_Model || ModelFileExists());
 }
 //---------------------------------------------------------------------------
+bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap) const
+{
+}
+//---------------------------------------------------------------------------
 bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
 {
-    // FIXME
+    // no bitmap to load to?
+    if (!pBitmap)
+        return false;
+
+    // search for the icon source to get from
+    if (rbIconDefault->Checked)
+        return GetDefaultIcon(pBitmap);
+    else
+    if (rbIconScreenshot->Checked)
+        return sfScreenshot->GetScreenshot(pBitmap);
+    else
+    if (rbImage->Checked)
+    {
+        // no icon file or file does not exists?
+        if (fnIconImageFile->edFileName->Text.IsEmpty() || !::FileExists(fnIconImageFile->edFileName->Text, false))
+            return GetDefaultIcon(pBitmap);
+
+        // load the texture image
+        std::auto_ptr<TPicture> pPicture(new TPicture());
+        pPicture->LoadFromFile(fnIconImageFile->edFileName->Text);
+
+        // convert it to bitmap
+        pBitmap->Assign(pPicture->Graphic);
+
+        return true;
+    }
+
+    return false;
 }
 //---------------------------------------------------------------------------
 CSR_DesignerHelper::IEModelType TAddItemDialog::GetModelType() const
@@ -237,28 +306,17 @@ unsigned TAddItemDialog::GetVertexColor() const
 //---------------------------------------------------------------------------
 bool TAddItemDialog::ModelFileExists() const
 {
-    return (!ffModelFile->edFileName->Text.IsEmpty() &&
-           ::FileExists(ffModelFile->edFileName->Text.c_str(), false));
+    return (!ffModelFile->edFileName->Text.IsEmpty() && ::FileExists(ffModelFile->edFileName->Text, false));
 }
 //---------------------------------------------------------------------------
-void __fastcall TAddItemDialog::OnFileSelected(TObject* pSender, const std::wstring& fileName)
+void __fastcall TAddItemDialog::OnTextureFileSelected(TObject* pSender, const std::wstring& fileName)
 {
-    // model file exists and can be loaded
-    if (ModelFileExists() && sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
-                                                     fileName,
-                                                     tsConfigTexture->edTextureFile->Text.c_str(),
-                                                     tsConfigBump->edTextureFile->Text.c_str(),
-                                                     GetVertexColor()))
-    {
-        btNext->Enabled = true;
-        return;
-    }
-
-    btNext->Enabled = false;
-
-    ::MessageDlg(L"The model you're trying to load is invalid.\n\nPlease check the model file and try again.",
-                 mtError,
-                 TMsgDlgButtons() << mbOK,
-                 0);
+    // auto-check the use texture checkbox if a valid texture file was selected
+    clConfigOptions->Checked[1] = !fileName.empty() && ::FileExists(UnicodeString(fileName.c_str()), false);
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::OnModelFileSelected(TObject* pSender, const std::wstring& fileName)
+{
+    btNext->Enabled = ModelFileExists();
 }
 //---------------------------------------------------------------------------

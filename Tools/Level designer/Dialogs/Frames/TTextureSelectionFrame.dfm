@@ -99,10 +99,11 @@ object TextureSelectionFrame: TTextureSelectionFrame
         AlignWithMargins = True
         Left = 3
         Top = 63
-        Width = 76
+        Width = 330
         Height = 13
         Align = alBottom
         Caption = 'Image file name'
+        ExplicitWidth = 76
       end
       object paTextureFile: TPanel
         Left = 0
@@ -234,6 +235,10 @@ object TextureSelectionFrame: TTextureSelectionFrame
     object miCopyToLocalDir: TMenuItem
       AutoCheck = True
       Caption = 'Copy to local dir'
+    end
+    object miDeleteTexture: TMenuItem
+      Caption = 'Delete texture'
+      OnClick = miDeleteTextureClick
     end
   end
 end

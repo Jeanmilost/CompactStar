@@ -88,7 +88,7 @@ object AddItemDialog: TAddItemDialog
       Top = 0
       Width = 363
       Height = 434
-      ActivePage = tsConfig
+      ActivePage = tsSelectItem
       Align = alClient
       TabOrder = 0
       object tsSelectItem: TTabSheet
@@ -1077,6 +1077,7 @@ object AddItemDialog: TAddItemDialog
           Top = 60
           Width = 349
           Height = 26
+          OnClickCheck = clConfigOptionsClickCheck
           Align = alTop
           BevelInner = bvNone
           BevelOuter = bvNone

@@ -15,10 +15,13 @@
 
 // classes
 #include "CSR_DesignerHelper.h"
+#include "CSR_MessageHelper.h"
 
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
+//---------------------------------------------------------------------------
+// TFileNameFrame
 //---------------------------------------------------------------------------
 TFileNameFrame* FileNameFrame;
 //---------------------------------------------------------------------------
@@ -27,7 +30,7 @@ __fastcall TFileNameFrame::TFileNameFrame(TComponent* pOwner) :
     m_fOnFileSelected(NULL)
 {
     // set the default scene models dir
-    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + L"Models\\").c_str();
+    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + CSR_MessageHelper::Get()->GetModelsDir() + L"\\").c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
 //---------------------------------------------------------------------------

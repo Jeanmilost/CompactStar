@@ -190,6 +190,15 @@ class TScreenshotFrame : public TFrame
         *@return true on success, otherwise false
         */
         bool DrawScene() const;
+
+        /**
+        * Sets a texture for the currently opened model
+        *@param width - texture width in pixels
+        *@param height - texture height in pixels
+        *@param pixelType - pixel type to use
+        *@param pPixels - pixel array
+        */
+        void SetTexture(int width, int height, int pixelType, const unsigned char* pPixels) const;
 };
 extern PACKAGE TScreenshotFrame* ScreenshotFrame;
 #endif

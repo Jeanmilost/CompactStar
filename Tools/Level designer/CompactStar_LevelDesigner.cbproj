@@ -208,6 +208,10 @@
             <DependentOn>Classes\CSR_DesignerHelper.h</DependentOn>
             <BuildOrder>33</BuildOrder>
         </CppCompile>
+        <CppCompile Include="Classes\CSR_MessageHelper.cpp">
+            <DependentOn>Classes\CSR_MessageHelper.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Classes\CSR_OpenGLHelper.cpp">
             <DependentOn>Classes\CSR_OpenGLHelper.h</DependentOn>
             <BuildOrder>26</BuildOrder>
