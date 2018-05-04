@@ -30,7 +30,7 @@ __fastcall TFileNameFrame::TFileNameFrame(TComponent* pOwner) :
     m_fOnFileSelected(NULL)
 {
     // set the default scene models dir
-    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + CSR_MessageHelper::Get()->GetModelsDir() + L"\\").c_str();
+    m_DefaultDir       = CSR_DesignerHelper::GetModelsDir().c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
 //---------------------------------------------------------------------------

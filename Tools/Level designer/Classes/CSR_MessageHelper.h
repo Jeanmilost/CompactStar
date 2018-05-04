@@ -36,6 +36,12 @@ class CSR_MessageHelper
         static void Delete();
 
         /**
+        * Gets the scene dir
+        *@return the scene dir
+        */
+        std::wstring GetSceneDir() const;
+
+        /**
         * Gets the textures dir
         *@return the textures dir
         */
@@ -46,6 +52,18 @@ class CSR_MessageHelper
         *@return the models dir
         */
         std::wstring GetModelsDir() const;
+
+        /**
+        * Gets the loading model textures warning message
+        *@return the loading model textures warning message
+        */
+        std::wstring GetWarn_ModelTextures() const;
+
+        /**
+        * Gets the unsupported textures count warning message
+        *@return the unsupported textures count warning message
+        */
+        std::wstring GetWarn_UnsupportedTextureCount() const;
 
         /**
         * Gets the copy texture error message

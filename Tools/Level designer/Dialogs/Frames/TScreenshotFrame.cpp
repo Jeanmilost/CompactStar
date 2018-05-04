@@ -128,7 +128,19 @@ void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
     DrawScene();
 }
 //---------------------------------------------------------------------------
-void __fastcall TScreenshotFrame::btResetClick(TObject* pSender)
+void __fastcall TScreenshotFrame::btConfigClick(TObject* pSender)
+{
+    // calculate the point where the popup menu sould be shown
+    TPoint popupPos(0, btConfig->Height);
+
+    // convert to screen coordinate system
+    popupPos = btConfig->ClientToScreen(popupPos);
+
+    // show the config popup menu
+    pmConfig->Popup(popupPos.X, popupPos.Y);
+}
+//---------------------------------------------------------------------------
+void __fastcall TScreenshotFrame::miResetSceneClick(TObject* pSender)
 {
     // if the scene was not initialized, do nothing
     if (!m_SceneContext.m_hDC || !m_SceneContext.m_hRC || !m_pSceneShader)
@@ -230,7 +242,7 @@ void TScreenshotFrame::Enable(bool value)
     btCameraRight->Enabled     = value;
     btCameraDown->Enabled      = value;
     btCameraFront->Enabled     = value;
-    btReset->Enabled           = value;
+    miResetScene->Enabled      = value;
     rbArcball->Enabled         = value;
     rbFirstViewPerson->Enabled = value;
 }
@@ -238,7 +250,7 @@ void TScreenshotFrame::Enable(bool value)
 bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                                  const std::wstring&                   fileName,
                                  const std::wstring&                   textureFileName,
-                                 const std::wstring&                   bumpmapFileName,
+                                 const std::wstring&                   bumpMapFileName,
                                        unsigned                        color)
 {
     // select the kind of model to load
@@ -295,6 +307,7 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
         }
 
         unsigned char* pPixels = NULL;
+        bool           result  = false;
 
         try
         {
@@ -337,16 +350,20 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
             }
 
             // set the texture
-            SetTexture(pBitmap->Width, pBitmap->Height, pixelType, pPixels);
+            result = SetTexture(pBitmap->Width, pBitmap->Height, pixelType, false, pPixels);
         }
         __finally
         {
             if (pPixels)
                 delete[] pPixels;
         }
+
+        // succeeded?
+        if (!result)
+            return false;
     }
     else
-    if (!m_pMDL || m_pMDL->m_pModel[0].m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+    if (!m_pMDL || !m_pMDL->m_TextureCount || m_pMDL->m_pTexture[0].m_TextureID == M_CSR_Error_Code)
     {
         const int pixelWidth  = 1;
         const int pixelHeight = 1;
@@ -358,16 +375,16 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
         pixels[0] = color;
 
         // set the texture
-        SetTexture(pixelWidth, pixelHeight, GL_RGB, (unsigned char*)&pixels);
+        if (!SetTexture(pixelWidth, pixelHeight, GL_RGB, false, (unsigned char*)&pixels))
+            return false;
     }
 
-    /*FIXME
     // do use a bump map?
-    if (!bumpmapFileName.empty())
+    if (!bumpMapFileName.empty())
     {
         // load the texture image
         std::auto_ptr<TPicture> pPicture(new TPicture());
-        pPicture->LoadFromFile(bumpmapFileName.c_str());
+        pPicture->LoadFromFile(bumpMapFileName.c_str());
 
         // convert it to bitmap
         std::auto_ptr<TBitmap> pBitmap(new TBitmap());
@@ -385,6 +402,7 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
         }
 
         unsigned char* pPixels = NULL;
+        bool           result  = false;
 
         try
         {
@@ -426,16 +444,19 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 }
             }
 
-            // set the texture
-            SetTexture(pBitmap->Width, pBitmap->Height, pixelType, pPixels);
+            // set the bump map
+            result = SetTexture(pBitmap->Width, pBitmap->Height, pixelType, true, pPixels);
         }
         __finally
         {
             if (pPixels)
                 delete[] pPixels;
         }
+
+        // succeeded?
+        if (!result)
+            return false;
     }
-    */
 
     // draw the scene
     DrawScene();
@@ -586,16 +607,13 @@ void TScreenshotFrame::ResetScene()
         m_Camera.m_Factor.m_Z   = 1.0f;
         m_Camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
 
-        // configure the scene color
-        m_SceneColor.m_R = 1.0f;
-        m_SceneColor.m_G = 1.0f;
-        m_SceneColor.m_B = 1.0f;
-        m_SceneColor.m_A = 1.0f;
-
         // update the interface
         imScreenshot->Picture->Assign(NULL);
-        paColorValue->Color = clWhite;
+        paColorValue->Color = clSilver;
         rbArcball->Checked  = true;
+
+        // configure the scene color
+        csrRGBAToColor(csrColorBGRToRGBA(::ColorToRGB(paColorValue->Color)), &m_SceneColor);
 
         // get a model matrix which make the model to fit the viewport. NOTE the field of view is 45°
         if (m_pAABBTree)
@@ -801,25 +819,84 @@ bool TScreenshotFrame::DrawScene() const
     return true;
 }
 //---------------------------------------------------------------------------
-void TScreenshotFrame::SetTexture(int width, int height, int pixelType, const unsigned char* pPixels) const
+bool TScreenshotFrame::SetTexture(      int            width,
+                                        int            height,
+                                        int            pixelType,
+                                        bool           bumpMap,
+                                  const unsigned char* pPixels) const
 {
     // create new OpenGL texture
-    if (m_pMesh)
+    if (bumpMap)
     {
-        glGenTextures(1, &m_pMesh->m_Shader.m_TextureID);
-        glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_TextureID);
+        if (m_pMesh)
+        {
+            glGenTextures(1, &m_pMesh->m_Shader.m_BumpMapID);
+            glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_BumpMapID);
+        }
+        else
+        if (m_pModel)
+        {
+            glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_BumpMapID);
+            glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_BumpMapID);
+        }
+        else
+        if (m_pMDL)
+        {
+            // MDL model contains a texture list?
+            if (!m_pMDL->m_TextureCount)
+            {
+                // no, creates one
+                m_pMDL->m_pTexture = (CSR_ModelTexture*)malloc(sizeof(CSR_ModelTexture));
+
+                // succeeded?
+                if (!m_pMDL->m_pTexture)
+                    return false;
+
+                // configure the newly created texture list
+                m_pMDL->m_pTexture[0].m_TextureID = M_CSR_Error_Code;
+                m_pMDL->m_pTexture[0].m_BumpMapID = M_CSR_Error_Code;
+                m_pMDL->m_TextureCount            = 1;
+            }
+
+            glGenTextures(1, &m_pMDL->m_pTexture[0].m_BumpMapID);
+            glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_BumpMapID);
+        }
     }
     else
-    if (m_pModel)
     {
-        glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-        glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-    }
-    else
-    if (m_pMDL)
-    {
-        glGenTextures(1, &m_pMDL->m_pTexture[0].m_TextureID);
-        glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_TextureID);
+        if (m_pMesh)
+        {
+            glGenTextures(1, &m_pMesh->m_Shader.m_TextureID);
+            glBindTexture(GL_TEXTURE_2D, m_pMesh->m_Shader.m_TextureID);
+        }
+        else
+        if (m_pModel)
+        {
+            glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+            glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+        }
+        else
+        if (m_pMDL)
+        {
+            // MDL model contains a texture list?
+            if (!m_pMDL->m_TextureCount)
+            {
+                // no, creates one
+                m_pMDL->m_pTexture = (CSR_ModelTexture*)malloc(sizeof(CSR_ModelTexture));
+
+                // succeeded?
+                if (!m_pMDL->m_pTexture)
+                    return false;
+
+                // configure the newly created texture list
+                m_pMDL->m_pTexture[0].m_TextureID = M_CSR_Error_Code;
+                m_pMDL->m_pTexture[0].m_BumpMapID = M_CSR_Error_Code;
+                m_pMDL->m_TextureCount            = 1;
+            }
+
+            glGenTextures(1, &m_pMDL->m_pTexture[0].m_TextureID);
+            glBindTexture(GL_TEXTURE_2D, m_pMDL->m_pTexture[0].m_TextureID);
+        }
     }
 
     // set texture filtering
@@ -840,5 +917,7 @@ void TScreenshotFrame::SetTexture(int width, int height, int pixelType, const un
                  pixelType,
                  GL_UNSIGNED_BYTE,
                  pPixels);
+
+    return true;
 }
 //---------------------------------------------------------------------------

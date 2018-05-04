@@ -112,16 +112,20 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
         }
 
         m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
+        btBack->Visible      = false;
+        btNext->Visible      = false;
         btBack->Enabled      = false;
-        btNext->Enabled      = true;
+        btNext->Enabled      = false;
         pcWizard->ActivePage = tsSelectItem;
     }
     else
     if (pcWizard->ActivePage == tsModel)
     {
         m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
+        btBack->Visible      = false;
+        btNext->Visible      = false;
         btBack->Enabled      = false;
-        btNext->Enabled      = true;
+        btNext->Enabled      = false;
         pcWizard->ActivePage = tsSelectItem;
     }
     else
@@ -142,8 +146,10 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     // select the action to apply depending on the currently shown tab
     if (pcWizard->ActivePage == tsSelectItem)
     {
-        btBack->Enabled = true;
+        btNext->Visible = true;
+        btBack->Visible = true;
         btNext->Enabled = true;
+        btBack->Enabled = true;
         btOK->Enabled   = false;
 
         // search for selected item
@@ -252,11 +258,6 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TAddItemDialog::OnSelectItemButtonClick(TObject* pSender)
-{
-    btNext->Enabled = (m_ModelType != CSR_DesignerHelper::IE_MT_Model || ModelFileExists());
-}
-//---------------------------------------------------------------------------
 bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap) const
 {
 }
@@ -317,6 +318,52 @@ void __fastcall TAddItemDialog::OnTextureFileSelected(TObject* pSender, const st
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnModelFileSelected(TObject* pSender, const std::wstring& fileName)
 {
-    btNext->Enabled = ModelFileExists();
+    const bool fileExists = ModelFileExists();
+
+    btNext->Enabled = fileExists;
+
+    if (!fileExists)
+        return;
+
+    // for MDL models, try to extract the textures. For other models, do nothing
+    if (fileName.rfind(L"mdl") != fileName.length() - 3)
+        return;
+
+    std::vector<TBitmap*> textures;
+
+    // extract the textures from the model
+    if (!CSR_DesignerHelper::ExtractTexturesFromMDL(AnsiString(ffModelFile->edFileName->Text).c_str(),
+                                                    NULL,
+                                                    textures))
+        // show a warning message to user
+        ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_ModelTextures().c_str(),
+                     mtWarning,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
+    // get the texture count
+    const std::size_t textureCount = textures.size();
+
+    // no texture?
+    if (!textureCount)
+        return;
+
+    // model contains too many textures?
+    if (textureCount > 1)
+        // show a warning message to user
+        ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_UnsupportedTextureCount().c_str(),
+                     mtWarning,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
+    // default texture directory should exists
+    if (::DirectoryExists(CSR_DesignerHelper::GetModelsDir().c_str(), false))
+    {
+    }
+
+    for (std::size_t i = 0; i < textures.size(); ++i)
+        delete textures[i];
+
+    textures.clear();
 }
 //---------------------------------------------------------------------------

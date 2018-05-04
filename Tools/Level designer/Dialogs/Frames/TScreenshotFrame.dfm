@@ -90,7 +90,7 @@ object ScreenshotFrame: TScreenshotFrame
           Left = 3
           Top = 0
           Width = 123
-          Height = 19
+          Height = 20
           Margins.Top = 0
           Margins.Right = 0
           Margins.Bottom = 0
@@ -103,6 +103,7 @@ object ScreenshotFrame: TScreenshotFrame
           Font.Style = []
           ParentFont = False
           Layout = tlCenter
+          ExplicitHeight = 19
         end
         object paColorValue: TPanel
           AlignWithMargins = True
@@ -117,7 +118,7 @@ object ScreenshotFrame: TScreenshotFrame
           Align = alRight
           BevelOuter = bvNone
           BorderStyle = bsSingle
-          Color = clWhite
+          Color = clSilver
           ParentBackground = False
           TabOrder = 0
           OnClick = paColorValueClick
@@ -178,7 +179,7 @@ object ScreenshotFrame: TScreenshotFrame
             Left = 16
             Top = 0
             Width = 6
-            Height = 13
+            Height = 20
             Margins.Left = 16
             Margins.Top = 0
             Margins.Right = 16
@@ -186,13 +187,14 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'X'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
           object laCameraY: TLabel
             AlignWithMargins = True
             Left = 57
             Top = 0
             Width = 6
-            Height = 13
+            Height = 20
             Margins.Left = 19
             Margins.Top = 0
             Margins.Right = 16
@@ -200,13 +202,14 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Y'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
           object laCameraZ: TLabel
             AlignWithMargins = True
             Left = 98
             Top = 0
             Width = 6
-            Height = 13
+            Height = 20
             Margins.Left = 19
             Margins.Top = 0
             Margins.Right = 16
@@ -214,6 +217,7 @@ object ScreenshotFrame: TScreenshotFrame
             Align = alLeft
             Caption = 'Z'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
         end
         object paCameraDown: TPanel
@@ -235,6 +239,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -369,6 +374,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -503,6 +509,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -647,6 +654,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -780,6 +788,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -914,6 +923,7 @@ object ScreenshotFrame: TScreenshotFrame
             Margins.Right = 0
             Margins.Bottom = 0
             Align = alLeft
+            Flat = True
             Glyph.Data = {
               FA0E0000424DFA0E000000000000360000002800000023000000230000000100
               180000000000C40E0000C40E0000C40E00000000000000000000DADADADADADA
@@ -1052,7 +1062,7 @@ object ScreenshotFrame: TScreenshotFrame
           AlignWithMargins = True
           Left = 3
           Top = 3
-          Width = 54
+          Width = 283
           Height = 19
           Align = alClient
           Caption = 'Camera'
@@ -1062,20 +1072,46 @@ object ScreenshotFrame: TScreenshotFrame
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
+          ExplicitTop = 2
+          ExplicitWidth = 258
         end
-        object btReset: TButton
-          AlignWithMargins = True
-          Left = 264
-          Top = 3
-          Width = 50
-          Height = 19
-          Margins.Left = 0
-          Margins.Right = 0
+        object btConfig: TSpeedButton
+          Left = 289
+          Top = 0
+          Width = 25
+          Height = 25
+          Cursor = crHandPoint
           Align = alRight
-          Caption = 'Reset'
-          TabOrder = 0
-          OnClick = btResetClick
-          ExplicitLeft = 256
+          Flat = True
+          Glyph.Data = {
+            36030000424D3603000000000000360000002800000010000000100000000100
+            18000000000000030000D8090000D80900000000000000000000DADADADADADA
+            DADADADADADADADADADADADAD8D8D89F9F9FA4A4A4DADADADADADADADADADADA
+            DADADADADADADADADADADADADADADADAD3D3D3B0B0B0C5C5C5DADADACACACA9F
+            9F9F9D9D9DCFCFCFDADADAC0C0C0B0B0B0D4D4D4DADADADADADADADADADADADA
+            C2C2C29F9F9F9F9F9FAEAEAEA1A1A19F9F9F9F9F9FA2A2A2ADADAD9F9F9F9E9E
+            9EC6C6C6DADADADADADADADADADADADAD9D9D9A3A3A39F9F9F9F9F9F9F9F9F9F
+            9F9F9F9F9F9F9F9F9F9F9F9F9F9FA5A5A5DADADADADADADADADAD2D2D2D3D3D3
+            CBCBCB9F9F9F9F9F9FA0A0A0BCBCBCCCCCCCCCCCCCBCBCBCA1A1A19F9F9F9F9F
+            9FC9C9C9CECECED0D0D0A4A4A49E9E9E9E9E9E9F9F9FA2A2A2CFCFCFDADADADA
+            DADADADADADADADACFCFCFA1A1A19F9F9F9E9E9E9F9F9FA4A4A4AEAEAE9F9F9F
+            9F9F9F9F9F9FBCBCBCDADADADADADADADADADADADADADADADADADABDBDBD9F9F
+            9F9F9F9F9E9E9EB2B2B2DADADABCBCBC9F9F9F9F9F9FCDCDCDDADADADADADADA
+            DADADADADADADADADADADACDCDCD9F9F9F9F9F9FC0C0C0DADADADADADAC0C0C0
+            9F9F9F9F9F9FCDCDCDDADADADADADADADADADADADADADADADADADACDCDCD9F9F
+            9F9F9F9FBDBDBDDADADAB2B2B29E9E9E9F9F9F9F9F9FBCBCBCDADADADADADADA
+            DADADADADADADADADADADABCBCBC9F9F9F9F9F9F9E9E9EAEAEAEA4A4A49F9F9F
+            9E9E9E9F9F9FA0A0A0CFCFCFDADADADADADADADADADADADACFCFCFA0A0A09F9F
+            9F9E9E9E9E9E9EA4A4A4CFCFCFCECECEC8C8C89F9F9F9F9F9F9F9F9FBCBCBCCD
+            CDCDCDCDCDBDBDBDA2A2A29F9F9F9F9F9FCBCBCBD2D2D2D2D2D2DADADADADADA
+            DADADAA5A5A59F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9FA4A4
+            A4D9D9D9DADADADADADADADADADADADAC6C6C69E9E9E9F9F9FACACACA2A2A29F
+            9F9F9F9F9FA1A1A1AEAEAE9F9F9F9F9F9FC2C2C2DADADADADADADADADADADADA
+            D3D3D3AFAFAFC0C0C0DADADACECECE9E9E9E9F9F9FCACACADADADAC4C4C4B0B0
+            B0D3D3D3DADADADADADADADADADADADADADADADADADADADADADADADADADADAA2
+            A2A29F9F9FD8D8D8DADADADADADADADADADADADADADADADADADA}
+          OnClick = btConfigClick
+          ExplicitLeft = 349
         end
       end
     end
@@ -1083,5 +1119,13 @@ object ScreenshotFrame: TScreenshotFrame
   object cdColor: TColorDialog
     Left = 15
     Top = 8
+  end
+  object pmConfig: TPopupMenu
+    Left = 47
+    Top = 8
+    object miResetScene: TMenuItem
+      Caption = 'Reset the scene'
+      OnClick = miResetSceneClick
+    end
   end
 end

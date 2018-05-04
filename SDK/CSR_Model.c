@@ -1711,6 +1711,12 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                              GL_UNSIGNED_BYTE,
                              pPixelBuffer->m_pData);
             }
+            else
+                // texture isn't used
+                pMDL->m_pTexture[i].m_TextureID = M_CSR_Error_Code;
+
+            // the mdl file contains no bump map. This may be used later, but for now it's unused
+            pMDL->m_pTexture[i].m_BumpMapID = M_CSR_Error_Code;
 
             // release the pixel buffer
             csrPixelBufferRelease(pPixelBuffer);
@@ -1887,8 +1893,13 @@ void csrMDLRelease(CSR_MDL* pMDL)
     {
         // delete each texture
         for (i = 0; i < pMDL->m_TextureCount; ++i)
+        {
             if (pMDL->m_pTexture[i].m_TextureID != M_CSR_Error_Code)
                 glDeleteTextures(1, &pMDL->m_pTexture[i].m_TextureID);
+
+            if (pMDL->m_pTexture[i].m_BumpMapID != M_CSR_Error_Code)
+                glDeleteTextures(1, &pMDL->m_pTexture[i].m_BumpMapID);
+        }
 
         // free the textures
         free(pMDL->m_pTexture);

@@ -68,6 +68,11 @@ void CSR_MessageHelper::Delete()
     m_pMessageHelper.reset(NULL);
 }
 //---------------------------------------------------------------------------
+std::wstring CSR_MessageHelper::GetSceneDir() const
+{
+    return L"Scene";
+}
+//---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetTexturesDir() const
 {
     return L"Textures";
@@ -76,6 +81,16 @@ std::wstring CSR_MessageHelper::GetTexturesDir() const
 std::wstring CSR_MessageHelper::GetModelsDir() const
 {
     return L"Models";
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_MessageHelper::GetWarn_ModelTextures() const
+{
+    return L"An error occurred while the textures were extracted from the model.\n\nPlease check the model file and try again.";
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_MessageHelper::GetWarn_UnsupportedTextureCount() const
+{
+    return L"The model contains more than 1 texture.\n\nThis is not supported by this current engine version, and may cause unexpected errors on usage.";
 }
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetError_CopyTexture() const
