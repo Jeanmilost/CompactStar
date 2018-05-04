@@ -23,6 +23,7 @@
 #include <Vcl.Imaging.pngimage.hpp>
 #include <Vcl.CheckLst.hpp>
 #include <Vcl.Dialogs.hpp>
+#include <Vcl.ImgList.hpp>
 
 // frames
 #include "TTextureSelectionFrame.h"
@@ -88,6 +89,7 @@ class TAddItemDialog : public TForm
         TRadioButton *rbIconScreenshot;
         TRadioButton *rbImage;
         TFileNameFrame *fnIconImageFile;
+        TImageList *ilDefaultIcons;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall clConfigOptionsClickCheck(TObject* pSender);
@@ -98,7 +100,6 @@ class TAddItemDialog : public TForm
         void __fastcall btBackClick(TObject* pSender);
         void __fastcall btOKClick(TObject* pSender);
         void __fastcall OnNextClick(TObject* pSender);
-        void __fastcall OnSelectItemButtonClick(TObject* pSender);
 
     public:
         /**

@@ -12,7 +12,7 @@
  *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
-
+
 #include <vcl.h>
 #pragma hdrstop
 #include <tchar.h>

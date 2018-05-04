@@ -178,7 +178,14 @@ bool TMainForm::LoadModel(const std::string& fileName)
         CSR_AABBNode* pTree = csrAABBTreeFromMesh(&m_pModel->m_pModel[0].m_pMesh[0]);
 
         if (pTree)
-            m_PosY = -CalculateYPos(pTree, true);
+            try
+            {
+                m_PosY = -CalculateYPos(pTree, true);
+            }
+            __finally
+            {
+                csrAABBTreeNodeRelease(pTree);
+            }
     }
 
     // get the animation count
@@ -369,11 +376,11 @@ void TMainForm::DrawScene()
     pBitmap->PixelFormat = pf24bit;
     pBitmap->SetSize(paView->ClientWidth, paView->ClientHeight);
 
-    for (std::size_t y = 0; y < paView->ClientHeight; ++y)
+    for (int y = 0; y < paView->ClientHeight; ++y)
     {
         TRGBTriple* pLine = reinterpret_cast<TRGBTriple*>(pBitmap->ScanLine[y]);
 
-        for (std::size_t x = 0; x < paView->ClientWidth; ++x)
+        for (int x = 0; x < paView->ClientWidth; ++x)
         {
             pLine[x].rgbtRed   = m_pFrameBuffer->m_pPixel[y * paView->ClientWidth + x].m_R;
             pLine[x].rgbtGreen = m_pFrameBuffer->m_pPixel[y * paView->ClientWidth + x].m_G;

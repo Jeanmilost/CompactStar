@@ -59,6 +59,7 @@ typedef struct
 typedef struct
 {
     GLuint m_TextureID;
+    GLuint m_BumpMapID;
     double m_Time;
 } CSR_ModelTexture;
 

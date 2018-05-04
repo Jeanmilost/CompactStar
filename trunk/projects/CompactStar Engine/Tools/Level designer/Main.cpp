@@ -54,6 +54,11 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_PreviousTime(0),
     m_fViewWndProc_Backup(NULL)
 {
+    // create the app directories
+    ::CreateDirectory(CSR_DesignerHelper::GetSceneDir().c_str(),   NULL);
+    ::CreateDirectory(CSR_DesignerHelper::GetTexturesDir().c_str(), NULL);
+    ::CreateDirectory(CSR_DesignerHelper::GetModelsDir().c_str(),   NULL);
+
     // create an OpenGL context for the 3d views
     m_OpenGLHelper.AddContext(paDesigner3DView);
     m_OpenGLHelper.AddContext(pa3DView);

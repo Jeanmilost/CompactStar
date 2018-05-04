@@ -22,6 +22,10 @@
 
 // std
 #include <string>
+#include <vector>
+
+// compactStar engine
+#include "CSR_Common.h"
 
 /**
 * Designer helper
@@ -101,6 +105,29 @@ class CSR_DesignerHelper
         *@return the default scene dir
         */
         static std::wstring GetSceneDir();
+
+        /**
+        * Gets the default textures dir
+        *@return the default textures dir
+        */
+        static std::wstring GetTexturesDir();
+
+        /**
+        * Gets the default models dir
+        *@return the default models dir
+        */
+        static std::wstring GetModelsDir();
+
+        /**
+        * Extracts all the textures a MDL model contains
+        *@param fileName - texture file name
+        *@param pPalette - palette to use to extract the textures
+        *@param[out] textures - textures extracted from model
+        *@return true on success, otherwise false
+        */
+        static bool ExtractTexturesFromMDL(const std::string&           fileName,
+                                           const CSR_Buffer*            pPalette,
+                                                 std::vector<TBitmap*>& textures);
 };
 
 #endif

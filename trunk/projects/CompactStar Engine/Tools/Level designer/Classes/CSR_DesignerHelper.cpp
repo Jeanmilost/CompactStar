@@ -15,6 +15,12 @@
 
 #include "CSR_DesignerHelper.h"
 
+// classes
+#include "CSR_MessageHelper.h"
+
+// compactStar engine
+#include "CSR_Model.h"
+
 //---------------------------------------------------------------------------
 // CSR_DesignerHelper::IGridOptions
 //---------------------------------------------------------------------------
@@ -156,6 +162,123 @@ std::wstring CSR_DesignerHelper::GetApplicationDir()
 //---------------------------------------------------------------------------
 std::wstring CSR_DesignerHelper::GetSceneDir()
 {
-    return GetApplicationDir() + L"Scene\\";
+    return GetApplicationDir() + CSR_MessageHelper::Get()->GetSceneDir() + L"\\";
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_DesignerHelper::GetTexturesDir()
+{
+    return GetSceneDir() + CSR_MessageHelper::Get()->GetTexturesDir() + L"\\";
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_DesignerHelper::GetModelsDir()
+{
+    return GetSceneDir() + CSR_MessageHelper::Get()->GetModelsDir() + L"\\";
+}
+//---------------------------------------------------------------------------
+bool CSR_DesignerHelper::ExtractTexturesFromMDL(const std::string&           fileName,
+                                                const CSR_Buffer*            pPalette,
+                                                      std::vector<TBitmap*>& textures)
+{
+    CSR_Buffer*      pBuffer      = NULL;
+    CSR_MDL*         pMDL         = NULL;
+    CSR_MDLHeader*   pHeader      = NULL;
+    CSR_MDLSkin*     pSkin        = NULL;
+    CSR_PixelBuffer* pPixelBuffer = NULL;
+
+    try
+    {
+        // open the model file
+        pBuffer = csrFileOpen(fileName.c_str());
+
+        // succeeded?
+        if (!pBuffer || !pBuffer->m_Length)
+        {
+            csrBufferRelease(pBuffer);
+            return false;
+        }
+
+        // create a MDL model
+        pMDL = (CSR_MDL*)malloc(sizeof(CSR_MDL));
+
+        // succeeded?
+        if (!pMDL)
+            return 0;
+
+        // initialize it
+        csrMDLInit(pMDL);
+
+        // create mdl header
+        pHeader = (CSR_MDLHeader*)malloc(sizeof(CSR_MDLHeader));
+
+        // succeeded?
+        if (!pHeader)
+            return false;
+
+        std::size_t offset = 0;
+
+        // read file header
+        csrMDLReadHeader(pBuffer, &offset, pHeader);
+
+        // is mdl file and version correct?
+        if ((pHeader->m_ID != M_MDL_ID) || ((float)pHeader->m_Version != M_MDL_Mesh_File_Version))
+            return false;
+
+        // read skins
+        if (!pHeader->m_SkinCount)
+            // this is NOT an error, just the model does not contain any texture
+            return true;
+
+        // read the model skin
+        pSkin = (CSR_MDLSkin*)malloc(sizeof(CSR_MDLSkin) * pHeader->m_SkinCount);
+
+        for (std::size_t i = 0; i < pHeader->m_SkinCount; ++i)
+            if (!csrMDLReadSkin(pBuffer, &offset, pHeader, &pSkin[i]))
+                return false;
+
+        // iterate through textures to extract
+        for (std::size_t i = 0; i < pHeader->m_SkinCount; ++i)
+        {
+            // extract texture from model
+            pPixelBuffer = csrMDLUncompressTexture(&pSkin[i],
+                                                   pPalette,
+                                                   pHeader->m_SkinWidth,
+                                                   pHeader->m_SkinHeight,
+                                                   i);
+
+            std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+            pBitmap->PixelFormat = pf24bit;
+            pBitmap->SetSize(pHeader->m_SkinWidth, pHeader->m_SkinHeight);
+
+            // iterate through lines to copy
+            for (int y = 0; y < pBitmap->Height; ++y)
+            {
+                // get the next pixel line from bitmap
+                TRGBTriple* pLine = static_cast<TRGBTriple*>(pBitmap->ScanLine[y]);
+
+                // calculate the start y position
+                const int yPos = y * pBitmap->Width * 3;
+
+                // iterate through pixels to copy
+                for (int x = 0; x < pBitmap->Width; ++x)
+                {
+                    pLine[x].rgbtRed   = ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)];
+                    pLine[x].rgbtGreen = ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1];
+                    pLine[x].rgbtBlue  = ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2];
+                }
+            }
+
+            textures.push_back(pBitmap.get());
+            pBitmap.release();
+        }
+    }
+    __finally
+    {
+        csrPixelBufferRelease(pPixelBuffer);
+        csrMDLReleaseObjects(pHeader, NULL, pSkin, NULL, NULL);
+        csrMDLRelease(pMDL);
+        csrBufferRelease(pBuffer);
+    }
+
+    return true;
 }
 //---------------------------------------------------------------------------

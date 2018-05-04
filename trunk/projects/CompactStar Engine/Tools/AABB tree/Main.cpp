@@ -1037,8 +1037,13 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         mesh.m_pVB->m_Format.m_Stride            =  7;
         mesh.m_pVB->m_Culling.m_Type             =  CSR_CT_None;
         mesh.m_pVB->m_Culling.m_Face             =  CSR_CF_CCW;
+        mesh.m_pVB->m_Material.m_Color           =  0xFFFFFFFF;
+        mesh.m_pVB->m_Material.m_Transparent     =  0;
+        mesh.m_pVB->m_Material.m_Wireframe       =  0;
         mesh.m_pVB->m_pData                      =  m_PolygonArray;
         mesh.m_pVB->m_Count                      =  21;
+        mesh.m_pVB->m_Time                       =  0.0;
+        mesh.m_Time                              =  0.0;
 
         // iterate through polygons to draw
         for (std::size_t i = 0; i < polygonsToDrawCount; ++i)

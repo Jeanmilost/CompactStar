@@ -38,7 +38,7 @@ __fastcall TTextureSelectionFrame::TTextureSelectionFrame(TComponent* pOwner) :
     m_pDefaultPicture->Assign(imTexture->Picture);
 
     // set the default scene items dir
-    m_DefaultDir       = (CSR_DesignerHelper::GetSceneDir() + CSR_MessageHelper::Get()->GetTexturesDir() + L"\\").c_str();
+    m_DefaultDir       = CSR_DesignerHelper::GetTexturesDir().c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
 //---------------------------------------------------------------------------

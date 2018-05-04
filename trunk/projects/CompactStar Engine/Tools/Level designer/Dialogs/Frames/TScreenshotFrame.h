@@ -22,6 +22,7 @@
 #include <Vcl.Dialogs.hpp>
 #include <Vcl.Buttons.hpp>
 #include <Vcl.AppEvnts.hpp>
+#include <Vcl.Menus.hpp>
 
 // compactStar engine
 #include "CSR_Collision.h"
@@ -65,8 +66,10 @@ class TScreenshotFrame : public TFrame
         TLabel *laCameraY;
         TLabel *laCameraZ;
         TPanel *paCamera;
-        TButton *btReset;
         TPanel *paCameraTitle;
+        TSpeedButton *btConfig;
+        TPopupMenu *pmConfig;
+        TMenuItem *miResetScene;
 
         void __fastcall FrameResize(TObject* pSender);
         void __fastcall btCameraLeftClick(TObject* pSender);
@@ -75,7 +78,8 @@ class TScreenshotFrame : public TFrame
         void __fastcall btCameraDownClick(TObject* pSender);
         void __fastcall btCameraBackClick(TObject* pSender);
         void __fastcall btCameraFrontClick(TObject* pSender);
-        void __fastcall btResetClick(TObject* pSender);
+        void __fastcall btConfigClick(TObject* pSender);
+        void __fastcall miResetSceneClick(TObject* pSender);
         void __fastcall rbArcballClick(TObject* pSender);
         void __fastcall rbFirstViewPersonClick(TObject* pSender);
         void __fastcall paColorValueClick(TObject* pSender);
@@ -100,14 +104,14 @@ class TScreenshotFrame : public TFrame
         *@param type - model type to create
         *@param fileName - model file name to load, ignored if model type isn't set to IE_MT_Model
         *@param textureFileName - model texture file name, ignored if empty
-        *@param bumpmapFileName - model bumpmap file name, ignored if empty
+        *@param bumpMapFileName - model bump map file name, ignored if empty
         *@param color - vertex color
         *@return true on success, otherwise false
         */
         bool LoadModel(      CSR_DesignerHelper::IEModelType type,
                        const std::wstring&                   fileName,
                        const std::wstring&                   textureFileName,
-                       const std::wstring&                   bumpmapFileName,
+                       const std::wstring&                   bumpMapFileName,
                              unsigned                        color);
 
         /**
@@ -196,9 +200,15 @@ class TScreenshotFrame : public TFrame
         *@param width - texture width in pixels
         *@param height - texture height in pixels
         *@param pixelType - pixel type to use
+        *@param bumpMap - if true, the texture to set is a bumpmap
         *@param pPixels - pixel array
+        *@return true on success, otherwise false
         */
-        void SetTexture(int width, int height, int pixelType, const unsigned char* pPixels) const;
+        bool SetTexture(      int            width,
+                              int            height,
+                              int            pixelType,
+                              bool           bumpMap,
+                        const unsigned char* pPixels) const;
 };
 extern PACKAGE TScreenshotFrame* ScreenshotFrame;
 #endif
