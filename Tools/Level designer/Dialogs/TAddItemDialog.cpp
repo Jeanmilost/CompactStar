@@ -20,6 +20,9 @@
 #include "CSR_MessageHelper.h"
 #include "CSR_VCLHelper.h"
 
+// dialogs
+#include "TImageDuplicateDialog.h"
+
 #pragma package(smart_init)
 #pragma link "TTextureSelectionFrame"
 #pragma link "TVertexColorFrame"
@@ -356,9 +359,97 @@ void __fastcall TAddItemDialog::OnModelFileSelected(TObject* pSender, const std:
                      TMsgDlgButtons() << mbOK,
                      0);
 
+    // get the default texture directory
+    const std::wstring textureDir = CSR_DesignerHelper::GetTexturesDir();
+
     // default texture directory should exists
-    if (::DirectoryExists(CSR_DesignerHelper::GetModelsDir().c_str(), false))
+    if (::DirectoryExists(UnicodeString(textureDir.c_str(), false)))
     {
+        // get the model name from his file
+        const std::wstring modelName =
+                ::ChangeFileExt(::ExtractFileName(ffModelFile->edFileName->Text), L"").c_str();
+
+        // save all textures to file
+        for (std::size_t i = 0; i < textures.size(); ++i)
+        {
+            // build the texture file name
+            std::wstring textureFileName = textureDir + modelName + L".bmp";
+
+            bool keep = false;
+
+            // check if another file with the same name already exists, generates another name if yes
+            while (1)//::FileExists(textureFileName.c_str(), false))
+            {
+                std::auto_ptr<TBitmap> pCurrent(new TBitmap());
+                pCurrent->LoadFromFile(textureFileName.c_str());
+
+                // create and configure the image duplicate dialog box
+                std::auto_ptr<TImageDuplicateDialog> pDialog(new TImageDuplicateDialog(this));
+                pDialog->imCurrent->Picture->Assign(textures[i]);//pCurrent.get());
+                pDialog->imNew->Picture->Assign(textures[i]);
+
+                // show dialog to user and check result
+                if (pDialog->ShowModal() != mrOk)
+                {
+                    // keep the current image
+                    keep = true;
+                    break;
+                }
+
+                bool validated = false;
+
+                // search for action to apply
+                switch (pDialog->rgAction->ItemIndex)
+                {
+                    case 0:
+                        // keep the current image
+                        keep      = true;
+                        validated = true;
+                        break;
+
+                    case 1:
+                        // keep the new image
+                        validated = true;
+                        break;
+
+                    case 2:
+                        // generate a duplicate file
+                        if (!pDialog->edDuplicatePrefix->Text.IsEmpty())
+                            // generate a new texture file name using the user prefix
+                            textureFileName = textureDir +
+                                              modelName  +
+                                              UnicodeString(L"_"                             +
+                                                            pDialog->edDuplicatePrefix->Text +
+                                                            L".bmp").c_str();
+                        else
+                            // generate a name for the duplicate
+                            textureFileName = textureDir +
+                                              modelName  +
+                                              UnicodeString(L"("               +
+                                                            ::IntToStr(int(i)) +
+                                                            L".bmp").c_str();
+
+                        break;
+
+                    default:
+                        // by default keep the current image
+                        keep      = true;
+                        validated = true;
+                        break;
+                }
+
+                // is file name validated?
+                if (validated)
+                    break;
+            }
+
+            // do keep the file?
+            if (keep)
+                continue;
+
+            // save the new texture file
+            textures[i]->SaveToFile(UnicodeString(textureFileName.c_str()));
+        }
     }
 
     for (std::size_t i = 0; i < textures.size(); ++i)

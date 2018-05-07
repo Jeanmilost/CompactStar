@@ -1166,6 +1166,9 @@ object AddItemDialog: TAddItemDialog
               inherited paColor: TPanel
                 Width = 161
                 ExplicitWidth = 161
+                inherited laColorCaption: TLabel
+                  Height = 20
+                end
                 inherited paColorValue: TPanel
                   Left = 141
                   ExplicitLeft = 141
@@ -1185,6 +1188,15 @@ object AddItemDialog: TAddItemDialog
                 inherited paCameraCaption: TPanel
                   Width = 158
                   ExplicitWidth = 158
+                  inherited laCameraX: TLabel
+                    Height = 20
+                  end
+                  inherited laCameraY: TLabel
+                    Height = 20
+                  end
+                  inherited laCameraZ: TLabel
+                    Height = 20
+                  end
                 end
                 inherited paCameraDown: TPanel
                   Width = 158
@@ -1204,10 +1216,10 @@ object AddItemDialog: TAddItemDialog
                 ExplicitWidth = 164
                 inherited laCameraTitle: TLabel
                   Width = 133
-                  ExplicitWidth = 54
                 end
                 inherited btConfig: TSpeedButton
                   Left = 139
+                  ExplicitLeft = 139
                 end
               end
             end
@@ -1569,7 +1581,7 @@ object AddItemDialog: TAddItemDialog
     Left = 48
     Top = 208
     Bitmap = {
-      494C010108000D00040023002300FFFFFFFF2100FFFFFFFFFFFFFFFF424D3600
+      494C010108000D00040023002300FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008C000000690000000100200000000000B0E5
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -3476,6 +3488,7 @@ object AddItemDialog: TAddItemDialog
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000}
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000}
   end
 end
