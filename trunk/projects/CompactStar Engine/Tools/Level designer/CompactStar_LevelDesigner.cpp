@@ -31,6 +31,7 @@ USEFORM("Dialogs\TImageInfoDialog.cpp", ImageInfoDialog);
 USEFORM("Dialogs\Frames\TTextureSelectionFrame.cpp", TextureSelectionFrame); /* TFrame: File Type */
 USEFORM("Dialogs\Frames\TScreenshotFrame.cpp", ScreenshotFrame); /* TFrame: File Type */
 USEFORM("Dialogs\Frames\TFileNameFrame.cpp", FileNameFrame); /* TFrame: File Type */
+USEFORM("Dialogs\TImageDuplicateDialog.cpp", ImageDuplicateDialog);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -41,6 +42,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
          Application->CreateForm(__classid(TMainForm), &MainForm);
          Application->CreateForm(__classid(TAddItemDialog), &AddItemDialog);
          Application->CreateForm(__classid(TImageInfoDialog), &ImageInfoDialog);
+         Application->CreateForm(__classid(TImageDuplicateDialog), &ImageDuplicateDialog);
          Application->Run();
     }
     catch (Exception &exception)

@@ -260,6 +260,12 @@
             <DependentOn>Dialogs\TAddItemDialog.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
+        <CppCompile Include="Dialogs\TImageDuplicateDialog.cpp">
+            <Form>ImageDuplicateDialog</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>Dialogs\TImageDuplicateDialog.h</DependentOn>
+            <BuildOrder>39</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Dialogs\TImageInfoDialog.cpp">
             <Form>ImageInfoDialog</Form>
             <FormType>dfm</FormType>
@@ -279,6 +285,7 @@
         <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
         <FormResources Include="Dialogs\Frames\TScreenshotFrame.dfm"/>
         <FormResources Include="Dialogs\Frames\TFileNameFrame.dfm"/>
+        <FormResources Include="Dialogs\TImageDuplicateDialog.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
