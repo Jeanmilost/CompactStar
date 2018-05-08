@@ -17,6 +17,31 @@
 #include <string>
 #include <memory>
 
+// helper macros to catching and showing error messages to user
+#define M_CSR_Try try
+#define M_CSR_CatchShow                                                                                                        \
+    catch (const System::Sysutils::Exception& e)                                                                               \
+    {                                                                                                                          \
+        ::MessageDlg((CSR_MessageHelper::Get()->GetError_Unexpected() + e.Message.c_str()).c_str(),                            \
+                     mtError,                                                                                                  \
+                     TMsgDlgButtons() << mbOK,                                                                                 \
+                     0);                                                                                                       \
+    }                                                                                                                          \
+    catch (const std::exception& ex)                                                                                           \
+    {                                                                                                                          \
+        ::MessageDlg((CSR_MessageHelper::Get()->GetError_Unexpected() + UnicodeString(AnsiString(ex.what())).c_str()).c_str(), \
+                     mtError,                                                                                                  \
+                     TMsgDlgButtons() << mbOK,                                                                                 \
+                     0);                                                                                                       \
+    }                                                                                                                          \
+    catch (...)                                                                                                                \
+    {                                                                                                                          \
+        ::MessageDlg((CSR_MessageHelper::Get()->GetError_Unexpected() + L"Unknown error").c_str(),                             \
+                     mtError,                                                                                                  \
+                     TMsgDlgButtons() << mbOK,                                                                                 \
+                     0);                                                                                                       \
+    }
+
 /**
 * Helper containing all the application messages
 *@author Jean-Milost Reymond
@@ -82,6 +107,12 @@ class CSR_MessageHelper
         *@return the loading model error message
         */
         std::wstring GetError_LoadingModel() const;
+
+        /**
+        * Gets the unexpected error message
+        *@return the unexpected error message
+        */
+        std::wstring GetError_Unexpected() const;
 
     private:
         /**

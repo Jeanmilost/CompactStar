@@ -85,26 +85,31 @@ std::wstring CSR_MessageHelper::GetModelsDir() const
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetWarn_ModelTextures() const
 {
-    return L"An error occurred while the textures were extracted from the model.\n\nPlease check the model file and try again.";
+    return L"An error occurred while the textures were extracted from the model.\r\n\r\nPlease check the model file and try again.";
 }
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetWarn_UnsupportedTextureCount() const
 {
-    return L"The model contains more than 1 texture.\n\nThis is not supported by this current engine version, and may cause unexpected errors on usage.";
+    return L"The model contains more than 1 texture.\r\n\r\nThis is not supported by this current engine version, and may cause unexpected errors on usage.";
 }
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetError_CopyTexture() const
 {
-    return L"Failed to copy the texture in the scene directory.\r\n\r\nPlease verify if another texture with the same name was not previously copied in this dir:\r\n";
+    return L"Failed to copy the texture in the scene directory.\r\r\n\r\r\nPlease verify if another texture with the same name was not previously copied in this dir:\r\r\n";
 }
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetError_OpeningModel() const
 {
-    return L"An error occurred while the model was opened.\n\nPlease check your parameters and try again.";
+    return L"An error occurred while the model was opened.\r\n\r\nPlease check your parameters and try again.";
 }
 //---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetError_LoadingModel() const
 {
-    return L"The model you're trying to load is invalid.\n\nPlease check the model file and try again.";
+    return L"The model you're trying to load is invalid.\r\n\r\nPlease check the model file and try again.";
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_MessageHelper::GetError_Unexpected() const
+{
+    return L"An unexpected error occurred while application was running.\r\n\r\nDetails:\r\n";
 }
 //---------------------------------------------------------------------------

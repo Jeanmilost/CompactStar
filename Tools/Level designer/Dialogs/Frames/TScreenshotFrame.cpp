@@ -326,8 +326,13 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 else
                     pLineRGBA = static_cast<TRGBQuad*>(pBitmap->ScanLine[y]);
 
+                int yPos;
+
                 // calculate the start y position
-                const int yPos = ((pBitmap->Height - 1) - y) * pBitmap->Width * pixelSize;
+                if (type == CSR_DesignerHelper::IE_MT_Model)
+                    yPos = y * pBitmap->Width * pixelSize;
+                else
+                    yPos = ((pBitmap->Height - 1) - y) * pBitmap->Width * pixelSize;
 
                 // iterate through pixels to copy
                 for (int x = 0; x < pBitmap->Width; ++x)
@@ -421,8 +426,13 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 else
                     pLineRGBA = static_cast<TRGBQuad*>(pBitmap->ScanLine[y]);
 
+                int yPos;
+
                 // calculate the start y position
-                const int yPos = ((pBitmap->Height - 1) - y) * pBitmap->Width * pixelSize;
+                if (type == CSR_DesignerHelper::IE_MT_Model)
+                    yPos = y * pBitmap->Width * pixelSize;
+                else
+                    yPos = ((pBitmap->Height - 1) - y) * pBitmap->Width * pixelSize;
 
                 // iterate through pixels to copy
                 for (int x = 0; x < pBitmap->Width; ++x)
