@@ -83,7 +83,6 @@ object TextureSelectionFrame: TTextureSelectionFrame
         0049454E44AE426082}
       Proportional = True
       Stretch = True
-      Transparent = True
       OnDblClick = btInfoClick
       ExplicitLeft = -3
     end

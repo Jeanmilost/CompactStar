@@ -113,9 +113,10 @@ class TAddItemDialog : public TForm
         /**
         * Gets the default item icon to show in the toolbox
         *@param pBitmap - bitmap to fill with the icon
+        *@param color - icon background color
         *@return true on success, otherwise false
         */
-        bool GetDefaultIcon(TBitmap* pBitmap) const;
+        bool GetDefaultIcon(TBitmap* pBitmap, TColor color = clSilver) const;
 
         /**
         * Gets the item icon to show in the toolbox
@@ -131,13 +132,18 @@ class TAddItemDialog : public TForm
         CSR_DesignerHelper::IEModelType GetModelType() const;
 
         /**
+        * Gets the model file name
+        *@return the model file name
+        */
+        std::string GetModelFileName() const;
+
+        /**
         * Gets the vertex color
         *@return the vertex color
         */
         unsigned GetVertexColor() const;
 
         /* FIXME
-        std::string GetModelFileName() const;
         bool GetTexture(TBitmap* pBitmap) const;
         bool GetBumpMap(TBitmap* pBitmap) const;
         IEOptions GetOptions() const;

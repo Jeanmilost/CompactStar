@@ -24,7 +24,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitHeight = 360
     object imCurrent: TImage
       AlignWithMargins = True
       Left = 3
@@ -35,9 +34,7 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Center = True
       Proportional = True
       Stretch = True
-      Transparent = True
-      ExplicitLeft = 32
-      ExplicitTop = 48
+      ExplicitTop = 13
     end
     object imNew: TImage
       AlignWithMargins = True
@@ -49,7 +46,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Center = True
       Proportional = True
       Stretch = True
-      Transparent = True
       ExplicitLeft = 6
       ExplicitTop = 252
     end
@@ -80,7 +76,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitLeft = 114
     object laCaption: TLabel
       AlignWithMargins = True
       Left = 3
@@ -88,7 +83,7 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Width = 283
       Height = 13
       Align = alTop
-      Caption = 'Another file with a similar name already exists.'
+      Caption = 'Another file with a similar name already exists:'
       WordWrap = True
       ExplicitWidth = 223
     end
@@ -100,9 +95,7 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Height = 13
       Align = alTop
       Caption = '##########'
-      ExplicitLeft = -16
-      ExplicitTop = 3
-      ExplicitWidth = 289
+      ExplicitWidth = 80
     end
     object laDuplicatePrefix: TLabel
       AlignWithMargins = True
@@ -123,7 +116,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitTop = 329
       object btOk: TButton
         AlignWithMargins = True
         Left = 211
@@ -152,9 +144,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
         'Generate a duplicate file')
       TabOrder = 0
       OnClick = rgActionClick
-      ExplicitLeft = 80
-      ExplicitTop = 136
-      ExplicitWidth = 185
     end
     object edDuplicatePrefix: TEdit
       AlignWithMargins = True
@@ -165,9 +154,6 @@ object ImageDuplicateDialog: TImageDuplicateDialog
       Align = alTop
       Enabled = False
       TabOrder = 2
-      ExplicitLeft = 40
-      ExplicitTop = 184
-      ExplicitWidth = 121
     end
   end
 end

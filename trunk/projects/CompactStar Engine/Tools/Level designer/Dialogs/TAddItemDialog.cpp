@@ -100,43 +100,47 @@ void __fastcall TAddItemDialog::btCancelClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
 {
-    // ok button is always disabled in this case
-    btOK->Enabled = false;
-
-    // select the action to apply depending on the currently shown tab
-    if (pcWizard->ActivePage == tsConfig)
+    M_CSR_Try
     {
-        // configuring a model?
-        if (m_ModelType == CSR_DesignerHelper::IE_MT_Model)
+        // ok button is always disabled in this case
+        btOK->Enabled = false;
+
+        // select the action to apply depending on the currently shown tab
+        if (pcWizard->ActivePage == tsConfig)
         {
-            btNext->Enabled      = ModelFileExists();
-            pcWizard->ActivePage = tsModel;
-            return;
-        }
+            // configuring a model?
+            if (m_ModelType == CSR_DesignerHelper::IE_MT_Model)
+            {
+                btNext->Enabled      = ModelFileExists();
+                pcWizard->ActivePage = tsModel;
+                return;
+            }
 
-        m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
-        btBack->Visible      = false;
-        btNext->Visible      = false;
-        btBack->Enabled      = false;
-        btNext->Enabled      = false;
-        pcWizard->ActivePage = tsSelectItem;
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
+            btBack->Visible      = false;
+            btNext->Visible      = false;
+            btBack->Enabled      = false;
+            btNext->Enabled      = false;
+            pcWizard->ActivePage = tsSelectItem;
+        }
+        else
+        if (pcWizard->ActivePage == tsModel)
+        {
+            m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
+            btBack->Visible      = false;
+            btNext->Visible      = false;
+            btBack->Enabled      = false;
+            btNext->Enabled      = false;
+            pcWizard->ActivePage = tsSelectItem;
+        }
+        else
+        if (pcWizard->ActivePage == tsIcon)
+        {
+            btNext->Enabled      = true;
+            pcWizard->ActivePage = tsConfig;
+        }
     }
-    else
-    if (pcWizard->ActivePage == tsModel)
-    {
-        m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
-        btBack->Visible      = false;
-        btNext->Visible      = false;
-        btBack->Enabled      = false;
-        btNext->Enabled      = false;
-        pcWizard->ActivePage = tsSelectItem;
-    }
-    else
-    if (pcWizard->ActivePage == tsIcon)
-    {
-        btNext->Enabled      = true;
-        pcWizard->ActivePage = tsConfig;
-    }
+    M_CSR_CatchShow
 }
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
@@ -146,123 +150,158 @@ void __fastcall TAddItemDialog::btOKClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
 {
-    // select the action to apply depending on the currently shown tab
-    if (pcWizard->ActivePage == tsSelectItem)
+    M_CSR_Try
     {
-        btNext->Visible = true;
-        btBack->Visible = true;
-        btNext->Enabled = true;
-        btBack->Enabled = true;
-        btOK->Enabled   = false;
+        // select the action to apply depending on the currently shown tab
+        if (pcWizard->ActivePage == tsSelectItem)
+        {
+            btNext->Visible = true;
+            btBack->Visible = true;
+            btNext->Enabled = true;
+            btBack->Enabled = true;
+            btOK->Enabled   = false;
 
-        // search for selected item
-        if (btSelectItemAddSurface->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Surface;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddBox->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Box;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddSphere->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Sphere;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddCylinder->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Cylinder;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddDisk->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Disk;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddRing->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Ring;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddSpiral->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Spiral;
-            pcWizard->ActivePage = tsConfig;
-        }
-        else
-        if (btSelectItemAddModel->Down)
-        {
-            m_ModelType          = CSR_DesignerHelper::IE_MT_Model;
-            btNext->Enabled      = ModelFileExists();
-            pcWizard->ActivePage = tsModel;
-        }
-    }
-    else
-    if (pcWizard->ActivePage == tsModel)
-        pcWizard->ActivePage = tsConfig;
-    else
-    if (pcWizard->ActivePage == tsConfig)
-    {
-        try
-        {
-            Screen->Cursor = crHourGlass;
-
-            // take a screenshot of the model. This also will check if the model can be built
-            if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
+            // search for selected item
+            if (btSelectItemAddSurface->Down)
             {
-                // load a shape
-                if (!sfScreenshot->LoadModel(m_ModelType,
-                                             L"",
-                                             tsConfigTexture->edTextureFile->Text.c_str(),
-                                             tsConfigBump->edTextureFile->Text.c_str(),
-                                             GetVertexColor()))
-                {
-                    ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
-                                 mtError,
-                                 TMsgDlgButtons() << mbOK,
-                                 0);
-
-                    return;
-                }
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Surface;
+                pcWizard->ActivePage = tsConfig;
             }
             else
+            if (btSelectItemAddBox->Down)
             {
-                // load a model from file
-                if (!sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
-                                             ffModelFile->edFileName->Text.c_str(),
-                                             tsConfigTexture->edTextureFile->Text.c_str(),
-                                             tsConfigBump->edTextureFile->Text.c_str(),
-                                             GetVertexColor()))
-                {
-                    ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
-                                 mtError,
-                                 TMsgDlgButtons() << mbOK,
-                                 0);
-                    return;
-                }
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Box;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddSphere->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Sphere;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddCylinder->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Cylinder;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddDisk->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Disk;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddRing->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Ring;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddSpiral->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Spiral;
+                pcWizard->ActivePage = tsConfig;
+            }
+            else
+            if (btSelectItemAddModel->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Model;
+                btNext->Enabled      = ModelFileExists();
+                pcWizard->ActivePage = tsModel;
             }
         }
-        __finally
+        else
+        if (pcWizard->ActivePage == tsModel)
+            pcWizard->ActivePage = tsConfig;
+        else
+        if (pcWizard->ActivePage == tsConfig)
         {
-            Screen->Cursor = crDefault;
-        }
+            try
+            {
+                Screen->Cursor = crHourGlass;
 
-        pcWizard->ActivePage = tsIcon;
-        btNext->Enabled      = false;
-        btOK->Enabled        = true;
+                // take a screenshot of the model. This also will check if the model can be built
+                if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
+                {
+                    // load a shape
+                    if (!sfScreenshot->LoadModel(m_ModelType,
+                                                 L"",
+                                                 tsConfigTexture->edTextureFile->Text.c_str(),
+                                                 tsConfigBump->edTextureFile->Text.c_str(),
+                                                 GetVertexColor()))
+                    {
+                        ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
+                                     mtError,
+                                     TMsgDlgButtons() << mbOK,
+                                     0);
+
+                        return;
+                    }
+                }
+                else
+                {
+                    // load a model from file
+                    if (!sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
+                                                 ffModelFile->edFileName->Text.c_str(),
+                                                 tsConfigTexture->edTextureFile->Text.c_str(),
+                                                 tsConfigBump->edTextureFile->Text.c_str(),
+                                                 GetVertexColor()))
+                    {
+                        ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
+                                     mtError,
+                                     TMsgDlgButtons() << mbOK,
+                                     0);
+                        return;
+                    }
+                }
+            }
+            __finally
+            {
+                Screen->Cursor = crDefault;
+            }
+
+            pcWizard->ActivePage = tsIcon;
+            btNext->Enabled      = false;
+            btOK->Enabled        = true;
+        }
     }
+    M_CSR_CatchShow
 }
 //---------------------------------------------------------------------------
-bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap) const
+bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap, TColor color) const
 {
+    // no bitmap to load to?
+    if (!pBitmap)
+        return false;
+
+    M_CSR_Try
+    {
+        // set the bitmap size
+        pBitmap->SetSize(ilDefaultIcons->Width, ilDefaultIcons->Height);
+
+        // fill the background with the default color
+        pBitmap->Canvas->Brush->Color = color;
+        pBitmap->Canvas->Brush->Style = bsSolid;
+        pBitmap->Canvas->FillRect(TRect(0, 0, ilDefaultIcons->Width, ilDefaultIcons->Height));
+
+        // draw the default icon inside the destination bitmap
+        switch (m_ModelType)
+        {
+            case CSR_DesignerHelper::IE_MT_Surface:  ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 0); return true;
+            case CSR_DesignerHelper::IE_MT_Box:      ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 1); return true;
+            case CSR_DesignerHelper::IE_MT_Sphere:   ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 2); return true;
+            case CSR_DesignerHelper::IE_MT_Cylinder: ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 3); return true;
+            case CSR_DesignerHelper::IE_MT_Disk:     ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 4); return true;
+            case CSR_DesignerHelper::IE_MT_Ring:     ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 5); return true;
+            case CSR_DesignerHelper::IE_MT_Spiral:   ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 6); return true;
+            case CSR_DesignerHelper::IE_MT_Model:    ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 7); return true;
+            default:                                                                                 return false;
+        }
+    }
+    M_CSR_CatchShow
+
+    return false;
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
@@ -271,28 +310,33 @@ bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
     if (!pBitmap)
         return false;
 
-    // search for the icon source to get from
-    if (rbIconDefault->Checked)
-        return GetDefaultIcon(pBitmap);
-    else
-    if (rbIconScreenshot->Checked)
-        return sfScreenshot->GetScreenshot(pBitmap);
-    else
-    if (rbImage->Checked)
+    M_CSR_Try
     {
-        // no icon file or file does not exists?
-        if (fnIconImageFile->edFileName->Text.IsEmpty() || !::FileExists(fnIconImageFile->edFileName->Text, false))
+        // search for the icon source to get from
+        if (rbIconDefault->Checked)
             return GetDefaultIcon(pBitmap);
+        else
+        if (rbIconScreenshot->Checked)
+            return sfScreenshot->GetScreenshot(pBitmap);
+        else
+        if (rbImage->Checked)
+        {
+            // no icon file or file does not exists?
+            if (fnIconImageFile->edFileName->Text.IsEmpty() ||
+                    !::FileExists(fnIconImageFile->edFileName->Text, false))
+                return GetDefaultIcon(pBitmap);
 
-        // load the texture image
-        std::auto_ptr<TPicture> pPicture(new TPicture());
-        pPicture->LoadFromFile(fnIconImageFile->edFileName->Text);
+            // load the texture image
+            std::auto_ptr<TPicture> pPicture(new TPicture());
+            pPicture->LoadFromFile(fnIconImageFile->edFileName->Text);
 
-        // convert it to bitmap
-        pBitmap->Assign(pPicture->Graphic);
+            // convert it to bitmap
+            pBitmap->Assign(pPicture->Graphic);
 
-        return true;
+            return true;
+        }
     }
+    M_CSR_CatchShow
 
     return false;
 }
@@ -300,6 +344,11 @@ bool TAddItemDialog::GetIcon(TBitmap* pBitmap) const
 CSR_DesignerHelper::IEModelType TAddItemDialog::GetModelType() const
 {
     return m_ModelType;
+}
+//---------------------------------------------------------------------------
+std::string TAddItemDialog::GetModelFileName() const
+{
+    return AnsiString(ffModelFile->edFileName->Text).c_str();
 }
 //---------------------------------------------------------------------------
 unsigned TAddItemDialog::GetVertexColor() const
@@ -321,140 +370,156 @@ void __fastcall TAddItemDialog::OnTextureFileSelected(TObject* pSender, const st
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnModelFileSelected(TObject* pSender, const std::wstring& fileName)
 {
-    const bool fileExists = ModelFileExists();
-
-    btNext->Enabled = fileExists;
-
-    if (!fileExists)
-        return;
-
-    // for MDL models, try to extract the textures. For other models, do nothing
-    if (fileName.rfind(L"mdl") != fileName.length() - 3)
-        return;
-
-    std::vector<TBitmap*> textures;
-
-    // extract the textures from the model
-    if (!CSR_DesignerHelper::ExtractTexturesFromMDL(AnsiString(ffModelFile->edFileName->Text).c_str(),
-                                                    NULL,
-                                                    textures))
-        // show a warning message to user
-        ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_ModelTextures().c_str(),
-                     mtWarning,
-                     TMsgDlgButtons() << mbOK,
-                     0);
-
-    // get the texture count
-    const std::size_t textureCount = textures.size();
-
-    // no texture?
-    if (!textureCount)
-        return;
-
-    // model contains too many textures?
-    if (textureCount > 1)
-        // show a warning message to user
-        ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_UnsupportedTextureCount().c_str(),
-                     mtWarning,
-                     TMsgDlgButtons() << mbOK,
-                     0);
-
-    // get the default texture directory
-    const std::wstring textureDir = CSR_DesignerHelper::GetTexturesDir();
-
-    // default texture directory should exists
-    if (::DirectoryExists(UnicodeString(textureDir.c_str(), false)))
+    M_CSR_Try
     {
-        // get the model name from his file
-        const std::wstring modelName =
-                ::ChangeFileExt(::ExtractFileName(ffModelFile->edFileName->Text), L"").c_str();
+        const bool fileExists = ModelFileExists();
 
-        // save all textures to file
-        for (std::size_t i = 0; i < textures.size(); ++i)
+        btNext->Enabled = fileExists;
+
+        if (!fileExists)
+            return;
+
+        // for MDL models, try to extract the textures. For other models, do nothing
+        if (fileName.rfind(L"mdl") != fileName.length() - 3)
+            return;
+
+        std::vector<TBitmap*> textures;
+
+        // extract the textures from the model
+        if (!CSR_DesignerHelper::ExtractTexturesFromMDL(AnsiString(ffModelFile->edFileName->Text).c_str(),
+                                                        NULL,
+                                                        textures))
+            // show a warning message to user
+            ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_ModelTextures().c_str(),
+                         mtWarning,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+
+        // get the texture count
+        const std::size_t textureCount = textures.size();
+
+        // no texture?
+        if (!textureCount)
+            return;
+
+        // model contains too many textures?
+        if (textureCount > 1)
+            // show a warning message to user
+            ::MessageDlg(CSR_MessageHelper::Get()->GetWarn_UnsupportedTextureCount().c_str(),
+                         mtWarning,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+
+        // get the default texture directory
+        const std::wstring textureDir = CSR_DesignerHelper::GetTexturesDir();
+
+        // default texture directory should exists
+        if (::DirectoryExists(::ExcludeTrailingPathDelimiter(UnicodeString(textureDir.c_str())), false))
         {
-            // build the texture file name
-            std::wstring textureFileName = textureDir + modelName + L".bmp";
+            // get the model name from his file
+            const std::wstring modelName =
+                    ::ChangeFileExt(::ExtractFileName(ffModelFile->edFileName->Text), L"").c_str();
 
-            bool keep = false;
-
-            // check if another file with the same name already exists, generates another name if yes
-            while (1)//::FileExists(textureFileName.c_str(), false))
+            // save all textures to file
+            for (std::size_t i = 0; i < textures.size(); ++i)
             {
-                std::auto_ptr<TBitmap> pCurrent(new TBitmap());
-                pCurrent->LoadFromFile(textureFileName.c_str());
+                // build the texture file name
+                std::wstring textureFileName = textureDir + modelName + L".bmp";
 
-                // create and configure the image duplicate dialog box
-                std::auto_ptr<TImageDuplicateDialog> pDialog(new TImageDuplicateDialog(this));
-                pDialog->imCurrent->Picture->Assign(textures[i]);//pCurrent.get());
-                pDialog->imNew->Picture->Assign(textures[i]);
+                std::size_t index = 1;
+                bool        keep  = false;
 
-                // show dialog to user and check result
-                if (pDialog->ShowModal() != mrOk)
+                // check if another file with the same name already exists, generates another name if yes
+                while (::FileExists(textureFileName.c_str(), false))
                 {
-                    // keep the current image
-                    keep = true;
-                    break;
-                }
+                    std::auto_ptr<TBitmap> pCurrent(new TBitmap());
+                    pCurrent->LoadFromFile(textureFileName.c_str());
 
-                bool validated = false;
+                    // create and configure the image duplicate dialog box
+                    std::auto_ptr<TImageDuplicateDialog> pDialog(new TImageDuplicateDialog(this));
+                    pDialog->laFileName->Caption = ::ExtractFileName(UnicodeString(textureFileName.c_str()));
+                    pDialog->imCurrent->Picture->Assign(pCurrent.get());
+                    pDialog->imNew->Picture->Assign(textures[i]);
 
-                // search for action to apply
-                switch (pDialog->rgAction->ItemIndex)
-                {
-                    case 0:
+                    // show dialog to user and check result
+                    if (pDialog->ShowModal() != mrOk)
+                    {
                         // keep the current image
-                        keep      = true;
-                        validated = true;
+                        keep = true;
+                        break;
+                    }
+
+                    bool validated = false;
+
+                    // search for action to apply
+                    switch (pDialog->rgAction->ItemIndex)
+                    {
+                        case 0:
+                            // keep the current image
+                            keep      = true;
+                            validated = true;
+                            break;
+
+                        case 1:
+                            // keep the new image
+                            validated = true;
+                            break;
+
+                        case 2:
+                            // generate a duplicate file
+                            if (!pDialog->edDuplicatePrefix->Text.IsEmpty())
+                                // generate a new texture file name using the user prefix
+                                textureFileName = textureDir +
+                                                  modelName  +
+                                                  UnicodeString(L"_"                             +
+                                                                pDialog->edDuplicatePrefix->Text +
+                                                                L".bmp").c_str();
+                            else
+                                // generate a name for the duplicate
+                                textureFileName = textureDir +
+                                                  modelName  +
+                                                  UnicodeString(L"("                   +
+                                                                ::IntToStr(int(index)) +
+                                                                L").bmp").c_str();
+
+                            break;
+
+                        default:
+                            // by default keep the current image
+                            keep      = true;
+                            validated = true;
+                            break;
+                    }
+
+                    // is file name validated?
+                    if (validated)
                         break;
 
-                    case 1:
-                        // keep the new image
-                        validated = true;
-                        break;
-
-                    case 2:
-                        // generate a duplicate file
-                        if (!pDialog->edDuplicatePrefix->Text.IsEmpty())
-                            // generate a new texture file name using the user prefix
-                            textureFileName = textureDir +
-                                              modelName  +
-                                              UnicodeString(L"_"                             +
-                                                            pDialog->edDuplicatePrefix->Text +
-                                                            L".bmp").c_str();
-                        else
-                            // generate a name for the duplicate
-                            textureFileName = textureDir +
-                                              modelName  +
-                                              UnicodeString(L"("               +
-                                                            ::IntToStr(int(i)) +
-                                                            L".bmp").c_str();
-
-                        break;
-
-                    default:
-                        // by default keep the current image
-                        keep      = true;
-                        validated = true;
-                        break;
+                    ++index;
                 }
 
-                // is file name validated?
-                if (validated)
-                    break;
+                // do keep the current file and ignore the new one?
+                if (!keep)
+                    // save (and eventually replace) the new texture file
+                    textures[i]->SaveToFile(textureFileName.c_str());
+
+                // is the first texture?
+                if (!i)
+                {
+                    // open it on the texture field
+                    clConfigOptions->Checked[1]          = true;
+                    tsConfigTexture->edTextureFile->Text = textureFileName.c_str();
+                    tsConfigTexture->imTexture->Cursor   = crHandPoint;
+                    tsConfigTexture->imTexture->Picture->Assign(textures[i]);
+                }
             }
-
-            // do keep the file?
-            if (keep)
-                continue;
-
-            // save the new texture file
-            textures[i]->SaveToFile(UnicodeString(textureFileName.c_str()));
         }
+
+        for (std::size_t i = 0; i < textures.size(); ++i)
+            delete textures[i];
+
+        textures.clear();
     }
-
-    for (std::size_t i = 0; i < textures.size(); ++i)
-        delete textures[i];
-
-    textures.clear();
+    M_CSR_CatchShow
 }
 //---------------------------------------------------------------------------
