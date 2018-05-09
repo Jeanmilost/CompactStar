@@ -357,6 +357,75 @@ unsigned TAddItemDialog::GetVertexColor() const
             (((vcConfigVertexColor->tbOpacity->Position * 255) / 100) & 0xFF);
 }
 //---------------------------------------------------------------------------
+bool TAddItemDialog::GetTexture(TBitmap* pBitmap) const
+{
+    // to bitmap to fill with texture?
+    if (!pBitmap)
+        return false;
+
+    M_CSR_Try
+    {
+        // no texture file or file does not exists?
+        if (tsConfigTexture->edTextureFile->Text.IsEmpty() ||
+                !::FileExists(tsConfigTexture->edTextureFile->Text, false))
+            return false;
+
+        // load the texture image
+        std::auto_ptr<TPicture> pPicture(new TPicture());
+        pPicture->LoadFromFile(tsConfigTexture->edTextureFile->Text);
+
+        // get the texture
+        pBitmap->Assign(pPicture.get());
+    }
+    M_CSR_CatchShow
+
+    return false;
+}
+//---------------------------------------------------------------------------
+bool TAddItemDialog::GetBumpMap(TBitmap* pBitmap) const
+{
+    // to bitmap to fill with bumpmap?
+    if (!pBitmap)
+        return false;
+
+    M_CSR_Try
+    {
+        // no texture file or file does not exists?
+        if (tsConfigBump->edTextureFile->Text.IsEmpty() ||
+                !::FileExists(tsConfigBump->edTextureFile->Text, false))
+            return false;
+
+        // load the texture image
+        std::auto_ptr<TPicture> pPicture(new TPicture());
+        pPicture->LoadFromFile(tsConfigBump->edTextureFile->Text);
+
+        // get the texture
+        pBitmap->Assign(pPicture.get());
+    }
+    M_CSR_CatchShow
+
+    return false;
+}
+//---------------------------------------------------------------------------
+TAddItemDialog::IEModelOptions TAddItemDialog::GetModelOptions() const
+{
+    IEModelOptions options = IE_MO_None;
+
+    if (clConfigOptions->Checked[0])
+        options = IEModelOptions(options | IE_MO_UseNormal);
+
+    if (clConfigOptions->Checked[1])
+        options = IEModelOptions(options | IE_MO_UseTexture);
+
+    if (clConfigOptions->Checked[2])
+        options = IEModelOptions(options | IE_MO_UsePerVertexColor);
+
+    if (clConfigOptions->Checked[3])
+        options = IEModelOptions(options | IE_MO_PreCalculatedLight);
+
+    return options;
+}
+//---------------------------------------------------------------------------
 bool TAddItemDialog::ModelFileExists() const
 {
     return (!ffModelFile->edFileName->Text.IsEmpty() && ::FileExists(ffModelFile->edFileName->Text, false));
