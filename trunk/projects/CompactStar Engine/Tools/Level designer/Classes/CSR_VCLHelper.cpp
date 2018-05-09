@@ -169,7 +169,7 @@ void CSR_VCLHelper::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::siz
     pDest->SetSize(pSource->Width / factor, pSource->Height / factor);
 
     // set stretch mode to half tones (thus resizing will be smooth)
-    int prevMode = ::SetStretchBltMode(pDest->Canvas->Handle, HALFTONE);
+    const int prevMode = ::SetStretchBltMode(pDest->Canvas->Handle, HALFTONE);
 
     try
     {

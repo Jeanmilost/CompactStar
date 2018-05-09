@@ -103,6 +103,18 @@ class TAddItemDialog : public TForm
 
     public:
         /**
+        * Model options, may be combinated
+        */
+        enum IEModelOptions
+        {
+            IE_MO_None               = 0x0,
+            IE_MO_UseNormal          = 0x1,
+            IE_MO_UseTexture         = 0x2,
+            IE_MO_UsePerVertexColor  = 0x4,
+            IE_MO_PreCalculatedLight = 0x8
+        };
+
+        /**
         * Constructor
         *@aram pOwner - form owner
         */
@@ -143,11 +155,25 @@ class TAddItemDialog : public TForm
         */
         unsigned GetVertexColor() const;
 
-        /* FIXME
-        bool GetTexture(TBitmap* pBitmap) const;
-        bool GetBumpMap(TBitmap* pBitmap) const;
-        IEOptions GetOptions() const;
+        /**
+        * Gets the model texture
+        *@param pBitmap - bitmap that will contain the texture
+        *@return true on success, otherwise false
         */
+        bool GetTexture(TBitmap* pBitmap) const;
+
+        /**
+        * Gets the model texture
+        *@param pBitmap - bitmap that will contain the texture
+        *@return true on success, otherwise false
+        */
+        bool GetBumpMap(TBitmap* pBitmap) const;
+
+        /**
+        * Gets the model options
+        *@return the model options
+        */
+        IEModelOptions GetModelOptions() const;
 
     private:
         CSR_DesignerHelper::IEModelType m_ModelType;
