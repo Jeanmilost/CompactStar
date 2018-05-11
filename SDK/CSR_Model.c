@@ -3297,7 +3297,7 @@ int csrWaveFrontBuildFace(const CSR_WavefrontVertex*   pVertex,
             else
             {
                 // otherwise configure the default culling
-                pVB->m_Culling.m_Type = CSR_CT_None;
+                pVB->m_Culling.m_Type = CSR_CT_Front;
                 pVB->m_Culling.m_Face = CSR_CF_CW;
             }
 
@@ -3483,5 +3483,470 @@ void csrWaveFrontBuildVertexBuffer(const CSR_WavefrontVertex*   pVertex,
                             fOnGetVertexColor,
                             pVB);
     }
+}
+//---------------------------------------------------------------------------
+// Landscape creation functions
+//---------------------------------------------------------------------------
+CSR_PixelBuffer* csrLandscapeOpen(const char* pFileName)
+{
+    CSR_Buffer*      pBuffer;
+    CSR_PixelBuffer* pPixelBuffer;
+    size_t           offset;
+    unsigned         dataOffset;
+    unsigned         headerSize;
+    unsigned short   bpp;
+    unsigned short   compressed;
+    unsigned char    signature[2];
+
+    // open bitmap file
+    pBuffer = csrFileOpen(pFileName);
+
+    // succeeded?
+    if (!pBuffer)
+        return 0;
+
+    offset = 0;
+
+    // read bitmap signature
+    csrBufferRead(pBuffer, &offset, sizeof(unsigned char), 2, &signature[0]);
+
+    // is bitmap signature correct?
+    if (signature[0] != 'B' || signature[1] != 'M')
+    {
+        csrBufferRelease(pBuffer);
+        return 0;
+    }
+
+    // create a pixel buffer
+    pPixelBuffer = csrPixelBufferCreate();
+
+    // succeeded?
+    if (!pPixelBuffer)
+    {
+        csrBufferRelease(pBuffer);
+        return 0;
+    }
+
+    // initialize the pixel buffer
+    csrPixelBufferInit(pPixelBuffer);
+
+    // skip 8 next bytes
+    offset += 8;
+
+    // read data offset
+    csrBufferRead(pBuffer, &offset, sizeof(unsigned), 1, &dataOffset);
+
+    // read header size
+    csrBufferRead(pBuffer, &offset, sizeof(unsigned), 1, &headerSize);
+
+    // search for bitmap type
+    switch (headerSize)
+    {
+        // V3
+        case 40:
+        {
+            // read bitmap width
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned), 1, &pPixelBuffer->m_Width);
+
+            // read bitmap height
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned), 1, &pPixelBuffer->m_Height);
+
+            // skip next 2 bytes
+            offset += 2;
+
+            // read bitmap bit per pixels
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &bpp);
+
+            // is bpp supported?
+            if (bpp != 24)
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+                csrBufferRelease(pBuffer);
+                return 0;
+            }
+
+            // read bitmap compressed flag
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &compressed);
+
+            // is compressed?
+            if (compressed)
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+                csrBufferRelease(pBuffer);
+                return 0;
+            }
+
+            break;
+        }
+
+        // OS/2 V1
+        case 12:
+        {
+            unsigned short width;
+            unsigned short height;
+
+            // read bitmap width
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &width);
+
+            // read bitmap height
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &height);
+
+            pPixelBuffer->m_Width  = width;
+            pPixelBuffer->m_Height = height;
+
+            // skip next 2 bytes
+            offset += 2;
+
+            // read bitmap bit per pixels
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &bpp);
+
+            // is bpp supported?
+            if (bpp != 24)
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+                csrBufferRelease(pBuffer);
+                return 0;
+            }
+
+            break;
+        }
+
+        // Windows V4
+        case 108:
+        {
+            unsigned short width;
+            unsigned short height;
+
+            // read bitmap width
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &width);
+
+            // skip next 2 bytes
+            offset += 2;
+
+            // read bitmap height
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &height);
+
+            pPixelBuffer->m_Width  = width;
+            pPixelBuffer->m_Height = height;
+
+            // skip next 4 bytes
+            offset += 4;
+
+            // read bitmap bit per pixels
+            csrBufferRead(pBuffer, &offset, sizeof(unsigned short), 1, &bpp);
+
+            // is bpp supported?
+            if (bpp != 24)
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+                csrBufferRelease(pBuffer);
+                return 0;
+            }
+
+            break;
+        }
+
+        default:
+            // unsupported bitmap format
+            csrPixelBufferRelease(pPixelBuffer);
+            csrBufferRelease(pBuffer);
+            return 0;
+    }
+
+    pPixelBuffer->m_PixelType    = CSR_PT_RGB;
+    pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+    pPixelBuffer->m_BytePerPixel = bpp / 4;
+    pPixelBuffer->m_Stride       = (((pPixelBuffer->m_Width) * 3 + 3) / 4) * 4 - ((pPixelBuffer->m_Width) * 3 % 4);
+    pPixelBuffer->m_DataLength   = pPixelBuffer->m_Stride * pPixelBuffer->m_Height;
+    pPixelBuffer->m_pData        = malloc(sizeof(unsigned char) * pPixelBuffer->m_DataLength);
+
+    offset = dataOffset;
+
+    // read bitmap data
+    csrBufferRead(pBuffer,
+                 &offset,
+                  sizeof(unsigned char),
+                  pPixelBuffer->m_DataLength,
+                  pPixelBuffer->m_pData);
+
+    csrBufferRelease(pBuffer);
+
+    return pPixelBuffer;
+}
+//---------------------------------------------------------------------------
+int csrLandscapeGenerateVertices(const CSR_PixelBuffer* pPixelBuffer,
+                                       float            height,
+                                       float            scale,
+                                       CSR_Buffer*      pVertices)
+{
+    size_t x;
+    size_t z;
+    float  scaleX;
+    float  scaleZ;
+
+    // validate the inputs
+    if (!pPixelBuffer || height <= 0.0f || scale == 0.0f || !pVertices)
+        return 0;
+
+    // calculate lansdcape data size and reserve memory for landscape mesh
+    pVertices->m_Length = pPixelBuffer->m_Width * pPixelBuffer->m_Height;
+    pVertices->m_pData  = malloc(pVertices->m_Length * sizeof(CSR_Vector3));
+
+    // calculate scaling factor on x and z axis
+    scaleX = -(((pPixelBuffer->m_Width  - 1) * scale) / 2.0f);
+    scaleZ =  (((pPixelBuffer->m_Height - 1) * scale) / 2.0f);
+
+    // loop through heightfield points and calculate coordinates for each point
+    for (z = 0; z < pPixelBuffer->m_Height; ++z)
+        for (x = 0; x < pPixelBuffer->m_Width; ++x)
+        {
+            // calculate vertex index
+            size_t index = (z * pPixelBuffer->m_Height) + x;
+            float  value = (float)(((unsigned char*)pPixelBuffer->m_pData)[index * 3]) / 255.0f;
+
+            // calculate landscape vertex
+            ((CSR_Vector3*)pVertices->m_pData)[index].m_X = scaleX + ((float)x * scale);
+            ((CSR_Vector3*)pVertices->m_pData)[index].m_Y = value  * height;
+            ((CSR_Vector3*)pVertices->m_pData)[index].m_Z = scaleZ - ((float)z * scale);
+        }
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+CSR_Mesh* csrLandscapeCreate(const CSR_PixelBuffer*      pPixelBuffer,
+                                   float                 height,
+                                   float                 scale,
+                             const CSR_VertexFormat*     pVertFormat,
+                             const CSR_VertexCulling*    pVertCulling,
+                             const CSR_Material*         pMaterial,
+                             const CSR_fOnGetVertexColor fOnGetVertexColor)
+{
+    /*REM
+    int           x;
+    int           z;
+    unsigned int  index;
+    unsigned int  landscapeSize;
+    MINI_Vector3* pLandscape;
+    MINI_Vector3  v1;
+    MINI_Vector3  v2;
+    MINI_Vector3  v3;
+    MINI_Vector3  v4;
+    MINI_Vector3  n1;
+    MINI_Vector3  n2;
+    MINI_Vector2  uv1;
+    MINI_Vector2  uv2;
+    MINI_Vector2  uv3;
+    MINI_Vector2  uv4;
+    MINI_Plane    p1;
+    MINI_Plane    p2;
+    */
+
+    CSR_Mesh*   pMesh;
+    CSR_Buffer  vertices;
+    unsigned    x;
+    unsigned    z;
+    CSR_Vector3 v1;
+    CSR_Vector3 v2;
+    CSR_Vector3 v3;
+    CSR_Vector3 v4;
+    CSR_Vector3 n1;
+    CSR_Vector3 n2;
+    CSR_Vector2 uv1;
+    CSR_Vector2 uv2;
+    CSR_Vector2 uv3;
+    CSR_Vector2 uv4;
+    CSR_Plane   p1;
+    CSR_Plane   p2;
+
+    // validate the inputs
+    if (!pPixelBuffer || height <= 0.0f || scale == 0.0f)
+        return 0;
+
+    // create a mesh to contain the landscape
+    pMesh = csrMeshCreate();
+
+    // succeeded?
+    if (!pMesh)
+        return 0;
+
+    // create a new vertex buffer to contain the landscape
+    pMesh->m_Count = 1;
+    pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+
+    // succeeded?
+    if (!pMesh->m_pVB)
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // initialize the newly created vertex buffer
+    csrVertexBufferInit(pMesh->m_pVB);
+
+    // apply the user wished vertex format
+    if (pVertFormat)
+        pMesh->m_pVB->m_Format = *pVertFormat;
+
+    // apply the user wished vertex culling
+    if (pVertCulling)
+        pMesh->m_pVB->m_Culling = *pVertCulling;
+    else
+    {
+        // otherwise configure the default culling
+        pMesh->m_pVB->m_Culling.m_Type = CSR_CT_None;
+        pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+    }
+
+    // apply the user wished material
+    if (pMaterial)
+        pMesh->m_pVB->m_Material = *pMaterial;
+
+    // set the vertex format type
+    pMesh->m_pVB->m_Format.m_Type = CSR_VT_Triangles;
+
+    // calculate the stride
+    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
+
+    // generate landscape XYZ vertex from grayscale image
+    if (!csrLandscapeGenerateVertices(pPixelBuffer, height, scale, &vertices))
+    {
+        csrMeshRelease(pMesh);
+        return 0;
+    }
+
+    // loop through landscape XYZ vertices and generate mesh polygons
+    for (z = 0; z < pPixelBuffer->m_Height - 1; ++z)
+        for (x = 0; x < pPixelBuffer->m_Width - 1; ++x)
+        {
+            // polygons are generated in the following order:
+            // v1 -- v2
+            //     /
+            //    /
+            // v3 -- v4
+
+            unsigned index;
+            unsigned i1;
+            unsigned i2;
+            unsigned i3;
+            unsigned i4;
+
+            // calculate vertex index
+            index = (z * pPixelBuffer->m_Height) + x;
+
+            // calculate first vertex
+            v1.m_X = ((CSR_Vector3*)vertices.m_pData)[index].m_X;
+            v1.m_Y = ((CSR_Vector3*)vertices.m_pData)[index].m_Y;
+            v1.m_Z = ((CSR_Vector3*)vertices.m_pData)[index].m_Z;
+
+            // calculate second vertex
+            v2.m_X = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_X;
+            v2.m_Y = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_Y;
+            v2.m_Z = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_Z;
+
+            i1 = index;
+            i2 = index + 1;
+
+            // calculate next vertex index
+            index = ((z + 1) * pPixelBuffer->m_Height) + x;
+
+            // calculate third vertex
+            v3.m_X = ((CSR_Vector3*)vertices.m_pData)[index].m_X;
+            v3.m_Y = ((CSR_Vector3*)vertices.m_pData)[index].m_Y;
+            v3.m_Z = ((CSR_Vector3*)vertices.m_pData)[index].m_Z;
+
+            // calculate fourth vertex
+            v4.m_X = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_X;
+            v4.m_Y = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_Y;
+            v4.m_Z = ((CSR_Vector3*)vertices.m_pData)[index + 1].m_Z;
+
+            i3 = index;
+            i4 = index + 1;
+
+            // do include normals?
+            if (pMesh->m_pVB->m_Format.m_HasNormal)
+            {
+                // calculate polygons planes
+                csrPlaneFromPoints(&v1, &v2, &v3, &p1);
+                csrPlaneFromPoints(&v2, &v3, &v4, &p2);
+
+                // get first normal
+                n1.m_X = p1.m_A;
+                n1.m_Y = p1.m_B;
+                n1.m_Z = p1.m_C;
+
+                // get second normal
+                n2.m_X = p2.m_A;
+                n2.m_Y = p2.m_B;
+                n2.m_Z = p2.m_C;
+            }
+
+            // do include colors?
+            if (pMesh->m_pVB->m_Format.m_HasPerVertexColor)
+            {
+                // generate texture coordinates
+                uv1.m_X = (float)(x)     / (float)(pPixelBuffer->m_Width);
+                uv1.m_Y = (float)(z)     / (float)(pPixelBuffer->m_Height);
+                uv2.m_X = (float)(x + 1) / (float)(pPixelBuffer->m_Width);
+                uv2.m_Y = (float)(z)     / (float)(pPixelBuffer->m_Height);
+                uv3.m_X = (float)(x)     / (float)(pPixelBuffer->m_Width);
+                uv3.m_Y = (float)(z + 1) / (float)(pPixelBuffer->m_Height);
+                uv4.m_X = (float)(x + 1) / (float)(pPixelBuffer->m_Width);
+                uv4.m_Y = (float)(z + 1) / (float)(pPixelBuffer->m_Height);
+            }
+
+            // add first polygon first vertex to buffer
+            csrVertexBufferAdd(&v1,
+                               &n1,
+                               &uv1,
+                                i1,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+
+            // add first polygon second vertex to buffer
+            csrVertexBufferAdd(&v2,
+                               &n1,
+                               &uv2,
+                                i2,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+
+            // add first polygon third vertex to buffer
+            csrVertexBufferAdd(&v3,
+                               &n1,
+                               &uv3,
+                                i3,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+
+            // add second polygon first vertex to buffer
+            csrVertexBufferAdd(&v2,
+                               &n2,
+                               &uv2,
+                                i2,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+
+            // add second polygon second vertex to buffer
+            csrVertexBufferAdd(&v3,
+                               &n2,
+                               &uv3,
+                                i3,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+
+            // add second polygon third vertex to buffer
+            csrVertexBufferAdd(&v4,
+                               &n2,
+                               &uv4,
+                                i4,
+                                fOnGetVertexColor,
+                                pMesh->m_pVB);
+        }
+
+    // delete landscape XYZ vertices (no longer used as copied in mesh)
+    if (vertices.m_Length)
+        free(vertices.m_pData);
+
+    return pMesh;
 }
 //---------------------------------------------------------------------------
