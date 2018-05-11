@@ -428,53 +428,55 @@ void csrAABBTreeNodeRelease(CSR_AABBNode* pNode)
     free(pNode);
 }
 //---------------------------------------------------------------------------
-// Collision info functions
+// Ground collision functions
 //---------------------------------------------------------------------------
-CSR_CollisionInfo* csrCollisionInfoCreate(void)
+int csrCollisionGround(const CSR_Sphere*   pSphere,
+                       const CSR_Polygon3* pPolygon,
+                       const CSR_Vector3*  pGroundDir,
+                             CSR_Vector3*  pR)
 {
-    // create a new collision info
-    CSR_CollisionInfo* pCI = (CSR_CollisionInfo*)malloc(sizeof(CSR_CollisionInfo));
+    CSR_Ray3    ray;
+    CSR_Vector3 groundDir;
+    CSR_Figure3 rayToCheck;
+    CSR_Figure3 polygonToCheck;
 
-    // succeeded?
-    if (!pCI)
+    // validate the inputs
+    if (!pSphere || !pPolygon)
         return 0;
 
-    // initialize the collision info content
-    csrCollisionInfoInit(pCI);
+    // get the ground direction
+    if (pGroundDir)
+        groundDir = *pGroundDir;
+    else
+    {
+        groundDir.m_X =  0.0f;
+        groundDir.m_Y = -1.0f;
+        groundDir.m_Z =  0.0f;
+    }
 
-    return pCI;
-}
-//---------------------------------------------------------------------------
-void csrCollisionInfoRelease(CSR_CollisionInfo* pCI)
-{
-    size_t i;
+    // create the ground ray
+    csrRay3FromPointDir(&pSphere->m_Center, &groundDir, &ray);
 
-    // no collision info to release?
-    if (!pCI)
-        return;
+    // build the ray figure to check
+    rayToCheck.m_Type    =  CSR_F3_Ray;
+    rayToCheck.m_pFigure = &ray;
 
-    // free the polygon buffer
-    if (pCI->m_Polygons.m_pPolygon)
-        free(pCI->m_Polygons.m_pPolygon);
+    // build the polygon figure to check against
+    polygonToCheck.m_Type    = CSR_F3_Polygon;
+    polygonToCheck.m_pFigure = pPolygon;
 
-    // free the model array
-    if (pCI->m_pModels)
-        csrArrayRelease(pCI->m_pModels);
+    // calculate the point where the ground ray hit the polygon
+    if (!csrIntersect3(&rayToCheck, &polygonToCheck, pR, 0, 0))
+        return 0;
 
-    // free the scene
-    free(pCI);
-}
-//---------------------------------------------------------------------------
-void csrCollisionInfoInit(CSR_CollisionInfo* pCI)
-{
-    // no collision info to initialize?
-    if (!pCI)
-        return;
+    // consider the sphere radius in the result
+    if (pR)
+    {
+        pR->m_X += (pSphere->m_Radius * -groundDir.m_X);
+        pR->m_Y += (pSphere->m_Radius * -groundDir.m_Y);
+        pR->m_Z += (pSphere->m_Radius * -groundDir.m_Z);
+    }
 
-    // initialize the collision info
-    pCI->m_Collision           = 0;
-    pCI->m_Polygons.m_pPolygon = 0;
-    pCI->m_Polygons.m_Count    = 0;
-    pCI->m_pModels             = 0;
+    return 1;
 }
 //---------------------------------------------------------------------------
