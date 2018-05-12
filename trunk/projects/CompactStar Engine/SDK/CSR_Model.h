@@ -819,14 +819,6 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
         //-------------------------------------------------------------------
 
         /**
-        * Opens a bitmap from which a landscape can be created
-        *@param pFileName - bitmap file name to open
-        *@return pixel buffer containing the bitmap, 0 on error
-        *@note For now only most common bitmaps are loaded, some bitmap types may be unsupported
-        */
-        CSR_PixelBuffer* csrLandscapeOpen(const char* pFileName);
-
-        /**
         * Generates landscape vertices from a grayscale image
         *@param pPixelBuffer - pixel buffer containing the image
         *@param height - map height
