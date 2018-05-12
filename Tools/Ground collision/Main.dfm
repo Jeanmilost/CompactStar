@@ -43,7 +43,6 @@ object MainForm: TMainForm
     ParentBackground = False
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitTop = -8
   end
   object paControls: TPanel
     Left = 615

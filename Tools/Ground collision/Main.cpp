@@ -810,8 +810,9 @@ void TMainForm::InitScene(int w, int h)
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
-    vf.m_HasPerVertexColor = 0;
+    vf.m_HasPerVertexColor = 1;
 
+    /*
     const std::string modelFile = m_SceneDir + "\\mountain.obj";
 
     // load a default model
@@ -829,6 +830,14 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
+    */
+    CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Ground collision\\Scenes\\Map\\the_face.bmp");
+
+    m_pModel              = csrModelCreate();
+    m_pModel->m_pMesh     = csrLandscapeCreate(pMap, 3.0f, 0.2f, &vf, 0, &material, 0);
+    m_pModel->m_MeshCount = 1;
+
+    csrPixelBufferRelease(pMap);
 
     // create the AABB tree for the mountain model
     m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
