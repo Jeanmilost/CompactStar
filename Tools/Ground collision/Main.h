@@ -140,6 +140,7 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ViewMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Sphere       m_BoundingSphere;
+        float            m_Angle;
         /*REM
         ITreeStats       m_Stats;
         CSR_Color        m_Background;

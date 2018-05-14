@@ -27,6 +27,7 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
+#include "CSR_Scene.h"
 
 #pragma package(smart_init)
 #ifdef __llvm__
@@ -153,6 +154,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_FrameCount(0),
     m_StartTime(0),
     */
+    m_Angle(0.0f),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
@@ -606,12 +608,12 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:     m_BoundingSphere.m_Center.m_X -= 0.01f; handled = true; break;
-                case VK_RIGHT:    m_BoundingSphere.m_Center.m_X += 0.01f; handled = true; break;
-                case VK_UP:       m_BoundingSphere.m_Center.m_Z -= 0.01f; handled = true; break;
-                case VK_DOWN:     m_BoundingSphere.m_Center.m_Z += 0.01f; handled = true; break;
-                //case VK_ADD:      m_ArcBall.m_Radius =           m_ArcBall.m_Radius + 0.05f;               handled = true; break;
-                //case VK_SUBTRACT: m_ArcBall.m_Radius =           m_ArcBall.m_Radius - 0.05f;               handled = true; break;
+                case 'Q': m_BoundingSphere.m_Center.m_X -= 0.01f;                                   handled = true; break;
+                case 'E': m_BoundingSphere.m_Center.m_X += 0.01f;                                   handled = true; break;
+                case 'W': m_BoundingSphere.m_Center.m_Z -= 0.01f;                                   handled = true; break;
+                case 'S': m_BoundingSphere.m_Center.m_Z += 0.01f;                                   handled = true; break;
+                case 'A': m_Angle                        = std::fmod(m_Angle - 0.05f, M_PI * 2.0f); handled = true; break;
+                case 'D': m_Angle                        = std::fmod(m_Angle + 0.05f, M_PI * 2.0f); handled = true; break;
             }
 
             return;
@@ -1026,25 +1028,45 @@ void TMainForm::ApplyGroundCollision()
     CSR_Ray3    groundRay;
     CSR_Vector3 groundDir;
     CSR_Vector3 groundPos;
-    CSR_Vector3 groundPos2;
+    CSR_Vector3 modelCenter;
+    CSR_Matrix4 invertView;
+    CSR_Sphere  transformedSphere;
+    CSR_Camera  camera;
+    float       determinant;
 
+    transformedSphere = m_BoundingSphere;
+
+    // calculate the camera position in the 3d world, without the ground value
+    camera.m_Position.m_X = -m_BoundingSphere.m_Center.m_X;
+    camera.m_Position.m_Y =  0.0f;
+    camera.m_Position.m_Z = -m_BoundingSphere.m_Center.m_Z;
+    camera.m_xAngle       =  0.0f;
+    camera.m_yAngle       =  m_Angle;
+    camera.m_zAngle       =  0.0f;
+    camera.m_Factor.m_X   =  1.0f;
+    camera.m_Factor.m_Y   =  1.0f;
+    camera.m_Factor.m_Z   =  1.0f;
+    camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
+
+    // get the view matrix matching with the camera
+    csrSceneCameraToMatrix(&camera, &m_ViewMatrix);
+
+    // get the ground direction
     groundDir.m_X =  0.0f;
     groundDir.m_Y = -1.0f;
     groundDir.m_Z =  0.0f;
 
-    //REM m_BoundingSphere.m_Center.m_Z -= 0.0005f;
+    // get the model center
+    modelCenter.m_X = 0.0f;
+    modelCenter.m_Y = 0.0f;
+    modelCenter.m_Z = 0.0f;
 
-    /*
-    // now transform the ray to match with the model position
-    CSR_Matrix4 invertModel;
-    csrMat4Inverse(&m_ModelMatrix, &invertModel, &determinant);
-    csrMat4ApplyToVector(&invertModel, &m_Ray.m_Pos, &rayPos);
-    csrMat4ApplyToNormal(&invertModel, &m_Ray.m_Dir, &rayDir);
-    csrVec3Normalize(&rayDir, &rayDirN);
-    */
+    // calculate the current camera position above the landscape
+    csrMat4Inverse(&m_ViewMatrix, &invertView, &determinant);
+    csrMat4Transform(&invertView, &modelCenter, &transformedSphere.m_Center);
 
     // create the ground ray
-    csrRay3FromPointDir(&m_BoundingSphere.m_Center, &groundDir, &groundRay);
+    csrRay3FromPointDir(&transformedSphere.m_Center, &groundDir, &groundRay);
 
     CSR_Polygon3Buffer polygonBuffer;
 
@@ -1053,16 +1075,13 @@ void TMainForm::ApplyGroundCollision()
 
     try
     {
-        groundPos2 = m_BoundingSphere.m_Center;
+        groundPos = transformedSphere.m_Center;
 
         // iterate through polygons to check
         for (std::size_t i = 0; i < polygonBuffer.m_Count; ++i)
-            if (csrCollisionGround(&m_BoundingSphere, &polygonBuffer.m_pPolygon[i], 0, &groundPos))
-            {
-                //m_BoundingSphere.m_Center = groundPos;
-                groundPos2 = groundPos;
+            // check if the ground polygon was found, calculate the ground position if yes
+            if (csrCollisionGround(&transformedSphere, &polygonBuffer.m_pPolygon[i], 0, &groundPos))
                 break;
-            }
     }
     __finally
     {
@@ -1071,56 +1090,13 @@ void TMainForm::ApplyGroundCollision()
             free(polygonBuffer.m_pPolygon);
     }
 
-    CSR_Vector3 t;
-    CSR_Vector3 r;
-    CSR_Matrix4 translateMatrix;
-    CSR_Matrix4 xRotateMatrix;
-    CSR_Matrix4 yRotateMatrix;
-    CSR_Matrix4 zRotateMatrix;
-    CSR_Matrix4 buildMatrix1;
-    CSR_Matrix4 buildMatrix2;
-
-    // set translation
-    t.m_X = -m_BoundingSphere.m_Center.m_X;
-    t.m_Y = -groundPos2.m_Y;
-    t.m_Z = -m_BoundingSphere.m_Center.m_Z;
-
-    // build the translation matrix
-    csrMat4Translate(&t, &translateMatrix);
-
-    // set rotation on X axis
-    r.m_X = 1.0f;
-    r.m_Y = 0.0f;
-    r.m_Z = 0.0f;
-
-    // build the X rotation matrix
-    csrMat4Rotate(0.0f, &r, &xRotateMatrix);
-
-    // set rotation on Y axis
-    r.m_X = 0.0f;
-    r.m_Y = 1.0f;
-    r.m_Z = 0.0f;
-
-    // build the Y rotation matrix
-    csrMat4Rotate(0.0f, &r, &yRotateMatrix);
-
-    // set rotation on Z axis
-    r.m_X = 0.0f;
-    r.m_Y = 0.0f;
-    r.m_Z = 1.0f;
-
-    // build the Z rotation matrix
-    csrMat4Rotate(0.0f, &r, &zRotateMatrix);
-
-    // build the model view matrix
-    csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &buildMatrix1);
-    csrMat4Multiply(&buildMatrix1,  &zRotateMatrix,   &buildMatrix2);
-    csrMat4Multiply(&buildMatrix2,  &translateMatrix, &m_ViewMatrix);
+    // update the ground position inside the view matrix
+    m_ViewMatrix.m_Table[3][1] = -groundPos.m_Y;
 
     // enable the shader program
     csrShaderEnable(m_pShader);
 
-    // connect the model view matrix to shader
+    // connect the view matrix to shader
     GLint shaderSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uView");
     glUniformMatrix4fv(shaderSlot, 1, 0, &m_ViewMatrix.m_Table[0][0]);
 }

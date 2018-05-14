@@ -3277,7 +3277,7 @@ int csrWaveFrontBuildFace(const CSR_WavefrontVertex*   pVertex,
             else
             {
                 // otherwise configure the default culling
-                pVB->m_Culling.m_Type = CSR_CT_Front;
+                pVB->m_Culling.m_Type = CSR_CT_Back;
                 pVB->m_Culling.m_Face = CSR_CF_CW;
             }
 
