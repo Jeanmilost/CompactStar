@@ -155,6 +155,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_StartTime(0),
     */
     m_Angle(0.0f),
+    m_PosVelocity(0.0f),
+    m_DirVelocity(0.0f),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
@@ -603,17 +605,18 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 {
+    m_PosVelocity = 0.0f;
+    m_DirVelocity = 0.0f;
+
     switch (msg.message)
     {
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case 'Q': m_BoundingSphere.m_Center.m_X -= 0.01f;                                   handled = true; break;
-                case 'E': m_BoundingSphere.m_Center.m_X += 0.01f;                                   handled = true; break;
-                case 'W': m_BoundingSphere.m_Center.m_Z -= 0.01f;                                   handled = true; break;
-                case 'S': m_BoundingSphere.m_Center.m_Z += 0.01f;                                   handled = true; break;
-                case 'A': m_Angle                        = std::fmod(m_Angle - 0.05f, M_PI * 2.0f); handled = true; break;
-                case 'D': m_Angle                        = std::fmod(m_Angle + 0.05f, M_PI * 2.0f); handled = true; break;
+                case VK_LEFT:  m_DirVelocity = -1.0f; break;
+                case VK_RIGHT: m_DirVelocity =  1.0f; break;
+                case VK_UP:    m_PosVelocity =  1.0f; break;
+                case VK_DOWN:  m_PosVelocity = -1.0f; break;
             }
 
             return;
@@ -973,6 +976,7 @@ void TMainForm::DeleteScene()
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
+    /*REM
     CSR_Vector3 t;
     CSR_Vector3 r;
     CSR_Matrix4 translateMatrix;
@@ -1010,20 +1014,71 @@ void TMainForm::UpdateScene(float elapsedTime)
     // build the model view matrix
     csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
     csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
+    */
 
-    csrMat4Identity(&m_ModelMatrix);
+    // no time elapsed?
+    if (!elapsedTime)
+        return;
+
+    // is player rotating?
+    if (m_DirVelocity)
+    {
+        // calculate the player direction
+        m_Angle += m_DirVelocity * elapsedTime;
+
+        // validate and apply it
+        if (m_Angle > M_PI * 2.0f)
+            m_Angle -= M_PI * 2.0f;
+        else
+        if (m_Angle < 0.0f)
+            m_Angle += M_PI * 2.0f;
+    }
+
+    // is player moving?
+    if (m_PosVelocity)
+    {
+        CSR_Vector3 newPos = m_BoundingSphere.m_Center;
+
+        // calculate the next player position
+        newPos.m_X += m_PosVelocity * sinf(m_Angle + (M_PI * 0.0f)) * elapsedTime;
+        newPos.m_Z -= m_PosVelocity * cosf(m_Angle + (M_PI * 0.0f)) * elapsedTime;
+
+        // validate and apply it
+        m_BoundingSphere.m_Center = newPos;
+
+        /*
+        // calculate next time where the step sound should be played
+        m_StepTime += (elapsedTime * 1000.0f);
+
+        // do play the sound?
+        if (m_StepTime > m_StepInterval)
+        {
+            miniStopSound(m_PlayerStepSoundID);
+            miniPlaySound(m_PlayerStepSoundID);
+            m_StepTime = 0.0f;
+        }
+        */
+    }
 
     // enable the shader program
     csrShaderEnable(m_pShader);
 
-    // connect the model view matrix to shader
-    GLint shaderSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModel");
-    glUniformMatrix4fv(shaderSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+    ApplyGroundCollision(&m_BoundingSphere, m_pTree, &m_ViewMatrix);
 
-    ApplyGroundCollision();
+    // connect the view matrix to shader
+    const GLint viewSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uView");
+    glUniformMatrix4fv(viewSlot, 1, 0, &m_ViewMatrix.m_Table[0][0]);
+
+    csrMat4Identity(&m_ModelMatrix);
+
+    // connect the model view matrix to shader
+    GLint modelSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModel");
+    glUniformMatrix4fv(modelSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 }
 //---------------------------------------------------------------------------
-void TMainForm::ApplyGroundCollision()
+int TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
+                                    const CSR_AABBNode* pTree,
+                                          CSR_Matrix4*  pMatrix) const
 {
     CSR_Ray3    groundRay;
     CSR_Vector3 groundDir;
@@ -1034,22 +1089,26 @@ void TMainForm::ApplyGroundCollision()
     CSR_Camera  camera;
     float       determinant;
 
-    transformedSphere = m_BoundingSphere;
+    // validate the inputs
+    if (!pBoundingSphere || !pTree || !pMatrix)
+        return 0;
+
+    transformedSphere = *pBoundingSphere;
 
     // calculate the camera position in the 3d world, without the ground value
-    camera.m_Position.m_X = -m_BoundingSphere.m_Center.m_X;
+    camera.m_Position.m_X = -pBoundingSphere->m_Center.m_X;
     camera.m_Position.m_Y =  0.0f;
-    camera.m_Position.m_Z = -m_BoundingSphere.m_Center.m_Z;
+    camera.m_Position.m_Z = -pBoundingSphere->m_Center.m_Z;
     camera.m_xAngle       =  0.0f;
     camera.m_yAngle       =  m_Angle;
     camera.m_zAngle       =  0.0f;
     camera.m_Factor.m_X   =  1.0f;
     camera.m_Factor.m_Y   =  1.0f;
     camera.m_Factor.m_Z   =  1.0f;
-    camera.m_MatCombType  =  IE_CT_Scale_Rotate_Translate;
+    camera.m_MatCombType  =  IE_CT_Translate_Scale_Rotate;//IE_CT_Scale_Rotate_Translate;
 
     // get the view matrix matching with the camera
-    csrSceneCameraToMatrix(&camera, &m_ViewMatrix);
+    csrSceneCameraToMatrix(&camera, pMatrix);
 
     // get the ground direction
     groundDir.m_X =  0.0f;
@@ -1062,7 +1121,7 @@ void TMainForm::ApplyGroundCollision()
     modelCenter.m_Z = 0.0f;
 
     // calculate the current camera position above the landscape
-    csrMat4Inverse(&m_ViewMatrix, &invertView, &determinant);
+    csrMat4Inverse(pMatrix, &invertView, &determinant);
     csrMat4Transform(&invertView, &modelCenter, &transformedSphere.m_Center);
 
     // create the ground ray
@@ -1071,7 +1130,7 @@ void TMainForm::ApplyGroundCollision()
     CSR_Polygon3Buffer polygonBuffer;
 
     // using the ground ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&groundRay, m_pTree, 0, &polygonBuffer);
+    csrAABBTreeResolve(&groundRay, pTree, 0, &polygonBuffer);
 
     try
     {
@@ -1091,14 +1150,9 @@ void TMainForm::ApplyGroundCollision()
     }
 
     // update the ground position inside the view matrix
-    m_ViewMatrix.m_Table[3][1] = -groundPos.m_Y;
+    pMatrix->m_Table[3][1] = -groundPos.m_Y;
 
-    // enable the shader program
-    csrShaderEnable(m_pShader);
-
-    // connect the view matrix to shader
-    GLint shaderSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uView");
-    glUniformMatrix4fv(shaderSlot, 1, 0, &m_ViewMatrix.m_Table[0][0]);
+    return 1;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()

@@ -141,6 +141,8 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ModelMatrix;
         CSR_Sphere       m_BoundingSphere;
         float            m_Angle;
+        float            m_PosVelocity;
+        float            m_DirVelocity;
         /*REM
         ITreeStats       m_Stats;
         CSR_Color        m_Background;
@@ -221,7 +223,9 @@ class TMainForm : public TForm
         */
         void UpdateScene(float elapsedTime);
 
-        void ApplyGroundCollision();
+        int ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
+                                 const CSR_AABBNode* pTree,
+                                       CSR_Matrix4*  pMatrix) const;
 
         /**
         * Draws the scene
