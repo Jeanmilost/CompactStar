@@ -480,3 +480,38 @@ int csrCollisionGround(const CSR_Sphere*   pSphere,
     return 1;
 }
 //---------------------------------------------------------------------------
+void csrGroundPosY(const CSR_Sphere*   pBoundingSphere,
+                   const CSR_AABBNode* pTree,
+                   const CSR_Vector3*  pGroundDir,
+                         float*        pR)
+{
+    size_t             i;
+    CSR_Ray3           groundRay;
+    CSR_Vector3        groundPos;
+    CSR_Polygon3Buffer polygonBuffer;
+
+    // validate the inputs
+    if (!pBoundingSphere || !pTree || !pGroundDir || !pR)
+        return;
+
+    // create the ground ray
+    csrRay3FromPointDir(&pBoundingSphere->m_Center, pGroundDir, &groundRay);
+
+    // using the ground ray, resolve aligned-axis bounding box tree
+    csrAABBTreeResolve(&groundRay, pTree, 0, &polygonBuffer);
+
+    groundPos = pBoundingSphere->m_Center;
+
+    // iterate through polygons to check
+    for (i = 0; i < polygonBuffer.m_Count; ++i)
+        // check if the ground polygon was found, calculate the ground position if yes
+        if (csrCollisionGround(pBoundingSphere, &polygonBuffer.m_pPolygon[i], 0, &groundPos))
+            break;
+
+    // delete found polygons (no longer needed from now)
+    if (polygonBuffer.m_Count)
+        free(polygonBuffer.m_pPolygon);
+
+    *pR = groundPos.m_Y;
+}
+//---------------------------------------------------------------------------
