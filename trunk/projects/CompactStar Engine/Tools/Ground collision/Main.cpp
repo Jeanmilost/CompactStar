@@ -201,12 +201,6 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::FormMouseWheel(TObject* pSender, TShiftState shift, int wheelDelta,
-        TPoint& mousePos, bool& handled)
-{
-    tbModelDistance->Position = tbModelDistance->Position + ((wheelDelta > 0) ? 1 : -1);
-}
-//---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
     // update the viewport
@@ -593,10 +587,10 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_DirVelocity = -1.0f; break;
-                case VK_RIGHT: m_DirVelocity =  1.0f; break;
-                case VK_UP:    m_PosVelocity =  1.0f; break;
-                case VK_DOWN:  m_PosVelocity = -1.0f; break;
+                case VK_LEFT:  m_DirVelocity = -1.0f; handled = true; break;
+                case VK_RIGHT: m_DirVelocity =  1.0f; handled = true; break;
+                case VK_UP:    m_PosVelocity =  1.0f; handled = true; break;
+                case VK_DOWN:  m_PosVelocity = -1.0f; handled = true; break;
             }
 
             return;
@@ -759,16 +753,20 @@ void TMainForm::InitScene(int w, int h)
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
 
+    CSR_VertexCulling vc;
+    vc.m_Type = CSR_CT_Front;
+    vc.m_Face = CSR_CF_CW;
+
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
 
-    /*
-    const std::string modelFile = m_SceneDir + "\\mountain.obj";
+    /**/
+    const std::string modelFile = m_SceneDir + "\\Mountain\\mountain.obj";
 
     // load a default model
-    m_pModel = csrWaveFrontOpen(modelFile.c_str(), &vf, 0, &material, 0, 0);
+    m_pModel = csrWaveFrontOpen(modelFile.c_str(), &vf, &vc, &material, 0, 0);
 
     // succeeded?
     if (!m_pModel || !m_pModel->m_MeshCount)
@@ -782,7 +780,9 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
-    */
+    /**/
+
+    /*
     CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap((m_SceneDir + "\\Map\\the_face.bmp").c_str());
 
     m_pModel              = csrModelCreate();
@@ -790,6 +790,7 @@ void TMainForm::InitScene(int w, int h)
     m_pModel->m_MeshCount = 1;
 
     csrPixelBufferRelease(pMap);
+    */
 
     // create the AABB tree for the mountain model
     m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
