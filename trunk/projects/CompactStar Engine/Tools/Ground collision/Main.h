@@ -143,35 +143,6 @@ class TMainForm : public TForm
         float            m_Angle;
         float            m_PosVelocity;
         float            m_DirVelocity;
-        /*REM
-        ITreeStats       m_Stats;
-        CSR_Color        m_Background;
-        CSR_Shader*      m_pShader_ColoredMesh;
-        CSR_Shader*      m_pShader_TexturedMesh;
-        CSR_MSAA*        m_pMSAA;
-        CSR_Mesh*        m_pBoxMesh;
-        CSR_Mesh*        m_pMesh;
-        CSR_MDL*         m_pMDL;
-        IAABBTrees       m_AABBTrees;
-        CSR_Matrix4      m_ProjectionMatrix;
-        CSR_Matrix4      m_ViewMatrix;
-        CSR_Matrix4      m_ModelMatrix;
-        CSR_Ray3         m_Ray;
-        std::wstring     m_LastSelectedFile;
-        int              m_LastSelectedModel;
-        float            m_PosY;
-        float            m_AngleX;
-        float            m_AngleY;
-        float            m_PolygonArray[21];
-        double           m_pTextureLastTime;
-        double           m_pModelLastTime;
-        double           m_pMeshLastTime;
-        std::size_t      m_TextureIndex;
-        std::size_t      m_ModelIndex;
-        std::size_t      m_MeshIndex;
-        std::size_t      m_FrameCount;
-        unsigned __int64 m_StartTime;
-        */
         std::string      m_SceneDir;
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
@@ -223,9 +194,15 @@ class TMainForm : public TForm
         */
         void UpdateScene(float elapsedTime);
 
-        int ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
-                                 const CSR_AABBNode* pTree,
-                                       CSR_Matrix4*  pMatrix) const;
+        /**
+        * Calculates a matrix where to put the point of view to lie on the ground
+        *@param pBoundingSphere - sphere surrounding the point of view
+        *@param pTree - ground model aligned-axis bounding box tree
+        *@param[out] pMatrix - resulting view matrix
+        */
+        void ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
+                                  const CSR_AABBNode* pTree,
+                                        CSR_Matrix4*  pMatrix) const;
 
         /**
         * Draws the scene

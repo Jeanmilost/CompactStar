@@ -134,26 +134,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pModel(NULL),
     m_pTree(NULL),
     m_pMSAA(NULL),
-    /*REM
-    m_pShader_ColoredMesh(NULL),
-    m_pShader_TexturedMesh(NULL),
-    m_pMSAA(NULL),
-    m_pBoxMesh(NULL),
-    m_pMesh(NULL),
-    m_pMDL(NULL),
-    m_LastSelectedModel(-1),
-    m_PosY(0.0f),
-    m_AngleX(-M_PI / 2.0f),
-    m_AngleY(0.0f),
-    m_pTextureLastTime(0.0),
-    m_pModelLastTime(0.0),
-    m_pMeshLastTime(0.0),
-    m_TextureIndex(0),
-    m_ModelIndex(0),
-    m_MeshIndex(0),
-    m_FrameCount(0),
-    m_StartTime(0),
-    */
     m_Angle(0.0f),
     m_PosVelocity(0.0f),
     m_DirVelocity(0.0f),
@@ -165,8 +145,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     UnicodeString sceneDir = ::ExtractFilePath(Application->ExeName);
                   sceneDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(sceneDir));
                   sceneDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(sceneDir));
-                  sceneDir = ::ExcludeTrailingPathDelimiter(sceneDir) + L"\\Scenes\\Mountain";
-                m_SceneDir = AnsiString(sceneDir).c_str();
+                  sceneDir = ::ExcludeTrailingPathDelimiter(sceneDir) + L"\\Scenes";
+                m_SceneDir =   AnsiString(sceneDir).c_str();
 
     // enable OpenGL
     EnableOpenGL(paView->Handle, &m_hDC, &m_hRC);
@@ -693,39 +673,6 @@ void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
     ReleaseDC(hwnd, hDC);
 }
 //------------------------------------------------------------------------------
-/*REM
-void TMainForm::ClearModelsAndMeshes()
-{
-    // release the AABB trees
-    for (std::size_t i = 0; i < m_AABBTrees.size(); ++i)
-        csrAABBTreeNodeRelease(m_AABBTrees[i]);
-
-    m_AABBTrees.clear();
-
-    // release the scene objects
-    csrMDLRelease(m_pMDL);
-    csrMeshRelease(m_pMesh);
-
-    // reset the values
-    m_pMDL             =  0;
-    m_pMesh            =  0;
-    m_PosY             =  0.0f;
-    m_AngleX           = -M_PI / 2.0f;
-    m_AngleY           =  0.0f;
-    m_pTextureLastTime =  0.0;
-    m_pModelLastTime   =  0.0;
-    m_pMeshLastTime    =  0.0;
-    m_TextureIndex     =  0;
-    m_ModelIndex       =  0;
-    m_MeshIndex        =  0;
-
-    // reset the stats
-    m_Stats.Clear();
-    m_Stats.m_MaxPolyToCheckCount = 0;
-    m_Stats.m_FPS                 = 0;
-}
-*/
-//------------------------------------------------------------------------------
 void TMainForm::CreateViewport(float w, float h)
 {
     if (!m_pShader)
@@ -836,7 +783,7 @@ void TMainForm::InitScene(int w, int h)
         return;
     }
     */
-    CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap("N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Ground collision\\Scenes\\Map\\the_face.bmp");
+    CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap((m_SceneDir + "\\Map\\the_face.bmp").c_str());
 
     m_pModel              = csrModelCreate();
     m_pModel->m_pMesh     = csrLandscapeCreate(pMap, 3.0f, 0.2f, &vf, 0, &material, 0);
@@ -860,7 +807,7 @@ void TMainForm::InitScene(int w, int h)
         return;
     }
 
-    UnicodeString test = UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\mountain.jpg";
+    UnicodeString test = UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Mountain\\mountain.jpg";
 
     std::auto_ptr<TPicture> pPicture(new TPicture());
     pPicture->LoadFromFile(test);
@@ -889,13 +836,20 @@ void TMainForm::InitScene(int w, int h)
         }
     }
 
-    unsigned char* pPixels = NULL;
-    bool           result  = false;
+    CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
 
     try
     {
+        // configure the pixel buffer
+        pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+        pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+        pPixelBuffer->m_Width        = pTexture->Width;
+        pPixelBuffer->m_Height       = pTexture->Height;
+        pPixelBuffer->m_BytePerPixel = pixelSize;
+        pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
         // reserve memory for the pixel array
-        pPixels = new unsigned char[pTexture->Width * pTexture->Height * pixelSize];
+        pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
 
         TRGBTriple* pLineRGB;
         TRGBQuad*   pLineRGBA;
@@ -909,13 +863,8 @@ void TMainForm::InitScene(int w, int h)
             else
                 pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
 
-            int yPos;
-
             // calculate the start y position
-            //if (type == CSR_DesignerHelper::IE_MT_Model)
-                yPos = y * pTexture->Width * pixelSize;
-            //else
-                //yPos = ((pTexture->Height - 1) - y) * pTexture->Width * pixelSize;
+            const int yPos = y * pTexture->Width * pixelSize;
 
             // iterate through pixels to copy
             for (int x = 0; x < pTexture->Width; ++x)
@@ -923,27 +872,26 @@ void TMainForm::InitScene(int w, int h)
                 // copy to pixel array and take the opportunity to swap the pixel RGB values
                 if (pixelSize == 3)
                 {
-                    pPixels[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
-                    pPixels[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
-                    pPixels[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
                 }
                 else
                 {
-                    pPixels[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
-                    pPixels[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
-                    pPixels[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
-                    pPixels[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
                 }
             }
         }
 
         // set the texture
-        result = SetTexture(pTexture->Width, pTexture->Height, pixelType, false, pPixels);
+        m_pModel->m_pMesh[0].m_Shader.m_TextureID = csrTextureFromPixelBuffer(pPixelBuffer);
     }
     __finally
     {
-        if (pPixels)
-            delete[] pPixels;
+        csrPixelBufferRelease(pPixelBuffer);
     }
 
     /*REM
@@ -976,46 +924,6 @@ void TMainForm::DeleteScene()
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    /*REM
-    CSR_Vector3 t;
-    CSR_Vector3 r;
-    CSR_Matrix4 translateMatrix;
-    CSR_Matrix4 xRotateMatrix;
-    CSR_Matrix4 yRotateMatrix;
-    CSR_Matrix4 rotateMatrix;
-
-    // set translation
-    t.m_X = 0.0f;
-    t.m_Y = 0.0f;
-    t.m_Z = 0.0f;
-
-    // build the translation matrix
-    csrMat4Translate(&t, &translateMatrix);
-
-    // set rotation on X axis
-    r.m_X = 1.0f;
-    r.m_Y = 0.0f;
-    r.m_Z = 0.0f;
-
-    // build the X rotation matrix
-    csrMat4Rotate(0.0f, &r, &xRotateMatrix);
-
-    // set rotation on Y axis
-    r.m_X = 0.0f;
-    r.m_Y = 1.0f;
-    r.m_Z = 0.0f;
-
-    static float angleY = 0.0f;
-    //angleY += 0.001f;
-
-    // build the Y rotation matrix
-    csrMat4Rotate(angleY, &r, &yRotateMatrix);
-
-    // build the model view matrix
-    csrMat4Multiply(&xRotateMatrix, &yRotateMatrix,   &rotateMatrix);
-    csrMat4Multiply(&rotateMatrix,  &translateMatrix, &m_ModelMatrix);
-    */
-
     // no time elapsed?
     if (!elapsedTime)
         return;
@@ -1040,8 +948,8 @@ void TMainForm::UpdateScene(float elapsedTime)
         CSR_Vector3 newPos = m_BoundingSphere.m_Center;
 
         // calculate the next player position
-        newPos.m_X += m_PosVelocity * sinf(m_Angle + (M_PI * 0.0f)) * elapsedTime;
-        newPos.m_Z -= m_PosVelocity * cosf(m_Angle + (M_PI * 0.0f)) * elapsedTime;
+        newPos.m_X += m_PosVelocity * sinf(m_Angle) * elapsedTime;
+        newPos.m_Z -= m_PosVelocity * cosf(m_Angle) * elapsedTime;
 
         // validate and apply it
         m_BoundingSphere.m_Center = newPos;
@@ -1076,24 +984,16 @@ void TMainForm::UpdateScene(float elapsedTime)
     glUniformMatrix4fv(modelSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
 }
 //---------------------------------------------------------------------------
-int TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
-                                    const CSR_AABBNode* pTree,
-                                          CSR_Matrix4*  pMatrix) const
+void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
+                                     const CSR_AABBNode* pTree,
+                                           CSR_Matrix4*  pMatrix) const
 {
-    CSR_Ray3    groundRay;
-    CSR_Vector3 groundDir;
-    CSR_Vector3 groundPos;
-    CSR_Vector3 modelCenter;
-    CSR_Matrix4 invertView;
-    CSR_Sphere  transformedSphere;
-    CSR_Camera  camera;
-    float       determinant;
-
     // validate the inputs
     if (!pBoundingSphere || !pTree || !pMatrix)
-        return 0;
+        return;
 
-    transformedSphere = *pBoundingSphere;
+    CSR_Sphere transformedSphere = *pBoundingSphere;
+    CSR_Camera camera;
 
     // calculate the camera position in the 3d world, without the ground value
     camera.m_Position.m_X = -pBoundingSphere->m_Center.m_X;
@@ -1105,54 +1005,39 @@ int TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
     camera.m_Factor.m_X   =  1.0f;
     camera.m_Factor.m_Y   =  1.0f;
     camera.m_Factor.m_Z   =  1.0f;
-    camera.m_MatCombType  =  IE_CT_Translate_Scale_Rotate;//IE_CT_Scale_Rotate_Translate;
+    camera.m_MatCombType  =  IE_CT_Translate_Scale_Rotate;
 
     // get the view matrix matching with the camera
     csrSceneCameraToMatrix(&camera, pMatrix);
+
+    CSR_Vector3 groundDir;
 
     // get the ground direction
     groundDir.m_X =  0.0f;
     groundDir.m_Y = -1.0f;
     groundDir.m_Z =  0.0f;
 
+    CSR_Vector3 modelCenter;
+
     // get the model center
     modelCenter.m_X = 0.0f;
     modelCenter.m_Y = 0.0f;
     modelCenter.m_Z = 0.0f;
 
+    CSR_Matrix4 invertView;
+    float       determinant;
+
     // calculate the current camera position above the landscape
     csrMat4Inverse(pMatrix, &invertView, &determinant);
     csrMat4Transform(&invertView, &modelCenter, &transformedSphere.m_Center);
 
-    // create the ground ray
-    csrRay3FromPointDir(&transformedSphere.m_Center, &groundDir, &groundRay);
+    float posY = -transformedSphere.m_Center.m_Y;
 
-    CSR_Polygon3Buffer polygonBuffer;
-
-    // using the ground ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&groundRay, pTree, 0, &polygonBuffer);
-
-    try
-    {
-        groundPos = transformedSphere.m_Center;
-
-        // iterate through polygons to check
-        for (std::size_t i = 0; i < polygonBuffer.m_Count; ++i)
-            // check if the ground polygon was found, calculate the ground position if yes
-            if (csrCollisionGround(&transformedSphere, &polygonBuffer.m_pPolygon[i], 0, &groundPos))
-                break;
-    }
-    __finally
-    {
-        // delete found polygons (no longer needed from now)
-        if (polygonBuffer.m_Count)
-            free(polygonBuffer.m_pPolygon);
-    }
+    // calculate the y position where to place the point of view
+    csrGroundPosY(&transformedSphere, pTree, &groundDir, &posY);
 
     // update the ground position inside the view matrix
-    pMatrix->m_Table[3][1] = -groundPos.m_Y;
-
-    return 1;
+    pMatrix->m_Table[3][1] = -posY;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -1173,309 +1058,7 @@ void TMainForm::DrawScene()
     }
 }
 //---------------------------------------------------------------------------
-/*REM
-void TMainForm::ResolveTreeAndDrawPolygons()
-{
-    // get the AABB tree index
-    const std::size_t treeIndex = GetAABBTreeIndex();
-
-    // is index out of bounds?
-    if (treeIndex >= m_AABBTrees.size())
-        return;
-
-    // is the mouse ray not initialized?
-    if (!m_Ray.m_Pos.m_X    && !m_Ray.m_Pos.m_Y    && !m_Ray.m_Pos.m_Z &&
-        !m_Ray.m_Dir.m_X    && !m_Ray.m_Dir.m_Y    && !m_Ray.m_Dir.m_Z &&
-        !m_Ray.m_InvDir.m_X && !m_Ray.m_InvDir.m_Y && !m_Ray.m_InvDir.m_Z)
-        return;
-
-    CSR_Polygon3Buffer polygonBuffer;
-
-    // using the mouse ray, resolve aligned-axis bounding box tree
-    csrAABBTreeResolve(&m_Ray, m_AABBTrees[treeIndex], 0, &polygonBuffer);
-
-    // update the stats
-    m_Stats.m_PolyToCheckCount    = polygonBuffer.m_Count;
-    m_Stats.m_MaxPolyToCheckCount = std::max(polygonBuffer.m_Count, m_Stats.m_MaxPolyToCheckCount);
-
-    CSR_Polygon3* pPolygonsToDraw     = NULL;
-    CSR_Polygon3* pNewPolygonsToDraw  = NULL;
-    std::size_t   polygonsToDrawCount = 0;
-
-    // create a figure for the ray
-    CSR_Figure3 ray;
-    ray.m_Type    = CSR_F3_Ray;
-    ray.m_pFigure = &m_Ray;
-
-    // iterate through polygons to check
-    for (std::size_t i = 0; i < polygonBuffer.m_Count; ++i)
-    {
-        CSR_Figure3 polygon;
-        polygon.m_Type    = CSR_F3_Polygon;
-        polygon.m_pFigure = (CSR_Polygon3*)&polygonBuffer.m_pPolygon[i];
-
-        // is polygon intersecting ray?
-        if (csrIntersect3(&ray, &polygon, 0, 0, 0))
-        {
-            // reserve memory fort he new polygon to draw
-            pNewPolygonsToDraw = (CSR_Polygon3*)csrMemoryAlloc(pPolygonsToDraw,
-                                                               sizeof(CSR_Polygon3),
-                                                               polygonsToDrawCount + 1);
-
-            // succeeded?
-            if (!pNewPolygonsToDraw)
-                return;
-
-            // copy his content
-            pNewPolygonsToDraw[polygonsToDrawCount] = polygonBuffer.m_pPolygon[i];
-
-            // update the polygon buffer to draw
-            pPolygonsToDraw = pNewPolygonsToDraw;
-            ++polygonsToDrawCount;
-        }
-    }
-
-    // delete found polygons (no longer needed from now)
-    if (polygonBuffer.m_Count)
-        free(polygonBuffer.m_pPolygon);
-
-    // found polygons to draw?
-    if (polygonsToDrawCount)
-    {
-        CSR_Mesh mesh;
-
-        // create and configure a mesh for the polygons
-        mesh.m_Count                             =  1;
-        mesh.m_Shader.m_TextureID                =  M_CSR_Error_Code;
-        mesh.m_Shader.m_BumpMapID                =  M_CSR_Error_Code;
-        mesh.m_pVB                               = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
-        mesh.m_pVB->m_Format.m_Type              =  CSR_VT_Triangles;
-        mesh.m_pVB->m_Format.m_HasNormal         =  0;
-        mesh.m_pVB->m_Format.m_HasTexCoords      =  0;
-        mesh.m_pVB->m_Format.m_HasPerVertexColor =  1;
-        mesh.m_pVB->m_Format.m_Stride            =  7;
-        mesh.m_pVB->m_Culling.m_Type             =  CSR_CT_None;
-        mesh.m_pVB->m_Culling.m_Face             =  CSR_CF_CCW;
-        mesh.m_pVB->m_Material.m_Color           =  0xFFFFFFFF;
-        mesh.m_pVB->m_Material.m_Transparent     =  0;
-        mesh.m_pVB->m_Material.m_Wireframe       =  0;
-        mesh.m_pVB->m_pData                      =  m_PolygonArray;
-        mesh.m_pVB->m_Count                      =  21;
-        mesh.m_pVB->m_Time                       =  0.0;
-        mesh.m_Time                              =  0.0;
-
-        // iterate through polygons to draw
-        for (std::size_t i = 0; i < polygonsToDrawCount; ++i)
-        {
-            // set vertex 1 in vertex buffer
-            m_PolygonArray[0]  = pPolygonsToDraw[i].m_Vertex[0].m_X;
-            m_PolygonArray[1]  = pPolygonsToDraw[i].m_Vertex[0].m_Y;
-            m_PolygonArray[2]  = pPolygonsToDraw[i].m_Vertex[0].m_Z;
-            m_PolygonArray[3]  = 1.0f;
-            m_PolygonArray[4]  = 0.0f;
-            m_PolygonArray[5]  = 0.0f;
-            m_PolygonArray[6]  = 1.0f;
-
-            // set vertex 2 in vertex buffer
-            m_PolygonArray[7]  = pPolygonsToDraw[i].m_Vertex[1].m_X;
-            m_PolygonArray[8]  = pPolygonsToDraw[i].m_Vertex[1].m_Y;
-            m_PolygonArray[9]  = pPolygonsToDraw[i].m_Vertex[1].m_Z;
-            m_PolygonArray[10] = 1.0f;
-            m_PolygonArray[11] = 0.0f;
-            m_PolygonArray[12] = 0.0f;
-            m_PolygonArray[13] = 1.0f;
-
-            // set vertex 3 in vertex buffer
-            m_PolygonArray[14] = pPolygonsToDraw[i].m_Vertex[2].m_X;
-            m_PolygonArray[15] = pPolygonsToDraw[i].m_Vertex[2].m_Y;
-            m_PolygonArray[16] = pPolygonsToDraw[i].m_Vertex[2].m_Z;
-            m_PolygonArray[17] = 1.0f;
-            m_PolygonArray[18] = 0.0f;
-            m_PolygonArray[19] = 0.0f;
-            m_PolygonArray[20] = 1.0f;
-
-            // draw the polygon
-            csrDrawMesh(&mesh, m_pShader_ColoredMesh, 0);
-        }
-
-        free(mesh.m_pVB);
-    }
-
-    // delete the polygon list
-    if (pPolygonsToDraw)
-        free(pPolygonsToDraw);
-
-    // update the stats
-    m_Stats.m_HitPolygonCount = polygonsToDrawCount;
-}
-//---------------------------------------------------------------------------
-void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
-{
-    // no box model to show?
-    if (!m_pBoxMesh)
-        return;
-
-    // node contains left children?
-    if (pTree->m_pLeft)
-        DrawTreeBoxes(pTree->m_pLeft);
-
-    // node contains right children?
-    if (pTree->m_pRight)
-        DrawTreeBoxes(pTree->m_pRight);
-
-    // do show boxes belonging to leaf only?
-    if (ckShowLeafOnly->Checked && (pTree->m_pLeft || pTree->m_pRight))
-        return;
-
-    // build a geometrical figure for the ray
-    CSR_Figure3 ray;
-    ray.m_Type    = CSR_F3_Ray;
-    ray.m_pFigure = (void*)&m_Ray;
-
-    // build a geometrical figure for the box
-    CSR_Figure3 box;
-    box.m_Type    = CSR_F3_Box;
-    box.m_pFigure = pTree->m_pBox;
-
-    unsigned color;
-
-    // is ray intersecting box?
-    if (csrIntersect3(&ray, &box, 0, 0, 0))
-    {
-        // yes, count the hit and get the green color
-        ++m_Stats.m_HitBoxCount;
-        color = 0xFF0000;
-    }
-    else
-    {
-        // no, do nothing if only the colliding boxes should be drawn
-        if (ckShowCollidingBoxesOnly->Checked)
-            return;
-
-        // otherwise get the red color
-        color = 0xFF000000;
-    }
-
-    CSR_Vector3 t;
-    CSR_Vector3 s;
-    CSR_Matrix4 translateMatrix;
-    CSR_Matrix4 scaleMatrix;
-    CSR_Matrix4 buildMatrix;
-    CSR_Matrix4 modelViewMatrix;
-
-    // set translation
-    t.m_X = (pTree->m_pBox->m_Max.m_X + pTree->m_pBox->m_Min.m_X) / 2.0f;
-    t.m_Y = (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
-    t.m_Z = (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
-
-    // build the translation matrix
-    csrMat4Translate(&t, &translateMatrix);
-
-    // set scaling
-    csrVec3Sub(&pTree->m_pBox->m_Max, &pTree->m_pBox->m_Min, &s);
-
-    // build the scale matrix
-    csrMat4Scale(&s, &scaleMatrix);
-
-    // build the model view matrix
-    csrMat4Multiply(&scaleMatrix, &translateMatrix, &buildMatrix);
-    csrMat4Multiply(&buildMatrix, &m_ModelMatrix,   &modelViewMatrix);
-
-    // enable the colored program
-    csrShaderEnable(m_pShader_ColoredMesh);
-
-    // connect the model view matrix to shader
-    GLint shaderSlot = glGetUniformLocation(m_pShader_ColoredMesh->m_ProgramID, "csr_uModelView");
-    glUniformMatrix4fv(shaderSlot, 1, 0, &modelViewMatrix.m_Table[0][0]);
-
-    // can draw the AABB box?
-    if (m_pBoxMesh)
-    {
-        // update the box material
-        for (std::size_t i = 0; i < m_pBoxMesh->m_Count; ++i)
-        {
-            m_pBoxMesh->m_pVB[i].m_Material.m_Color       = color | ((tbTransparency->Position * 0xFF) / tbTransparency->Max);
-            m_pBoxMesh->m_pVB[i].m_Material.m_Transparent = tbTransparency->Position != tbTransparency->Max;
-            m_pBoxMesh->m_pVB[i].m_Material.m_Wireframe   = ckWireFrame->Checked;
-        }
-
-        // draw the AABB box
-        csrDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0);
-    }
-}
-//---------------------------------------------------------------------------
-CSR_Vector3 TMainForm::MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect)
-{
-    CSR_Vector3 result;
-
-    // invalid client width or height?
-    if (!paView->ClientWidth || !paView->ClientHeight)
-    {
-        result.m_X = 0.0f;
-        result.m_Y = 0.0f;
-        result.m_Z = 0.0f;
-        return result;
-    }
-
-    // convert mouse position to viewport position
-    result.m_X = viewRect.m_Min.m_X + ((mousePos.X * (viewRect.m_Max.m_X - viewRect.m_Min.m_X)) / paView->ClientWidth);
-    result.m_Y = viewRect.m_Min.m_Y - ((mousePos.Y * (viewRect.m_Min.m_Y - viewRect.m_Max.m_Y)) / paView->ClientHeight);
-    result.m_Z = 0.0f;
-    return result;
-}
-//---------------------------------------------------------------------------
-void TMainForm::CalculateMouseRay()
-{
-    // get the mouse position in screen coordinates
-    TPoint mousePos = Mouse->CursorPos;
-
-    // convert to view coordinates
-    if (!::ScreenToClient(paView->Handle, &mousePos))
-        return;
-
-    CSR_Rect viewRect;
-
-    // get the viewport rectangle
-    viewRect.m_Min.m_X = -1.0f;
-    viewRect.m_Min.m_Y =  1.0f;
-    viewRect.m_Max.m_X =  1.0f;
-    viewRect.m_Max.m_Y = -1.0f;
-
-    // get the ray in the Windows coordinate
-    m_Ray.m_Pos     =  MousePosToViewportPos(mousePos, viewRect);
-    m_Ray.m_Dir.m_X =  m_Ray.m_Pos.m_X;
-    m_Ray.m_Dir.m_Y =  m_Ray.m_Pos.m_Y;
-    m_Ray.m_Dir.m_Z = -1.0f;
-
-    // put the ray in the world coordinates
-    csrMat4Unproject(&m_ProjectionMatrix, &m_ViewMatrix, &m_Ray);
-
-    float determinant;
-
-    CSR_Vector3 rayPos;
-    CSR_Vector3 rayDir;
-    CSR_Vector3 rayDirN;
-
-    // now transform the ray to match with the model position
-    CSR_Matrix4 invertModel;
-    csrMat4Inverse(&m_ModelMatrix, &invertModel, &determinant);
-    csrMat4ApplyToVector(&invertModel, &m_Ray.m_Pos, &rayPos);
-    csrMat4ApplyToNormal(&invertModel, &m_Ray.m_Dir, &rayDir);
-    csrVec3Normalize(&rayDir, &rayDirN);
-
-    // get the transformed ray
-    csrRay3FromPointDir(&rayPos, &rayDirN, &m_Ray);
-}
-//---------------------------------------------------------------------------
-std::size_t TMainForm::GetAABBTreeIndex() const
-{
-    // select the index of the AABB tree to draw
-    if (m_pMDL && m_pMDL->m_ModelCount == 1 && m_pMDL->m_pModel[m_ModelIndex].m_MeshCount > 1)
-        return m_MeshIndex;
-
-    return m_ModelIndex;
-}
-//---------------------------------------------------------------------------
+/*
 void TMainForm::ShowStats() const
 {
     unsigned    vertexCount = 0;
@@ -1533,21 +1116,6 @@ void TMainForm::ShowStats() const
     laHitPolygons->Caption     = L"Hit Polygons: "          + ::IntToStr(int(m_Stats.m_HitPolygonCount));
     laHitBoxes->Caption        = L"Hit Boxes: "             + ::IntToStr(int(m_Stats.m_HitBoxCount));
     laFPS->Caption             = L"FPS:"                    + ::IntToStr(int(m_Stats.m_FPS));
-}
-//---------------------------------------------------------------------------
-float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
-{
-    // no tree or box?
-    if (!pTree || !pTree->m_pBox)
-        return 0.0f;
-
-    // is model rotated?
-    if (rotated)
-        // calculate the y position from the z axis
-        return (pTree->m_pBox->m_Max.m_Z + pTree->m_pBox->m_Min.m_Z) / 2.0f;
-
-    // calculate the y position from the z axis
-    return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 */
 //---------------------------------------------------------------------------

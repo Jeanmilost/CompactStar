@@ -113,6 +113,20 @@ struct CSR_AABBNode
                                const CSR_Vector3*  pGroundDir,
                                      CSR_Vector3*  pR);
 
+        /**
+        * Calculates the y axis position where to place the point of view to stay above the ground
+        *@param pBoundingSphere - sphere surrounding the point of view
+        *@param pTree - ground model aligned-axis bounding box tree
+        *@param[out] pR - resulting position on the y axis where to place the point of view
+        *@note This function will works only for a model whose the matrix is set to identity (i.e.
+        *      an unstransformed model). Also the ground vector is assumed to always point to the
+        *      [0, -1, 0] direction
+        */
+        void csrGroundPosY(const CSR_Sphere*   pBoundingSphere,
+                           const CSR_AABBNode* pTree,
+                           const CSR_Vector3*  pGroundDir,
+                                 float*        pR);
+
 #ifdef __cplusplus
     }
 #endif
