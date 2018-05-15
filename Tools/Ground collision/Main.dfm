@@ -16,7 +16,6 @@ object MainForm: TMainForm
   PrintScale = poNone
   Scaled = False
   OnCreate = FormCreate
-  OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -54,43 +53,6 @@ object MainForm: TMainForm
     Constraints.MinWidth = 185
     ParentBackground = False
     TabOrder = 1
-    object laOptionsCaption: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 115
-      Width = 179
-      Height = 19
-      Margins.Top = 10
-      Align = alTop
-      Caption = 'Options'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ExplicitWidth = 62
-    end
-    object laTransparency: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 305
-      Width = 179
-      Height = 13
-      Margins.Top = 5
-      Align = alTop
-      Caption = 'AABB Tree Box Transparency'
-      ExplicitWidth = 141
-    end
-    object blOptionsSeparator: TBevel
-      Left = 0
-      Top = 137
-      Width = 185
-      Height = 2
-      Align = alTop
-      Shape = bsTopLine
-      ExplicitTop = 19
-    end
     object blFilesSeparator: TBevel
       Left = 0
       Top = 567
@@ -142,7 +104,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitWidth = 75
+      ExplicitTop = 2
     end
     object laHitBoxes: TLabel
       Left = 0
@@ -198,85 +160,32 @@ object MainForm: TMainForm
       Caption = 'Polygon Count:'
       ExplicitWidth = 74
     end
-    object laRotationSpeedCaption: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 391
-      Width = 179
-      Height = 13
-      Margins.Top = 5
+    object blOptions: TBevel
+      Left = 0
+      Top = 147
+      Width = 185
+      Height = 2
       Align = alTop
-      Caption = 'Model Rotation Speed'
-      ExplicitWidth = 105
+      Shape = bsTopLine
+      ExplicitTop = 217
     end
-    object laAnimationSpeedCaption: TLabel
+    object laOptions: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 477
-      Width = 179
-      Height = 13
-      Margins.Top = 5
-      Align = alTop
-      Caption = 'Model Animation Speed'
-      ExplicitWidth = 111
-    end
-    object laAnimationNbCaption: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 434
-      Width = 179
-      Height = 13
-      Margins.Top = 5
-      Align = alTop
-      Caption = 'Model Animation Nb.'
-      ExplicitWidth = 98
-    end
-    object laModelDistance: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 348
-      Width = 179
-      Height = 13
-      Margins.Top = 5
-      Align = alTop
-      Caption = 'Model Distance'
-      ExplicitWidth = 72
-    end
-    object ckWireFrame: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 234
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show Boxes In WireFrame'
-      Checked = True
-      State = cbChecked
-      TabOrder = 4
-    end
-    object ckShowLeafOnly: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 211
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show Leaf Boxes Only'
-      TabOrder = 3
-    end
-    object tbTransparency: TTrackBar
-      AlignWithMargins = True
-      Left = 3
-      Top = 321
+      Top = 125
       Width = 179
       Height = 19
-      Margins.Top = 0
+      Margins.Top = 20
       Align = alTop
-      Max = 100
-      Position = 80
-      ShowSelRange = False
-      TabOrder = 8
-      TickStyle = tsNone
+      Caption = 'Options'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitTop = 108
+      ExplicitWidth = 62
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -286,125 +195,21 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Open Model...'
-      TabOrder = 12
-      OnClick = btLoadModelClick
-    end
-    object ckShowCollidingBoxesOnly: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 188
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show Colliding Boxes Only'
-      TabOrder = 2
-    end
-    object ckShowBoxes: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 165
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show Boxes'
-      Checked = True
-      State = cbChecked
-      TabOrder = 1
-    end
-    object ckShowCollidingPolygons: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 142
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show Colliding Polygons'
-      Checked = True
-      State = cbChecked
       TabOrder = 0
-    end
-    object tbRotationSpeed: TTrackBar
-      AlignWithMargins = True
-      Left = 3
-      Top = 407
-      Width = 179
-      Height = 19
-      Margins.Top = 0
-      Align = alTop
-      Max = 200
-      Position = 50
-      ShowSelRange = False
-      TabOrder = 9
-      TickStyle = tsNone
-    end
-    object tbAnimationSpeed: TTrackBar
-      AlignWithMargins = True
-      Left = 3
-      Top = 493
-      Width = 179
-      Height = 19
-      Margins.Top = 0
-      Align = alTop
-      Enabled = False
-      Max = 50
-      Min = 1
-      Position = 10
-      ShowSelRange = False
-      TabOrder = 11
-      TickStyle = tsNone
-    end
-    object ckPauseModelAnimation: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 257
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Pause The Model Animation'
-      Checked = True
-      State = cbChecked
-      TabOrder = 5
-    end
-    object tbAnimationNb: TTrackBar
-      AlignWithMargins = True
-      Left = 3
-      Top = 450
-      Width = 179
-      Height = 19
-      Margins.Top = 0
-      Align = alTop
-      Enabled = False
-      Max = 50
-      ShowSelRange = False
-      TabOrder = 10
-      TickStyle = tsNone
-    end
-    object tbModelDistance: TTrackBar
-      AlignWithMargins = True
-      Left = 3
-      Top = 364
-      Width = 179
-      Height = 19
-      Margins.Top = 0
-      Align = alTop
-      Max = 150
-      Min = 1
-      Position = 2
-      ShowSelRange = False
-      TabOrder = 7
-      TickStyle = tsNone
+      OnClick = btLoadModelClick
     end
     object ckAntialiasing: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 280
+      Top = 152
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Antialiasing'
       Checked = True
       State = cbChecked
-      TabOrder = 6
+      TabOrder = 1
+      ExplicitTop = 198
     end
   end
   object aeEvents: TApplicationEvents
