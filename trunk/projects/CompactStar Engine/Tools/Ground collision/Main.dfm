@@ -104,51 +104,26 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 2
+      ExplicitWidth = 75
     end
-    object laHitBoxes: TLabel
-      Left = 0
-      Top = 79
-      Width = 185
-      Height = 13
-      Align = alTop
-      Caption = 'Hit Boxes:'
-      ExplicitWidth = 49
-    end
-    object laHitPolygons: TLabel
-      Left = 0
-      Top = 66
-      Width = 185
-      Height = 13
-      Align = alTop
-      Caption = 'Hit Polygons:'
-      ExplicitWidth = 63
-    end
-    object laPolygonsToCheck: TLabel
+    object laAltitude: TLabel
       Left = 0
       Top = 40
       Width = 185
       Height = 13
       Align = alTop
-      Caption = 'Polygons To Check:'
-      ExplicitWidth = 94
+      Caption = 'Altitude:'
+      ExplicitTop = 79
+      ExplicitWidth = 41
     end
-    object laMaxPolyToCheck: TLabel
+    object laFPS: TLabel
       Left = 0
       Top = 53
       Width = 185
       Height = 13
       Align = alTop
-      Caption = 'Max Polygons To Check:'
-      ExplicitWidth = 117
-    end
-    object laFPS: TLabel
-      Left = 0
-      Top = 92
-      Width = 185
-      Height = 13
-      Align = alTop
       Caption = 'FPS:'
+      ExplicitTop = 92
       ExplicitWidth = 22
     end
     object laPolygonCount: TLabel
@@ -162,7 +137,7 @@ object MainForm: TMainForm
     end
     object blOptions: TBevel
       Left = 0
-      Top = 147
+      Top = 108
       Width = 185
       Height = 2
       Align = alTop
@@ -172,7 +147,7 @@ object MainForm: TMainForm
     object laOptions: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 125
+      Top = 86
       Width = 179
       Height = 19
       Margins.Top = 20
@@ -184,7 +159,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 108
+      ExplicitTop = 125
       ExplicitWidth = 62
     end
     object btLoadModel: TButton
@@ -201,7 +176,7 @@ object MainForm: TMainForm
     object ckAntialiasing: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 152
+      Top = 113
       Width = 179
       Height = 17
       Align = alTop
@@ -209,7 +184,7 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 1
-      ExplicitTop = 198
+      ExplicitTop = 152
     end
   end
   object aeEvents: TApplicationEvents
