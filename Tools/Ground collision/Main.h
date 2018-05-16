@@ -34,6 +34,7 @@
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
 #include "CSR_Renderer.h"
+#include "CSR_Sound.h"
 
 /**
 * Ground collision tool main form
@@ -50,10 +51,7 @@ class TMainForm : public TForm
         TLabel *laFilesCaption;
         TBevel *blStatsSeparator;
         TLabel *laStatsCaption;
-        TLabel *laHitBoxes;
-        TLabel *laHitPolygons;
-        TLabel *laPolygonsToCheck;
-        TLabel *laMaxPolyToCheck;
+        TLabel *laAltitude;
         TLabel *laFPS;
         TLabel *laPolygonCount;
         TApplicationEvents *aeEvents;
@@ -89,30 +87,29 @@ class TMainForm : public TForm
 
     private:
         /**
-        * Tree statistics
+        * Statistics
         */
-//REM
-//        struct ITreeStats
-//        {
-//            std::size_t m_PolyToCheckCount;
-//            std::size_t m_MaxPolyToCheckCount;
-//            std::size_t m_HitBoxCount;
-//            std::size_t m_HitPolygonCount;
-//            std::size_t m_FPS;
-//
-//            ITreeStats();
-//            ~ITreeStats();
-//
-//            /**
-//            * Clears the stats
-//            */
-//            void Clear();
-//        };
+        struct IStats
+        {
+            float       m_Altitude;
+            std::size_t m_FPS;
+            std::size_t m_RefreshCounter;
 
-        //REM typedef std::vector<CSR_AABBNode*> IAABBTrees;
+            IStats();
+            ~IStats();
+
+            /**
+            * Clears the stats
+            */
+            void Clear();
+        };
 
         HDC              m_hDC;
         HGLRC            m_hRC;
+        ALCdevice*       m_pOpenALDevice;
+        ALCcontext*      m_pOpenALContext;
+        IStats           m_Stats;
+        CSR_Sound*       m_pSound;
         CSR_Color        m_Background;
         CSR_Shader*      m_pShader;
         CSR_Model*       m_pModel;
@@ -122,10 +119,14 @@ class TMainForm : public TForm
         CSR_Matrix4      m_ViewMatrix;
         CSR_Matrix4      m_ModelMatrix;
         CSR_Sphere       m_BoundingSphere;
+        std::size_t      m_FrameCount;
         float            m_Angle;
         float            m_PosVelocity;
         float            m_DirVelocity;
+        float            m_StepTime;
+        float            m_StepInterval;
         std::string      m_SceneDir;
+        unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
         TWndMethod       m_fViewWndProc_Backup;
@@ -145,11 +146,6 @@ class TMainForm : public TForm
         *@param hRC - OpenGL rendering context
         */
         void DisableOpenGL(HWND hWnd, HDC hDC, HGLRC hRC);
-
-        /**
-        * Clears all the previous models and meshes
-        */
-        //REM void ClearModelsAndMeshes();
 
         /**
         * Creates the viewport
@@ -177,6 +173,11 @@ class TMainForm : public TForm
         void UpdateScene(float elapsedTime);
 
         /**
+        * Draws the scene
+        */
+        void DrawScene();
+
+        /**
         * Calculates a matrix where to put the point of view to lie on the ground
         *@param pBoundingSphere - sphere surrounding the point of view
         *@param pTree - ground model aligned-axis bounding box tree
@@ -187,52 +188,9 @@ class TMainForm : public TForm
                                         CSR_Matrix4*  pMatrix) const;
 
         /**
-        * Draws the scene
-        */
-        void DrawScene();
-
-        /**
-        * Resolves the AABB tree against the mouse ray and draw the polygons intersecting the ray
-        */
-        //REM void ResolveTreeAndDrawPolygons();
-
-        /**
-        * Draws the AABB tree boxes
-        *@param pTree - root tree node, or parent node from which the boxes should be drawn
-        */
-        //REM void DrawTreeBoxes(const CSR_AABBNode* pTree);
-
-        /**
-        * Converts a mouse position to a viewport coordinate
-        *@param mousePos - mouse position to convert
-        *@param viewRect - viewport rectangle
-        *@return the viewport coordinate (before the transformation to put it in the 3D world)
-        */
-        //REM CSR_Vector3 MousePosToViewportPos(const TPoint& mousePos, const CSR_Rect& viewRect);
-
-        /**
-        * Calculates and updates the ray coordinate in the 3D viewport
-        */
-        //REM void CalculateMouseRay();
-
-        /**
-        * Get AABB tree index to use
-        *@return AABB tree index
-        */
-        //REM std::size_t GetAABBTreeIndex() const;
-
-        /**
         * Shows the stats
         */
-        //REM void ShowStats() const;
-
-        /**
-        * Calculates the model y position from his bounding box
-        *@param pTree - tree containing the bounding box to use to calculate the y position
-        *@param rotated - if true, the model is shown rotated 90° on the x axis
-        *@return the y position
-        */
-        //REM float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
+        void ShowStats() const;
 
         /**
         * Called when the scene should be drawn
@@ -246,12 +204,6 @@ class TMainForm : public TForm
         *@param[in, out] done - if true, event is done and will no longer be called
         */
         void __fastcall OnIdle(TObject* pSender, bool& done);
-
-        bool SetTexture(      int            width,
-                              int            height,
-                              int            pixelType,
-                              bool           bumpMap,
-                        const unsigned char* pPixels) const;
 };
 extern PACKAGE TMainForm* MainForm;
 #endif

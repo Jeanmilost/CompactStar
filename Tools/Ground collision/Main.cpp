@@ -35,36 +35,9 @@
 #else
     #pragma link "glewSL.lib"
 #endif
+#pragma link "OpenAL32E.lib"
 #pragma resource "*.dfm"
 
-//----------------------------------------------------------------------------
-/**
-* Vertex shader program to show a colored mesh
-*@note The view matrix is implicitly set to identity and combined to the model one
-*/
-const char g_VertexProgram_ColoredMesh[] =
-    "precision mediump float;"
-    "attribute vec3 csr_vVertex;"
-    "attribute vec4 csr_vColor;"
-    "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uModelView;"
-    "varying   vec4 csr_fColor;"
-    "void main(void)"
-    "{"
-    "    csr_fColor   = csr_vColor;"
-    "    gl_Position  = csr_uProjection * csr_uModelView * vec4(csr_vVertex, 1.0);"
-    "}";
-//----------------------------------------------------------------------------
-/**
-* Fragment shader program to show a colored mesh
-*/
-const char g_FragmentProgram_ColoredMesh[] =
-    "precision mediump float;"
-    "varying lowp vec4 csr_fColor;"
-    "void main(void)"
-    "{"
-    "    gl_FragColor = csr_fColor;"
-    "}";
 //----------------------------------------------------------------------------
 /**
 * Vertex shader program to show a textured mesh
@@ -100,27 +73,21 @@ const char g_FragmentProgram_TexturedMesh[] =
     "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
     "}";
 //---------------------------------------------------------------------------
-// TMainForm::ITreeStats
+// TMainForm::IStats
 //---------------------------------------------------------------------------
-/*REM
-TMainForm::ITreeStats::ITreeStats() :
-    m_PolyToCheckCount(0),
-    m_MaxPolyToCheckCount(0),
-    m_HitBoxCount(0),
-    m_HitPolygonCount(0),
-    m_FPS(0)
+TMainForm::IStats::IStats() :
+    m_Altitude(0.0f),
+    m_FPS(0),
+    m_RefreshCounter(0)
 {}
 //---------------------------------------------------------------------------
-TMainForm::ITreeStats::~ITreeStats()
+TMainForm::IStats::~IStats()
 {}
 //---------------------------------------------------------------------------
-void TMainForm::ITreeStats::Clear()
+void TMainForm::IStats::Clear()
 {
-    m_PolyToCheckCount = 0;
-    m_HitBoxCount      = 0;
-    m_HitPolygonCount  = 0;
+    m_Altitude = 0.0f;
 }
-*/
 //---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
@@ -130,13 +97,20 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_hDC(NULL),
     m_hRC(NULL),
+    m_pOpenALDevice(NULL),
+    m_pOpenALContext(NULL),
+    m_pSound(NULL),
     m_pShader(NULL),
     m_pModel(NULL),
     m_pTree(NULL),
     m_pMSAA(NULL),
+    m_FrameCount(0),
     m_Angle(0.0f),
     m_PosVelocity(0.0f),
     m_DirVelocity(0.0f),
+    m_StepTime(0.0f),
+    m_StepInterval(350.0f),
+    m_StartTime(0),
     m_PreviousTime(0),
     m_Initialized(false),
     m_fViewWndProc_Backup(NULL)
@@ -762,7 +736,7 @@ void TMainForm::InitScene(int w, int h)
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
 
-    /**/
+    /*
     const std::string modelFile = m_SceneDir + "\\Mountain\\mountain.obj";
 
     // load a default model
@@ -780,9 +754,9 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
-    /**/
+    */
 
-    /*
+    /**/
     CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap((m_SceneDir + "\\Map\\the_face.bmp").c_str());
 
     m_pModel              = csrModelCreate();
@@ -790,7 +764,7 @@ void TMainForm::InitScene(int w, int h)
     m_pModel->m_MeshCount = 1;
 
     csrPixelBufferRelease(pMap);
-    */
+    /**/
 
     // create the AABB tree for the mountain model
     m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
@@ -895,15 +869,14 @@ void TMainForm::InitScene(int w, int h)
         csrPixelBufferRelease(pPixelBuffer);
     }
 
-    /*REM
-    // set the initial values
-    m_pTextureLastTime = 0.0;
-    m_pModelLastTime   = 0.0;
-    m_pMeshLastTime    = 0.0;
-    m_TextureIndex     = 0;
-    m_ModelIndex       = 0;
-    m_MeshIndex        = 0;
-    */
+    // initialize OpenAL
+    csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
+
+    // get the default sound file
+    const std::string soundFile = m_SceneDir + "\\Sound\\human_walk_grass_step.wav";
+
+    // load step sound file
+    m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
 
     m_Initialized = true;
 }
@@ -921,14 +894,14 @@ void TMainForm::DeleteScene()
 
     // release the multisampling antialiasing
     csrMSAARelease(m_pMSAA);
+
+    // release OpenAL interface
+    csrSoundRelease(m_pSound);
+    csrSoundReleaseOpenAL(m_pOpenALDevice, m_pOpenALContext);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    // no time elapsed?
-    if (!elapsedTime)
-        return;
-
     // is player rotating?
     if (m_DirVelocity)
     {
@@ -955,18 +928,16 @@ void TMainForm::UpdateScene(float elapsedTime)
         // validate and apply it
         m_BoundingSphere.m_Center = newPos;
 
-        /*
         // calculate next time where the step sound should be played
         m_StepTime += (elapsedTime * 1000.0f);
 
         // do play the sound?
         if (m_StepTime > m_StepInterval)
         {
-            miniStopSound(m_PlayerStepSoundID);
-            miniPlaySound(m_PlayerStepSoundID);
+            csrSoundStop(m_pSound);
+            csrSoundPlay(m_pSound);
             m_StepTime = 0.0f;
         }
-        */
     }
 
     // enable the shader program
@@ -983,6 +954,27 @@ void TMainForm::UpdateScene(float elapsedTime)
     // connect the model view matrix to shader
     GLint modelSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModel");
     glUniformMatrix4fv(modelSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+
+    // update the stats
+    m_Stats.m_Altitude = -m_ViewMatrix.m_Table[3][1];
+}
+//------------------------------------------------------------------------------
+void TMainForm::DrawScene()
+{
+    try
+    {
+        // begin the drawing
+        csrMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
+
+        if (m_pModel)
+            // draw the model
+            csrDrawModel(m_pModel, 0, m_pShader, 0);
+    }
+    __finally
+    {
+        // end the drawing
+        csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
+    }
 }
 //---------------------------------------------------------------------------
 void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
@@ -1035,90 +1027,53 @@ void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
     float posY = -transformedSphere.m_Center.m_Y;
 
     // calculate the y position where to place the point of view
-    csrGroundPosY(&transformedSphere, pTree, &groundDir, &posY);
+    csrGroundPosY(&transformedSphere, pTree, &groundDir, 0, &posY);
 
     // update the ground position inside the view matrix
     pMatrix->m_Table[3][1] = -posY;
 }
-//------------------------------------------------------------------------------
-void TMainForm::DrawScene()
-{
-    try
-    {
-        // begin the drawing
-        csrMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
-
-        if (m_pModel)
-            // draw the model
-            csrDrawModel(m_pModel, 0, m_pShader, 0);
-    }
-    __finally
-    {
-        // end the drawing
-        csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
-    }
-}
 //---------------------------------------------------------------------------
-/*
 void TMainForm::ShowStats() const
 {
     unsigned    vertexCount = 0;
     unsigned    stride;
     std::size_t polyCount;
 
-    if (m_pMesh)
+    if (m_pModel && m_pModel->m_MeshCount)
     {
         // get the mesh stride
-        stride = m_pMesh->m_pVB ? m_pMesh->m_pVB->m_Format.m_Stride : 0;
+        stride = m_pModel->m_pMesh[0].m_pVB ? m_pModel->m_pMesh[0].m_pVB->m_Format.m_Stride : 0;
 
         // count all vertices contained in the mesh
-        for (std::size_t i = 0; i < m_pMesh->m_Count; ++i)
-            vertexCount += m_pMesh->m_pVB[i].m_Count;
+        for (std::size_t i = 0; i < m_pModel->m_pMesh[0].m_Count; ++i)
+            vertexCount += m_pModel->m_pMesh[0].m_pVB[i].m_Count;
 
         // calculate the polygons count
-        if (!m_pMesh->m_pVB)
+        if (!m_pModel->m_pMesh[0].m_pVB)
             polyCount = 0;
         else
-            switch (m_pMesh->m_pVB->m_Format.m_Type)
+            switch (m_pModel->m_pMesh[0].m_pVB->m_Format.m_Type)
             {
-                case CSR_VT_Triangles:     polyCount = stride ? ((vertexCount / stride) /  3)                     : 0; break;
+                case CSR_VT_Triangles:
+                    polyCount = stride ? ((vertexCount / stride) / 3) : 0;
+                    break;
+
                 case CSR_VT_TriangleStrip:
-                case CSR_VT_TriangleFan:   polyCount = stride ? ((vertexCount / stride) - (2 * m_pMesh->m_Count)) : 0; break;
-                default:                   polyCount = 0;                                                              break;
+                case CSR_VT_TriangleFan:
+                    polyCount = stride ? ((vertexCount / stride) - (2 * m_pModel->m_pMesh[0].m_Count)) : 0;
+                    break;
+
+                default:
+                    polyCount = 0;
+                    break;
             }
     }
-    else
-    if (m_pMDL)
-    {
-        // get the current model mesh to draw
-        const CSR_Mesh* pMesh = csrMDLGetMesh(m_pMDL, m_ModelIndex, m_MeshIndex);
-
-        // found it?
-        if (!pMesh)
-            return;
-
-        // get the mesh stride
-        stride = pMesh->m_pVB ? pMesh->m_pVB->m_Format.m_Stride : 0;
-
-        // count all vertices contained in the mesh
-        for (std::size_t i = 0; i < pMesh->m_Count; ++i)
-            vertexCount += pMesh->m_pVB[i].m_Count;
-
-        // calculate the polygons count
-        polyCount = stride ? ((vertexCount / stride) / 3) : 0;
-    }
-    else
-        return;
 
     // show the stats
-    laPolygonCount->Caption    = L"Polygons Count: "        + ::IntToStr(int(polyCount));
-    laPolygonsToCheck->Caption = L"Polygons To Check: "     + ::IntToStr(int(m_Stats.m_PolyToCheckCount));
-    laMaxPolyToCheck->Caption  = L"Max Polygons To Check: " + ::IntToStr(int(m_Stats.m_MaxPolyToCheckCount));
-    laHitPolygons->Caption     = L"Hit Polygons: "          + ::IntToStr(int(m_Stats.m_HitPolygonCount));
-    laHitBoxes->Caption        = L"Hit Boxes: "             + ::IntToStr(int(m_Stats.m_HitBoxCount));
-    laFPS->Caption             = L"FPS:"                    + ::IntToStr(int(m_Stats.m_FPS));
+    laPolygonCount->Caption = L"Polygons Count: " + ::IntToStr(int(polyCount));
+    laAltitude->Caption     = L"Altitude: "       + ::FloatToStr(m_Stats.m_Altitude);
+    laFPS->Caption          = L"FPS:"             + ::IntToStr(int(m_Stats.m_FPS));
 }
-*/
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
 {
@@ -1144,7 +1099,6 @@ void TMainForm::OnDrawScene(bool resize)
     if (!m_Initialized)
         return;
 
-    /*REM
     // clear the tree stats
     m_Stats.Clear();
 
@@ -1160,7 +1114,6 @@ void TMainForm::OnDrawScene(bool resize)
         m_FrameCount                = 0;
         m_Stats.m_FPS               = (newFPS * smoothing) + (m_Stats.m_FPS * (1.0 - smoothing));
     }
-    */
 
     // update and draw the scene
     UpdateScene(elapsedTime);
@@ -1168,48 +1121,20 @@ void TMainForm::OnDrawScene(bool resize)
 
     ::SwapBuffers(m_hDC);
 
-    // show the stats
-    //REM ShowStats();
+    // limit the stats refreshing (otherwise the demo may run slower)
+    if (m_Stats.m_RefreshCounter > 1000)
+    {
+        // show the stats
+        ShowStats();
+        m_Stats.m_RefreshCounter = 0;
+    }
+
+    ++m_Stats.m_RefreshCounter;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
     OnDrawScene(false);
-}
-//---------------------------------------------------------------------------
-bool TMainForm::SetTexture(      int            width,
-                                 int            height,
-                                 int            pixelType,
-                                 bool           bumpMap,
-                           const unsigned char* pPixels) const
-{
-    // create new OpenGL texture
-    if (m_pModel)
-    {
-        glGenTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-        glBindTexture(GL_TEXTURE_2D, m_pModel->m_pMesh[0].m_Shader.m_TextureID);
-    }
-
-    // set texture filtering
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // set texture wrapping mode
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // generate texture from pixel array
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 pixelType,
-                 width,
-                 height,
-                 0,
-                 pixelType,
-                 GL_UNSIGNED_BYTE,
-                 pPixels);
-
-    return true;
 }
 //---------------------------------------------------------------------------
