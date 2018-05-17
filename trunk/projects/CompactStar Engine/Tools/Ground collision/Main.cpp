@@ -19,6 +19,7 @@
 
 // vcl
 #include <Vcl.Imaging.jpeg.hpp>
+#include <Vcl.Imaging.pngimage.hpp>
 
 // std
 #include <memory>
@@ -28,6 +29,9 @@
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
 #include "CSR_Scene.h"
+
+// interface
+#include "TLandscapeSelection.h"
 
 #pragma package(smart_init)
 #ifdef __llvm__
@@ -162,7 +166,7 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     InitScene(paView->ClientWidth, paView->ClientHeight);
 
     // initialize the timer
-    //REM m_StartTime    = ::GetTickCount();
+    m_StartTime    = ::GetTickCount();
     m_PreviousTime = ::GetTickCount();
 
     // listen the application idle
@@ -183,372 +187,58 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 {
-    /*REM
-    // create the select model dialog box
-    std::auto_ptr<TModelSelection> pModelSelection(new TModelSelection(this));
+    // create a landscape selection dialog box
+    std::auto_ptr<TLandscapeSelection> pLandscapeSelection
+            (new TLandscapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
 
-    // restore the last known selection
-    if (m_LastSelectedModel >= 0)
-    {
-        pModelSelection->rgShapes->ItemIndex = m_LastSelectedModel;
-
-        if (m_LastSelectedModel == 7 && !m_LastSelectedFile.empty())
-            pModelSelection->SetModelFileName(m_LastSelectedFile);
-    }
-
-    // show the dialog box
-    if (pModelSelection->ShowModal() != mrOk)
+    // execute the dialog and check if user canceled it
+    if (pLandscapeSelection->ShowModal() != mrOk)
         return;
 
-    // keep the current selection
-    m_LastSelectedModel = pModelSelection->rgShapes->ItemIndex;
-    m_LastSelectedFile  = pModelSelection->edMDLFilelName->Text.IsEmpty() ? L"" :
-                          pModelSelection->edMDLFilelName->Text.c_str();
+    // do change the landscape model?
+    if (pLandscapeSelection->rbSourceBitmap->Checked)
+    {}
+    else
+    if (pLandscapeSelection->rbSourceModel->Checked)
+    {}
 
-    // clear all the previous models and meshes
-    ClearModelsAndMeshes();
-
-    CSR_Material material;
-    material.m_Color       = csrColorBGRToRGBA(Graphics::ColorToRGB(pModelSelection->paSelectedColor->Color));
-    material.m_Transparent = 0;
-    material.m_Wireframe   = 0;
-
-    CSR_VertexFormat vf;
-    vf.m_HasNormal         = 0;
-    vf.m_HasTexCoords      = 0;
-    vf.m_HasPerVertexColor = 0;
-
-    // select the model to build
-    switch (pModelSelection->rgShapes->ItemIndex)
+    // do change the texture?
+    if (!pLandscapeSelection->edTextureFileName->Text.IsEmpty())
     {
-        // surface
-        case 0:
+        // release the previous texture
+        glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+
+        // load the new one
+        m_pModel->m_pMesh[0].m_Shader.m_TextureID =
+                LoadTexture(pLandscapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (m_pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
         {
-            // create the shape to show
-            m_pMesh = csrShapeCreateSurface(1.0f, 1.0f, &vf, 0, &material, 0);
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
 
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, false);
-            }
-
-            // initialize the values
-            m_AngleX = 0.0f;
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // box
-        case 1:
-        {
-            // create the shape to show
-            m_pMesh = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, &material, 0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, false);
-            }
-
-            // initialize the values
-            m_AngleX = 0.0f;
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // sphere
-        case 2:
-        {
-            // create the shape to show
-            m_pMesh = csrShapeCreateSphere(0.5f,
-                                         ::StrToInt(pModelSelection->edSlices->Text),
-                                         ::StrToInt(pModelSelection->edStacks->Text),
-                                          &vf,
-                                           0,
-                                          &material,
-                                           0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, true);
-            }
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // cylinder
-        case 3:
-        {
-            CSR_VertexCulling vc;
-            vc.m_Type = CSR_CT_None;
-            vc.m_Face = CSR_CF_CW;
-
-            // create the shape to show
-            m_pMesh = csrShapeCreateCylinder(0.5f,
-                                             1.0f,
-                                           ::StrToInt(pModelSelection->edFaces->Text),
-                                            &vf,
-                                            &vc,
-                                            &material,
-                                             0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, true);
-            }
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // disk
-        case 4:
-        {
-            // create the shape to show
-            m_pMesh = csrShapeCreateDisk(0.0f,
-                                         0.0f,
-                                         0.5f,
-                                       ::StrToInt(pModelSelection->edSlices->Text),
-                                        &vf,
-                                         0,
-                                        &material,
-                                         0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, false);
-            }
-
-            // initialize the values
-            m_AngleX = 0.0f;
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // ring
-        case 5:
-        {
-            // create the shape to show
-            m_pMesh = csrShapeCreateRing(0.0f,
-                                         0.0f,
-                                         0.25f,
-                                         0.5f,
-                                       ::StrToInt(pModelSelection->edSlices->Text),
-                                        &vf,
-                                         0,
-                                        &material,
-                                         0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, false);
-            }
-
-            // initialize the values
-            m_AngleX = 0.0f;
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // spiral
-        case 6:
-        {
-            // create the shape to show
-            m_pMesh = csrShapeCreateSpiral(0.0f,
-                                           0.0f,
-                                           0.25f,
-                                           0.5f,
-                                           0.0f,
-                                           0.0f,
-                                           0.1f,
-                                         ::StrToInt(pModelSelection->edSlices->Text),
-                                         ::StrToInt(pModelSelection->edStacks->Text),
-                                          &vf,
-                                           0,
-                                          &material,
-                                           0);
-
-            // create the AABB tree from the mesh
-            CSR_AABBNode* pTree = csrAABBTreeFromMesh(m_pMesh);
-
-            // succeeded?
-            if (pTree)
-            {
-                m_AABBTrees.push_back(pTree);
-
-                // calculate the Y position from the bounding box
-                m_PosY = -CalculateYPos(pTree, true);
-            }
-
-            // update the interface
-            tbModelDistance->Position = 2;
-            tbAnimationNb->Enabled    = false;
-            tbAnimationSpeed->Enabled = false;
-            return;
-        }
-
-        // MDL model
-        case 7:
-        {
-            // get model file name
-            const std::wstring modelFileName = pModelSelection->GetModelFileName();
-
-            // do load a MDL model?
-            if (modelFileName.empty())
-                return;
-
-            CSR_MDL* pMDL = NULL;
-
-            try
-            {
-                // configure the MDL model vertex format
-                vf.m_HasNormal         = 0;
-                vf.m_HasTexCoords      = 1;
-                vf.m_HasPerVertexColor = 0;
-
-                // load MDL model
-                pMDL = csrMDLOpen(AnsiString(UnicodeString(modelFileName.c_str())).c_str(),
-                                             0,
-                                            &vf,
-                                             0,
-                                            &material,
-                                             0,
-                                             0);
-
-                // succeeded?
-                if (!pMDL)
-                {
-                    // build the error message to show
-                    std::wostringstream sstr;
-                    sstr << L"Failed to load the model:\r\n" << modelFileName;
-
-                    // show the error message to the user
-                    ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
-
-                    // clear the scene
-                    ClearModelsAndMeshes();
-                    return;
-                }
-
-                // create the AABB trees for each frame
-                for (std::size_t i = 0; i < pMDL->m_ModelCount; ++i)
-                    for (std::size_t j = 0; j < pMDL->m_pModel->m_MeshCount; ++j)
-                    {
-                        // create the AABB tree for the next frame
-                        CSR_AABBNode* pTree = csrAABBTreeFromMesh(&pMDL->m_pModel[i].m_pMesh[j]);
-
-                        if (!pTree)
-                        {
-                            // build the error message to show
-                            std::wostringstream sstr;
-                            sstr << L"Failed to load the model:\r\n\r\n"
-                                 << modelFileName << L"\r\n\r\n"
-                                 << L"An error occurred while the AABB trees vere created."
-                                 << L"Model index = " << i << L", mesh index = " << j;
-
-                            // show the error message to the user
-                            ::MessageDlg(sstr.str().c_str(), mtError, TMsgDlgButtons() << mbOK, 0);
-
-                            // clear the scene
-                            ClearModelsAndMeshes();
-                            return;
-                        }
-
-                        // calculate the y position (based on the 1st model frame)
-                        if (!i && !j)
-                            m_PosY = -CalculateYPos(pTree, true);
-
-                        m_AABBTrees.push_back(pTree);
-                    }
-
-                // get the animation count
-                const int animCount = pMDL->m_AnimationCount ? pMDL->m_AnimationCount - 1 : 0;
-
-                // update the interface
-                tbModelDistance->Position  = 100;
-                tbAnimationNb->Max         = animCount;
-                tbAnimationNb->Enabled     = animCount;
-                tbAnimationSpeed->Position = 10;
-                tbAnimationSpeed->Enabled  = tbAnimationNb->Enabled;
-
-                // keep the model. NOTE don't forget to set his local value to 0, otherwise the model
-                // will be deleted while the csrModelRelease() function will be exectued
-                m_pMDL = pMDL;
-                pMDL   = 0;
-            }
-            __finally
-            {
-                csrMDLRelease(pMDL);
-            }
-
+            Application->Terminate();
             return;
         }
     }
-    */
+
+    // do change the walk sound?
+    if (!pLandscapeSelection->edSoundFileName->Text.IsEmpty())
+    {
+        // stop the sound and delete it
+        csrSoundStop(m_pSound);
+        csrSoundRelease(m_pSound);
+
+        // get the new sound file to load
+        const std::string soundFile = AnsiString(pLandscapeSelection->edSoundFileName->Text).c_str();
+
+        // load the sound file
+        m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
@@ -756,17 +446,24 @@ void TMainForm::InitScene(int w, int h)
     }
     */
 
-    /**/
-    CSR_PixelBuffer* pMap = csrPixelBufferFromBitmap((m_SceneDir + "\\Map\\the_face.bmp").c_str());
+    CSR_PixelBuffer* pBitmap = NULL;
 
-    m_pModel              = csrModelCreate();
-    m_pModel->m_pMesh     = csrLandscapeCreate(pMap, 3.0f, 0.2f, &vf, 0, &material, 0);
-    m_pModel->m_MeshCount = 1;
+    try
+    {
+        // load a default grayscale bitmap from which a landscape will be generated
+        pBitmap = csrPixelBufferFromBitmap((m_SceneDir + "\\Bitmaps\\the_face.bmp").c_str());
 
-    csrPixelBufferRelease(pMap);
-    /**/
+        // create a landscape model from the grayscale bitmap
+        m_pModel              = csrModelCreate();
+        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, 0, &material, 0);
+        m_pModel->m_MeshCount = 1;
+    }
+    __finally
+    {
+        csrPixelBufferRelease(pBitmap);
+    }
 
-    // create the AABB tree for the mountain model
+    // create the AABB tree for the landscape model
     m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
 
     // succeeded?
@@ -782,100 +479,33 @@ void TMainForm::InitScene(int w, int h)
         return;
     }
 
-    UnicodeString test = UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Mountain\\mountain.jpg";
+    // get a default texture file name
+    const UnicodeString textureFile =
+            UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Textures\\snow.jpg";
 
-    std::auto_ptr<TPicture> pPicture(new TPicture());
-    pPicture->LoadFromFile(test);
+    // load the texture
+    m_pModel->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
 
-    std::auto_ptr<TBitmap> pTexture(new TBitmap());
-    pTexture->Assign(pPicture->Graphic);
-
-    int   pixelSize;
-    GLint pixelType;
-
-    // search for bitmap pixel format
-    switch (pTexture->PixelFormat)
+    // failed?
+    if (m_pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
     {
-        case pf24bit: pixelSize = 3; pixelType = GL_RGB;  break;
-        case pf32bit: pixelSize = 4; pixelType = GL_RGBA; break;
-        default:
-        {
-            // show the error message to the user
-            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
-                         mtError,
-                         TMsgDlgButtons() << mbOK,
-                         0);
+        // show the error message to the user
+        ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
 
-            Application->Terminate();
-            return;
-        }
-    }
-
-    CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
-
-    try
-    {
-        // configure the pixel buffer
-        pPixelBuffer->m_PixelType    = CSR_PT_BGR;
-        pPixelBuffer->m_ImageType    = CSR_IT_Raw;
-        pPixelBuffer->m_Width        = pTexture->Width;
-        pPixelBuffer->m_Height       = pTexture->Height;
-        pPixelBuffer->m_BytePerPixel = pixelSize;
-        pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
-
-        // reserve memory for the pixel array
-        pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
-
-        TRGBTriple* pLineRGB;
-        TRGBQuad*   pLineRGBA;
-
-        // iterate through lines to copy
-        for (int y = 0; y < pTexture->Height; ++y)
-        {
-            // get the next pixel line from bitmap
-            if (pixelSize == 3)
-                pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
-            else
-                pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
-
-            // calculate the start y position
-            const int yPos = y * pTexture->Width * pixelSize;
-
-            // iterate through pixels to copy
-            for (int x = 0; x < pTexture->Width; ++x)
-            {
-                // copy to pixel array and take the opportunity to swap the pixel RGB values
-                if (pixelSize == 3)
-                {
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
-                }
-                else
-                {
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
-                }
-            }
-        }
-
-        // set the texture
-        m_pModel->m_pMesh[0].m_Shader.m_TextureID = csrTextureFromPixelBuffer(pPixelBuffer);
-    }
-    __finally
-    {
-        csrPixelBufferRelease(pPixelBuffer);
+        Application->Terminate();
+        return;
     }
 
     // initialize OpenAL
     csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
 
     // get the default sound file
-    const std::string soundFile = m_SceneDir + "\\Sound\\human_walk_grass_step.wav";
+    const std::string soundFile = m_SceneDir + "\\Sounds\\human_walk_grass_step.wav";
 
-    // load step sound file
+    // load the sound file
     m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
 
     m_Initialized = true;
@@ -928,15 +558,19 @@ void TMainForm::UpdateScene(float elapsedTime)
         // validate and apply it
         m_BoundingSphere.m_Center = newPos;
 
-        // calculate next time where the step sound should be played
-        m_StepTime += (elapsedTime * 1000.0f);
-
-        // do play the sound?
-        if (m_StepTime > m_StepInterval)
+        // is the sound enabled?
+        if (!ckDisableSound->Checked)
         {
-            csrSoundStop(m_pSound);
-            csrSoundPlay(m_pSound);
-            m_StepTime = 0.0f;
+            // calculate next time where the step sound should be played
+            m_StepTime += (elapsedTime * 1000.0f);
+
+            // do play the sound?
+            if (m_StepTime > m_StepInterval)
+            {
+                csrSoundStop(m_pSound);
+                csrSoundPlay(m_pSound);
+                m_StepTime = 0.0f;
+            }
         }
     }
 
@@ -975,6 +609,89 @@ void TMainForm::DrawScene()
         // end the drawing
         csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
     }
+}
+//---------------------------------------------------------------------------
+GLuint TMainForm::LoadTexture(const std::wstring& fileName)
+{
+    // load texture in a picture
+    std::auto_ptr<TPicture> pPicture(new TPicture());
+    pPicture->LoadFromFile(fileName.c_str());
+
+    // convert it to a bitmap
+    std::auto_ptr<TBitmap> pTexture(new TBitmap());
+    pTexture->Assign(pPicture->Graphic);
+
+    int   pixelSize;
+    GLint pixelType;
+
+    // search for bitmap pixel format
+    switch (pTexture->PixelFormat)
+    {
+        case pf24bit: pixelSize = 3; pixelType = GL_RGB;  break;
+        case pf32bit: pixelSize = 4; pixelType = GL_RGBA; break;
+        default:      return M_CSR_Error_Code;
+    }
+
+    GLuint           textureID    = M_CSR_Error_Code;
+    CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
+
+    try
+    {
+        // configure the pixel buffer
+        pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+        pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+        pPixelBuffer->m_Width        = pTexture->Width;
+        pPixelBuffer->m_Height       = pTexture->Height;
+        pPixelBuffer->m_BytePerPixel = pixelSize;
+        pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
+        // reserve memory for the pixel array
+        pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+
+        TRGBTriple* pLineRGB;
+        TRGBQuad*   pLineRGBA;
+
+        // iterate through lines to copy
+        for (int y = 0; y < pTexture->Height; ++y)
+        {
+            // get the next pixel line from bitmap
+            if (pixelSize == 3)
+                pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
+            else
+                pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
+
+            // calculate the start y position
+            const int yPos = y * pTexture->Width * pixelSize;
+
+            // iterate through pixels to copy
+            for (int x = 0; x < pTexture->Width; ++x)
+            {
+                // copy to pixel array and take the opportunity to swap the pixel RGB values
+                if (pixelSize == 3)
+                {
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                }
+                else
+                {
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                }
+            }
+        }
+
+        // load the texture on the GPU
+        textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+    }
+    __finally
+    {
+        csrPixelBufferRelease(pPixelBuffer);
+    }
+
+    return textureID;
 }
 //---------------------------------------------------------------------------
 void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
