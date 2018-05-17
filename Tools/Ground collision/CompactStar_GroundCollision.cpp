@@ -13,6 +13,7 @@
 
 //---------------------------------------------------------------------------
 USEFORM("Main.cpp", MainForm);
+USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

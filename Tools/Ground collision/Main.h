@@ -58,6 +58,7 @@ class TMainForm : public TForm
         TBevel *blOptions;
         TLabel *laOptions;
         TCheckBox *ckAntialiasing;
+        TCheckBox *ckDisableSound;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -176,6 +177,13 @@ class TMainForm : public TForm
         * Draws the scene
         */
         void DrawScene();
+
+        /**
+        * Loads a texture
+        *@param fileName - texture file name to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        GLuint LoadTexture(const std::wstring& fileName);
 
         /**
         * Calculates a matrix where to put the point of view to lie on the ground

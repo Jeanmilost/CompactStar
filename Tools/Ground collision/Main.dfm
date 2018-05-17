@@ -35,7 +35,7 @@ object MainForm: TMainForm
     Top = 0
     Width = 612
     Height = 600
-    Cursor = crCross
+    Cursor = crArrow
     Align = alClient
     BevelOuter = bvNone
     DoubleBuffered = False
@@ -113,7 +113,6 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'Altitude:'
-      ExplicitTop = 79
       ExplicitWidth = 41
     end
     object laFPS: TLabel
@@ -123,7 +122,6 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'FPS:'
-      ExplicitTop = 92
       ExplicitWidth = 22
     end
     object laPolygonCount: TLabel
@@ -159,7 +157,6 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 125
       ExplicitWidth = 62
     end
     object btLoadModel: TButton
@@ -184,7 +181,17 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 1
-      ExplicitTop = 152
+    end
+    object ckDisableSound: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 136
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Disable the sound'
+      TabOrder = 2
+      ExplicitTop = 169
     end
   end
   object aeEvents: TApplicationEvents
