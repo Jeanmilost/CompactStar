@@ -38,6 +38,10 @@ void __fastcall TLandscapeSelection::btBitmapBrowseClick(TObject* pSender)
     // open the load picture dialog box
     if (!opdPicture->Execute())
         return;
+
+    // update the interface and open the picture
+    edBitmapFileName->Text = opdPicture->FileName;
+    imBitmap->Picture->LoadFromFile(edBitmapFileName->Text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TLandscapeSelection::btModelBrowseClick(TObject* pSender)
@@ -45,6 +49,9 @@ void __fastcall TLandscapeSelection::btModelBrowseClick(TObject* pSender)
     // open the load model dialog box
     if (!odModel->Execute())
         return;
+
+    // update the interface
+    edModelFileName->Text = odModel->FileName;
 }
 //---------------------------------------------------------------------------
 void __fastcall TLandscapeSelection::btTextureBrowseClick(TObject* pSender)
@@ -52,13 +59,20 @@ void __fastcall TLandscapeSelection::btTextureBrowseClick(TObject* pSender)
     // open the load picture dialog box
     if (!opdPicture->Execute())
         return;
+
+    // update the interface and open the picture
+    edTextureFileName->Text = opdPicture->FileName;
+    imTexture->Picture->LoadFromFile(edTextureFileName->Text);
 }
 //---------------------------------------------------------------------------
-void __fastcall TLandscapeSelection::btSoundNavigationClick(TObject *Sender)
+void __fastcall TLandscapeSelection::btSoundBrowseClick(TObject *Sender)
 {
     // open the load sound dialog box
     if (!odSound->Execute())
         return;
+
+    // update the interface
+    edSoundFileName->Text = odSound->FileName;
 }
 //---------------------------------------------------------------------------
 void __fastcall TLandscapeSelection::btCancelClick(TObject* pSender)

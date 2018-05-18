@@ -191,7 +191,18 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Disable the sound'
       TabOrder = 2
-      ExplicitTop = 169
+    end
+    object btResetViewport: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 159
+      Width = 179
+      Height = 25
+      Align = alTop
+      Caption = 'Reset the viewport'
+      TabOrder = 3
+      OnClick = btResetViewportClick
+      ExplicitTop = 572
     end
   end
   object aeEvents: TApplicationEvents

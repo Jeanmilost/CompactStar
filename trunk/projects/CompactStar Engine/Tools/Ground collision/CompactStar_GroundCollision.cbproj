@@ -251,13 +251,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_GroundCollision.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgstl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
                         <Overwrite>true</Overwrite>
