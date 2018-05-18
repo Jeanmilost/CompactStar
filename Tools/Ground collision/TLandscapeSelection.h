@@ -37,16 +37,16 @@
 class TLandscapeSelection : public TForm
 {
     __published:
-    TPanel *paSource;
-    TPanel *paModelTexture;
-    TBevel *blSource;
-    TLabel *laSource;
+        TPanel *paSource;
+        TPanel *paModelTexture;
+        TBevel *blSource;
+        TLabel *laSource;
         TPanel *paBitmap;
         TLabel *laTexture;
         TRadioButton *rbSourceBitmap;
         TRadioButton *rbSourceModel;
         TPanel *paModel;
-        TImage *imBitmapScreenshot;
+        TImage *imBitmap;
         TPanel *paBitmapFile;
         TPanel *paBitmapFileName;
         TEdit *edBitmapFileName;
@@ -62,38 +62,41 @@ class TLandscapeSelection : public TForm
         TEdit *edTextureFileName;
         TButton *btTextureBrowse;
         TPanel *paTexture;
-        TImage *imTextureScreenshot;
+        TImage *imTexture;
         TPanel *paButtons;
         TButton *btOk;
-    TBevel *blTexture;
+        TBevel *blTexture;
         TButton *btCancel;
         TOpenDialog *odModel;
         TOpenPictureDialog *opdPicture;
         TRadioButton *rbSourceDontModify;
-    TPanel *paSound;
-    TLabel *laSound;
-    TBevel *blSound;
-    TPanel *paSoundFile;
-    TLabel *laSoundFileName;
-    TPanel *paSoundFileName;
-    TEdit *edSoundFileName;
-    TButton *btSoundNavigation;
-    TOpenDialog *odSound;
+        TPanel *paSound;
+        TLabel *laSound;
+        TBevel *blSound;
+        TPanel *paSoundFile;
+        TLabel *laSoundFileName;
+        TPanel *paSoundFileName;
+        TEdit *edSoundFileName;
+        TButton *btSoundBrowse;
+        TOpenDialog *odSound;
 
         void __fastcall btBitmapBrowseClick(TObject* pSender);
         void __fastcall btModelBrowseClick(TObject* pSender);
         void __fastcall btTextureBrowseClick(TObject* pSender);
+        void __fastcall btSoundBrowseClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
         void __fastcall btOkClick(TObject* pSender);
         void __fastcall rbSourceBitmapClick(TObject* pSender);
         void __fastcall rbSourceModelClick(TObject* pSender);
         void __fastcall rbSourceDontModifyClick(TObject* pSender);
-    void __fastcall btSoundNavigationClick(TObject *Sender);
 
     public:
+        /**
+        * Constructor
+        *@param pOwner - form owner
+        *@param defaultDir - application default dir
+        */
         __fastcall TLandscapeSelection(TComponent* pOwner, const std::wstring& defaultDir);
-
-    private:
 };
 extern PACKAGE TLandscapeSelection* LandscapeSelection;
 #endif

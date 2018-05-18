@@ -59,11 +59,13 @@ class TMainForm : public TForm
         TLabel *laOptions;
         TCheckBox *ckAntialiasing;
         TCheckBox *ckDisableSound;
+        TButton *btResetViewport;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
+        void __fastcall btResetViewportClick(TObject* pSender);
         void __fastcall btLoadModelClick(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
 
@@ -177,6 +179,20 @@ class TMainForm : public TForm
         * Draws the scene
         */
         void DrawScene();
+
+        /**
+        * Loads a model from a file
+        *@param fileName - model file name to load from
+        *@return true on success, otherwise false
+        */
+        bool LoadModel(const std::string& fileName);
+
+        /**
+        * Loads a model from a grayscale bitmap
+        *@param fileName - grayscale bitmap from which the model will be generated
+        *@return true on success, otherwise false
+        */
+        bool LoadModelFromBitmap(const std::string& fileName);
 
         /**
         * Loads a texture

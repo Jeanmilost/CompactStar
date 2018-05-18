@@ -185,6 +185,15 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
     CreateViewport(paView->ClientWidth, paView->ClientHeight);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::btResetViewportClick(TObject* pSender)
+{
+    // reset the viewpoint bounding sphere to his default position
+    m_BoundingSphere.m_Center.m_X = 0.0f;
+    m_BoundingSphere.m_Center.m_Y = 0.0f;
+    m_BoundingSphere.m_Center.m_Z = 0.0f;
+    m_BoundingSphere.m_Radius     = 0.1f;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 {
     // create a landscape selection dialog box
@@ -197,10 +206,32 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
     // do change the landscape model?
     if (pLandscapeSelection->rbSourceBitmap->Checked)
-    {}
+    {
+        // load the landscape from a grayscale image
+        if (!LoadModelFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str()))
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Failed to load the landscape from the grayscale image.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+    }
     else
     if (pLandscapeSelection->rbSourceModel->Checked)
-    {}
+    {
+        // load the landscape from a model file
+        if (!LoadModel(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str()))
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Failed to load the landscape.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+    }
 
     // do change the texture?
     if (!pLandscapeSelection->edTextureFileName->Text.IsEmpty())
@@ -216,12 +247,10 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         if (m_pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             // show the error message to the user
-            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
+            ::MessageDlg(L"Failed to load the texture.",
                          mtError,
                          TMsgDlgButtons() << mbOK,
                          0);
-
-            Application->Terminate();
             return;
         }
     }
@@ -412,65 +441,11 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_TexCoordSlot = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aTexCoord");
     m_pShader->m_TextureSlot  = glGetUniformLocation(m_pShader->m_ProgramID, "csr_sTexture");
 
-    CSR_Material material;
-    material.m_Color       = 0xFFFFFFFF;
-    material.m_Transparent = 0;
-    material.m_Wireframe   = 0;
-
-    CSR_VertexCulling vc;
-    vc.m_Type = CSR_CT_Front;
-    vc.m_Face = CSR_CF_CW;
-
-    CSR_VertexFormat vf;
-    vf.m_HasNormal         = 0;
-    vf.m_HasTexCoords      = 1;
-    vf.m_HasPerVertexColor = 1;
-
-    /*
-    const std::string modelFile = m_SceneDir + "\\Mountain\\mountain.obj";
-
-    // load a default model
-    m_pModel = csrWaveFrontOpen(modelFile.c_str(), &vf, &vc, &material, 0, 0);
-
-    // succeeded?
-    if (!m_pModel || !m_pModel->m_MeshCount)
+    // load the landscape model from a grayscale bitmap file
+    if (!LoadModelFromBitmap(m_SceneDir + "\\Bitmaps\\the_face.bmp"))
     {
         // show the error message to the user
-        ::MessageDlg(L"Failed to load the default mountain scene.\r\n\r\nThe application will quit.",
-                     mtError,
-                     TMsgDlgButtons() << mbOK,
-                     0);
-
-        Application->Terminate();
-        return;
-    }
-    */
-
-    CSR_PixelBuffer* pBitmap = NULL;
-
-    try
-    {
-        // load a default grayscale bitmap from which a landscape will be generated
-        pBitmap = csrPixelBufferFromBitmap((m_SceneDir + "\\Bitmaps\\the_face.bmp").c_str());
-
-        // create a landscape model from the grayscale bitmap
-        m_pModel              = csrModelCreate();
-        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, 0, &material, 0);
-        m_pModel->m_MeshCount = 1;
-    }
-    __finally
-    {
-        csrPixelBufferRelease(pBitmap);
-    }
-
-    // create the AABB tree for the landscape model
-    m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
-
-    // succeeded?
-    if (!m_pTree)
-    {
-        // show the error message to the user
-        ::MessageDlg(L"Could not create the aligned-axis bounding box tree for the scene.\r\n\r\nThe application will quit.",
+        ::MessageDlg(L"An error occurred while the default landscape model was created.\r\n\r\nThe application will quit.",
                      mtError,
                      TMsgDlgButtons() << mbOK,
                      0);
@@ -611,6 +586,108 @@ void TMainForm::DrawScene()
     }
 }
 //---------------------------------------------------------------------------
+bool TMainForm::LoadModel(const std::string& fileName)
+{
+    // release the previous model, if exists
+    csrAABBTreeNodeRelease(m_pTree);
+    csrModelRelease(m_pModel);
+
+    m_pModel = NULL;
+    m_pTree  = NULL;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexCulling vc;
+    vc.m_Type = CSR_CT_Front;
+    vc.m_Face = CSR_CF_CW;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // load the model
+    m_pModel = csrWaveFrontOpen(fileName.c_str(), &vf, &vc, &material, 0, 0);
+
+    // succeeded?
+    if (!m_pModel || !m_pModel->m_MeshCount)
+        return false;
+
+    // create the AABB tree for the landscape model
+    m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
+
+    // succeeded?
+    if (!m_pTree)
+        return false;
+
+    // reset the viewpoint bounding sphere to his default position
+    m_BoundingSphere.m_Center.m_X = 0.0f;
+    m_BoundingSphere.m_Center.m_Y = 0.0f;
+    m_BoundingSphere.m_Center.m_Z = 0.0f;
+    m_BoundingSphere.m_Radius     = 0.1f;
+
+    return true;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
+{
+    // release the previous model, if exists
+    csrAABBTreeNodeRelease(m_pTree);
+    csrModelRelease(m_pModel);
+
+    m_pModel = NULL;
+    m_pTree  = NULL;
+
+    CSR_PixelBuffer* pBitmap = NULL;
+
+    try
+    {
+        CSR_Material material;
+        material.m_Color       = 0xFFFFFFFF;
+        material.m_Transparent = 0;
+        material.m_Wireframe   = 0;
+
+        CSR_VertexCulling vc;
+        vc.m_Type = CSR_CT_Front;
+        vc.m_Face = CSR_CF_CW;
+
+        CSR_VertexFormat vf;
+        vf.m_HasNormal         = 0;
+        vf.m_HasTexCoords      = 1;
+        vf.m_HasPerVertexColor = 1;
+
+        // load a default grayscale bitmap from which a landscape will be generated
+        pBitmap = csrPixelBufferFromBitmap(fileName.c_str());
+
+        // create a landscape model from the grayscale bitmap
+        m_pModel              = csrModelCreate();
+        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, 0, &material, 0);
+        m_pModel->m_MeshCount = 1;
+    }
+    __finally
+    {
+        csrPixelBufferRelease(pBitmap);
+    }
+
+    // create the AABB tree for the landscape model
+    m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
+
+    // succeeded?
+    if (!m_pTree)
+        return false;
+
+    // reset the viewpoint bounding sphere to his default position
+    m_BoundingSphere.m_Center.m_X = 0.0f;
+    m_BoundingSphere.m_Center.m_Y = 0.0f;
+    m_BoundingSphere.m_Center.m_Z = 0.0f;
+    m_BoundingSphere.m_Radius     = 0.1f;
+
+    return true;
+}
+//---------------------------------------------------------------------------
 GLuint TMainForm::LoadTexture(const std::wstring& fileName)
 {
     // load texture in a picture
@@ -621,14 +698,13 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName)
     std::auto_ptr<TBitmap> pTexture(new TBitmap());
     pTexture->Assign(pPicture->Graphic);
 
-    int   pixelSize;
-    GLint pixelType;
+    int pixelSize;
 
     // search for bitmap pixel format
     switch (pTexture->PixelFormat)
     {
-        case pf24bit: pixelSize = 3; pixelType = GL_RGB;  break;
-        case pf32bit: pixelSize = 4; pixelType = GL_RGBA; break;
+        case pf24bit: pixelSize = 3; break;
+        case pf32bit: pixelSize = 4; break;
         default:      return M_CSR_Error_Code;
     }
 
