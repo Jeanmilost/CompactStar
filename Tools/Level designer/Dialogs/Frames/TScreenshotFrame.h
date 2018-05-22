@@ -165,6 +165,21 @@ class TScreenshotFrame : public TFrame
                                unsigned     color);
 
         /**
+        * Creates an offscreen scene in which a landscape can be drawn to be exported as a screenshot
+        *@param pBitmap - grayscale bitmap from which the landscape will be generated
+        *@param height - landscape height
+        *@param scale - landscape scale factor
+        *@param color - vertex color
+        *@return true on success, otherwise false
+        */
+        bool CreateScene(const CSR_PixelBuffer* pBitmap,
+                               int              width,
+                               int              height,
+                               float            landscapeHeight/*FIXME = 3.0f*/,
+                               float            landscapeFactor/*FIXME = 0.2f*/,
+                               unsigned         color);
+
+        /**
         * Resets the scene to his default value
         */
         void ResetScene();

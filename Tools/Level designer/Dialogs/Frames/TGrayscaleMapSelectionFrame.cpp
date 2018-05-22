@@ -1,8 +1,8 @@
 /*****************************************************************************
- * ==> TTextureSelectionFrame -----------------------------------------------*
+ * ==> TGrayscaleMapSelectionFrame ------------------------------------------*
  *****************************************************************************
  * Description : This module provides a frame to allow the user to load a    *
- *               texture for a model                                         *
+ *               grayscale bitmap which will be used to generate a landscape *
  * Developer   : Jean-Milost Reymond                                         *
  * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
  *               free to copy or redistribute this file, modify it, or use   *
@@ -12,7 +12,7 @@
 
 #include <vcl.h>
 #pragma hdrstop
-#include "TTextureSelectionFrame.h"
+#include "TGrayscaleMapSelectionFrame.h"
 
 // classes
 #include "CSR_MessageHelper.h"
@@ -25,52 +25,52 @@
 #pragma resource "*.dfm"
 
 //----------------------------------------------------------------------------
-// TTextureSelectionFrame
+// TGrayscaleMapSelectionFrame
 //----------------------------------------------------------------------------
-TTextureSelectionFrame* TextureSelectionFrame;
+TGrayscaleMapSelectionFrame* GrayscaleMapSelectionFrame;
 //----------------------------------------------------------------------------
-__fastcall TTextureSelectionFrame::TTextureSelectionFrame(TComponent* pOwner) :
+__fastcall TGrayscaleMapSelectionFrame::TGrayscaleMapSelectionFrame(TComponent* pOwner) :
     TFrame(pOwner),
     m_fOnFileSelected(NULL)
 {
     // keep the default picture in case it should be restored
     m_pDefaultPicture.reset(new TPicture());
-    m_pDefaultPicture->Assign(imTexture->Picture);
+    m_pDefaultPicture->Assign(imBitmap->Picture);
 
     // set the default scene items dir
-    m_DefaultDir       = CSR_DesignerHelper::GetTexturesDir().c_str();
+    m_DefaultDir       = CSR_DesignerHelper::GetBitmapsDir().c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
 //----------------------------------------------------------------------------
-void __fastcall TTextureSelectionFrame::miDeleteTextureClick(TObject* pSender)
+void __fastcall TGrayscaleMapSelectionFrame::miDeleteBitmapClick(TObject* pSender)
 {
     // reset the interface in his default state
-    imTexture->Picture->Assign(m_pDefaultPicture.get());
-    imTexture->Cursor   = crDefault;
-    edTextureFile->Text = L"";
+    imBitmap->Picture->Assign(m_pDefaultPicture.get());
+    imBitmap->Cursor    = crDefault;
+    edBitmapFile->Text = L"";
 
     // notify that the texture was deleted
     if (m_fOnFileSelected)
         m_fOnFileSelected(this, L"");
 }
 //----------------------------------------------------------------------------
-void __fastcall TTextureSelectionFrame::btTextureFileOpenClick(TObject* pSender)
+void __fastcall TGrayscaleMapSelectionFrame::btBitmapFileOpenClick(TObject* pSender)
 {
     // prompt the user to select an image file
     if (!odOpen->Execute())
         return;
 
     // show the file name
-    edTextureFile->Text = odOpen->FileName;
+    edBitmapFile->Text = odOpen->FileName;
 
     // show the file content
-    imTexture->Picture->LoadFromFile(edTextureFile->Text);
+    imBitmap->Picture->LoadFromFile(edBitmapFile->Text);
 
     // do copy the image to the local scene dir?
-    if (miCopyToLocalDir->Checked && ::ExtractFilePath(edTextureFile->Text) != UnicodeString(m_DefaultDir.c_str()))
+    if (miCopyToLocalDir->Checked && ::ExtractFilePath(edBitmapFile->Text) != UnicodeString(m_DefaultDir.c_str()))
         // copy the file
-        if (!::CopyFile(edTextureFile->Text.c_str(),
-                        (m_DefaultDir + ::ExtractFileName(edTextureFile->Text).c_str()).c_str(),
+        if (!::CopyFile(edBitmapFile->Text.c_str(),
+                        (m_DefaultDir + ::ExtractFileName(edBitmapFile->Text).c_str()).c_str(),
                         true))
         {
             // show an error message to user on failure
@@ -81,30 +81,30 @@ void __fastcall TTextureSelectionFrame::btTextureFileOpenClick(TObject* pSender)
         }
 
     // update the interface
-    imTexture->Cursor = crHandPoint;
+    imBitmap->Cursor = crHandPoint;
 
     // notify that a file was selected
     if (m_fOnFileSelected)
-        m_fOnFileSelected(this, edTextureFile->Text.c_str());
+        m_fOnFileSelected(this, edBitmapFile->Text.c_str());
 }
 //----------------------------------------------------------------------------
-void __fastcall TTextureSelectionFrame::btInfoClick(TObject* pSender)
+void __fastcall TGrayscaleMapSelectionFrame::btInfoClick(TObject* pSender)
 {
     // cannot open the picture info dialog if no picture was loaded
-    if (!imTexture->Picture->Width || !imTexture->Picture->Height || edTextureFile->Text.IsEmpty())
+    if (!imBitmap->Picture->Width || !imBitmap->Picture->Height || edBitmapFile->Text.IsEmpty())
         return;
 
     // create the image info dialog
     std::auto_ptr<TImageInfoDialog> pDialog
             (new TImageInfoDialog(this,
-                                  imTexture->Picture,
-                                  ::ExtractFileName(edTextureFile->Text).c_str()));
+                                  imBitmap->Picture,
+                                  ::ExtractFileName(edBitmapFile->Text).c_str()));
 
     // show it
     pDialog->ShowModal();
 }
 //----------------------------------------------------------------------------
-void __fastcall TTextureSelectionFrame::btConfigClick(TObject* pSender)
+void __fastcall TGrayscaleMapSelectionFrame::btConfigClick(TObject* pSender)
 {
     // calculate the point where the popup menu sould be shown
     TPoint popupPos(0, btConfig->Height);
@@ -116,7 +116,7 @@ void __fastcall TTextureSelectionFrame::btConfigClick(TObject* pSender)
     pmConfig->Popup(popupPos.X, popupPos.Y);
 }
 //----------------------------------------------------------------------------
-void TTextureSelectionFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
+void TGrayscaleMapSelectionFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
 {
     m_fOnFileSelected = fHandler;
 }

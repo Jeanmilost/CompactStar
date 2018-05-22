@@ -47,7 +47,8 @@ class CSR_DesignerHelper
             IE_MT_Disk,
             IE_MT_Ring,
             IE_MT_Spiral,
-            IE_MT_Model
+            IE_MT_Model,
+            IE_MT_Landscape
         };
 
         /**
@@ -117,6 +118,12 @@ class CSR_DesignerHelper
         *@return the default models dir
         */
         static std::wstring GetModelsDir();
+
+        /**
+        * Gets the default bitmaps dir
+        *@return the default bitmaps dir
+        */
+        static std::wstring GetBitmapsDir();
 
         /**
         * Extracts all the textures a MDL model contains

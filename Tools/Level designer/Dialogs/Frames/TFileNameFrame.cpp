@@ -20,11 +20,11 @@
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // TFileNameFrame
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 TFileNameFrame* FileNameFrame;
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 __fastcall TFileNameFrame::TFileNameFrame(TComponent* pOwner) :
     TFrame(pOwner),
     m_fOnFileSelected(NULL)
@@ -33,7 +33,7 @@ __fastcall TFileNameFrame::TFileNameFrame(TComponent* pOwner) :
     m_DefaultDir       = CSR_DesignerHelper::GetModelsDir().c_str();
     odOpen->InitialDir = m_DefaultDir.c_str();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TFileNameFrame::btBrowseClick(TObject* pSender)
 {
     // prompt the user to select a model file
@@ -46,15 +46,15 @@ void __fastcall TFileNameFrame::btBrowseClick(TObject* pSender)
     if (m_fOnFileSelected)
         m_fOnFileSelected(this, edFileName->Text.c_str());
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void TFileNameFrame::Enable(bool value)
 {
     edFileName->Enabled = value;
     btBrowse->Enabled   = value;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void TFileNameFrame::Set_OnFileSelected(ITfOnFileSelected fHandler)
 {
     m_fOnFileSelected = fHandler;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------

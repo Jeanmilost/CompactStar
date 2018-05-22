@@ -79,6 +79,12 @@ class CSR_MessageHelper
         std::wstring GetModelsDir() const;
 
         /**
+        * Gets the bitmaps dir
+        *@return the bitmaps dir
+        */
+        std::wstring GetBitmapsDir() const;
+
+        /**
         * Gets the loading model textures warning message
         *@return the loading model textures warning message
         */

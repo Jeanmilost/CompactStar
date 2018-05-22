@@ -28,6 +28,7 @@
 #pragma link "TVertexColorFrame"
 #pragma link "TFileNameFrame"
 #pragma link "TScreenshotFrame"
+#pragma link "TGrayscaleMapSelectionFrame"
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
@@ -49,9 +50,14 @@ __fastcall TAddItemDialog::TAddItemDialog(TComponent* pOwner) :
     sfScreenshot->Enable(false);
     fnIconImageFile->Enable(false);
 
+    // populate the last know values dictionary (used to revert incorrect inputs on numeric edits)
+    m_LastKnowValidValueDictionary[edLandscapeOptionHeight]      = edLandscapeOptionHeight->Text.c_str();
+    m_LastKnowValidValueDictionary[edLandscapeOptionScaleFactor] = edLandscapeOptionScaleFactor->Text.c_str();
+
     // set the callbacks
     tsConfigTexture->Set_OnFileSelected(OnTextureFileSelected);
     ffModelFile->Set_OnFileSelected(OnModelFileSelected);
+    msLandscapeBitmap->Set_OnFileSelected(OnBitmapFileSelected);
 }
 //---------------------------------------------------------------------------
 __fastcall TAddItemDialog::~TAddItemDialog()
@@ -59,9 +65,9 @@ __fastcall TAddItemDialog::~TAddItemDialog()
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::FormShow(TObject* pSender)
 {
-    pcWizard->ClientHeight = btSelectItemAddModel->Top             +
-                             btSelectItemAddModel->Height          +
-                             btSelectItemAddModel->Margins->Bottom +
+    pcWizard->ClientHeight = btSelectItemAddLandscape->Top             +
+                             btSelectItemAddLandscape->Height          +
+                             btSelectItemAddLandscape->Margins->Bottom +
                              8;
 }
 //---------------------------------------------------------------------------
@@ -115,6 +121,14 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
                 pcWizard->ActivePage = tsModel;
                 return;
             }
+            // or configuring a landscape?
+            else
+            if (pcWizard->ActivePage == tsLandscape)
+            {
+                btNext->Enabled      = BitmapFileExists();
+                pcWizard->ActivePage = tsLandscape;
+                return;
+            }
 
             m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
             btBack->Visible      = false;
@@ -124,7 +138,7 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
             pcWizard->ActivePage = tsSelectItem;
         }
         else
-        if (pcWizard->ActivePage == tsModel)
+        if (pcWizard->ActivePage == tsModel || pcWizard->ActivePage == tsLandscape)
         {
             m_ModelType          = CSR_DesignerHelper::IE_MT_Unknown;
             btBack->Visible      = false;
@@ -160,6 +174,9 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
             btNext->Enabled = true;
             btBack->Enabled = true;
             btOK->Enabled   = false;
+
+            // select no collision by default
+            cbConfigCollisionType->ItemIndex = 0;
 
             // search for selected item
             if (btSelectItemAddSurface->Down)
@@ -210,10 +227,24 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
                 btNext->Enabled      = ModelFileExists();
                 pcWizard->ActivePage = tsModel;
             }
+            else
+            if (btSelectItemAddLandscape->Down)
+            {
+                m_ModelType          = CSR_DesignerHelper::IE_MT_Landscape;
+                btNext->Enabled      = BitmapFileExists();
+                pcWizard->ActivePage = tsLandscape;
+            }
         }
         else
         if (pcWizard->ActivePage == tsModel)
             pcWizard->ActivePage = tsConfig;
+        else
+        if (pcWizard->ActivePage == tsLandscape)
+        {
+            // as a landscape is typically a ground model, select the ground collision type by default
+            cbConfigCollisionType->ItemIndex = 1;
+            pcWizard->ActivePage             = tsConfig;
+        }
         else
         if (pcWizard->ActivePage == tsConfig)
         {
@@ -222,38 +253,72 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
                 Screen->Cursor = crHourGlass;
 
                 // take a screenshot of the model. This also will check if the model can be built
-                if (m_ModelType != CSR_DesignerHelper::IE_MT_Model)
+                switch (m_ModelType)
                 {
-                    // load a shape
-                    if (!sfScreenshot->LoadModel(m_ModelType,
-                                                 L"",
-                                                 tsConfigTexture->edTextureFile->Text.c_str(),
-                                                 tsConfigBump->edTextureFile->Text.c_str(),
-                                                 GetVertexColor()))
-                    {
-                        ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
-                                     mtError,
-                                     TMsgDlgButtons() << mbOK,
-                                     0);
+                    case CSR_DesignerHelper::IE_MT_Surface:
+                    case CSR_DesignerHelper::IE_MT_Box:
+                    case CSR_DesignerHelper::IE_MT_Sphere:
+                    case CSR_DesignerHelper::IE_MT_Cylinder:
+                    case CSR_DesignerHelper::IE_MT_Disk:
+                    case CSR_DesignerHelper::IE_MT_Ring:
+                    case CSR_DesignerHelper::IE_MT_Spiral:
+                        // load a shape
+                        if (!sfScreenshot->LoadModel(m_ModelType,
+                                                     L"",
+                                                     tsConfigTexture->edTextureFile->Text.c_str(),
+                                                     tsConfigBump->edTextureFile->Text.c_str(),
+                                                     GetVertexColor()))
+                        {
+                            ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
+                                         mtError,
+                                         TMsgDlgButtons() << mbOK,
+                                         0);
 
-                        return;
-                    }
-                }
-                else
-                {
-                    // load a model from file
-                    if (!sfScreenshot->LoadModel(CSR_DesignerHelper::IE_MT_Model,
-                                                 ffModelFile->edFileName->Text.c_str(),
-                                                 tsConfigTexture->edTextureFile->Text.c_str(),
-                                                 tsConfigBump->edTextureFile->Text.c_str(),
-                                                 GetVertexColor()))
-                    {
+                            return;
+                        }
+
+                        break;
+
+                    case CSR_DesignerHelper::IE_MT_Model:
+                        // load a model from file
+                        if (!sfScreenshot->LoadModel(m_ModelType,
+                                                     ffModelFile->edFileName->Text.c_str(),
+                                                     tsConfigTexture->edTextureFile->Text.c_str(),
+                                                     tsConfigBump->edTextureFile->Text.c_str(),
+                                                     GetVertexColor()))
+                        {
+                            ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
+                                         mtError,
+                                         TMsgDlgButtons() << mbOK,
+                                         0);
+                            return;
+                        }
+
+                        break;
+
+                    case CSR_DesignerHelper::IE_MT_Landscape:
+                        // load a model from file
+                        if (!sfScreenshot->LoadModel(m_ModelType,
+                                                     msLandscapeBitmap->edBitmapFile->Text.c_str(),
+                                                     tsConfigTexture->edTextureFile->Text.c_str(),
+                                                     tsConfigBump->edTextureFile->Text.c_str(),
+                                                     GetVertexColor()))
+                        {
+                            ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
+                                         mtError,
+                                         TMsgDlgButtons() << mbOK,
+                                         0);
+                            return;
+                        }
+
+                        break;
+
+                    default:
                         ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
                                      mtError,
                                      TMsgDlgButtons() << mbOK,
                                      0);
                         return;
-                    }
                 }
             }
             __finally
@@ -267,6 +332,47 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
         }
     }
     M_CSR_CatchShow
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::OnValueChange(TObject* pSender)
+{
+    // get the edit containing the text to check
+    TEdit* pEdit = dynamic_cast<TEdit*>(pSender);
+
+    if (!pEdit)
+        return;
+
+    // is text empty or just containing a "-" value? (Meaning that further info will be entered later)
+    if (pEdit->Text.IsEmpty() || pEdit->Text == L"-")
+        return;
+
+    // get the last known value for this edit
+    IValueDictionary::iterator it = m_LastKnowValidValueDictionary.find(pSender);
+
+    // is value not found? (Should never happen)
+    if (it == m_LastKnowValidValueDictionary.end())
+        return;
+
+    try
+    {
+        // try to convert the text to float
+        ::StrToFloat(pEdit->Text);
+    }
+    catch (...)
+    {
+        // get the caret position
+        const int caret = pEdit->SelStart;
+
+        // on failure revert to the last known valid value
+        pEdit->Text = UnicodeString(it->second.c_str());
+
+        pEdit->SelStart  = caret ? caret - 1 : 0;
+        pEdit->SelLength = 0;
+        return;
+    }
+
+    // update the last known value
+    it->second = pEdit->Text.c_str();
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap, TColor color) const
@@ -288,15 +394,16 @@ bool TAddItemDialog::GetDefaultIcon(TBitmap* pBitmap, TColor color) const
         // draw the default icon inside the destination bitmap
         switch (m_ModelType)
         {
-            case CSR_DesignerHelper::IE_MT_Surface:  ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 0); return true;
-            case CSR_DesignerHelper::IE_MT_Box:      ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 1); return true;
-            case CSR_DesignerHelper::IE_MT_Sphere:   ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 2); return true;
-            case CSR_DesignerHelper::IE_MT_Cylinder: ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 3); return true;
-            case CSR_DesignerHelper::IE_MT_Disk:     ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 4); return true;
-            case CSR_DesignerHelper::IE_MT_Ring:     ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 5); return true;
-            case CSR_DesignerHelper::IE_MT_Spiral:   ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 6); return true;
-            case CSR_DesignerHelper::IE_MT_Model:    ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 7); return true;
-            default:                                                                                 return false;
+            case CSR_DesignerHelper::IE_MT_Surface:   ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 0); return true;
+            case CSR_DesignerHelper::IE_MT_Box:       ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 1); return true;
+            case CSR_DesignerHelper::IE_MT_Sphere:    ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 2); return true;
+            case CSR_DesignerHelper::IE_MT_Cylinder:  ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 3); return true;
+            case CSR_DesignerHelper::IE_MT_Disk:      ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 4); return true;
+            case CSR_DesignerHelper::IE_MT_Ring:      ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 5); return true;
+            case CSR_DesignerHelper::IE_MT_Spiral:    ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 6); return true;
+            case CSR_DesignerHelper::IE_MT_Model:     ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 7); return true;
+            case CSR_DesignerHelper::IE_MT_Landscape: ilDefaultIcons->Draw(pBitmap->Canvas, 0, 0, 8); return true;
+            default:                                                                                  return false;
         }
     }
     M_CSR_CatchShow
@@ -429,6 +536,11 @@ TAddItemDialog::IEModelOptions TAddItemDialog::GetModelOptions() const
 bool TAddItemDialog::ModelFileExists() const
 {
     return (!ffModelFile->edFileName->Text.IsEmpty() && ::FileExists(ffModelFile->edFileName->Text, false));
+}
+//---------------------------------------------------------------------------
+bool TAddItemDialog::BitmapFileExists() const
+{
+    return (!msLandscapeBitmap->edBitmapFile->Text.IsEmpty() && ::FileExists(msLandscapeBitmap->edBitmapFile->Text, false));
 }
 //---------------------------------------------------------------------------
 void __fastcall TAddItemDialog::OnTextureFileSelected(TObject* pSender, const std::wstring& fileName)
@@ -590,5 +702,10 @@ void __fastcall TAddItemDialog::OnModelFileSelected(TObject* pSender, const std:
         textures.clear();
     }
     M_CSR_CatchShow
+}
+//---------------------------------------------------------------------------
+void __fastcall TAddItemDialog::OnBitmapFileSelected(TObject* pSender, const std::wstring& fileName)
+{
+    btNext->Enabled = BitmapFileExists();
 }
 //---------------------------------------------------------------------------

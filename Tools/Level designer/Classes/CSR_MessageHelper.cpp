@@ -83,6 +83,11 @@ std::wstring CSR_MessageHelper::GetModelsDir() const
     return L"Models";
 }
 //---------------------------------------------------------------------------
+std::wstring CSR_MessageHelper::GetBitmapsDir() const
+{
+    return L"Bitmaps";
+}
+//---------------------------------------------------------------------------
 std::wstring CSR_MessageHelper::GetWarn_ModelTextures() const
 {
     return L"An error occurred while the textures were extracted from the model.\r\n\r\nPlease check the model file and try again.";

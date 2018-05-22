@@ -233,6 +233,13 @@
             <DependentOn>Dialogs\Frames\TFileNameFrame.h</DependentOn>
             <BuildOrder>37</BuildOrder>
         </CppCompile>
+        <CppCompile Include="Dialogs\Frames\TGrayscaleMapSelectionFrame.cpp">
+            <Form>GrayscaleMapSelectionFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>Dialogs\Frames\TGrayscaleMapSelectionFrame.h</DependentOn>
+            <BuildOrder>40</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Dialogs\Frames\TScreenshotFrame.cpp">
             <Form>ScreenshotFrame</Form>
             <FormType>dfm</FormType>
@@ -280,12 +287,13 @@
         </CppCompile>
         <FormResources Include="Dialogs\TAddItemDialog.dfm"/>
         <FormResources Include="Dialogs\Frames\TVertexColorFrame.dfm"/>
+        <FormResources Include="Dialogs\TImageDuplicateDialog.dfm"/>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="Dialogs\TImageInfoDialog.dfm"/>
+        <FormResources Include="Dialogs\Frames\TFileNameFrame.dfm"/>
         <FormResources Include="Dialogs\Frames\TTextureSelectionFrame.dfm"/>
         <FormResources Include="Dialogs\Frames\TScreenshotFrame.dfm"/>
-        <FormResources Include="Dialogs\Frames\TFileNameFrame.dfm"/>
-        <FormResources Include="Dialogs\TImageDuplicateDialog.dfm"/>
+        <FormResources Include="Dialogs\Frames\TGrayscaleMapSelectionFrame.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -312,9 +320,7 @@
                 <Source>
                     <Source Name="MainSource">CompactStar_LevelDesigner.cpp</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl not found</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </CPlusPlusBuilder.Personality>
             <Deployment>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">
