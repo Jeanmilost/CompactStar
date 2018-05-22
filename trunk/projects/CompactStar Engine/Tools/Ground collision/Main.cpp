@@ -651,7 +651,7 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
         material.m_Wireframe   = 0;
 
         CSR_VertexCulling vc;
-        vc.m_Type = CSR_CT_Front;
+        vc.m_Type = CSR_CT_None;
         vc.m_Face = CSR_CF_CW;
 
         CSR_VertexFormat vf;
@@ -664,7 +664,7 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
 
         // create a landscape model from the grayscale bitmap
         m_pModel              = csrModelCreate();
-        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, 0, &material, 0);
+        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
         m_pModel->m_MeshCount = 1;
     }
     __finally

@@ -170,6 +170,11 @@ std::wstring CSR_DesignerHelper::GetTexturesDir()
     return GetSceneDir() + CSR_MessageHelper::Get()->GetTexturesDir() + L"\\";
 }
 //---------------------------------------------------------------------------
+std::wstring CSR_DesignerHelper::GetBitmapsDir()
+{
+    return GetSceneDir() + CSR_MessageHelper::Get()->GetBitmapsDir() + L"\\";
+}
+//---------------------------------------------------------------------------
 std::wstring CSR_DesignerHelper::GetModelsDir()
 {
     return GetSceneDir() + CSR_MessageHelper::Get()->GetModelsDir() + L"\\";

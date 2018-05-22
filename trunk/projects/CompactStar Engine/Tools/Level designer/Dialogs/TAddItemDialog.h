@@ -33,6 +33,7 @@
 
 // classes
 #include "CSR_DesignerHelper.h"
+#include "TGrayscaleMapSelectionFrame.h"
 
 /**
 * Add an item dialog box
@@ -74,7 +75,7 @@ class TAddItemDialog : public TForm
         TButton *btNext;
         TVertexColorFrame *vcConfigVertexColor;
         TFileNameFrame *ffModelFile;
-        TBevel *blModelSeparator1;
+        TBevel *blModelSeparator;
         TLabel *laModelTitle;
         TLabel *laModelFileNameCaption;
         TColorDialog *cdColor;
@@ -90,6 +91,24 @@ class TAddItemDialog : public TForm
         TRadioButton *rbImage;
         TFileNameFrame *fnIconImageFile;
         TImageList *ilDefaultIcons;
+        TSpeedButton *btSelectItemAddLandscape;
+        TTabSheet *tsLandscape;
+        TLabel *laLandscapeSelectBitmap;
+        TBevel *blLandscapeSeparator;
+        TLabel *laLandscapeTitle;
+        TBevel *blConfigSeparator5;
+        TLabel *laConfigCollisionTitle;
+        TPanel *paConfigCollision;
+        TLabel *laConfigCollisionType;
+        TComboBox *cbConfigCollisionType;
+        TGrayscaleMapSelectionFrame *msLandscapeBitmap;
+        TBevel *blLandscapeSeparator2;
+        TLabel *laLandscapeOptions;
+        TPanel *paLandscapeOptions;
+        TLabel *laLandscapeOptionHeight;
+        TEdit *edLandscapeOptionHeight;
+        TLabel *laLandscapeOptionScaleFactor;
+        TEdit *edLandscapeOptionScaleFactor;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall clConfigOptionsClickCheck(TObject* pSender);
@@ -100,6 +119,7 @@ class TAddItemDialog : public TForm
         void __fastcall btBackClick(TObject* pSender);
         void __fastcall btOKClick(TObject* pSender);
         void __fastcall OnNextClick(TObject* pSender);
+        void __fastcall OnValueChange(TObject* pSender);
 
     public:
         /**
@@ -176,13 +196,22 @@ class TAddItemDialog : public TForm
         IEModelOptions GetModelOptions() const;
 
     private:
+        typedef std::map<TObject*, std::wstring> IValueDictionary;
+
         CSR_DesignerHelper::IEModelType m_ModelType;
+        IValueDictionary                m_LastKnowValidValueDictionary;
 
         /**
         * Checks if a model file exists
         *@return true if the model file exists, otherwise false
         */
         bool ModelFileExists() const;
+
+        /**
+        * Checks if a grayscale bitmap file exists
+        *@return true if the grayscale bitmap file exists, otherwise false
+        */
+        bool BitmapFileExists() const;
 
         /**
         * Called when a texture file was selected
@@ -197,6 +226,13 @@ class TAddItemDialog : public TForm
         *@param fileName - newly selected file name
         */
         void __fastcall OnModelFileSelected(TObject* pSender, const std::wstring& fileName);
+
+        /**
+        * Called when a grayscape bitmap file was selected
+        *@param pSender - event sender
+        *@param fileName - newly selected file name
+        */
+        void __fastcall OnBitmapFileSelected(TObject* pSender, const std::wstring& fileName);
 };
 extern PACKAGE TAddItemDialog* AddItemDialog;
 #endif

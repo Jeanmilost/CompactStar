@@ -202,7 +202,6 @@ object MainForm: TMainForm
       Caption = 'Reset the viewport'
       TabOrder = 3
       OnClick = btResetViewportClick
-      ExplicitTop = 572
     end
   end
   object aeEvents: TApplicationEvents

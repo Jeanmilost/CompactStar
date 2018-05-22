@@ -23,11 +23,11 @@
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // TScreenshotFrame
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 TScreenshotFrame* ScreenshotFrame;
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 __fastcall TScreenshotFrame::TScreenshotFrame(TComponent* pOwner) :
     TFrame(pOwner),
     m_pSceneOverlayForm(NULL),
@@ -41,12 +41,12 @@ __fastcall TScreenshotFrame::TScreenshotFrame(TComponent* pOwner) :
     m_ArcBallOffset(0.1f),
     m_Reseting(false)
 {}
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 __fastcall TScreenshotFrame::~TScreenshotFrame()
 {
     ReleaseScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::FrameResize(TObject* pSender)
 {
     paCamera->Margins->Left    = (paRight->Width - (btCameraBack->Left + btCameraBack->Width)) >> 1;
@@ -55,7 +55,7 @@ void __fastcall TScreenshotFrame::FrameResize(TObject* pSender)
     paCamera->Margins->Bottom  = 0;
     paCamera->AlignWithMargins = true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraLeftClick(TObject* pSender)
 {
     // move the camera
@@ -67,7 +67,7 @@ void __fastcall TScreenshotFrame::btCameraLeftClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraRightClick(TObject* pSender)
 {
     // move the camera
@@ -79,7 +79,7 @@ void __fastcall TScreenshotFrame::btCameraRightClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraUpClick(TObject* pSender)
 {
     // move the camera
@@ -91,7 +91,7 @@ void __fastcall TScreenshotFrame::btCameraUpClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraDownClick(TObject* pSender)
 {
     // move the camera
@@ -103,7 +103,7 @@ void __fastcall TScreenshotFrame::btCameraDownClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
 {
     // move the camera
@@ -115,7 +115,7 @@ void __fastcall TScreenshotFrame::btCameraBackClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
 {
     // move the camera
@@ -127,7 +127,7 @@ void __fastcall TScreenshotFrame::btCameraFrontClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::btConfigClick(TObject* pSender)
 {
     // calculate the point where the popup menu sould be shown
@@ -139,7 +139,7 @@ void __fastcall TScreenshotFrame::btConfigClick(TObject* pSender)
     // show the config popup menu
     pmConfig->Popup(popupPos.X, popupPos.Y);
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::miResetSceneClick(TObject* pSender)
 {
     // if the scene was not initialized, do nothing
@@ -159,7 +159,7 @@ void __fastcall TScreenshotFrame::miResetSceneClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
 {
     if (m_Reseting)
@@ -187,7 +187,7 @@ void __fastcall TScreenshotFrame::rbArcballClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::rbFirstViewPersonClick(TObject* pSender)
 {
     if (m_Reseting)
@@ -215,7 +215,7 @@ void __fastcall TScreenshotFrame::rbFirstViewPersonClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
 {
     cdColor->Color = paColorValue->Color;
@@ -232,7 +232,7 @@ void __fastcall TScreenshotFrame::paColorValueClick(TObject* pSender)
     // redraw the scene
     DrawScene();
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void TScreenshotFrame::Enable(bool value)
 {
     paColorValue->Enabled      = value;
@@ -246,7 +246,7 @@ void TScreenshotFrame::Enable(bool value)
     rbArcball->Enabled         = value;
     rbFirstViewPerson->Enabled = value;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                                  const std::wstring&                   fileName,
                                  const std::wstring&                   textureFileName,
@@ -278,6 +278,96 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 return false;
 
             break;
+
+        case CSR_DesignerHelper::IE_MT_Landscape:
+        {
+            // load grayscale bitmap in a picture
+            std::auto_ptr<TPicture> pPicture(new TPicture());
+            pPicture->LoadFromFile(fileName.c_str());
+
+            // convert it to a bitmap
+            std::auto_ptr<TBitmap> pTexture(new TBitmap());
+            pTexture->Assign(pPicture->Graphic);
+
+            int pixelSize;
+
+            // search for bitmap pixel format
+            switch (pTexture->PixelFormat)
+            {
+                case pf24bit: pixelSize = 3; break;
+                case pf32bit: pixelSize = 4; break;
+                default:      return false;
+            }
+
+            CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
+            bool             success      = false;
+
+            try
+            {
+                // configure the pixel buffer
+                pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+                pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+                pPixelBuffer->m_Width        = pTexture->Width;
+                pPixelBuffer->m_Height       = pTexture->Height;
+                pPixelBuffer->m_BytePerPixel = pixelSize;
+                pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
+                // reserve memory for the pixel array
+                pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+
+                TRGBTriple* pLineRGB;
+                TRGBQuad*   pLineRGBA;
+
+                // iterate through lines to copy
+                for (int y = 0; y < pTexture->Height; ++y)
+                {
+                    // get the next pixel line from bitmap
+                    if (pixelSize == 3)
+                        pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
+                    else
+                        pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
+
+                    // calculate the start y position
+                    const int yPos = y * pTexture->Width * pixelSize;
+
+                    // iterate through pixels to copy
+                    for (int x = 0; x < pTexture->Width; ++x)
+                    {
+                        // copy to pixel array and take the opportunity to swap the pixel RGB values
+                        if (pixelSize == 3)
+                        {
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                        }
+                        else
+                        {
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                        }
+                    }
+                }
+
+                // create a scene to draw the landscape screenshot
+                success = CreateScene(pPixelBuffer,
+                                      imScreenshot->Width,
+                                      imScreenshot->Height,
+                                      3.0f,
+                                      0.2f,
+                                      color);
+            }
+            __finally
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+            }
+
+            if (!success)
+                return false;
+
+            break;
+        }
 
         default:
             // unknown model type
@@ -473,7 +563,7 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::GetScreenshot(TBitmap* pBitmap) const
 {
     // no bitmap to export to?
@@ -487,7 +577,7 @@ bool TScreenshotFrame::GetScreenshot(TBitmap* pBitmap) const
     // export the screenshot
     return DrawScene(pBitmap);
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::CreateScene(CSR_DesignerHelper::IEModelType type,
                                    int                             width,
                                    int                             height,
@@ -534,7 +624,7 @@ bool TScreenshotFrame::CreateScene(CSR_DesignerHelper::IEModelType type,
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::CreateScene(const std::string& fileName,
                                          int          width,
                                          int          height,
@@ -593,7 +683,66 @@ bool TScreenshotFrame::CreateScene(const std::string& fileName,
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+bool TScreenshotFrame::CreateScene(const CSR_PixelBuffer* pBitmap,
+                                         int              width,
+                                         int              height,
+                                         float            landscapeHeight,
+                                         float            landscapeFactor,
+                                         unsigned         color)
+{
+    // is grayscale bitmap valid?
+    if (!pBitmap || !pBitmap->m_Width || !pBitmap->m_Height)
+        return false;
+
+    // initialize OpenGL to draw the screenshot scene
+    if (!InitializeScene(width, height))
+        return false;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    CSR_VertexCulling vc;
+    vc.m_Type = CSR_CT_None;
+    vc.m_Face = CSR_CF_CW;
+
+    CSR_Material sm;
+    sm.m_Color       = color;
+    sm.m_Transparent = 0;
+    sm.m_Wireframe   = 0;
+
+    // create a model for the landscape
+    m_pModel = csrModelCreate();
+
+    // succeeded?
+    if (!m_pModel)
+        return false;
+
+    // generate the landscape model from the grayscale bitmap
+    m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap,
+                                               landscapeHeight,
+                                               landscapeFactor,
+                                              &vf,
+                                              &vc,
+                                              &sm,
+                                               0);
+    m_pModel->m_MeshCount = 1;
+
+    // succeeded?
+    if (!m_pModel->m_pMesh)
+        return false;
+
+    // create the aligned-axis bounding box tree for the model
+    m_pAABBTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
+
+    // set the scene to his default state
+    ResetScene();
+
+    return true;
+}
+//----------------------------------------------------------------------------
 void TScreenshotFrame::ResetScene()
 {
     try
@@ -647,7 +796,7 @@ void TScreenshotFrame::ResetScene()
         m_Reseting = false;
     }
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::InitializeScene(int width, int height)
 {
     // release the previous scene, if exists
@@ -704,7 +853,7 @@ bool TScreenshotFrame::InitializeScene(int width, int height)
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void TScreenshotFrame::ReleaseScene()
 {
     // enable screenshot context (required to release only the objects belonging to it)
@@ -746,7 +895,7 @@ void TScreenshotFrame::ReleaseScene()
         m_pSceneOverlayForm = NULL;
     }
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::DrawScene(TBitmap* pBitmap) const
 {
     // no bitmap to draw to?
@@ -812,7 +961,7 @@ bool TScreenshotFrame::DrawScene(TBitmap* pBitmap) const
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::DrawScene() const
 {
     std::auto_ptr<TBitmap> pBitmap(new TBitmap());
@@ -828,7 +977,7 @@ bool TScreenshotFrame::DrawScene() const
     imScreenshot->Picture->Assign(pBitmap.get());
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 bool TScreenshotFrame::SetTexture(      int            width,
                                         int            height,
                                         int            pixelType,
@@ -930,4 +1079,4 @@ bool TScreenshotFrame::SetTexture(      int            width,
 
     return true;
 }
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------

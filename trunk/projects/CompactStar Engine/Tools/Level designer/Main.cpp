@@ -58,6 +58,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     ::CreateDirectory(CSR_DesignerHelper::GetSceneDir().c_str(),   NULL);
     ::CreateDirectory(CSR_DesignerHelper::GetTexturesDir().c_str(), NULL);
     ::CreateDirectory(CSR_DesignerHelper::GetModelsDir().c_str(),   NULL);
+    ::CreateDirectory(CSR_DesignerHelper::GetBitmapsDir().c_str(),   NULL);
 
     // create an OpenGL context for the 3d views
     m_OpenGLHelper.AddContext(paDesigner3DView);
@@ -783,5 +784,9 @@ void __fastcall TMainForm::btAddItemClick(TObject* pSender)
     // show the add item wizard dialog
     if (pDialog->ShowModal() == mrOk)
     {}
+
+    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
+    pDialog->GetDefaultIcon(pBitmap.get());
+    pBitmap->SaveToFile(L"__ICON.BMP");
 }
 //---------------------------------------------------------------------------
