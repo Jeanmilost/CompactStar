@@ -123,7 +123,7 @@ void __fastcall TAddItemDialog::btBackClick(TObject* pSender)
             }
             // or configuring a landscape?
             else
-            if (pcWizard->ActivePage == tsLandscape)
+            if (m_ModelType == CSR_DesignerHelper::IE_MT_Landscape)
             {
                 btNext->Enabled      = BitmapFileExists();
                 pcWizard->ActivePage = tsLandscape;
@@ -267,7 +267,9 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
                                                      L"",
                                                      tsConfigTexture->edTextureFile->Text.c_str(),
                                                      tsConfigBump->edTextureFile->Text.c_str(),
-                                                     GetVertexColor()))
+                                                     GetVertexColor(),
+                                                     0.0f,
+                                                     0.0f))
                         {
                             ::MessageDlg(CSR_MessageHelper::Get()->GetError_OpeningModel().c_str(),
                                          mtError,
@@ -285,7 +287,9 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
                                                      ffModelFile->edFileName->Text.c_str(),
                                                      tsConfigTexture->edTextureFile->Text.c_str(),
                                                      tsConfigBump->edTextureFile->Text.c_str(),
-                                                     GetVertexColor()))
+                                                     GetVertexColor(),
+                                                     0.0f,
+                                                     0.0f))
                         {
                             ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
                                          mtError,
@@ -302,7 +306,9 @@ void __fastcall TAddItemDialog::OnNextClick(TObject* pSender)
                                                      msLandscapeBitmap->edBitmapFile->Text.c_str(),
                                                      tsConfigTexture->edTextureFile->Text.c_str(),
                                                      tsConfigBump->edTextureFile->Text.c_str(),
-                                                     GetVertexColor()))
+                                                     GetVertexColor(),
+                                                     GetLandscapeHeight(),
+                                                     GetLandscapeFactor()))
                         {
                             ::MessageDlg(CSR_MessageHelper::Get()->GetError_LoadingModel().c_str(),
                                          mtError,
@@ -531,6 +537,63 @@ TAddItemDialog::IEModelOptions TAddItemDialog::GetModelOptions() const
         options = IEModelOptions(options | IE_MO_PreCalculatedLight);
 
     return options;
+}
+//---------------------------------------------------------------------------
+CSR_ECollisionType TAddItemDialog::GetCollisionType() const
+{
+    // search for the selected collision type
+    switch (cbConfigCollisionType->ItemIndex)
+    {
+        case 1:  return CSR_CT_Ground;
+        case 2:  return CSR_CT_Edge;
+        case 3:  return CSR_ECollisionType(CSR_CT_Ground | CSR_CT_Edge);
+        default: return CSR_CT_Ignore;
+    }
+}
+//---------------------------------------------------------------------------
+std::string TAddItemDialog::GetLandscapeBitmapFileName() const
+{
+    return AnsiString(msLandscapeBitmap->edBitmapFile->Text).c_str();
+}
+//---------------------------------------------------------------------------
+float TAddItemDialog::GetLandscapeHeight() const
+{
+    if (edLandscapeOptionHeight->Text.IsEmpty())
+        return 0.0f;
+
+    float result;
+
+    try
+    {
+        // convert the landscape height value
+        result = ::StrToFloat(edLandscapeOptionHeight->Text);
+    }
+    catch (...)
+    {
+        return 0.0f;
+    }
+
+    return result;
+}
+//---------------------------------------------------------------------------
+float TAddItemDialog::GetLandscapeFactor() const
+{
+    if (edLandscapeOptionScaleFactor->Text.IsEmpty())
+        return 0.0f;
+
+    float result;
+
+    try
+    {
+        // convert the landscape height value
+        result = ::StrToFloat(edLandscapeOptionScaleFactor->Text);
+    }
+    catch (...)
+    {
+        return 0.0f;
+    }
+
+    return result;
 }
 //---------------------------------------------------------------------------
 bool TAddItemDialog::ModelFileExists() const

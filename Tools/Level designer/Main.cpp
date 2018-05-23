@@ -784,9 +784,5 @@ void __fastcall TMainForm::btAddItemClick(TObject* pSender)
     // show the add item wizard dialog
     if (pDialog->ShowModal() == mrOk)
     {}
-
-    std::auto_ptr<TBitmap> pBitmap(new TBitmap());
-    pDialog->GetDefaultIcon(pBitmap.get());
-    pBitmap->SaveToFile(L"__ICON.BMP");
 }
 //---------------------------------------------------------------------------

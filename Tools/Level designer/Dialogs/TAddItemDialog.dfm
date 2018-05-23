@@ -936,7 +936,8 @@ object AddItemDialog: TAddItemDialog
           Margins.Bottom = 0
           Align = alTop
           Shape = bsTopLine
-          ExplicitLeft = -1
+          ExplicitLeft = -2
+          ExplicitTop = 30
         end
         object laModelTitle: TLabel
           AlignWithMargins = True
@@ -957,10 +958,9 @@ object AddItemDialog: TAddItemDialog
         object laModelFileNameCaption: TLabel
           AlignWithMargins = True
           Left = 3
-          Top = 32
+          Top = 35
           Width = 349
           Height = 19
-          Margins.Top = 0
           Align = alTop
           Caption = 'Select a file'
           Font.Charset = DEFAULT_CHARSET
@@ -969,16 +969,17 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 54
+          ExplicitTop = 32
+          ExplicitWidth = 80
         end
         inline ffModelFile: TFileNameFrame
           Left = 0
-          Top = 54
+          Top = 57
           Width = 355
           Height = 25
           Align = alTop
           TabOrder = 0
-          ExplicitTop = 237
+          ExplicitTop = 54
           ExplicitWidth = 355
           inherited edFileName: TEdit
             Width = 316
@@ -993,15 +994,12 @@ object AddItemDialog: TAddItemDialog
       object tsLandscape: TTabSheet
         Caption = 'tsLandscape'
         ImageIndex = 4
-        ExplicitLeft = 3
-        ExplicitTop = 25
         object laLandscapeSelectBitmap: TLabel
           AlignWithMargins = True
           Left = 3
-          Top = 32
+          Top = 35
           Width = 349
           Height = 19
-          Margins.Top = 0
           Align = alTop
           Caption = 'Select a grayscale bitmap to create from'
           Font.Charset = DEFAULT_CHARSET
@@ -1010,7 +1008,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 175
+          ExplicitTop = 32
           ExplicitWidth = 283
         end
         object blLandscapeSeparator: TBevel
@@ -1023,6 +1021,8 @@ object AddItemDialog: TAddItemDialog
           Margins.Bottom = 0
           Align = alTop
           Shape = bsTopLine
+          ExplicitLeft = -1
+          ExplicitTop = 30
         end
         object laLandscapeTitle: TLabel
           AlignWithMargins = True
@@ -1043,7 +1043,7 @@ object AddItemDialog: TAddItemDialog
         object blLandscapeSeparator2: TBevel
           AlignWithMargins = True
           Left = 3
-          Top = 163
+          Top = 166
           Width = 349
           Height = 1
           Margins.Bottom = 0
@@ -1054,7 +1054,7 @@ object AddItemDialog: TAddItemDialog
         object laLandscapeOptions: TLabel
           AlignWithMargins = True
           Left = 3
-          Top = 167
+          Top = 170
           Width = 349
           Height = 19
           Align = alTop
@@ -1065,16 +1065,17 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 251
+          ExplicitTop = 167
+          ExplicitWidth = 55
         end
         inline msLandscapeBitmap: TGrayscaleMapSelectionFrame
           Left = 0
-          Top = 54
+          Top = 57
           Width = 355
           Height = 106
           Align = alTop
           TabOrder = 0
-          ExplicitTop = 197
+          ExplicitTop = 54
           ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
@@ -1114,13 +1115,14 @@ object AddItemDialog: TAddItemDialog
         end
         object paLandscapeOptions: TPanel
           Left = 0
-          Top = 189
+          Top = 192
           Width = 355
           Height = 80
           Align = alTop
           AutoSize = True
           BevelOuter = bvNone
           TabOrder = 1
+          ExplicitTop = 189
           object laLandscapeOptionHeight: TLabel
             AlignWithMargins = True
             Left = 3
@@ -1130,8 +1132,6 @@ object AddItemDialog: TAddItemDialog
             Margins.Top = 0
             Align = alTop
             Caption = 'Landscape height'
-            ExplicitLeft = 176
-            ExplicitTop = 24
             ExplicitWidth = 84
           end
           object laLandscapeOptionScaleFactor: TLabel
@@ -1156,7 +1156,6 @@ object AddItemDialog: TAddItemDialog
             TabOrder = 0
             Text = '3.0'
             OnChange = OnValueChange
-            ExplicitLeft = -1
           end
           object edLandscapeOptionScaleFactor: TEdit
             AlignWithMargins = True
@@ -1169,8 +1168,6 @@ object AddItemDialog: TAddItemDialog
             TabOrder = 1
             Text = '0.2'
             OnChange = OnValueChange
-            ExplicitLeft = -4
-            ExplicitTop = 96
           end
         end
       end
@@ -1219,7 +1216,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 130
           ExplicitWidth = 108
         end
         object laConfigBumpTitle: TLabel
@@ -1236,7 +1232,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 267
           ExplicitWidth = 136
         end
         object laConfigOptions: TLabel
@@ -1253,7 +1248,7 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 34
+          ExplicitWidth = 55
         end
         object blConfigSeparator2: TBevel
           AlignWithMargins = True
@@ -1329,7 +1324,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 404
           ExplicitWidth = 60
         end
         inline tsConfigTexture: TTextureSelectionFrame
@@ -1339,7 +1333,7 @@ object AddItemDialog: TAddItemDialog
           Height = 106
           Align = alTop
           TabOrder = 2
-          ExplicitTop = 152
+          ExplicitTop = 149
           ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
@@ -1384,7 +1378,7 @@ object AddItemDialog: TAddItemDialog
           Height = 106
           Align = alTop
           TabOrder = 3
-          ExplicitTop = 289
+          ExplicitTop = 286
           ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
@@ -1443,7 +1437,6 @@ object AddItemDialog: TAddItemDialog
             'Use per-vertex colors'
             'Use pre-calculated light')
           TabOrder = 0
-          ExplicitTop = 60
         end
         inline vcConfigVertexColor: TVertexColorFrame
           Left = 0
@@ -1452,7 +1445,7 @@ object AddItemDialog: TAddItemDialog
           Height = 31
           Align = alTop
           TabOrder = 1
-          ExplicitTop = 95
+          ExplicitTop = 92
           ExplicitWidth = 355
           inherited paMain: TPanel
             Width = 349
@@ -1486,9 +1479,8 @@ object AddItemDialog: TAddItemDialog
             Align = alClient
             Caption = 'Select a collision type for the model'
             Layout = tlCenter
-            ExplicitLeft = -4
-            ExplicitTop = 6
-            ExplicitHeight = 21
+            ExplicitWidth = 169
+            ExplicitHeight = 13
           end
           object cbConfigCollisionType: TComboBox
             Left = 204
@@ -1549,7 +1541,7 @@ object AddItemDialog: TAddItemDialog
           Align = alTop
           TabOrder = 2
           ExplicitLeft = 3
-          ExplicitTop = 115
+          ExplicitTop = 81
           ExplicitWidth = 349
           inherited paBackground: TPanel
             Width = 349
@@ -1635,7 +1627,6 @@ object AddItemDialog: TAddItemDialog
           TabOrder = 0
           TabStop = True
           OnClick = rbIconDefaultClick
-          ExplicitTop = 52
         end
         object rbIconScreenshot: TRadioButton
           AlignWithMargins = True
@@ -1647,7 +1638,6 @@ object AddItemDialog: TAddItemDialog
           Caption = 'Take a screenshot'
           TabOrder = 1
           OnClick = rbIconScreenshotClick
-          ExplicitTop = 92
         end
         object rbImage: TRadioButton
           AlignWithMargins = True
@@ -1659,7 +1649,6 @@ object AddItemDialog: TAddItemDialog
           Caption = 'Use an external image'
           TabOrder = 3
           OnClick = rbImageClick
-          ExplicitTop = 320
         end
         inline fnIconImageFile: TFileNameFrame
           Left = 0
@@ -1668,7 +1657,7 @@ object AddItemDialog: TAddItemDialog
           Height = 25
           Align = alTop
           TabOrder = 4
-          ExplicitTop = 340
+          ExplicitTop = 289
           ExplicitWidth = 355
           inherited edFileName: TEdit
             Width = 316

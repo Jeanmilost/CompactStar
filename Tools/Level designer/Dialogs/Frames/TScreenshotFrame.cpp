@@ -251,7 +251,9 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                                  const std::wstring&                   fileName,
                                  const std::wstring&                   textureFileName,
                                  const std::wstring&                   bumpMapFileName,
-                                       unsigned                        color)
+                                       unsigned                        color,
+                                       float                           landscapeHeight,
+                                       float                           landscapeFactor)
 {
     // select the kind of model to load
     switch (type)
@@ -354,8 +356,8 @@ bool TScreenshotFrame::LoadModel(      CSR_DesignerHelper::IEModelType type,
                 success = CreateScene(pPixelBuffer,
                                       imScreenshot->Width,
                                       imScreenshot->Height,
-                                      3.0f,
-                                      0.2f,
+                                      landscapeHeight,
+                                      landscapeFactor,
                                       color);
             }
             __finally

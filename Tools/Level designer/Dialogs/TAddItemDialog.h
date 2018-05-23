@@ -195,6 +195,30 @@ class TAddItemDialog : public TForm
         */
         IEModelOptions GetModelOptions() const;
 
+        /**
+        * Gets the collision type to apply to model
+        *@return the collision type to apply to model
+        */
+        CSR_ECollisionType GetCollisionType() const;
+
+        /**
+        * Gets the landscape grayscale bitmap file name
+        *@return the landscape grayscale bitmap file name
+        */
+        std::string GetLandscapeBitmapFileName() const;
+
+        /**
+        * Gets the landscape height
+        *@return the landscape height
+        */
+        float GetLandscapeHeight() const;
+
+        /**
+        * Gets the landscape scale factor
+        *@return the landscape scale factor
+        */
+        float GetLandscapeFactor() const;
+
     private:
         typedef std::map<TObject*, std::wstring> IValueDictionary;
 
