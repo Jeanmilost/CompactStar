@@ -106,13 +106,17 @@ class TScreenshotFrame : public TFrame
         *@param textureFileName - model texture file name, ignored if empty
         *@param bumpMapFileName - model bump map file name, ignored if empty
         *@param color - vertex color
+        *@param landscapeHeight - landscape height
+        *@param landscapeFactor - landscape scale factor
         *@return true on success, otherwise false
         */
         bool LoadModel(      CSR_DesignerHelper::IEModelType type,
                        const std::wstring&                   fileName,
                        const std::wstring&                   textureFileName,
                        const std::wstring&                   bumpMapFileName,
-                             unsigned                        color);
+                             unsigned                        color,
+                             float                           landscapeHeight,
+                             float                           landscapeFactor);
 
         /**
         * Gets a screenshot of the model belonging to the item
@@ -167,16 +171,16 @@ class TScreenshotFrame : public TFrame
         /**
         * Creates an offscreen scene in which a landscape can be drawn to be exported as a screenshot
         *@param pBitmap - grayscale bitmap from which the landscape will be generated
-        *@param height - landscape height
-        *@param scale - landscape scale factor
+        *@param landscapeHeight - landscape height
+        *@param landscapeFactor - landscape scale factor
         *@param color - vertex color
         *@return true on success, otherwise false
         */
         bool CreateScene(const CSR_PixelBuffer* pBitmap,
                                int              width,
                                int              height,
-                               float            landscapeHeight/*FIXME = 3.0f*/,
-                               float            landscapeFactor/*FIXME = 0.2f*/,
+                               float            landscapeHeight,
+                               float            landscapeFactor,
                                unsigned         color);
 
         /**
