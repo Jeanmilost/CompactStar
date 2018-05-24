@@ -45,14 +45,6 @@ void csrCollisionInfoRelease(CSR_CollisionInfo* pCI)
     if (!pCI)
         return;
 
-    // free the polygon buffer
-    if (pCI->m_Polygons.m_pPolygon)
-        free(pCI->m_Polygons.m_pPolygon);
-
-    // free the model array
-    if (pCI->m_pModels)
-        csrArrayRelease(pCI->m_pModels);
-
     // free the scene
     free(pCI);
 }
@@ -64,10 +56,16 @@ void csrCollisionInfoInit(CSR_CollisionInfo* pCI)
         return;
 
     // initialize the collision info
-    pCI->m_Collision           = 0;
-    pCI->m_Polygons.m_pPolygon = 0;
-    pCI->m_Polygons.m_Count    = 0;
-    pCI->m_pModels             = 0;
+    pCI->m_Collision       = 0;
+    pCI->m_GroundPos       = M_CSR_NoGround;
+    pCI->m_GroundPlane.m_A = 0.0f;
+    pCI->m_GroundPlane.m_B = 1.0f;
+    pCI->m_GroundPlane.m_C = 0.0f;
+    pCI->m_GroundPlane.m_D = 0.0f;
+    pCI->m_EdgePlane.m_A   = 0.0f;
+    pCI->m_EdgePlane.m_B   = 0.0f;
+    pCI->m_EdgePlane.m_C   = 0.0f;
+    pCI->m_EdgePlane.m_D   = 0.0f;
 }
 //---------------------------------------------------------------------------
 // Scene context functions
@@ -204,6 +202,7 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     pSceneItem->m_pMatrixArray  = 0;
     pSceneItem->m_pAABBTree     = 0;
     pSceneItem->m_AABBTreeCount = 0;
+    pSceneItem->m_AABBTreeIndex = 0;
 }
 //---------------------------------------------------------------------------
 void csrSceneItemDraw(const CSR_Scene*        pScene,
@@ -294,114 +293,100 @@ void csrSceneItemDraw(const CSR_Scene*        pScene,
     csrShaderEnable(0);
 }
 //---------------------------------------------------------------------------
-int csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
-                                const CSR_Ray3*          pRay,
-                                      CSR_CollisionInfo* pCollisionInfo)
+void csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
+                                 const CSR_Ray3*          pRay,
+                                 const CSR_Sphere*        pSphere,
+                                 const CSR_Vector3*       pGroundDir,
+                                       CSR_CollisionInfo* pCollisionInfo)
 {
-    int         collision;
     size_t      i;
-    size_t      j;
-    float       determinant;
     CSR_Vector3 rayPos;
     CSR_Vector3 rayDir;
     CSR_Vector3 rayDirN;
-    CSR_Matrix4 invertModel;
-    CSR_Ray3    rayModel;
+    CSR_Sphere  transformedSphere;
+    CSR_Ray3    transformedRay;
 
     // validate the inputs
-    if (!pSceneItem || !pRay || !pCollisionInfo)
-        return 0;
+    if (!pSceneItem || !pRay || !pSphere || !pCollisionInfo)
+        return;
 
     // can detect collision on this model?
-    if (!pSceneItem->m_pMatrixArray || !pSceneItem->m_AABBTreeCount)
-        return 0;
+    if ( pSceneItem->m_CollisionType == CSR_CT_Ignore ||
+        !pSceneItem->m_pMatrixArray                   ||
+        !pSceneItem->m_AABBTreeCount                  ||
+         pSceneItem->m_AABBTreeIndex >= pSceneItem->m_AABBTreeCount)
+        return;
 
-    collision = 0;
+    // copy the sphere radius
+    transformedSphere.m_Radius = pSphere->m_Radius;
 
     // iterate through each model position
     for (i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
     {
-        // transform the ray to match with the model position
-        csrMat4Inverse((CSR_Matrix4*)pSceneItem->m_pMatrixArray[i].m_pItem->m_pData,
-                                    &invertModel,
-                                    &determinant);
-        csrMat4ApplyToVector(&invertModel, &pRay->m_Pos, &rayPos);
-        csrMat4ApplyToNormal(&invertModel, &pRay->m_Dir, &rayDir);
+        CSR_Matrix4 invertMatrix;
+        float       determinant;
+
+        // put the ray and sphere in the model coordinate system
+        csrMat4Inverse(&((CSR_Matrix4*)pSceneItem->m_pMatrixArray->m_pItem->m_pData)[i],
+                       &invertMatrix,
+                       &determinant);
+        csrMat4ApplyToVector(&invertMatrix, &pRay->m_Pos, &rayPos);
+        csrMat4ApplyToNormal(&invertMatrix, &pRay->m_Dir, &rayDir);
         csrVec3Normalize(&rayDir, &rayDirN);
+        csrRay3FromPointDir(&rayPos, &rayDirN, &transformedRay);
+        csrMat4Transform(&invertMatrix, &pSphere->m_Center, &transformedSphere.m_Center);
 
-        // get the transformed ray
-        csrRay3FromPointDir(&rayPos, &rayDirN, &rayModel);
+        // do detect the ground collision on this model?
+        if (pSceneItem->m_CollisionType & CSR_CT_Ground)
+        {
+            CSR_Polygon3 groundPolygon;
+            float        posY;
 
-        // iterate through AABB trees to check
-        for (j = 0; j < pSceneItem->m_AABBTreeCount; ++j)
-            // check for collision. NOTE set deep to 1, thus the polygon buffer will not be reseted
-            if (csrAABBTreeResolve(&rayModel, &pSceneItem->m_pAABBTree[j], 1, &pCollisionInfo->m_Polygons))
+            // calculate the y position where to place the point of view
+            if (csrGroundPosY(&transformedSphere,
+                              &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
+                               pGroundDir,
+                              &groundPolygon,
+                              &posY))
             {
-                CSR_CollisionModelInfo* pModelInfo;
+                CSR_Plane   polygonPlane;
+                CSR_Matrix4 transposedMatrix;
 
-                // a collision was found
-                collision                   = 1;
+                // set the new ground position
+                pCollisionInfo->m_GroundPos = posY;
+
+                // calculate and set the new ground plane
+                csrPlaneFromPoints(&groundPolygon.m_Vertex[0],
+                                   &groundPolygon.m_Vertex[1],
+                                   &groundPolygon.m_Vertex[2],
+                                   &polygonPlane);
+                csrMat4Transpose(&invertMatrix, &transposedMatrix);
+                csrPlaneTransform(&polygonPlane, &transposedMatrix, &pCollisionInfo->m_GroundPlane);
+            }
+        }
+
+        // do detect the edge collision on this model?
+        if (pSceneItem->m_CollisionType & CSR_CT_Edge)
+        {
+            CSR_Polygon3Buffer polygonBuffer;
+
+            // check for collision
+            if (csrAABBTreeResolve(&transformedRay,
+                                   &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
+                                    0,
+                                   &polygonBuffer))
+            {
+                // found at least 1 collision
                 pCollisionInfo->m_Collision = 1;
 
-                // create a collision model info
-                pModelInfo = (CSR_CollisionModelInfo*)malloc(sizeof(CSR_CollisionModelInfo));
-
-                // succeeded?
-                if (pModelInfo)
-                {
-                    size_t         index;
-                    CSR_ArrayItem* pItem;
-
-                    // populate the collision model info
-                    pModelInfo->m_pItem        = pSceneItem;
-                    pModelInfo->m_MatrixIndex  = i;
-                    pModelInfo->m_AABBTreeItem = j;
-
-                    // if no model array exists, create one
-                    if (!pCollisionInfo->m_pModels)
-                    {
-                        // create a new model array
-                        pCollisionInfo->m_pModels = (CSR_Array*)malloc(sizeof(CSR_Array));
-
-                        // succeeded?
-                        if (!pCollisionInfo->m_pModels)
-                        {
-                            free(pModelInfo);
-                            continue;
-                        }
-
-                        // initialize the model array
-                        pCollisionInfo->m_pModels->m_pItem = 0;
-                        pCollisionInfo->m_pModels->m_Count = 0;
-                    }
-
-                    // add a new item to the model array
-                    pItem = (CSR_ArrayItem*)csrMemoryAlloc(pCollisionInfo->m_pModels->m_pItem,
-                                                           sizeof(CSR_ArrayItem),
-                                                           pCollisionInfo->m_pModels->m_Count + 1);
-
-                    // succeeded?
-                    if (!pItem)
-                    {
-                        free(pModelInfo);
-                        continue;
-                    }
-
-                    // get the matrix item index
-                    index = pCollisionInfo->m_pModels->m_Count;
-
-                    // update the array
-                    pCollisionInfo->m_pModels->m_pItem = pItem;
-                    ++pCollisionInfo->m_pModels->m_Count;
-
-                    // add collision model info to the model array
-                    pCollisionInfo->m_pModels->m_pItem[index].m_pData    = pModelInfo;
-                    pCollisionInfo->m_pModels->m_pItem[index].m_AutoFree = 1;
-                }
+                // FIXME calculate the resulting sliding plane
             }
-    }
 
-    return collision;
+            // delete found polygons (no longer needed from now)
+            if (polygonBuffer.m_Count)
+                free(polygonBuffer.m_pPolygon);
+        }
+    }
 }
 //---------------------------------------------------------------------------
 // Scene functions
@@ -462,14 +447,17 @@ void csrSceneInit(CSR_Scene* pScene)
         return;
 
     // initialize the scene
-    pScene->m_Color.m_R            = 0.0f;
-    pScene->m_Color.m_G            = 0.0f;
-    pScene->m_Color.m_B            = 0.0f;
-    pScene->m_Color.m_A            = 1.0f;
-    pScene->m_pItem                = 0;
-    pScene->m_ItemCount            = 0;
-    pScene->m_pTransparentItem     = 0;
-    pScene->m_TransparentItemCount = 0;
+    pScene->m_Color.m_R            =  0.0f;
+    pScene->m_Color.m_G            =  0.0f;
+    pScene->m_Color.m_B            =  0.0f;
+    pScene->m_Color.m_A            =  1.0f;
+    pScene->m_GroundDir.m_X        =  0.0f;
+    pScene->m_GroundDir.m_Y        = -1.0f;
+    pScene->m_GroundDir.m_Z        =  0.0f;
+    pScene->m_pItem                =  0;
+    pScene->m_ItemCount            =  0;
+    pScene->m_pTransparentItem     =  0;
+    pScene->m_TransparentItemCount =  0;
 
     // set the default item matrix to identity
     csrMat4Identity(&pScene->m_Matrix);
@@ -1153,35 +1141,35 @@ void csrSceneCameraToMatrix(const CSR_Camera* pCamera, CSR_Matrix4* pR)
     }
 }
 //---------------------------------------------------------------------------
-int csrSceneDetectCollision(const CSR_Scene*         pScene,
-                            const CSR_Ray3*          pRay,
-                                  CSR_CollisionInfo* pCollisionInfo)
+void csrSceneDetectCollision(const CSR_Scene*         pScene,
+                             const CSR_Ray3*          pRay,
+                             const CSR_Sphere*        pSphere,
+                                   CSR_CollisionInfo* pCollisionInfo)
 {
-    int    collision;
     size_t i;
 
     // validate the inputs
     if (!pScene || !pRay || !pCollisionInfo)
-        return 0;
+        return;
 
-    // initialize the collision info
-    pCollisionInfo->m_Collision = 0;
-
-    // release any previously found polygon
-    if (pCollisionInfo->m_Polygons.m_pPolygon)
-        free(pCollisionInfo->m_Polygons.m_pPolygon);
-
-    collision = 0;
+    // initialize the collision info structure
+    csrCollisionInfoInit(pCollisionInfo);
 
     // iterate through the scene items
     for (i = 0; i < pScene->m_ItemCount; ++i)
-        collision |= csrSceneItemDetectCollision(&pScene->m_pItem[i], pRay, pCollisionInfo);
+        csrSceneItemDetectCollision(&pScene->m_pItem[i],
+                                     pRay,
+                                     pSphere,
+                                    &pScene->m_GroundDir,
+                                     pCollisionInfo);
 
     // iterate through the scene transparent items
     for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-        collision |= csrSceneItemDetectCollision(&pScene->m_pTransparentItem[i], pRay, pCollisionInfo);
-
-    return collision;
+        csrSceneItemDetectCollision(&pScene->m_pTransparentItem[i],
+                                     pRay,
+                                     pSphere,
+                                    &pScene->m_GroundDir,
+                                     pCollisionInfo);
 }
 //---------------------------------------------------------------------------
 void csrSceneTouchPosToViewportPos(const CSR_Vector2* pTouchPos,

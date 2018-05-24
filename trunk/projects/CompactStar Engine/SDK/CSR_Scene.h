@@ -25,6 +25,12 @@
 #include "CSR_Renderer.h"
 
 //---------------------------------------------------------------------------
+// Global defines
+//---------------------------------------------------------------------------
+
+#define M_CSR_NoGround 1.0f / 0.0f // i.e. infinite, this is the only case where a division by 0 is allowed
+
+//---------------------------------------------------------------------------
 // Enumerators
 //---------------------------------------------------------------------------
 
@@ -39,13 +45,13 @@ typedef enum
 } CSR_EModelType;
 
 /**
-* Collision type
+* Collision type (can be combinated)
 */
 typedef enum
 {
-    CSR_CT_Ignore,
-    CSR_CT_Ground,
-    CSR_CT_Edge
+    CSR_CT_Ignore = 0x0,
+    CSR_CT_Ground = 0x1,
+    CSR_CT_Edge   = 0x2
 } CSR_ECollisionType;
 
 /**
@@ -83,19 +89,22 @@ typedef struct
     CSR_Array*         m_pMatrixArray;  // matrices sharing the same model, e.g. all the walls of a room
     CSR_AABBNode*      m_pAABBTree;     // aligned-axis bounding box trees owned by the model
     size_t             m_AABBTreeCount; // aligned-axis bounding box tree count
+    size_t             m_AABBTreeIndex; // aligned-axis bounding box tree index to use for the collision detection
 } CSR_SceneItem;
 
 /**
 * Scene
 */
+// FIXME add m_GroundDir in the serializer
 typedef struct
 {
-    CSR_Color        m_Color;
-    CSR_Matrix4      m_Matrix;
-    CSR_SceneItem*   m_pItem;
-    size_t           m_ItemCount;
-    CSR_SceneItem*   m_pTransparentItem;
-    size_t           m_TransparentItemCount;
+    CSR_Color        m_Color;                // the scene background color
+    CSR_Matrix4      m_Matrix;               // the scene view matrix
+    CSR_Vector3      m_GroundDir;            // the ground direction in the whole scene
+    CSR_SceneItem*   m_pItem;                // the items in this list will be drawn in the scene
+    size_t           m_ItemCount;            // number of items
+    CSR_SceneItem*   m_pTransparentItem;     // the items in this list will be drawn on the scene end, allowing transparency
+    size_t           m_TransparentItemCount; // number of transparent items
 } CSR_Scene;
 
 /**
@@ -126,20 +135,11 @@ typedef struct
 */
 typedef struct
 {
-    int                m_Collision; // if 1 a collision happened, if 0 no collision happened
-    CSR_Polygon3Buffer m_Polygons;  // all the found polygons in collision
-    CSR_Array*         m_pModels;   // models owning one or several polygons in collision
+    int       m_Collision;   // if 1 a collision happened, if 0 no collision happened
+    float     m_GroundPos;   // the ground position on the y axis
+    CSR_Plane m_GroundPlane; // the ground plane below the tested position
+    CSR_Plane m_EdgePlane;   // in case of edge collision, the resulting collision plane
 } CSR_CollisionInfo;
-
-/**
-* Collision model info
-*/
-typedef struct
-{
-    void*  m_pItem;        // scene item against which a collision happened
-    size_t m_MatrixIndex;  // index of the model matrix in the scene item
-    size_t m_AABBTreeItem; // index of the AABB tree in the scene item
-} CSR_CollisionModelInfo;
 
 //---------------------------------------------------------------------------
 // Callbacks
@@ -279,13 +279,19 @@ struct CSR_SceneContext
         /**
         * Detects the collisions happening against a scene item
         *@param pScene - scene item against which the collision should be detected
-        *@param pRay - ray describing the movement to check
-        *@param[in, out] pCollisionInfo - collision info
-        *@return 1 if a collision with the scene item was found, otherwise 0
+        *@param pRay - ray describing the movement to check, starting from the current position
+        *@param pSphere - sphere bounding the model or viewpoint to check at the next position
+        *@param pGroundDir - the scene ground direction
+        *@param[in, out] pCollisionInfo - collision info structure containing the result
+        *@note The ray and sphere should be in the same coordinate system as the item model. This
+        *      means that any projection or view transformation should be applied to the sphere and
+        *      ray before calling this function
         */
-        int csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
-                                        const CSR_Ray3*          pRay,
-                                              CSR_CollisionInfo* pCollisionInfo);
+        void csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
+                                         const CSR_Ray3*          pRay,
+                                         const CSR_Sphere*        pBoundingSphere,
+                                         const CSR_Vector3*       pGroundDir,
+                                               CSR_CollisionInfo* pCollisionInfo);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -396,13 +402,17 @@ struct CSR_SceneContext
         /**
         * Detects the collisions happening in a scene
         *@param pScene - scene in which the collisions should be detected
-        *@param pRay - ray describing the movement to check
-        *@param[in, out] pCollisionInfo - collision info
-        *@return 1 if a collision was found in the scene, otherwise 0
+        *@param pRay - ray describing the movement to check, starting from the current position
+        *@param pSphere - sphere bounding the model or viewpoint to check at the next position
+        *@param[in, out] pCollisionInfo - collision info structure containing the result
+        *@note The ray and sphere should be in the same coordinate system as the scene models. This
+        *      means that any projection or view transformation should be applied to the sphere and
+        *      ray before calling this function
         */
-        int csrSceneDetectCollision(const CSR_Scene*         pScene,
-                                    const CSR_Ray3*          pRay,
-                                          CSR_CollisionInfo* pCollisionInfo);
+        void csrSceneDetectCollision(const CSR_Scene*         pScene,
+                                     const CSR_Ray3*          pRay,
+                                     const CSR_Sphere*        pSphere,
+                                           CSR_CollisionInfo* pCollisionInfo);
 
         /**
         * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position
