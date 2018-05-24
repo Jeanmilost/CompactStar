@@ -47,7 +47,8 @@ typedef enum
     CSR_DT_TimeStamp,
     CSR_DT_ShaderIndex,
     CSR_DT_TextureIndex,
-    CSR_DT_BumpMapIndex
+    CSR_DT_BumpMapIndex,
+    CSR_DT_CollisionType
 } CSR_ESceneDataType;
 
 /**
@@ -55,9 +56,8 @@ typedef enum
 */
 typedef enum
 {
-    CSR_SO_None           = 0x0,
-    CSR_SO_DoGenerateAABB = 0x1,
-    CSR_SO_Transparent    = 0x2
+    CSR_SO_None        = 0x0,
+    CSR_SO_Transparent = 0x1
 } CSR_ESceneItemOptions;
 
 //---------------------------------------------------------------------------

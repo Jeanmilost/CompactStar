@@ -887,22 +887,6 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                 return 0;
             }
 
-            // do generate AABB trees for the mesh?
-            if (options & CSR_SO_DoGenerateAABB)
-            {
-                // create the AABB tree from the mesh
-                pSceneItem->m_pAABBTree = csrAABBTreeFromMesh((CSR_Mesh*)pSceneItem->m_pModel);
-
-                // succeeded?
-                if (!pSceneItem->m_pAABBTree)
-                {
-                    free(pHeader);
-                    return 0;
-                }
-
-                pSceneItem->m_AABBTreeCount = 1;
-            }
-
             continue;
         }
         else
@@ -940,8 +924,138 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                 return 0;
             }
 
-            // do generate AABB trees for the model?
-            if (options & CSR_SO_DoGenerateAABB)
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_MDL, 4))
+        {
+            // normally the scene item can contain only one model
+            if (pSceneItem->m_pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // add a new MDL model in the scene item
+            pSceneItem->m_pModel = malloc(sizeof(CSR_MDL));
+            pSceneItem->m_Type   = CSR_MT_MDL;
+
+            // succeeded?
+            if (!pSceneItem->m_pModel)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // initialize the MDL model content
+            csrMDLInit((CSR_MDL*)pSceneItem->m_pModel);
+
+            // read the MDL model
+            if (!csrSerializerReadMDL(pContext,
+                                      pBuffer,
+                                      pOffset,
+                                      pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                      (CSR_MDL*)pSceneItem->m_pModel))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_Array, 4))
+        {
+            // normally the scene item can contain only one matrix array
+            if (pSceneItem->m_pMatrixArray)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // add a new matrix array in the scene item
+            pSceneItem->m_pMatrixArray = malloc(sizeof(CSR_Array));
+
+            // succeeded?
+            if (!pSceneItem->m_pMatrixArray)
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            // initialize the matrix array content
+            pSceneItem->m_pMatrixArray->m_pItem = 0;
+            pSceneItem->m_pMatrixArray->m_Count = 0;
+
+            // read the matrix array
+            if (!csrSerializerReadMatrixArray(pContext,
+                                              pBuffer,
+                                              pOffset,
+                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
+                                              pSceneItem->m_pMatrixArray))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Data, 4))
+        {
+            // search for data type to read
+            switch (pHeader->m_Options)
+            {
+                case CSR_DT_CollisionType:
+                    // read the collision type
+                    if (!csrBufferRead(pBuffer,
+                                       pOffset,
+                                       sizeof(CSR_ECollisionType),
+                                       1,
+                                      &pSceneItem->m_CollisionType))
+                    {
+                        free(pHeader);
+                        return 0;
+                    }
+
+                    break;
+            }
+
+            continue;
+        }
+
+        prevOffset = *pOffset;
+
+        // nothing is matching, skip the data and continue with next chunk
+        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
+
+        // protect the loop against data corruption (offset must change after the ckunk was skipped)
+        if (prevOffset == *pOffset)
+        {
+            free(pHeader);
+            return 0;
+        }
+    }
+
+    // do generate the AABB tree(s)?
+    if (pSceneItem->m_CollisionType & CSR_CT_Ground || pSceneItem->m_CollisionType & CSR_CT_Edge)
+        switch (pSceneItem->m_Type)
+        {
+            case CSR_MT_Mesh:
+                // create the AABB tree from the mesh
+                pSceneItem->m_pAABBTree = csrAABBTreeFromMesh((CSR_Mesh*)pSceneItem->m_pModel);
+
+                // succeeded?
+                if (!pSceneItem->m_pAABBTree)
+                {
+                    free(pHeader);
+                    return 0;
+                }
+
+                pSceneItem->m_AABBTreeCount = 1;
+                break;
+
+            case CSR_MT_Model:
             {
                 size_t     i;
                 CSR_Model* pModel = (CSR_Model*)pSceneItem->m_pModel;
@@ -989,45 +1103,7 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                 }
             }
 
-            continue;
-        }
-        else
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_MDL, 4))
-        {
-            // normally the scene item can contain only one model
-            if (pSceneItem->m_pModel)
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            // add a new MDL model in the scene item
-            pSceneItem->m_pModel = malloc(sizeof(CSR_MDL));
-            pSceneItem->m_Type   = CSR_MT_MDL;
-
-            // succeeded?
-            if (!pSceneItem->m_pModel)
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            // initialize the MDL model content
-            csrMDLInit((CSR_MDL*)pSceneItem->m_pModel);
-
-            // read the MDL model
-            if (!csrSerializerReadMDL(pContext,
-                                      pBuffer,
-                                      pOffset,
-                                      pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                      (CSR_MDL*)pSceneItem->m_pModel))
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            // do generate AABB trees for the model?
-            if (options & CSR_SO_DoGenerateAABB)
+            case CSR_MT_MDL:
             {
                 size_t     i;
                 size_t     j;
@@ -1076,59 +1152,7 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
                         memcpy(&pSceneItem->m_pAABBTree[treeIndex], pMeshTree, sizeof(CSR_AABBNode));
                     }
             }
-
-            continue;
         }
-        else
-        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix_Array, 4))
-        {
-            // normally the scene item can contain only one matrix array
-            if (pSceneItem->m_pMatrixArray)
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            // add a new matrix array in the scene item
-            pSceneItem->m_pMatrixArray = malloc(sizeof(CSR_Array));
-
-            // succeeded?
-            if (!pSceneItem->m_pMatrixArray)
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            // initialize the matrix array content
-            pSceneItem->m_pMatrixArray->m_pItem = 0;
-            pSceneItem->m_pMatrixArray->m_Count = 0;
-
-            // read the matrix array
-            if (!csrSerializerReadMatrixArray(pContext,
-                                              pBuffer,
-                                              pOffset,
-                                              pHeader->m_ChunkSize - pHeader->m_HeaderSize,
-                                              pSceneItem->m_pMatrixArray))
-            {
-                free(pHeader);
-                return 0;
-            }
-
-            continue;
-        }
-
-        prevOffset = *pOffset;
-
-        // nothing is matching, skip the data and continue with next chunk
-        *pOffset += pHeader->m_ChunkSize - pHeader->m_HeaderSize;
-
-        // protect the loop against data corruption (offset must change after the ckunk was skipped)
-        if (prevOffset == *pOffset)
-        {
-            free(pHeader);
-            return 0;
-        }
-    }
 
     // free the header structure
     free(pHeader);
@@ -2436,6 +2460,7 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
                                       CSR_Buffer*       pBuffer)
 {
     CSR_Buffer*           pChunkBuffer;
+    CSR_Buffer*           pDataBuffer;
     CSR_ESceneItemOptions options;
 
     // validate the inputs
@@ -2491,15 +2516,40 @@ int csrSerializerWriteSceneItem(const CSR_WriteContext* pContext,
             return 0;
         }
 
+    // initialize a buffer to write the standalone data
+    pDataBuffer = csrBufferCreate();
+
+    // prepare the buffer to write the collision type
+    pDataBuffer->m_Length = sizeof(CSR_ECollisionType);
+    pDataBuffer->m_pData  = malloc(pDataBuffer->m_Length);
+
+    // succeeded?
+    if (!pDataBuffer->m_pData)
+    {
+        csrBufferRelease(pDataBuffer);
+        csrBufferRelease(pChunkBuffer);
+        return 0;
+    }
+
+    // copy the data to write
+    memcpy(pDataBuffer->m_pData, &pSceneItem->m_CollisionType, pDataBuffer->m_Length);
+
+    // write the collision type data
+    if (!csrSerializerWriteData(pContext, pDataBuffer, CSR_DT_CollisionType, pChunkBuffer))
+    {
+        csrBufferRelease(pDataBuffer);
+        csrBufferRelease(pChunkBuffer);
+        return 0;
+    }
+
+    // release the buffer
+    csrBufferRelease(pDataBuffer);
+
     options = CSR_SO_None;
 
     // set the transparent option if needed
     if (transparent)
         options |= CSR_SO_Transparent;
-
-    // set the do generate AABB tree if the scene item contains one
-    if (pSceneItem->m_pAABBTree)
-        options |= CSR_SO_DoGenerateAABB;
 
     // write the scene item header
     if (!csrSerializerWriteHeader(pContext,

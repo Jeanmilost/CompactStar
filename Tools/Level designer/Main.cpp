@@ -653,10 +653,10 @@ void TMainForm::UpdateScene(float elapsedTime)
             // create a new collision result
             m_pCollisionInfo = csrCollisionInfoCreate();
 
+            /*REM FIXME
             // check the collisions happening in the scene, against the mouse ray
             csrSceneDetectCollision(m_pScene, &m_Ray, m_pCollisionInfo);
 
-            /*REM FIXME
             if (m_pCollisionInfo->m_pModels)
             for (std::size_t i = 0; i < m_pCollisionInfo->m_pModels->m_Count; ++i)
             {
