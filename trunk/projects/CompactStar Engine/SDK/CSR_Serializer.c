@@ -24,6 +24,7 @@
 //---------------------------------------------------------------------------
 #define M_CSR_Signature_Data           "data"
 #define M_CSR_Signature_Color          "colr"
+#define M_CSR_Signature_Vector         "vec3"
 #define M_CSR_Signature_Matrix         "mat4"
 #define M_CSR_Signature_Material       "matl"
 #define M_CSR_Signature_Texture        "txtr"
@@ -1211,6 +1212,18 @@ int csrSerializerReadScene(const CSR_ReadContext* pContext,
             continue;
         }
         else
+        if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Vector, 4))
+        {
+            // read the scene ground vector
+            if (!csrBufferRead(pBuffer, pOffset, sizeof(CSR_Vector3), 1, &pScene->m_GroundDir))
+            {
+                free(pHeader);
+                return 0;
+            }
+
+            continue;
+        }
+        else
         if (!memcmp(&pHeader->m_ID, M_CSR_Signature_Matrix, 4))
         {
             // read the scene matrix
@@ -1781,6 +1794,29 @@ int csrSerializerWriteColor(const CSR_WriteContext* pContext,
 
     // write the data
     if (!csrBufferWrite(pBuffer, pColor, sizeof(CSR_Color), 1))
+        return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrSerializerWriteVector(const CSR_WriteContext* pContext,
+                             const CSR_Vector3*      pVector,
+                                   CSR_Buffer*       pBuffer)
+{
+    // validate the inputs
+    if (!pContext || !pVector || !pBuffer)
+        return 0;
+
+    // write the header
+    if (!csrSerializerWriteHeader(pContext,
+                                  M_CSR_Signature_Vector,
+                                  sizeof(CSR_Vector3),
+                                  CSR_HO_None,
+                                  pBuffer))
+        return 0;
+
+    // write the data
+    if (!csrBufferWrite(pBuffer, pVector, sizeof(CSR_Vector3), 1))
         return 0;
 
     return 1;
@@ -2592,6 +2628,13 @@ int csrSerializerWriteScene(const CSR_WriteContext* pContext,
 
     // write the scene color
     if (!csrSerializerWriteColor(pContext, &pScene->m_Color, pChunkBuffer))
+    {
+        csrBufferRelease(pChunkBuffer);
+        return 0;
+    }
+
+    // write the scene ground vector
+    if (!csrSerializerWriteVector(pContext, &pScene->m_GroundDir, pChunkBuffer))
     {
         csrBufferRelease(pChunkBuffer);
         return 0;
