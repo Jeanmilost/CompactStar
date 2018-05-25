@@ -49,9 +49,10 @@ typedef enum
 */
 typedef enum
 {
-    CSR_CT_Ignore = 0x0,
-    CSR_CT_Ground = 0x1,
-    CSR_CT_Edge   = 0x2
+    CSR_CO_None   = 0x0,
+    CSR_CO_Ground = 0x1,
+    CSR_CO_Edge   = 0x2,
+    CSR_CO_Mouse  = 0x4
 } CSR_ECollisionType;
 
 /**
@@ -95,7 +96,6 @@ typedef struct
 /**
 * Scene
 */
-// FIXME add m_GroundDir in the serializer
 typedef struct
 {
     CSR_Color        m_Color;                // the scene background color
@@ -131,15 +131,49 @@ typedef struct
 } CSR_ArcBall;
 
 /**
-* Collision info
+* Hit model (for collision detection)
 */
 typedef struct
 {
-    int       m_Collision;   // if 1 a collision happened, if 0 no collision happened
-    float     m_GroundPos;   // the ground position on the y axis
-    CSR_Plane m_GroundPlane; // the ground plane below the tested position
-    CSR_Plane m_EdgePlane;   // in case of edge collision, the resulting collision plane
-} CSR_CollisionInfo;
+    void*              m_pModel;    // the hit model
+    CSR_EModelType     m_Type;      // model type (a simple mesh, a model or a complex MDL model)
+    CSR_Matrix4        m_Matrix;    // model matrix
+    CSR_AABBNode*      m_pAABBTree; // aligned-axis bounding box tree in which the collision was found
+    CSR_Polygon3Buffer m_Polygons;  // hit polygons in the model
+} CSR_HitModel;
+
+/**
+* Collision input
+*@note All the provided items should be in the same coordinates system as the scene models. This
+*      means that any projection or view transformation should be applied, if required, before
+*      adding them in this structure
+*/
+typedef struct
+{
+    CSR_Ray3    m_MouseRay;       // ray starting from the mouse position, transformed in the viewport coordinates system
+    CSR_Sphere  m_BoundingSphere; // bounding sphere representing the model or point of view at his current position
+    CSR_Vector3 m_CheckPos;       // the model or point of view position to check
+} CSR_CollisionInput;
+
+/**
+* Collision item input
+*/
+typedef struct
+{
+    CSR_Vector3* m_pGroundDir; // scene ground direction
+} CSR_CollisionItemInput;
+
+/**
+* Collision output
+*/
+typedef struct
+{
+    CSR_ECollisionType m_Collision;      // found collision type in the scene
+    float              m_GroundPos;      // the ground position on the y axis, M_CSR_NoGround if no ground was found
+    CSR_Plane          m_CollisionPlane; // the collision plane, in case a collision was found
+    CSR_Plane          m_GroundPlane;    // the ground plane, in case a ground was found
+    CSR_Array*         m_pHitModel;      // models hit by the mouse ray
+} CSR_CollisionOutput;
 
 //---------------------------------------------------------------------------
 // Callbacks
@@ -210,27 +244,73 @@ struct CSR_SceneContext
 #endif
 
         //-------------------------------------------------------------------
-        // Collision info functions
+        // Hit model functions
         //-------------------------------------------------------------------
 
         /**
-        * Creates a collision info
-        *@return newly created collision info, 0 on error
-        *@note The collision info must be released when no longer used, see csrCollisionInfoRelease()
+        * Creates a hit model structure
+        *@return newly created hit model structure, 0 on error
+        *@note The hit model structure must be released when no longer used, see csrHitModelRelease()
         */
-        CSR_CollisionInfo* csrCollisionInfoCreate(void);
+        CSR_HitModel* csrHitModelCreate(void);
 
         /**
-        * Releases a collision info
-        *@param[in, out] pCI - collision info to release
+        * Releases a hit model structure
+        *@param[in, out] pHitModel - hit model structure to release
         */
-        void csrCollisionInfoRelease(CSR_CollisionInfo* pCI);
+        void csrHitModelRelease(CSR_HitModel* pHitModel);
 
         /**
-        * Initializes a collision info structure
-        *@param[in, out] pCI - collision info to initialize
+        * Initializes a hit model structure
+        *@param[in, out] pHitModel - hit model structure to initialize
         */
-        void csrCollisionInfoInit(CSR_CollisionInfo* pCI);
+        void csrHitModelInit(CSR_HitModel* pHitModel);
+
+        //-------------------------------------------------------------------
+        // Collision input functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a collision input
+        *@return newly created collision input, 0 on error
+        *@note The collision input must be released when no longer used, see csrCollisionInputRelease()
+        */
+        CSR_CollisionInput* csrCollisionInputCreate(void);
+
+        /**
+        * Releases a collision input
+        *@param[in, out] pCI - collision input to release
+        */
+        void csrCollisionInputRelease(CSR_CollisionInput* pCI);
+
+        /**
+        * Initializes a collision input
+        *@param[in, out] pCI - collision input to initialize
+        */
+        void csrCollisionInputInit(CSR_CollisionInput* pCI);
+
+        //-------------------------------------------------------------------
+        // Collision output functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a collision output
+        *@return newly created collision output, 0 on error
+        *@note The collision output must be released when no longer used, see csrCollisionOutputRelease()
+        */
+        CSR_CollisionOutput* csrCollisionOutputCreate(void);
+
+        /**
+        * Releases a collision output
+        *@param[in, out] pCO - collision output to release
+        */
+        void csrCollisionOutputRelease(CSR_CollisionOutput* pCO);
+
+        /**
+        * Initializes a collision output
+        *@param[in, out] pCO - collision output to initialize
+        */
+        void csrCollisionOutputInit(CSR_CollisionOutput* pCO);
 
         //-------------------------------------------------------------------
         // Scene context functions
@@ -278,20 +358,16 @@ struct CSR_SceneContext
 
         /**
         * Detects the collisions happening against a scene item
-        *@param pScene - scene item against which the collision should be detected
-        *@param pRay - ray describing the movement to check, starting from the current position
-        *@param pSphere - sphere bounding the model or viewpoint to check at the next position
+        *@param pSceneItem - scene item against which the collision should be detected
         *@param pGroundDir - the scene ground direction
-        *@param[in, out] pCollisionInfo - collision info structure containing the result
-        *@note The ray and sphere should be in the same coordinate system as the item model. This
-        *      means that any projection or view transformation should be applied to the sphere and
-        *      ray before calling this function
+        *@param pCollisionInput - collision input
+        *@param pCollisionItemInput - collision item input
+        *@param[in, out] pCollisionOutput - collision output containing the result
         */
-        void csrSceneItemDetectCollision(const CSR_SceneItem*     pSceneItem,
-                                         const CSR_Ray3*          pRay,
-                                         const CSR_Sphere*        pBoundingSphere,
-                                         const CSR_Vector3*       pGroundDir,
-                                               CSR_CollisionInfo* pCollisionInfo);
+        void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
+                                         const CSR_CollisionInput*     pCollisionInput,
+                                         const CSR_CollisionItemInput* pCollisionItemInput,
+                                               CSR_CollisionOutput*    pCollisionOutput);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -402,17 +478,12 @@ struct CSR_SceneContext
         /**
         * Detects the collisions happening in a scene
         *@param pScene - scene in which the collisions should be detected
-        *@param pRay - ray describing the movement to check, starting from the current position
-        *@param pSphere - sphere bounding the model or viewpoint to check at the next position
-        *@param[in, out] pCollisionInfo - collision info structure containing the result
-        *@note The ray and sphere should be in the same coordinate system as the scene models. This
-        *      means that any projection or view transformation should be applied to the sphere and
-        *      ray before calling this function
+        *@param pCollisionInput - collision input
+        *@param[in, out] pCollisionOutput - collision output containing the result
         */
-        void csrSceneDetectCollision(const CSR_Scene*         pScene,
-                                     const CSR_Ray3*          pRay,
-                                     const CSR_Sphere*        pSphere,
-                                           CSR_CollisionInfo* pCollisionInfo);
+        void csrSceneDetectCollision(const CSR_Scene*           pScene,
+                                     const CSR_CollisionInput*  pCollisionInput,
+                                           CSR_CollisionOutput* pCollisionOutput);
 
         /**
         * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position

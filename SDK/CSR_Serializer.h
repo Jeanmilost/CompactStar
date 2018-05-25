@@ -395,6 +395,17 @@ struct CSR_WriteContext
                                           CSR_Buffer*       pBuffer);
 
         /**
+        * Writes a vector inside a buffer
+        *@param pContext - write context, containing the write options
+        *@param pVector - vector to write
+        *@param[in, out] pBuffer - buffer to write in
+        *@return 1 on success, otherwise 0
+        */
+        int csrSerializerWriteVector(const CSR_WriteContext* pContext,
+                                     const CSR_Vector3*      pVector,
+                                           CSR_Buffer*       pBuffer);
+
+        /**
         * Writes a matrix inside a buffer
         *@param pContext - write context, containing the write options
         *@param pMatrix - matrix to write
