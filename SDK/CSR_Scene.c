@@ -311,6 +311,7 @@ void csrSceneItemInit(CSR_SceneItem* pSceneItem)
     // initialize the scene item
     pSceneItem->m_pModel        = 0;
     pSceneItem->m_Type          = CSR_MT_Model;
+    pSceneItem->m_CollisionType = CSR_CO_None;
     pSceneItem->m_pMatrixArray  = 0;
     pSceneItem->m_pAABBTree     = 0;
     pSceneItem->m_AABBTreeCount = 0;
