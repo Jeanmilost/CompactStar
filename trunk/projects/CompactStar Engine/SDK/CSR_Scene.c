@@ -415,10 +415,6 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
     CSR_Vector3 rayPos;
     CSR_Vector3 rayDir;
     CSR_Vector3 rayDirN;
-    CSR_Vector3 motionDir;
-    CSR_Vector3 motionDirN;
-    CSR_Ray3    mouseRay;
-    CSR_Ray3    motionRay;
     CSR_Sphere  sphere;
 
     // validate the inputs
@@ -445,20 +441,6 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
         csrMat4Inverse(&((CSR_Matrix4*)pSceneItem->m_pMatrixArray->m_pItem->m_pData)[i],
                        &invertMatrix,
                        &determinant);
-
-        // put the mouse ray into the model coordinate system
-        csrMat4ApplyToVector(&invertMatrix, &pCollisionInput->m_MouseRay.m_Pos, &rayPos);
-        csrMat4ApplyToNormal(&invertMatrix, &pCollisionInput->m_MouseRay.m_Dir, &rayDir);
-        csrVec3Normalize(&rayDir, &rayDirN);
-        csrRay3FromPointDir(&rayPos, &rayDirN, &mouseRay);
-
-        // calculate the motion ray and put it into the model coordinate system
-        csrVec3Sub(&pCollisionInput->m_CheckPos, &pCollisionInput->m_BoundingSphere.m_Center, &motionDir);
-        csrVec3Normalize(&motionDir, &motionDirN);
-        csrMat4ApplyToVector(&invertMatrix, &pCollisionInput->m_BoundingSphere.m_Center, &rayPos);
-        csrMat4ApplyToNormal(&invertMatrix, &motionDir, &rayDir);
-        csrVec3Normalize(&rayDir, &rayDirN);
-        csrRay3FromPointDir(&rayPos, &rayDirN, &motionRay);
 
         // put the bounding sphere into the model coordinate system (at the location where the
         // collision should be checked)
@@ -499,6 +481,18 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
         // do detect the edge collision on this model?
         if (pSceneItem->m_CollisionType & CSR_CO_Edge)
         {
+            CSR_Vector3 motionDir;
+            CSR_Vector3 motionDirN;
+            CSR_Ray3    motionRay;
+
+            // calculate the motion ray and put it into the model coordinate system
+            csrVec3Sub(&pCollisionInput->m_CheckPos, &pCollisionInput->m_BoundingSphere.m_Center, &motionDir);
+            csrVec3Normalize(&motionDir, &motionDirN);
+            csrMat4ApplyToVector(&invertMatrix, &pCollisionInput->m_BoundingSphere.m_Center, &rayPos);
+            csrMat4ApplyToNormal(&invertMatrix, &motionDir, &rayDir);
+            csrVec3Normalize(&rayDir, &rayDirN);
+            csrRay3FromPointDir(&rayPos, &rayDirN, &motionRay);
+
             // 1. detect if the motion ray intersects one of the polygon. If yes the detection is terminated
             // 2. detect if the sphere intersects one of the polygon
 
@@ -526,6 +520,13 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
         // do detect the mouse collision on this model?
         if (pSceneItem->m_CollisionType & CSR_CO_Mouse)
         {
+            CSR_Ray3 mouseRay;
+
+            // put the mouse ray into the model coordinate system
+            csrMat4ApplyToVector(&invertMatrix, &pCollisionInput->m_MouseRay.m_Pos, &rayPos);
+            csrMat4ApplyToNormal(&invertMatrix, &pCollisionInput->m_MouseRay.m_Dir, &rayDir);
+            csrVec3Normalize(&rayDir, &rayDirN);
+            csrRay3FromPointDir(&rayPos, &rayDirN, &mouseRay);
         }
     }
 }
