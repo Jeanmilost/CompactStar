@@ -105,8 +105,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pOpenALContext(NULL),
     m_pSound(NULL),
     m_pShader(NULL),
-    m_pModel(NULL),
-    m_pTree(NULL),
+    m_pScene(NULL),
+    m_pLandscapeKey(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
     m_Angle(0.0f),
@@ -188,10 +188,16 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 void __fastcall TMainForm::btResetViewportClick(TObject* pSender)
 {
     // reset the viewpoint bounding sphere to his default position
-    m_BoundingSphere.m_Center.m_X = 0.0f;
-    m_BoundingSphere.m_Center.m_Y = 0.0f;
-    m_BoundingSphere.m_Center.m_Z = 0.0f;
-    m_BoundingSphere.m_Radius     = 0.1f;
+    m_ViewSphere.m_Center.m_X = 0.0f;
+    m_ViewSphere.m_Center.m_Y = 0.0f;
+    m_ViewSphere.m_Center.m_Z = 0.0f;
+    m_ViewSphere.m_Radius     = 0.1f;
+
+    // also reset the model bounding sphere to his default position
+    m_ModelSphere.m_Center.m_X =  0.0f;
+    m_ModelSphere.m_Center.m_Y =  0.0f;
+    m_ModelSphere.m_Center.m_Z = -0.5f;
+    m_ModelSphere.m_Radius     =  0.05f;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
@@ -236,15 +242,27 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
     // do change the texture?
     if (!pLandscapeSelection->edTextureFileName->Text.IsEmpty())
     {
+        // invalid next position, get the scene item (just one for this scene)
+        const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+        // found it?
+        if (!pItem)
+            return;
+
+        const CSR_Model* pModel = (CSR_Model*)pItem->m_pModel;
+
+        if (!pModel || !pModel->m_MeshCount)
+            return;
+
         // release the previous texture
-        glDeleteTextures(1, &m_pModel->m_pMesh[0].m_Shader.m_TextureID);
+        glDeleteTextures(1, &pModel->m_pMesh[0].m_Shader.m_TextureID);
 
         // load the new one
-        m_pModel->m_pMesh[0].m_Shader.m_TextureID =
+        pModel->m_pMesh[0].m_Shader.m_TextureID =
                 LoadTexture(pLandscapeSelection->edTextureFileName->Text.c_str());
 
         // failed?
-        if (m_pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+        if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the texture.",
@@ -288,6 +306,56 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 
             return;
     }
+}
+//------------------------------------------------------------------------------
+CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetShader(pModel, type);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnSceneBeginCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnSceneBegin(pScene, pContext);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnSceneEnd(pScene, pContext);
+}
+//---------------------------------------------------------------------------
+int TMainForm::OnDetectCollisionCallback(const CSR_Scene*           pScene,
+                                         const CSR_SceneItem*       pSceneItem,
+                                               size_t               index,
+                                         const CSR_Matrix4*         pInvertedModelMatrix,
+                                         const CSR_CollisionInput*  pCollisionInput,
+                                               CSR_CollisionOutput* pCollisionOutput)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnDetectCollision(pScene,
+                                        pSceneItem,
+                                        index,
+                                        pInvertedModelMatrix,
+                                        pCollisionInput,
+                                        pCollisionOutput);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
@@ -384,10 +452,6 @@ void TMainForm::CreateViewport(float w, float h)
     GLint projectionSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionSlot, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
 
-    // create a default view matrix (set implicitly to identity in the shader but used later for
-    // unprojection in the CalculateMouseRay() function)
-    csrMat4Identity(&m_ViewMatrix);
-
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
         // create the multisampling antialiasing
@@ -399,17 +463,40 @@ void TMainForm::CreateViewport(float w, float h)
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
-    // set the scene background color
-    m_Background.m_R = 0.45f;
-    m_Background.m_G = 0.8f;
-    m_Background.m_B = 1.0f;
-    m_Background.m_A = 1.0f;
+    // initialize the scene
+    m_pScene = csrSceneCreate();
+
+    // configure the scene background color
+    m_pScene->m_Color.m_R = 0.45f;
+    m_pScene->m_Color.m_G = 0.8f;
+    m_pScene->m_Color.m_B = 1.0f;
+    m_pScene->m_Color.m_A = 1.0f;
+
+    // configure the scene ground direction
+    m_pScene->m_GroundDir.m_X =  0.0f;
+    m_pScene->m_GroundDir.m_Y = -1.0f;
+    m_pScene->m_GroundDir.m_Z =  0.0f;
+
+    // configure the scene view matrix
+    csrMat4Identity(&m_pScene->m_Matrix);
 
     // set the viewpoint bounding sphere default position
-    m_BoundingSphere.m_Center.m_X = 0.0f;
-    m_BoundingSphere.m_Center.m_Y = 0.0f;
-    m_BoundingSphere.m_Center.m_Z = 0.0f;
-    m_BoundingSphere.m_Radius     = 0.1f;
+    m_ViewSphere.m_Center.m_X = 0.0f;
+    m_ViewSphere.m_Center.m_Y = 0.0f;
+    m_ViewSphere.m_Center.m_Z = 0.0f;
+    m_ViewSphere.m_Radius     = 0.1f;
+
+    // set the model bounding sphere default position
+    m_ModelSphere.m_Center.m_X =  0.0f;
+    m_ModelSphere.m_Center.m_Y =  0.0f;
+    m_ModelSphere.m_Center.m_Z = -0.5f;
+    m_ModelSphere.m_Radius     =  0.05f;
+
+    // configure the scene context
+    csrSceneContextInit(&m_SceneContext);
+    m_SceneContext.m_fOnGetShader  = OnGetShaderCallback;
+    m_SceneContext.m_fOnSceneBegin = OnSceneBeginCallback;
+    m_SceneContext.m_fOnSceneEnd   = OnSceneEndCallback;
 
     // load the shader
     m_pShader  = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
@@ -458,11 +545,27 @@ void TMainForm::InitScene(int w, int h)
     const UnicodeString textureFile =
             UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Textures\\snow.jpg";
 
+    // get back the scene item containing the model
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+    // found it?
+    if (!pItem)
+    {
+        // show the error message to the user
+        ::MessageDlg(L"The landscape was not found in the scene.\r\n\r\nThe application will quit.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
+        Application->Terminate();
+        return;
+    }
+
     // load the texture
-    m_pModel->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
+    ((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
 
     // failed?
-    if (m_pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+    if (((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
     {
         // show the error message to the user
         ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
@@ -488,11 +591,8 @@ void TMainForm::InitScene(int w, int h)
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
-    // release the aligned axis bounding box tree
-    csrAABBTreeNodeRelease(m_pTree);
-
     // release the scene
-    csrModelRelease(m_pModel);
+    csrSceneRelease(m_pScene);
 
     // release the shader
     csrShaderRelease(m_pShader);
@@ -521,17 +621,15 @@ void TMainForm::UpdateScene(float elapsedTime)
             m_Angle += M_PI * 2.0f;
     }
 
+    // keep the old position to revert it in case of error
+    const CSR_Vector3 oldPos = m_ViewSphere.m_Center;
+
     // is player moving?
     if (m_PosVelocity)
     {
-        CSR_Vector3 newPos = m_BoundingSphere.m_Center;
-
-        // calculate the next player position
-        newPos.m_X += m_PosVelocity * sinf(m_Angle) * elapsedTime;
-        newPos.m_Z -= m_PosVelocity * cosf(m_Angle) * elapsedTime;
-
-        // validate and apply it
-        m_BoundingSphere.m_Center = newPos;
+        // calculate the next position
+        m_ViewSphere.m_Center.m_X += m_PosVelocity * sinf(m_Angle) * elapsedTime;
+        m_ViewSphere.m_Center.m_Z -= m_PosVelocity * cosf(m_Angle) * elapsedTime;
 
         // is the sound enabled?
         if (!ckDisableSound->Checked)
@@ -552,48 +650,95 @@ void TMainForm::UpdateScene(float elapsedTime)
     // enable the shader program
     csrShaderEnable(m_pShader);
 
-    ApplyGroundCollision(&m_BoundingSphere, m_pTree, &m_ViewMatrix);
+    // calculate the ground position and check if next position is valid
+    if (!ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix))
+    {
+        // invalid next position, get the scene item (just one for this scene)
+        const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
 
-    // connect the view matrix to shader
-    const GLint viewSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uView");
-    glUniformMatrix4fv(viewSlot, 1, 0, &m_ViewMatrix.m_Table[0][0]);
+        // found it?
+        if (pItem)
+        {
+            // check if the x position is out of bounds, and correct it if yes
+            if (m_ViewSphere.m_Center.m_X <= pItem->m_pAABBTree->m_pBox->m_Min.m_X ||
+                m_ViewSphere.m_Center.m_X >= pItem->m_pAABBTree->m_pBox->m_Max.m_X)
+                m_ViewSphere.m_Center.m_X = oldPos.m_X;
 
-    csrMat4Identity(&m_ModelMatrix);
+            // do the same thing with the z position. Doing that separately for each axis will make
+            // the point of view to slide against the landscape border (this is possible because the
+            // landscape is axis-aligned)
+            if (m_ViewSphere.m_Center.m_Z <= pItem->m_pAABBTree->m_pBox->m_Min.m_Z ||
+                m_ViewSphere.m_Center.m_Z >= pItem->m_pAABBTree->m_pBox->m_Max.m_Z)
+                m_ViewSphere.m_Center.m_Z = oldPos.m_Z;
+        }
+        else
+            // failed to get the scene item, just revert the position
+            m_ViewSphere.m_Center = oldPos;
 
-    // connect the model view matrix to shader
-    GLint modelSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uModel");
-    glUniformMatrix4fv(modelSlot, 1, 0, &m_ModelMatrix.m_Table[0][0]);
+        // recalculate the ground value (this time the collision result isn't tested, because the
+        // previous position is always considered as valid)
+        ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix);
+    }
 
     // update the stats
-    m_Stats.m_Altitude = -m_ViewMatrix.m_Table[3][1];
+    m_Stats.m_Altitude = -m_pScene->m_Matrix.m_Table[3][1];
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
 {
-    try
-    {
-        // begin the drawing
-        csrMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
+    // draw the scene
+    csrSceneDraw(m_pScene, &m_SceneContext);
+}
+//---------------------------------------------------------------------------
+bool TMainForm::AddSphere()
+{
+    // release the previous model, if exists
+    csrSceneDeleteFrom(m_pScene, m_pSphereKey);
 
-        if (m_pModel)
-            // draw the model
-            csrDrawModel(m_pModel, 0, m_pShader, 0);
-    }
-    __finally
-    {
-        // end the drawing
-        csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
-    }
+    // set the model bounding sphere to his default position
+    m_ModelSphere.m_Center.m_X =  0.0f;
+    m_ModelSphere.m_Center.m_Y =  0.0f;
+    m_ModelSphere.m_Center.m_Z = -0.5f;
+    m_ModelSphere.m_Radius     =  0.05f;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // load the model
+    CSR_Mesh* pMesh = csrShapeCreateSphere(m_ModelSphere.m_Radius, 20, 20, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pMesh)
+        return false;
+
+    // load a texture for the ball
+    pMesh->m_Shader.m_TextureID =
+            LoadTexture(UnicodeString(AnsiString(m_SceneDir.c_str()) + L"\\Textures\\ball.png").c_str());
+
+    // initialize the sphere model matrix
+    csrMat4Translate(&m_ModelSphere.m_Center, &m_SphereMatrix);
+
+    // add the model to the scene
+    csrSceneAddMesh(m_pScene, pMesh, 0, 0);
+    csrSceneAddModelMatrix(m_pScene, pMesh, &m_SphereMatrix);
+
+    // keep the key
+    m_pSphereKey = pMesh;
+
+    return true;
 }
 //---------------------------------------------------------------------------
 bool TMainForm::LoadModel(const std::string& fileName)
 {
     // release the previous model, if exists
-    csrAABBTreeNodeRelease(m_pTree);
-    csrModelRelease(m_pModel);
-
-    m_pModel = NULL;
-    m_pTree  = NULL;
+    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -610,24 +755,37 @@ bool TMainForm::LoadModel(const std::string& fileName)
     vf.m_HasPerVertexColor = 1;
 
     // load the model
-    m_pModel = csrWaveFrontOpen(fileName.c_str(), &vf, &vc, &material, 0, 0);
+    CSR_Model* pModel = csrWaveFrontOpen(fileName.c_str(), &vf, &vc, &material, 0, 0);
 
     // succeeded?
-    if (!m_pModel || !m_pModel->m_MeshCount)
+    if (!pModel)
         return false;
 
-    // create the AABB tree for the landscape model
-    m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
+    // initialize the landscape model matrix
+    csrMat4Identity(&m_LandscapeMatrix);
 
-    // succeeded?
-    if (!m_pTree)
-        return false;
+    // add the model to the scene
+    csrSceneAddModel(m_pScene, pModel, 0, 1);
+    csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
+
+    // get back the scene item containing the model
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, pModel);
+
+    // found it?
+    if (pItem)
+        pItem->m_CollisionType = CSR_CO_Ground | CSR_CO_Custom;
+
+    // keep the key
+    m_pLandscapeKey = pModel;
 
     // reset the viewpoint bounding sphere to his default position
-    m_BoundingSphere.m_Center.m_X = 0.0f;
-    m_BoundingSphere.m_Center.m_Y = 0.0f;
-    m_BoundingSphere.m_Center.m_Z = 0.0f;
-    m_BoundingSphere.m_Radius     = 0.1f;
+    m_ViewSphere.m_Center.m_X = 0.0f;
+    m_ViewSphere.m_Center.m_Y = 0.0f;
+    m_ViewSphere.m_Center.m_Z = 0.0f;
+    m_ViewSphere.m_Radius     = 0.1f;
+
+    if (!AddSphere())
+        return false;
 
     return true;
 }
@@ -635,12 +793,9 @@ bool TMainForm::LoadModel(const std::string& fileName)
 bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
 {
     // release the previous model, if exists
-    csrAABBTreeNodeRelease(m_pTree);
-    csrModelRelease(m_pModel);
+    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
 
-    m_pModel = NULL;
-    m_pTree  = NULL;
-
+    CSR_Model*       pModel  = NULL;
     CSR_PixelBuffer* pBitmap = NULL;
 
     try
@@ -663,27 +818,40 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
         pBitmap = csrPixelBufferFromBitmap(fileName.c_str());
 
         // create a landscape model from the grayscale bitmap
-        m_pModel              = csrModelCreate();
-        m_pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
-        m_pModel->m_MeshCount = 1;
+        pModel              = csrModelCreate();
+        pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
+        pModel->m_MeshCount = 1;
     }
     __finally
     {
         csrPixelBufferRelease(pBitmap);
     }
 
-    // create the AABB tree for the landscape model
-    m_pTree = csrAABBTreeFromMesh(&m_pModel->m_pMesh[0]);
+    // initialize the landscape model matrix
+    csrMat4Identity(&m_LandscapeMatrix);
 
-    // succeeded?
-    if (!m_pTree)
-        return false;
+    // add the model to the scene
+    csrSceneAddModel(m_pScene, pModel, 0, 1);
+    csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
+
+    // get back the scene item containing the model
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, pModel);
+
+    // found it?
+    if (pItem)
+        pItem->m_CollisionType = CSR_CO_Ground | CSR_CO_Custom;
+
+    // keep the key
+    m_pLandscapeKey = pModel;
 
     // reset the viewpoint bounding sphere to his default position
-    m_BoundingSphere.m_Center.m_X = 0.0f;
-    m_BoundingSphere.m_Center.m_Y = 0.0f;
-    m_BoundingSphere.m_Center.m_Z = 0.0f;
-    m_BoundingSphere.m_Radius     = 0.1f;
+    m_ViewSphere.m_Center.m_X = 0.0f;
+    m_ViewSphere.m_Center.m_Y = 0.0f;
+    m_ViewSphere.m_Center.m_Z = 0.0f;
+    m_ViewSphere.m_Radius     = 0.1f;
+
+    if (!AddSphere())
+        return false;
 
     return true;
 }
@@ -770,15 +938,19 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName)
     return textureID;
 }
 //---------------------------------------------------------------------------
-void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
-                                     const CSR_AABBNode* pTree,
-                                           CSR_Matrix4*  pMatrix) const
+bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const
 {
-    // validate the inputs
-    if (!pBoundingSphere || !pTree || !pMatrix)
-        return;
+    if (!m_pScene)
+        return false;
 
-    CSR_Sphere transformedSphere = *pBoundingSphere;
+    // validate the inputs
+    if (!pBoundingSphere || !pMatrix)
+        return false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = pBoundingSphere->m_Radius;
+
     CSR_Camera camera;
 
     // calculate the camera position in the 3d world, without the ground value
@@ -796,13 +968,6 @@ void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
     // get the view matrix matching with the camera
     csrSceneCameraToMatrix(&camera, pMatrix);
 
-    CSR_Vector3 groundDir;
-
-    // get the ground direction
-    groundDir.m_X =  0.0f;
-    groundDir.m_Y = -1.0f;
-    groundDir.m_Z =  0.0f;
-
     CSR_Vector3 modelCenter;
 
     // get the model center
@@ -815,15 +980,18 @@ void TMainForm::ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
 
     // calculate the current camera position above the landscape
     csrMat4Inverse(pMatrix, &invertView, &determinant);
-    csrMat4Transform(&invertView, &modelCenter, &transformedSphere.m_Center);
+    csrMat4Transform(&invertView, &modelCenter, &collisionInput.m_BoundingSphere.m_Center);
+    collisionInput.m_CheckPos = collisionInput.m_BoundingSphere.m_Center;
 
-    float posY = -transformedSphere.m_Center.m_Y;
+    CSR_CollisionOutput collisionOutput;
 
-    // calculate the y position where to place the point of view
-    csrGroundPosY(&transformedSphere, pTree, &groundDir, 0, &posY);
+    // calculate the collisions in the whole scene
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, OnDetectCollisionCallback);
 
-    // update the ground position inside the view matrix
-    pMatrix->m_Table[3][1] = -posY;
+    // update the ground position directly inside the matrix (this is where the final value is required)
+    pMatrix->m_Table[3][1] = -collisionOutput.m_GroundPos;
+
+    return (collisionOutput.m_Collision & CSR_CO_Ground);
 }
 //---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
@@ -832,20 +1000,29 @@ void TMainForm::ShowStats() const
     unsigned    stride;
     std::size_t polyCount;
 
-    if (m_pModel && m_pModel->m_MeshCount)
+    // invalid next position, get the scene item (just one for this scene)
+    const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+    // found it?
+    if (!pItem)
+        return;
+
+    const CSR_Model* pModel = (CSR_Model*)pItem->m_pModel;
+
+    if (pModel && pModel->m_MeshCount)
     {
         // get the mesh stride
-        stride = m_pModel->m_pMesh[0].m_pVB ? m_pModel->m_pMesh[0].m_pVB->m_Format.m_Stride : 0;
+        stride = pModel->m_pMesh[0].m_pVB ? pModel->m_pMesh[0].m_pVB->m_Format.m_Stride : 0;
 
         // count all vertices contained in the mesh
-        for (std::size_t i = 0; i < m_pModel->m_pMesh[0].m_Count; ++i)
-            vertexCount += m_pModel->m_pMesh[0].m_pVB[i].m_Count;
+        for (std::size_t i = 0; i < pModel->m_pMesh[0].m_Count; ++i)
+            vertexCount += pModel->m_pMesh[0].m_pVB[i].m_Count;
 
         // calculate the polygons count
-        if (!m_pModel->m_pMesh[0].m_pVB)
+        if (!pModel->m_pMesh[0].m_pVB)
             polyCount = 0;
         else
-            switch (m_pModel->m_pMesh[0].m_pVB->m_Format.m_Type)
+            switch (pModel->m_pMesh[0].m_pVB->m_Format.m_Type)
             {
                 case CSR_VT_Triangles:
                     polyCount = stride ? ((vertexCount / stride) / 3) : 0;
@@ -853,7 +1030,7 @@ void TMainForm::ShowStats() const
 
                 case CSR_VT_TriangleStrip:
                 case CSR_VT_TriangleFan:
-                    polyCount = stride ? ((vertexCount / stride) - (2 * m_pModel->m_pMesh[0].m_Count)) : 0;
+                    polyCount = stride ? ((vertexCount / stride) - (2 * pModel->m_pMesh[0].m_Count)) : 0;
                     break;
 
                 default:
@@ -923,6 +1100,87 @@ void TMainForm::OnDrawScene(bool resize)
     }
 
     ++m_Stats.m_RefreshCounter;
+}
+//---------------------------------------------------------------------------
+CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+{
+    return m_pShader;
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
+{
+    if (ckAntialiasing->Checked)
+        csrMSAADrawBegin(&pScene->m_Color, m_pMSAA);
+    else
+        csrDrawBegin(&pScene->m_Color);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
+{
+    if (ckAntialiasing->Checked)
+        csrMSAADrawEnd(m_pMSAA);
+    else
+        csrDrawEnd();
+}
+//---------------------------------------------------------------------------
+int TMainForm::OnDetectCollision(const CSR_Scene*           pScene,
+                                 const CSR_SceneItem*       pSceneItem,
+                                       size_t               index,
+                                 const CSR_Matrix4*         pInvertedModelMatrix,
+                                 const CSR_CollisionInput*  pCollisionInput,
+                                       CSR_CollisionOutput* pCollisionOutput)
+{
+    // found the correct scene item to check?
+    if (pSceneItem->m_pModel != m_pLandscapeKey)
+        return 0;
+
+    // do show the ball?
+    if (!ckShowBall->Checked)
+    {
+        CSR_Vector3 defPos;
+        defPos.m_X =  0.0f;
+        defPos.m_Y = -99999.0f;
+        defPos.m_Z =  0.0f;
+
+        // modify the model matrix
+        csrMat4Translate(&defPos, &m_SphereMatrix);
+        return 0;
+    }
+
+    CSR_Vector3 nextPos;
+
+    // calculate the next sphere position
+    nextPos.m_X = m_ViewSphere.m_Center.m_X - (0.5f * sinf((M_PI * 2.0f) - m_Angle));
+    nextPos.m_Y = 0.0f;
+    nextPos.m_Z = m_ViewSphere.m_Center.m_Z - (0.5f * cosf((M_PI * 2.0f) - m_Angle));
+
+    CSR_Sphere nextPosSphere;
+    nextPosSphere.m_Radius = m_ModelSphere.m_Radius;
+
+    // put the pos to check into the model coordinate system (at the location where the collision
+    // should be checked)
+    csrMat4Transform(pInvertedModelMatrix, &nextPos, &nextPosSphere.m_Center);
+
+    float posY;
+
+    // calculate the y position where to place the point of view
+    if (csrGroundPosY(&nextPosSphere,
+                      &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
+                      &pScene->m_GroundDir,
+                       0,
+                      &posY))
+    {
+        // found a valid position, update it
+        m_ModelSphere.m_Center     = nextPosSphere.m_Center;
+        m_ModelSphere.m_Center.m_Y = posY;
+    }
+    else
+        m_ModelSphere.m_Center.m_Y = -99999.0f;
+
+    // modify the model matrix
+    csrMat4Translate(&m_ModelSphere.m_Center, &m_SphereMatrix);
+
+    return 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
