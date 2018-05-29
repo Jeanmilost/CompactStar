@@ -52,7 +52,8 @@ typedef enum
     CSR_CO_None   = 0x0,
     CSR_CO_Ground = 0x1,
     CSR_CO_Edge   = 0x2,
-    CSR_CO_Mouse  = 0x4
+    CSR_CO_Mouse  = 0x4,
+    CSR_CO_Custom = 0x8
 } CSR_ECollisionType;
 
 /**
@@ -156,14 +157,6 @@ typedef struct
 } CSR_CollisionInput;
 
 /**
-* Collision item input
-*/
-typedef struct
-{
-    CSR_Vector3* m_pGroundDir; // scene ground direction
-} CSR_CollisionItemInput;
-
-/**
 * Collision output
 */
 typedef struct
@@ -220,6 +213,23 @@ typedef void (*CSR_fOnGetMDLIndex)(const CSR_MDL* pMDL,
                                          size_t*  pTextureIndex,
                                          size_t*  pModelIndex,
                                          size_t*  pMeshIndex);
+
+/**
+* Called when a collision should be detected
+*@param pScene - scene in which the models to check are contained
+*@param pSceneItem - the scene item currently tested
+*@param index - model matrix currently tested in the scene item
+*@param pInvertedModelMatrix - invert of the currently tested model matrix
+*@param pCollisionInput - collision input
+*@param[in, out] pCollisionOutput - collision output
+*@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+*/
+typedef int (*CSR_fOnDetectCollision)(const CSR_Scene*           pScene,
+                                      const CSR_SceneItem*       pSceneItem,
+                                            size_t               index,
+                                      const CSR_Matrix4*         pInvertedModelMatrix,
+                                      const CSR_CollisionInput*  pCollisionInput,
+                                            CSR_CollisionOutput* pCollisionOutput);
 
 //---------------------------------------------------------------------------
 // Implementation
@@ -363,11 +373,13 @@ struct CSR_SceneContext
         *@param pCollisionInput - collision input
         *@param pCollisionItemInput - collision item input
         *@param[in, out] pCollisionOutput - collision output containing the result
+        *@param fOnDetectCollision - OnDetectCollision callback
         */
-        void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
-                                         const CSR_CollisionInput*     pCollisionInput,
-                                         const CSR_CollisionItemInput* pCollisionItemInput,
-                                               CSR_CollisionOutput*    pCollisionOutput);
+        void csrSceneItemDetectCollision(const CSR_Scene*             pScene,
+                                         const CSR_SceneItem*         pSceneItem,
+                                         const CSR_CollisionInput*    pCollisionInput,
+                                               CSR_CollisionOutput*   pCollisionOutput,
+                                               CSR_fOnDetectCollision fOnDetectCollision);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -480,10 +492,12 @@ struct CSR_SceneContext
         *@param pScene - scene in which the collisions should be detected
         *@param pCollisionInput - collision input
         *@param[in, out] pCollisionOutput - collision output containing the result
+        *@param fOnDetectCollision - OnDetectCollision callback
         */
-        void csrSceneDetectCollision(const CSR_Scene*           pScene,
-                                     const CSR_CollisionInput*  pCollisionInput,
-                                           CSR_CollisionOutput* pCollisionOutput);
+        void csrSceneDetectCollision(const CSR_Scene*             pScene,
+                                     const CSR_CollisionInput*    pCollisionInput,
+                                           CSR_CollisionOutput*   pCollisionOutput,
+                                           CSR_fOnDetectCollision fOnDetectCollision);
 
         /**
         * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position

@@ -406,10 +406,11 @@ void csrSceneItemDraw(const CSR_Scene*        pScene,
     csrShaderEnable(0);
 }
 //---------------------------------------------------------------------------
-void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
-                                 const CSR_CollisionInput*     pCollisionInput,
-                                 const CSR_CollisionItemInput* pCollisionItemInput,
-                                       CSR_CollisionOutput*    pCollisionOutput)
+void csrSceneItemDetectCollision(const CSR_Scene*             pScene,
+                                 const CSR_SceneItem*         pSceneItem,
+                                 const CSR_CollisionInput*    pCollisionInput,
+                                       CSR_CollisionOutput*   pCollisionOutput,
+                                       CSR_fOnDetectCollision fOnDetectCollision)
 {
     size_t      i;
     CSR_Vector3 rayPos;
@@ -418,14 +419,15 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
     CSR_Sphere  sphere;
 
     // validate the inputs
-    if (!pSceneItem || !pCollisionInput || !pCollisionItemInput || !pCollisionOutput)
+    if (!pScene || !pSceneItem || !pCollisionInput || !pCollisionOutput)
         return;
 
     // can detect collision on this model?
-    if ( pSceneItem->m_CollisionType == CSR_CO_None ||
-        !pSceneItem->m_pMatrixArray                 ||
-        !pSceneItem->m_AABBTreeCount                ||
-         pSceneItem->m_AABBTreeIndex >= pSceneItem->m_AABBTreeCount)
+    if (!(pSceneItem->m_CollisionType & CSR_CO_Custom) &&
+         (pSceneItem->m_CollisionType == CSR_CO_None   ||
+         !pSceneItem->m_pMatrixArray                   ||
+         !pSceneItem->m_AABBTreeCount                  ||
+          pSceneItem->m_AABBTreeIndex >= pSceneItem->m_AABBTreeCount))
         return;
 
     // copy the sphere radius
@@ -442,6 +444,22 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
                        &invertMatrix,
                        &determinant);
 
+        // let the caller process custom collisions if required
+        if (fOnDetectCollision && pSceneItem->m_CollisionType & CSR_CO_Custom)
+        {
+            if (fOnDetectCollision(pScene,
+                                   pSceneItem,
+                                   i,
+                                  &invertMatrix,
+                                   pCollisionInput,
+                                   pCollisionOutput))
+                continue;
+
+            // because not checked above, to prevent that stupid things happen...
+            if (!pSceneItem->m_AABBTreeCount || pSceneItem->m_AABBTreeIndex >= pSceneItem->m_AABBTreeCount)
+                continue;
+        }
+
         // put the bounding sphere into the model coordinate system (at the location where the
         // collision should be checked)
         csrMat4Transform(&invertMatrix, &pCollisionInput->m_CheckPos, &sphere.m_Center);
@@ -455,7 +473,7 @@ void csrSceneItemDetectCollision(const CSR_SceneItem*          pSceneItem,
             // calculate the y position where to place the point of view
             if (csrGroundPosY(&sphere,
                               &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
-                               pCollisionItemInput->m_pGroundDir,
+                              &pScene->m_GroundDir,
                               &groundPolygon,
                               &posY))
             {
@@ -1283,12 +1301,12 @@ void csrSceneCameraToMatrix(const CSR_Camera* pCamera, CSR_Matrix4* pR)
     }
 }
 //---------------------------------------------------------------------------
-void csrSceneDetectCollision(const CSR_Scene*           pScene,
-                             const CSR_CollisionInput*  pCollisionInput,
-                                   CSR_CollisionOutput* pCollisionOutput)
+void csrSceneDetectCollision(const CSR_Scene*             pScene,
+                             const CSR_CollisionInput*    pCollisionInput,
+                                   CSR_CollisionOutput*   pCollisionOutput,
+                                   CSR_fOnDetectCollision fOnDetectCollision)
 {
-    size_t                 i;
-    CSR_CollisionItemInput collisionItemInput;
+    size_t i;
 
     // validate the inputs
     if (!pScene || !pCollisionInput || !pCollisionOutput)
@@ -1297,22 +1315,21 @@ void csrSceneDetectCollision(const CSR_Scene*           pScene,
     // initialize the collision output
     csrCollisionOutputInit(pCollisionOutput);
 
-    // initialize the collision item input
-    collisionItemInput.m_pGroundDir = &pScene->m_GroundDir;
-
     // iterate through the scene items
     for (i = 0; i < pScene->m_ItemCount; ++i)
-        csrSceneItemDetectCollision(&pScene->m_pItem[i],
-                                     pCollisionInput,
-                                    &collisionItemInput,
-                                     pCollisionOutput);
+        csrSceneItemDetectCollision(pScene,
+                                   &pScene->m_pItem[i],
+                                    pCollisionInput,
+                                    pCollisionOutput,
+                                    fOnDetectCollision);
 
     // iterate through the scene transparent items
     for (i = 0; i < pScene->m_TransparentItemCount; ++i)
-        csrSceneItemDetectCollision(&pScene->m_pTransparentItem[i],
-                                     pCollisionInput,
-                                    &collisionItemInput,
-                                     pCollisionOutput);
+        csrSceneItemDetectCollision(pScene,
+                                   &pScene->m_pTransparentItem[i],
+                                    pCollisionInput,
+                                    pCollisionOutput,
+                                    fOnDetectCollision);
 }
 //---------------------------------------------------------------------------
 void csrSceneTouchPosToViewportPos(const CSR_Vector2* pTouchPos,

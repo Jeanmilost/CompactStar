@@ -34,6 +34,7 @@
 #include "CSR_Collision.h"
 #include "CSR_Shader.h"
 #include "CSR_Renderer.h"
+#include "CSR_Scene.h"
 #include "CSR_Sound.h"
 
 /**
@@ -60,6 +61,7 @@ class TMainForm : public TForm
         TCheckBox *ckAntialiasing;
         TCheckBox *ckDisableSound;
         TButton *btResetViewport;
+        TCheckBox *ckShowBall;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -80,6 +82,46 @@ class TMainForm : public TForm
         * Destructor
         */
         virtual __fastcall ~TMainForm();
+
+        /**
+        * Called when a shader should be get for a model
+        *@param pModel - model for which the shader shoudl be get
+        *@param type - model type
+        *@return shader to use to draw the model, 0 if no shader
+        *@note The model will not be drawn if no shader is returned
+        */
+        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+
+        /**
+        * Called when scene begins
+        *@param pScene - scene to begin
+        *@param pContext - scene context
+        */
+        static void OnSceneBeginCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when scene ends
+        *@param pScene - scene to end
+        *@param pContext - scene context
+        */
+        static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when a collision should be detected
+        *@param pScene - scene in which the models to check are contained
+        *@param pSceneItem - the scene item currently tested
+        *@param index - model matrix currently tested in the scene item
+        *@param pInvertedModelMatrix - invert of the currently tested model matrix
+        *@param pCollisionInput - collision input
+        *@param[in, out] pCollisionOutput - collision output
+        *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+        */
+        static int OnDetectCollisionCallback(const CSR_Scene*           pScene,
+                                             const CSR_SceneItem*       pSceneItem,
+                                                   size_t               index,
+                                             const CSR_Matrix4*         pInvertedModelMatrix,
+                                             const CSR_CollisionInput*  pCollisionInput,
+                                                   CSR_CollisionOutput* pCollisionOutput);
 
     protected:
         /**
@@ -115,13 +157,16 @@ class TMainForm : public TForm
         CSR_Sound*       m_pSound;
         CSR_Color        m_Background;
         CSR_Shader*      m_pShader;
-        CSR_Model*       m_pModel;
-        CSR_AABBNode*    m_pTree;
+        CSR_Scene*       m_pScene;
+        CSR_SceneContext m_SceneContext;
+        void*            m_pLandscapeKey;
+        void*            m_pSphereKey;
         CSR_MSAA*        m_pMSAA;
         CSR_Matrix4      m_ProjectionMatrix;
-        CSR_Matrix4      m_ViewMatrix;
-        CSR_Matrix4      m_ModelMatrix;
-        CSR_Sphere       m_BoundingSphere;
+        CSR_Matrix4      m_LandscapeMatrix;
+        CSR_Matrix4      m_SphereMatrix;
+        CSR_Sphere       m_ViewSphere;
+        CSR_Sphere       m_ModelSphere;
         std::size_t      m_FrameCount;
         float            m_Angle;
         float            m_PosVelocity;
@@ -181,6 +226,12 @@ class TMainForm : public TForm
         void DrawScene();
 
         /**
+        * Adds a sphere to the scene
+        *@return true on success, otherwise false
+        */
+        bool AddSphere();
+
+        /**
         * Loads a model from a file
         *@param fileName - model file name to load from
         *@return true on success, otherwise false
@@ -204,12 +255,10 @@ class TMainForm : public TForm
         /**
         * Calculates a matrix where to put the point of view to lie on the ground
         *@param pBoundingSphere - sphere surrounding the point of view
-        *@param pTree - ground model aligned-axis bounding box tree
         *@param[out] pMatrix - resulting view matrix
+        *@return true if new position is valid, otherwise false
         */
-        void ApplyGroundCollision(const CSR_Sphere*   pBoundingSphere,
-                                  const CSR_AABBNode* pTree,
-                                        CSR_Matrix4*  pMatrix) const;
+        bool ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const;
 
         /**
         * Shows the stats
@@ -221,6 +270,46 @@ class TMainForm : public TForm
         *@param resize - if true, the scene should be repainted during a resize
         */
         void OnDrawScene(bool resize);
+
+        /**
+        * Called when a shader should be get for a model
+        *@param pModel - model for which the shader shoudl be get
+        *@param type - model type
+        *@return shader to use to draw the model, 0 if no shader
+        *@note The model will not be drawn if no shader is returned
+        */
+        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+
+        /**
+        * Called when scene begins
+        *@param pScene - scene to begin
+        *@param pContext - scene context
+        */
+        void OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when scene ends
+        *@param pScene - scene to end
+        *@param pContext - scene context
+        */
+        void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when a collision should be detected
+        *@param pScene - scene in which the models to check are contained
+        *@param pSceneItem - the scene item currently tested
+        *@param index - model matrix currently tested in the scene item
+        *@param pInvertedModelMatrix - invert of the currently tested model matrix
+        *@param pCollisionInput - collision input
+        *@param[in, out] pCollisionOutput - collision output
+        *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+        */
+        int OnDetectCollision(const CSR_Scene*           pScene,
+                              const CSR_SceneItem*       pSceneItem,
+                                    size_t               index,
+                              const CSR_Matrix4*         pInvertedModelMatrix,
+                              const CSR_CollisionInput*  pCollisionInput,
+                                    CSR_CollisionOutput* pCollisionOutput);
 
         /**
         * Called while application is idle
