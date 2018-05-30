@@ -167,7 +167,7 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Open Model...'
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btLoadModelClick
     end
     object ckAntialiasing: TCheckBox
@@ -185,25 +185,25 @@ object MainForm: TMainForm
     object ckDisableSound: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 159
+      Top = 182
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Disable the sound'
-      TabOrder = 2
-      ExplicitTop = 136
+      TabOrder = 3
+      ExplicitTop = 159
     end
     object btResetViewport: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 182
+      Top = 205
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Reset the viewport'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btResetViewportClick
-      ExplicitTop = 159
+      ExplicitTop = 182
     end
     object ckShowBall: TCheckBox
       AlignWithMargins = True
@@ -214,7 +214,18 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show a ball on the camera front'
       TabOrder = 1
-      ExplicitTop = 145
+    end
+    object ckSlipAgainstSlopes: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 159
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Slip against the slopes'
+      TabOrder = 2
+      ExplicitLeft = -5
+      ExplicitTop = 182
     end
   end
   object aeEvents: TApplicationEvents

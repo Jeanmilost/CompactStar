@@ -406,11 +406,11 @@ void csrSceneItemDraw(const CSR_Scene*        pScene,
     csrShaderEnable(0);
 }
 //---------------------------------------------------------------------------
-void csrSceneItemDetectCollision(const CSR_Scene*             pScene,
-                                 const CSR_SceneItem*         pSceneItem,
-                                 const CSR_CollisionInput*    pCollisionInput,
-                                       CSR_CollisionOutput*   pCollisionOutput,
-                                       CSR_fOnDetectCollision fOnDetectCollision)
+void csrSceneItemDetectCollision(const CSR_Scene*                   pScene,
+                                 const CSR_SceneItem*               pSceneItem,
+                                 const CSR_CollisionInput*          pCollisionInput,
+                                       CSR_CollisionOutput*         pCollisionOutput,
+                                       CSR_fOnCustomDetectCollision fOnCustomDetectCollision)
 {
     size_t      i;
     CSR_Vector3 rayPos;
@@ -445,14 +445,14 @@ void csrSceneItemDetectCollision(const CSR_Scene*             pScene,
                        &determinant);
 
         // let the caller process custom collisions if required
-        if (fOnDetectCollision && pSceneItem->m_CollisionType & CSR_CO_Custom)
+        if (fOnCustomDetectCollision && pSceneItem->m_CollisionType & CSR_CO_Custom)
         {
-            if (fOnDetectCollision(pScene,
-                                   pSceneItem,
-                                   i,
-                                  &invertMatrix,
-                                   pCollisionInput,
-                                   pCollisionOutput))
+            if (fOnCustomDetectCollision(pScene,
+                                         pSceneItem,
+                                         i,
+                                        &invertMatrix,
+                                         pCollisionInput,
+                                         pCollisionOutput))
                 continue;
 
             // because not checked above, to prevent that stupid things happen...
@@ -1301,10 +1301,10 @@ void csrSceneCameraToMatrix(const CSR_Camera* pCamera, CSR_Matrix4* pR)
     }
 }
 //---------------------------------------------------------------------------
-void csrSceneDetectCollision(const CSR_Scene*             pScene,
-                             const CSR_CollisionInput*    pCollisionInput,
-                                   CSR_CollisionOutput*   pCollisionOutput,
-                                   CSR_fOnDetectCollision fOnDetectCollision)
+void csrSceneDetectCollision(const CSR_Scene*                   pScene,
+                             const CSR_CollisionInput*          pCollisionInput,
+                                   CSR_CollisionOutput*         pCollisionOutput,
+                                   CSR_fOnCustomDetectCollision fOnCustomDetectCollision)
 {
     size_t i;
 
@@ -1321,7 +1321,7 @@ void csrSceneDetectCollision(const CSR_Scene*             pScene,
                                    &pScene->m_pItem[i],
                                     pCollisionInput,
                                     pCollisionOutput,
-                                    fOnDetectCollision);
+                                    fOnCustomDetectCollision);
 
     // iterate through the scene transparent items
     for (i = 0; i < pScene->m_TransparentItemCount; ++i)
@@ -1329,7 +1329,7 @@ void csrSceneDetectCollision(const CSR_Scene*             pScene,
                                    &pScene->m_pTransparentItem[i],
                                     pCollisionInput,
                                     pCollisionOutput,
-                                    fOnDetectCollision);
+                                    fOnCustomDetectCollision);
 }
 //---------------------------------------------------------------------------
 void csrSceneTouchPosToViewportPos(const CSR_Vector2* pTouchPos,

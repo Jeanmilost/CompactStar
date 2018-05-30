@@ -114,6 +114,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_DirVelocity(0.0f),
     m_StepTime(0.0f),
     m_StepInterval(350.0f),
+    m_DriftOffsetX(0.0f),
+    m_DriftOffsetZ(0.0f),
     m_StartTime(0),
     m_PreviousTime(0),
     m_Initialized(false),
@@ -338,24 +340,24 @@ void TMainForm::OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneConte
     pMainForm->OnSceneEnd(pScene, pContext);
 }
 //---------------------------------------------------------------------------
-int TMainForm::OnDetectCollisionCallback(const CSR_Scene*           pScene,
-                                         const CSR_SceneItem*       pSceneItem,
-                                               size_t               index,
-                                         const CSR_Matrix4*         pInvertedModelMatrix,
-                                         const CSR_CollisionInput*  pCollisionInput,
-                                               CSR_CollisionOutput* pCollisionOutput)
+int TMainForm::OnCustomDetectCollisionCallback(const CSR_Scene*           pScene,
+                                               const CSR_SceneItem*       pSceneItem,
+                                                     size_t               index,
+                                               const CSR_Matrix4*         pInvertedModelMatrix,
+                                               const CSR_CollisionInput*  pCollisionInput,
+                                                     CSR_CollisionOutput* pCollisionOutput)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
     if (!pMainForm)
         return 0;
 
-    return pMainForm->OnDetectCollision(pScene,
-                                        pSceneItem,
-                                        index,
-                                        pInvertedModelMatrix,
-                                        pCollisionInput,
-                                        pCollisionOutput);
+    return pMainForm->OnCustomDetectCollision(pScene,
+                                              pSceneItem,
+                                              index,
+                                              pInvertedModelMatrix,
+                                              pCollisionInput,
+                                              pCollisionOutput);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
@@ -645,6 +647,11 @@ void TMainForm::UpdateScene(float elapsedTime)
                 m_StepTime = 0.0f;
             }
         }
+    }
+    else
+    {
+        m_ViewSphere.m_Center.m_X += m_DriftOffsetX;
+        m_ViewSphere.m_Center.m_Z += m_DriftOffsetZ;
     }
 
     // enable the shader program
@@ -938,7 +945,7 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName)
     return textureID;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const
+bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix)
 {
     if (!m_pScene)
         return false;
@@ -986,12 +993,65 @@ bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matr
     CSR_CollisionOutput collisionOutput;
 
     // calculate the collisions in the whole scene
-    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, OnDetectCollisionCallback);
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, OnCustomDetectCollisionCallback);
 
     // update the ground position directly inside the matrix (this is where the final value is required)
     pMatrix->m_Table[3][1] = -collisionOutput.m_GroundPos;
 
-    return (collisionOutput.m_Collision & CSR_CO_Ground);
+    m_DriftOffsetX = 0.0f;
+    m_DriftOffsetZ = 0.0f;
+
+    // found a ground collision?
+    if (collisionOutput.m_Collision & CSR_CO_Ground)
+    {
+        // do slip against the slopes?
+        if (ckSlipAgainstSlopes->Checked)
+        {
+            // get the ground plane direction
+            CSR_Vector3 planeDir;
+            planeDir.m_X = collisionOutput.m_GroundPlane.m_A;
+            planeDir.m_Y = collisionOutput.m_GroundPlane.m_B;
+            planeDir.m_Z = collisionOutput.m_GroundPlane.m_C;
+
+            CSR_Vector3 xDir;
+            xDir.m_X = 1.0f;
+            xDir.m_Y = 0.0f;
+            xDir.m_Z = 0.0f;
+
+            float dirAngleX;
+
+            // calculate the angle to drift against the x axis
+            csrVec3Dot(&xDir, &planeDir, &dirAngleX);
+
+            CSR_Vector3 zDir;
+            zDir.m_X = 0.0f;
+            zDir.m_Y = 0.0f;
+            zDir.m_Z = 1.0f;
+
+            float dirAngleZ;
+
+            // calculate the angle to drift against the z axis
+            csrVec3Dot(&zDir, &planeDir, &dirAngleZ);
+
+            CSR_Vector3 up;
+            up.m_X = 0.0f;
+            up.m_Y = 1.0f;
+            up.m_Z = 0.0f;
+
+            float velocityAngle;
+
+            // calculate the drift velocity (the steeper is the slope, the higher is the fall speed)
+            csrVec3Dot(&up, &planeDir, &velocityAngle);
+
+            // calculate the drift offsets to apply on the next frame
+            m_DriftOffsetX = 0.001f * dirAngleX * velocityAngle;
+            m_DriftOffsetZ = 0.001f * dirAngleZ * velocityAngle;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 //---------------------------------------------------------------------------
 void TMainForm::ShowStats() const
@@ -1123,12 +1183,12 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
         csrDrawEnd();
 }
 //---------------------------------------------------------------------------
-int TMainForm::OnDetectCollision(const CSR_Scene*           pScene,
-                                 const CSR_SceneItem*       pSceneItem,
-                                       size_t               index,
-                                 const CSR_Matrix4*         pInvertedModelMatrix,
-                                 const CSR_CollisionInput*  pCollisionInput,
-                                       CSR_CollisionOutput* pCollisionOutput)
+int TMainForm::OnCustomDetectCollision(const CSR_Scene*           pScene,
+                                       const CSR_SceneItem*       pSceneItem,
+                                             size_t               index,
+                                       const CSR_Matrix4*         pInvertedModelMatrix,
+                                       const CSR_CollisionInput*  pCollisionInput,
+                                             CSR_CollisionOutput* pCollisionOutput)
 {
     // found the correct scene item to check?
     if (pSceneItem->m_pModel != m_pLandscapeKey)

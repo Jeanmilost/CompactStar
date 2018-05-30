@@ -215,7 +215,7 @@ typedef void (*CSR_fOnGetMDLIndex)(const CSR_MDL* pMDL,
                                          size_t*  pMeshIndex);
 
 /**
-* Called when a collision should be detected
+* Called when a custom collision should be detected in a scene
 *@param pScene - scene in which the models to check are contained
 *@param pSceneItem - the scene item currently tested
 *@param index - model matrix currently tested in the scene item
@@ -223,13 +223,14 @@ typedef void (*CSR_fOnGetMDLIndex)(const CSR_MDL* pMDL,
 *@param pCollisionInput - collision input
 *@param[in, out] pCollisionOutput - collision output
 *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+*@note This callback will be called only for the items containing the CSR_CO_Custom collision type
 */
-typedef int (*CSR_fOnDetectCollision)(const CSR_Scene*           pScene,
-                                      const CSR_SceneItem*       pSceneItem,
-                                            size_t               index,
-                                      const CSR_Matrix4*         pInvertedModelMatrix,
-                                      const CSR_CollisionInput*  pCollisionInput,
-                                            CSR_CollisionOutput* pCollisionOutput);
+typedef int (*CSR_fOnCustomDetectCollision)(const CSR_Scene*           pScene,
+                                            const CSR_SceneItem*       pSceneItem,
+                                                  size_t               index,
+                                            const CSR_Matrix4*         pInvertedModelMatrix,
+                                            const CSR_CollisionInput*  pCollisionInput,
+                                                  CSR_CollisionOutput* pCollisionOutput);
 
 //---------------------------------------------------------------------------
 // Implementation
@@ -373,13 +374,13 @@ struct CSR_SceneContext
         *@param pCollisionInput - collision input
         *@param pCollisionItemInput - collision item input
         *@param[in, out] pCollisionOutput - collision output containing the result
-        *@param fOnDetectCollision - OnDetectCollision callback
+        *@param fOnCustomDetectCollision - custom collision detection callback
         */
-        void csrSceneItemDetectCollision(const CSR_Scene*             pScene,
-                                         const CSR_SceneItem*         pSceneItem,
-                                         const CSR_CollisionInput*    pCollisionInput,
-                                               CSR_CollisionOutput*   pCollisionOutput,
-                                               CSR_fOnDetectCollision fOnDetectCollision);
+        void csrSceneItemDetectCollision(const CSR_Scene*                   pScene,
+                                         const CSR_SceneItem*               pSceneItem,
+                                         const CSR_CollisionInput*          pCollisionInput,
+                                               CSR_CollisionOutput*         pCollisionOutput,
+                                               CSR_fOnCustomDetectCollision fOnCustomDetectCollision);
 
         //-------------------------------------------------------------------
         // Scene functions
@@ -492,12 +493,12 @@ struct CSR_SceneContext
         *@param pScene - scene in which the collisions should be detected
         *@param pCollisionInput - collision input
         *@param[in, out] pCollisionOutput - collision output containing the result
-        *@param fOnDetectCollision - OnDetectCollision callback
+        *@param fOnCustomDetectCollision - custom detection collision callback
         */
-        void csrSceneDetectCollision(const CSR_Scene*             pScene,
-                                     const CSR_CollisionInput*    pCollisionInput,
-                                           CSR_CollisionOutput*   pCollisionOutput,
-                                           CSR_fOnDetectCollision fOnDetectCollision);
+        void csrSceneDetectCollision(const CSR_Scene*                   pScene,
+                                     const CSR_CollisionInput*          pCollisionInput,
+                                           CSR_CollisionOutput*         pCollisionOutput,
+                                           CSR_fOnCustomDetectCollision fOnCustomDetectCollision);
 
         /**
         * Converts a touch position (e.g. the mouse pointer or the finger) to a viewport position

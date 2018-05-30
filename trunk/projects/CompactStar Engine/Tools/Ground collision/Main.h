@@ -62,6 +62,7 @@ class TMainForm : public TForm
         TCheckBox *ckDisableSound;
         TButton *btResetViewport;
         TCheckBox *ckShowBall;
+        TCheckBox *ckSlipAgainstSlopes;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -107,7 +108,7 @@ class TMainForm : public TForm
         static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
         /**
-        * Called when a collision should be detected
+        * Called when a custom collision should be detected in a scene
         *@param pScene - scene in which the models to check are contained
         *@param pSceneItem - the scene item currently tested
         *@param index - model matrix currently tested in the scene item
@@ -115,13 +116,14 @@ class TMainForm : public TForm
         *@param pCollisionInput - collision input
         *@param[in, out] pCollisionOutput - collision output
         *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+        *@note This callback will be called only for the items containing the CSR_CO_Custom collision type
         */
-        static int OnDetectCollisionCallback(const CSR_Scene*           pScene,
-                                             const CSR_SceneItem*       pSceneItem,
-                                                   size_t               index,
-                                             const CSR_Matrix4*         pInvertedModelMatrix,
-                                             const CSR_CollisionInput*  pCollisionInput,
-                                                   CSR_CollisionOutput* pCollisionOutput);
+        static int OnCustomDetectCollisionCallback(const CSR_Scene*           pScene,
+                                                   const CSR_SceneItem*       pSceneItem,
+                                                         size_t               index,
+                                                   const CSR_Matrix4*         pInvertedModelMatrix,
+                                                   const CSR_CollisionInput*  pCollisionInput,
+                                                         CSR_CollisionOutput* pCollisionOutput);
 
     protected:
         /**
@@ -173,6 +175,8 @@ class TMainForm : public TForm
         float            m_DirVelocity;
         float            m_StepTime;
         float            m_StepInterval;
+        float            m_DriftOffsetX;
+        float            m_DriftOffsetZ;
         std::string      m_SceneDir;
         unsigned __int64 m_StartTime;
         unsigned __int64 m_PreviousTime;
@@ -258,7 +262,7 @@ class TMainForm : public TForm
         *@param[out] pMatrix - resulting view matrix
         *@return true if new position is valid, otherwise false
         */
-        bool ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const;
+        bool ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix);
 
         /**
         * Shows the stats
@@ -295,7 +299,7 @@ class TMainForm : public TForm
         void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
         /**
-        * Called when a collision should be detected
+        * Called when a custom collision should be detected in a scene
         *@param pScene - scene in which the models to check are contained
         *@param pSceneItem - the scene item currently tested
         *@param index - model matrix currently tested in the scene item
@@ -303,13 +307,14 @@ class TMainForm : public TForm
         *@param pCollisionInput - collision input
         *@param[in, out] pCollisionOutput - collision output
         *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
+        *@note This callback will be called only for the items containing the CSR_CO_Custom collision type
         */
-        int OnDetectCollision(const CSR_Scene*           pScene,
-                              const CSR_SceneItem*       pSceneItem,
-                                    size_t               index,
-                              const CSR_Matrix4*         pInvertedModelMatrix,
-                              const CSR_CollisionInput*  pCollisionInput,
-                                    CSR_CollisionOutput* pCollisionOutput);
+        int OnCustomDetectCollision(const CSR_Scene*           pScene,
+                                    const CSR_SceneItem*       pSceneItem,
+                                          size_t               index,
+                                    const CSR_Matrix4*         pInvertedModelMatrix,
+                                    const CSR_CollisionInput*  pCollisionInput,
+                                          CSR_CollisionOutput* pCollisionOutput);
 
         /**
         * Called while application is idle
