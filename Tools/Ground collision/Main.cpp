@@ -1101,6 +1101,8 @@ void TMainForm::ShowStats() const
 
     // show the stats
     laPolygonCount->Caption = L"Polygons Count: " + ::IntToStr(int(polyCount));
+    laX->Caption            = L"X: "              + ::FloatToStr(m_ViewSphere.m_Center.m_X);
+    laZ->Caption            = L"Z: "              + ::FloatToStr(m_ViewSphere.m_Center.m_Z);
     laAltitude->Caption     = L"Altitude: "       + ::FloatToStr(m_Stats.m_Altitude);
     laFPS->Caption          = L"FPS:"             + ::IntToStr(int(m_Stats.m_FPS));
 }

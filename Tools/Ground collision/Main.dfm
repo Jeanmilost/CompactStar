@@ -53,6 +53,7 @@ object MainForm: TMainForm
     Constraints.MinWidth = 185
     ParentBackground = False
     TabOrder = 1
+    ExplicitLeft = 618
     object blFilesSeparator: TBevel
       Left = 0
       Top = 567
@@ -108,20 +109,22 @@ object MainForm: TMainForm
     end
     object laAltitude: TLabel
       Left = 0
-      Top = 40
+      Top = 66
       Width = 185
       Height = 13
       Align = alTop
       Caption = 'Altitude:'
+      ExplicitTop = 40
       ExplicitWidth = 41
     end
     object laFPS: TLabel
       Left = 0
-      Top = 53
+      Top = 79
       Width = 185
       Height = 13
       Align = alTop
       Caption = 'FPS:'
+      ExplicitTop = 53
       ExplicitWidth = 22
     end
     object laPolygonCount: TLabel
@@ -135,7 +138,7 @@ object MainForm: TMainForm
     end
     object blOptions: TBevel
       Left = 0
-      Top = 108
+      Top = 134
       Width = 185
       Height = 2
       Align = alTop
@@ -145,7 +148,7 @@ object MainForm: TMainForm
     object laOptions: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 86
+      Top = 112
       Width = 179
       Height = 19
       Margins.Top = 20
@@ -157,7 +160,28 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitTop = 86
       ExplicitWidth = 62
+    end
+    object laX: TLabel
+      Left = 0
+      Top = 40
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'X:'
+      ExplicitLeft = 6
+      ExplicitTop = 33
+    end
+    object laZ: TLabel
+      Left = 0
+      Top = 53
+      Width = 185
+      Height = 13
+      Align = alTop
+      Caption = 'Z:'
+      ExplicitTop = 40
+      ExplicitWidth = 10
     end
     object btLoadModel: TButton
       AlignWithMargins = True
@@ -173,7 +197,7 @@ object MainForm: TMainForm
     object ckAntialiasing: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 113
+      Top = 139
       Width = 179
       Height = 17
       Align = alTop
@@ -181,51 +205,52 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
+      ExplicitTop = 113
     end
     object ckDisableSound: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 182
+      Top = 208
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Disable the sound'
       TabOrder = 3
-      ExplicitTop = 159
+      ExplicitTop = 182
     end
     object btResetViewport: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 205
+      Top = 231
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Reset the viewport'
       TabOrder = 4
       OnClick = btResetViewportClick
-      ExplicitTop = 182
+      ExplicitTop = 205
     end
     object ckShowBall: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 136
+      Top = 162
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Show a ball on the camera front'
       TabOrder = 1
+      ExplicitTop = 136
     end
     object ckSlipAgainstSlopes: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 159
+      Top = 185
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Slip against the slopes'
       TabOrder = 2
-      ExplicitLeft = -5
-      ExplicitTop = 182
+      ExplicitTop = 159
     end
   end
   object aeEvents: TApplicationEvents
