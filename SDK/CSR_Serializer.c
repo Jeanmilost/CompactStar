@@ -1039,7 +1039,7 @@ int csrSerializerReadSceneItem(const CSR_ReadContext*      pContext,
     }
 
     // do generate the AABB tree(s)?
-    if (pSceneItem->m_CollisionType & CSR_CT_Ground || pSceneItem->m_CollisionType & CSR_CT_Edge)
+    if (pSceneItem->m_CollisionType & CSR_CO_Ground || pSceneItem->m_CollisionType & CSR_CO_Edge)
         switch (pSceneItem->m_Type)
         {
             case CSR_MT_Mesh:

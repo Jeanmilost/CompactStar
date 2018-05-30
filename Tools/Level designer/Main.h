@@ -150,7 +150,6 @@ class TMainForm : public TForm
         TPanel*                           m_pCurrentView;
         CSR_Scene*                        m_pScene;
         CSR_SceneContext                  m_SceneContext;
-        CSR_CollisionInfo*                m_pCollisionInfo;
         IShaders                          m_Shaders;
         IMatrices                         m_Matrices;
         CSR_Shader*                       m_pCurrentShader;

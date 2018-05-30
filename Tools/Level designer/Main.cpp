@@ -46,7 +46,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_pCurrentView(NULL),
     m_pScene(NULL),
-    m_pCollisionInfo(NULL),
     m_pCurrentShader(NULL),
     m_pCurrentMatrix(NULL),
     m_pLoadingModel(NULL),
@@ -504,9 +503,6 @@ void TMainForm::InitScene()
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
 {
-    // release the last collision result
-    csrCollisionInfoRelease(m_pCollisionInfo);
-
     // release the scene
     csrSceneRelease(m_pScene);
     m_pScene = NULL;
@@ -646,12 +642,6 @@ void TMainForm::UpdateScene(float elapsedTime)
         {
             // calculate the ray from current mouse position
             CalculateMouseRay(m_pCurrentView);
-
-            // release the previous collision result (a new one will be generated)
-            csrCollisionInfoRelease(m_pCollisionInfo);
-
-            // create a new collision result
-            m_pCollisionInfo = csrCollisionInfoCreate();
 
             /*REM FIXME
             // check the collisions happening in the scene, against the mouse ray

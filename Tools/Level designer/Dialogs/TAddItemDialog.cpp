@@ -544,10 +544,10 @@ CSR_ECollisionType TAddItemDialog::GetCollisionType() const
     // search for the selected collision type
     switch (cbConfigCollisionType->ItemIndex)
     {
-        case 1:  return CSR_CT_Ground;
-        case 2:  return CSR_CT_Edge;
-        case 3:  return CSR_ECollisionType(CSR_CT_Ground | CSR_CT_Edge);
-        default: return CSR_CT_Ignore;
+        case 1:  return CSR_CO_Ground;
+        case 2:  return CSR_CO_Edge;
+        case 3:  return CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Edge);
+        default: return CSR_CO_None;
     }
 }
 //---------------------------------------------------------------------------
