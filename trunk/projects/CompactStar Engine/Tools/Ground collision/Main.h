@@ -63,6 +63,8 @@ class TMainForm : public TForm
         TButton *btResetViewport;
         TCheckBox *ckShowBall;
         TCheckBox *ckSlipAgainstSlopes;
+        TLabel *laX;
+        TLabel *laZ;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
