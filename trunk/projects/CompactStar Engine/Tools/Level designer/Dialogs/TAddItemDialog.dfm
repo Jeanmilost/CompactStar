@@ -95,6 +95,10 @@ object AddItemDialog: TAddItemDialog
       TabOrder = 0
       object tsSelectItem: TTabSheet
         Caption = 'tsSelectItem'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object paSelectItemRight: TPanel
           Left = 0
           Top = 0
@@ -108,7 +112,7 @@ object AddItemDialog: TAddItemDialog
             AlignWithMargins = True
             Left = 3
             Top = 3
-            Width = 349
+            Width = 224
             Height = 25
             Align = alTop
             Caption = 'Select an item to create'
@@ -118,7 +122,6 @@ object AddItemDialog: TAddItemDialog
             Font.Name = 'Tahoma'
             Font.Style = []
             ParentFont = False
-            ExplicitWidth = 224
           end
           object btSelectItemAddCylinder: TSpeedButton
             AlignWithMargins = True
@@ -924,8 +927,6 @@ object AddItemDialog: TAddItemDialog
       object tsModel: TTabSheet
         Caption = 'tsModel'
         ImageIndex = 2
-        ExplicitLeft = 3
-        ExplicitTop = 25
         object blModelSeparator: TBevel
           AlignWithMargins = True
           Left = 3
@@ -969,7 +970,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 32
           ExplicitWidth = 80
         end
         inline ffModelFile: TFileNameFrame
@@ -979,7 +979,7 @@ object AddItemDialog: TAddItemDialog
           Height = 25
           Align = alTop
           TabOrder = 0
-          ExplicitTop = 54
+          ExplicitTop = 57
           ExplicitWidth = 355
           inherited edFileName: TEdit
             Width = 316
@@ -1008,7 +1008,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 32
           ExplicitWidth = 283
         end
         object blLandscapeSeparator: TBevel
@@ -1065,7 +1064,6 @@ object AddItemDialog: TAddItemDialog
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitTop = 167
           ExplicitWidth = 55
         end
         inline msLandscapeBitmap: TGrayscaleMapSelectionFrame
@@ -1075,7 +1073,7 @@ object AddItemDialog: TAddItemDialog
           Height = 106
           Align = alTop
           TabOrder = 0
-          ExplicitTop = 54
+          ExplicitTop = 57
           ExplicitWidth = 355
           inherited paBackground: TPanel
             Width = 349
@@ -1083,9 +1081,6 @@ object AddItemDialog: TAddItemDialog
             inherited paLeft: TPanel
               Width = 249
               ExplicitWidth = 249
-              inherited laBitmapFile: TLabel
-                Width = 243
-              end
               inherited paBitmapFile: TPanel
                 Width = 249
                 ExplicitWidth = 249
@@ -1127,23 +1122,21 @@ object AddItemDialog: TAddItemDialog
             AlignWithMargins = True
             Left = 3
             Top = 0
-            Width = 349
+            Width = 84
             Height = 13
             Margins.Top = 0
             Align = alTop
             Caption = 'Landscape height'
-            ExplicitWidth = 84
           end
           object laLandscapeOptionScaleFactor: TLabel
             AlignWithMargins = True
             Left = 3
             Top = 40
-            Width = 349
+            Width = 110
             Height = 13
             Margins.Top = 0
             Align = alTop
             Caption = 'Landscape scale factor'
-            ExplicitWidth = 110
           end
           object edLandscapeOptionHeight: TEdit
             AlignWithMargins = True
@@ -1174,6 +1167,10 @@ object AddItemDialog: TAddItemDialog
       object tsConfig: TTabSheet
         Caption = 'tsConfig'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object laConfigTitle: TLabel
           AlignWithMargins = True
           Left = 3
@@ -1341,9 +1338,6 @@ object AddItemDialog: TAddItemDialog
             inherited paLeft: TPanel
               Width = 249
               ExplicitWidth = 249
-              inherited laTextureFile: TLabel
-                Width = 243
-              end
               inherited paTextureFile: TPanel
                 Width = 249
                 ExplicitWidth = 249
@@ -1386,9 +1380,6 @@ object AddItemDialog: TAddItemDialog
             inherited paLeft: TPanel
               Width = 249
               ExplicitWidth = 249
-              inherited laTextureFile: TLabel
-                Width = 243
-              end
               inherited paTextureFile: TPanel
                 Width = 249
                 ExplicitWidth = 249
@@ -1556,9 +1547,6 @@ object AddItemDialog: TAddItemDialog
               inherited paColor: TPanel
                 Width = 161
                 ExplicitWidth = 161
-                inherited laColorCaption: TLabel
-                  Height = 20
-                end
                 inherited paColorValue: TPanel
                   Left = 141
                   ExplicitLeft = 141
@@ -1578,15 +1566,6 @@ object AddItemDialog: TAddItemDialog
                 inherited paCameraCaption: TPanel
                   Width = 158
                   ExplicitWidth = 158
-                  inherited laCameraX: TLabel
-                    Height = 20
-                  end
-                  inherited laCameraY: TLabel
-                    Height = 20
-                  end
-                  inherited laCameraZ: TLabel
-                    Height = 20
-                  end
                 end
                 inherited paCameraDown: TPanel
                   Width = 158
@@ -1604,9 +1583,6 @@ object AddItemDialog: TAddItemDialog
               inherited paCameraTitle: TPanel
                 Width = 164
                 ExplicitWidth = 164
-                inherited laCameraTitle: TLabel
-                  Width = 133
-                end
                 inherited btConfig: TSpeedButton
                   Left = 139
                   ExplicitLeft = 139
