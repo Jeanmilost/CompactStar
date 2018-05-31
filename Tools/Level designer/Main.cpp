@@ -54,10 +54,10 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_fViewWndProc_Backup(NULL)
 {
     // create the app directories
-    ::CreateDirectory(CSR_DesignerHelper::GetSceneDir().c_str(),   NULL);
+    ::CreateDirectory(CSR_DesignerHelper::GetSceneDir().c_str(),    NULL);
     ::CreateDirectory(CSR_DesignerHelper::GetTexturesDir().c_str(), NULL);
     ::CreateDirectory(CSR_DesignerHelper::GetModelsDir().c_str(),   NULL);
-    ::CreateDirectory(CSR_DesignerHelper::GetBitmapsDir().c_str(),   NULL);
+    ::CreateDirectory(CSR_DesignerHelper::GetBitmapsDir().c_str(),  NULL);
 
     // create an OpenGL context for the 3d views
     m_OpenGLHelper.AddContext(paDesigner3DView);
@@ -423,7 +423,10 @@ void TMainForm::InitScene()
 
     //csrSceneAddMesh(m_pScene, pSphere, 0, 1);
     //csrSceneAddMesh(m_pScene, pBox, 0, 1);
-    csrSceneAddModel(m_pScene, pModel, 0, 1);
+    CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
+
+    if (pSceneItem)
+        pSceneItem->m_CollisionType = (CSR_ECollisionType)(pSceneItem->m_CollisionType | CSR_CO_Mouse);
 
     /*
     CSR_WriteContext writeContext;
@@ -643,33 +646,23 @@ void TMainForm::UpdateScene(float elapsedTime)
             // calculate the ray from current mouse position
             CalculateMouseRay(m_pCurrentView);
 
-            /*REM FIXME
-            // check the collisions happening in the scene, against the mouse ray
-            csrSceneDetectCollision(m_pScene, &m_Ray, m_pCollisionInfo);
+            // create and populate the collision input
+            CSR_CollisionInput collisionInput;
+            collisionInput.m_MouseRay = m_Ray;
 
-            if (m_pCollisionInfo->m_pModels)
-            for (std::size_t i = 0; i < m_pCollisionInfo->m_pModels->m_Count; ++i)
+            // create a collision output
+            CSR_CollisionOutput* pCollisionOutput = csrCollisionOutputCreate();
+
+            // calculate the collisions in the whole scene
+            csrSceneDetectCollision(m_pScene, &collisionInput, pCollisionOutput, 0);
+
+            // found a collision with the mouse?
+            if (pCollisionOutput->m_pHitModel && pCollisionOutput->m_pHitModel->m_Count)
             {
-                CSR_CollisionModelInfo* pModelInfo =
-                        static_cast<pModelInfo*>(m_pCollisionInfo->m_pModels[i].m_pItem->m_pData);
-
-                if (!pModelInfo)
-                    continue;
-
-                switch (pModelInfo->m_Type)
-                {
-                    case CSR_MT_Mesh:
-                    {
-                        CSR_Mesh* pMesh = static_cast<CSR_Mesh*>(pModelInfo->m_pModel);
-
-                        if (!pMesh)
-                            continue;
-
-                        pMesh->m_pVB[0].m_Material.m_Color = 0xFF0000FF;
-                    }
-                }
             }
-            */
+
+            // release the collision output
+            csrCollisionOutputRelease(pCollisionOutput);
         }
     }
 }

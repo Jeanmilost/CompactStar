@@ -411,11 +411,11 @@ struct CSR_SceneContext
         *@param pMesh - mesh to add
         *@param transparent - if 1, the mesh is transparent, if 0 the mesh is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
-        *@return 1 on success, otherwise 0
+        *@return the scene item containing the mesh on success, otherwise 0
         *@note Once successfully added, the mesh will be owned by the scene and should no longer be
         *      released from outside
         */
-        int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb);
+        CSR_SceneItem* csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb);
 
         /**
         * Adds a model to a scene
@@ -423,11 +423,11 @@ struct CSR_SceneContext
         *@param pModel- model to add
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
-        *@return 1 on success, otherwise 0
+        *@return the scene item containing the model on success, otherwise 0
         *@note Once successfully added, the model will be owned by the scene and should no longer be
         *      released from outside
         */
-        int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb);
+        CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb);
 
         /**
         * Adds a MDL model to a scene
@@ -435,11 +435,11 @@ struct CSR_SceneContext
         *@param pMDL - model to add
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
-        *@return 1 on success, otherwise 0
+        *@return the scene item containing the model on success, otherwise 0
         *@note Once successfully added, the MDL model will be owned by the scene and should no
         *      longer be released from outside
         */
-        int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb);
+        CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb);
 
         /**
         * Adds a model matrix to a scene item. Doing that the same model may be drawn several time
@@ -447,11 +447,11 @@ struct CSR_SceneContext
         *@param pScene - scene in which the model will be added
         *@param pModel - model for which the matrix should be added
         *@param pMatrix - matrix to add
-        *@return 1 on success, otherwise 0
+        *@return the scene item containing the matrix on success, otherwise 0
         *@note The added matrix is not owned by the scene. For that reason it cannot be deleted as
         *      long as the scene uses it. The caller is responsible to delete the matrix if required
         */
-        int csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix);
+        CSR_SceneItem* csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix);
 
         /**
         * Gets a scene item matching with a model or a matrix
