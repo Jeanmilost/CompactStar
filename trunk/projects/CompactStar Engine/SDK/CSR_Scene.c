@@ -426,6 +426,7 @@ void csrSceneItemDetectCollision(const CSR_Scene*                   pScene,
     if (!(pSceneItem->m_CollisionType & CSR_CO_Custom) &&
          (pSceneItem->m_CollisionType == CSR_CO_None   ||
          !pSceneItem->m_pMatrixArray                   ||
+         !pSceneItem->m_pMatrixArray->m_Count          ||
          !pSceneItem->m_AABBTreeCount                  ||
           pSceneItem->m_AABBTreeIndex >= pSceneItem->m_AABBTreeCount))
         return;
@@ -538,13 +539,52 @@ void csrSceneItemDetectCollision(const CSR_Scene*                   pScene,
         // do detect the mouse collision on this model?
         if (pSceneItem->m_CollisionType & CSR_CO_Mouse)
         {
-            CSR_Ray3 mouseRay;
+            CSR_Ray3      mouseRay;
+            CSR_HitModel* pHitModel;
 
             // put the mouse ray into the model coordinate system
             csrMat4ApplyToVector(&invertMatrix, &pCollisionInput->m_MouseRay.m_Pos, &rayPos);
             csrMat4ApplyToNormal(&invertMatrix, &pCollisionInput->m_MouseRay.m_Dir, &rayDir);
             csrVec3Normalize(&rayDir, &rayDirN);
             csrRay3FromPointDir(&rayPos, &rayDirN, &mouseRay);
+
+            // create a new hit model container, if required
+            if (!pCollisionOutput->m_pHitModel)
+                pCollisionOutput->m_pHitModel = csrArrayCreate();
+
+            // create a new hit model
+            pHitModel = csrHitModelCreate();
+
+            // succeeded?
+            if (!pHitModel)
+                continue;
+
+            // using the mouse ray, resolve aligned-axis bounding box tree
+            csrAABBTreeResolve(&mouseRay,
+                               &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
+                                0,
+                               &pHitModel->m_Polygons);
+
+            // found a collision with the mouse ray?
+            if (pHitModel->m_Polygons.m_Count)
+            {
+                // notify that a mouse collision happened
+                pCollisionOutput->m_Collision |= CSR_CO_Mouse;
+
+                // populate the hit model structure
+                pHitModel->m_pModel    = pSceneItem->m_pModel;
+                pHitModel->m_Type      = pSceneItem->m_Type;
+                pHitModel->m_Matrix    = ((CSR_Matrix4*)pSceneItem->m_pMatrixArray->m_pItem->m_pData)[i];
+                pHitModel->m_pAABBTree = &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex];
+
+                // add the hit model structure in the array
+                csrArrayAdd(pHitModel, pCollisionOutput->m_pHitModel, 0);
+            }
+            else
+            {
+                // no found collision, release the hit model
+                csrHitModelRelease(pHitModel);
+            }
         }
     }
 }
@@ -623,7 +663,7 @@ void csrSceneInit(CSR_Scene* pScene)
     csrMat4Identity(&pScene->m_Matrix);
 }
 //---------------------------------------------------------------------------
-int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb)
+CSR_SceneItem* csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -632,9 +672,12 @@ int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aab
     if (!pScene || !pMesh)
         return 0;
 
-    // is mesh already added in the scene?
-    if (csrSceneGetItem(pScene, pMesh))
-        return 1;
+    // search for a scene item which already contains the same mesh
+    pItem = csrSceneGetItem(pScene, pMesh);
+
+    // found one?
+    if (pItem)
+        return pItem;
 
     // do add a transparent item?
     if (transparent)
@@ -711,10 +754,10 @@ int csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transparent, int aab
         ++pScene->m_ItemCount;
     }
 
-    return 1;
+    return pItem;
 }
 //---------------------------------------------------------------------------
-int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb)
+CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -723,9 +766,12 @@ int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int 
     if (!pScene || !pModel)
         return 0;
 
-    // is model already added in the scene?
-    if (csrSceneGetItem(pScene, pModel))
-        return 1;
+    // search for a scene item which already contains the same model
+    pItem = csrSceneGetItem(pScene, pModel);
+
+    // found one?
+    if (pItem)
+        return pItem;
 
     // do add a transparent item?
     if (transparent)
@@ -843,10 +889,10 @@ int csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int 
         ++pScene->m_ItemCount;
     }
 
-    return 1;
+    return pItem;
 }
 //---------------------------------------------------------------------------
-int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
+CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
 {
     CSR_SceneItem* pItem;
     int            index;
@@ -855,9 +901,12 @@ int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
     if (!pScene || !pMDL)
         return 0;
 
-    // is model already added in the scene?
-    if (csrSceneGetItem(pScene, pMDL))
-        return 1;
+    // search for a scene item which already contains the same model
+    pItem = csrSceneGetItem(pScene, pMDL);
+
+    // found one?
+    if (pItem)
+        return pItem;
 
     // do add a transparent item?
     if (transparent)
@@ -976,10 +1025,10 @@ int csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
         ++pScene->m_ItemCount;
     }
 
-    return 1;
+    return pItem;
 }
 //---------------------------------------------------------------------------
-int csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix)
+CSR_SceneItem* csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix)
 {
     size_t         i;
     CSR_SceneItem* pSceneItem;
@@ -1012,7 +1061,7 @@ int csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* p
     // add the matrix to the array
     csrArrayAddUnique(pMatrix, pSceneItem->m_pMatrixArray, 0);
 
-    return 1;
+    return pSceneItem;
 }
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneGetItem(const CSR_Scene* pScene, const void* pKey)
