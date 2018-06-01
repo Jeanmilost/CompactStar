@@ -107,6 +107,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader(NULL),
     m_pScene(NULL),
     m_pLandscapeKey(NULL),
+    m_pEffect(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
     m_Angle(0.0f),
@@ -461,6 +462,14 @@ void TMainForm::CreateViewport(float w, float h)
     else
         // change his size
         csrMSAAChangeSize(w, h, m_pMSAA);
+
+    // oil painting post processing effect was already created?
+    if (!m_pEffect)
+        // create the oil painting post processing effect
+        m_pEffect = new CSR_PostProcessingEffect_OilPainting(w, h, 4);
+    else
+        // change the effect viewport size
+        m_pEffect->ChangeSize(w, h);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -598,6 +607,10 @@ void TMainForm::DeleteScene()
 
     // release the shader
     csrShaderRelease(m_pShader);
+
+    // release the oil painting post processing effect
+    if (m_pEffect)
+        delete m_pEffect;
 
     // release the multisampling antialiasing
     csrMSAARelease(m_pMSAA);
@@ -780,7 +793,7 @@ bool TMainForm::LoadModel(const std::string& fileName)
 
     // found it?
     if (pItem)
-        pItem->m_CollisionType = CSR_CO_Ground | CSR_CO_Custom;
+        pItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -846,7 +859,7 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
 
     // found it?
     if (pItem)
-        pItem->m_CollisionType = CSR_CO_Ground | CSR_CO_Custom;
+        pItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -1171,6 +1184,9 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
+    if (ckOilPainting->Checked)
+        m_pEffect->DrawBegin(&pScene->m_Color);
+    else
     if (ckAntialiasing->Checked)
         csrMSAADrawBegin(&pScene->m_Color, m_pMSAA);
     else
@@ -1179,6 +1195,9 @@ void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pC
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
+    if (ckOilPainting->Checked)
+        m_pEffect->DrawEnd();
+    else
     if (ckAntialiasing->Checked)
         csrMSAADrawEnd(m_pMSAA);
     else

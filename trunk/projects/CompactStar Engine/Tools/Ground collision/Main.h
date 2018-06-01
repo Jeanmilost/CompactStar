@@ -37,6 +37,9 @@
 #include "CSR_Scene.h"
 #include "CSR_Sound.h"
 
+// classes
+#include "CSR_PostProcessingEffect_OilPainting.h"
+
 /**
 * Ground collision tool main form
 *@author Jean-Milost Reymond
@@ -65,6 +68,7 @@ class TMainForm : public TForm
         TCheckBox *ckSlipAgainstSlopes;
         TLabel *laX;
         TLabel *laZ;
+        TCheckBox *ckOilPainting;
 
         void __fastcall FormCreate(TObject* pSender);
         void __fastcall FormShow(TObject* pSender);
@@ -153,37 +157,38 @@ class TMainForm : public TForm
             void Clear();
         };
 
-        HDC              m_hDC;
-        HGLRC            m_hRC;
-        ALCdevice*       m_pOpenALDevice;
-        ALCcontext*      m_pOpenALContext;
-        IStats           m_Stats;
-        CSR_Sound*       m_pSound;
-        CSR_Color        m_Background;
-        CSR_Shader*      m_pShader;
-        CSR_Scene*       m_pScene;
-        CSR_SceneContext m_SceneContext;
-        void*            m_pLandscapeKey;
-        void*            m_pSphereKey;
-        CSR_MSAA*        m_pMSAA;
-        CSR_Matrix4      m_ProjectionMatrix;
-        CSR_Matrix4      m_LandscapeMatrix;
-        CSR_Matrix4      m_SphereMatrix;
-        CSR_Sphere       m_ViewSphere;
-        CSR_Sphere       m_ModelSphere;
-        std::size_t      m_FrameCount;
-        float            m_Angle;
-        float            m_PosVelocity;
-        float            m_DirVelocity;
-        float            m_StepTime;
-        float            m_StepInterval;
-        float            m_DriftOffsetX;
-        float            m_DriftOffsetZ;
-        std::string      m_SceneDir;
-        unsigned __int64 m_StartTime;
-        unsigned __int64 m_PreviousTime;
-        bool             m_Initialized;
-        TWndMethod       m_fViewWndProc_Backup;
+        HDC                                   m_hDC;
+        HGLRC                                 m_hRC;
+        ALCdevice*                            m_pOpenALDevice;
+        ALCcontext*                           m_pOpenALContext;
+        IStats                                m_Stats;
+        CSR_Sound*                            m_pSound;
+        CSR_Color                             m_Background;
+        CSR_Shader*                           m_pShader;
+        CSR_Scene*                            m_pScene;
+        CSR_SceneContext                      m_SceneContext;
+        void*                                 m_pLandscapeKey;
+        void*                                 m_pSphereKey;
+        CSR_PostProcessingEffect_OilPainting* m_pEffect;
+        CSR_MSAA*                             m_pMSAA;
+        CSR_Matrix4                           m_ProjectionMatrix;
+        CSR_Matrix4                           m_LandscapeMatrix;
+        CSR_Matrix4                           m_SphereMatrix;
+        CSR_Sphere                            m_ViewSphere;
+        CSR_Sphere                            m_ModelSphere;
+        std::size_t                           m_FrameCount;
+        float                                 m_Angle;
+        float                                 m_PosVelocity;
+        float                                 m_DirVelocity;
+        float                                 m_StepTime;
+        float                                 m_StepInterval;
+        float                                 m_DriftOffsetX;
+        float                                 m_DriftOffsetZ;
+        std::string                           m_SceneDir;
+        unsigned __int64                      m_StartTime;
+        unsigned __int64                      m_PreviousTime;
+        bool                                  m_Initialized;
+        TWndMethod                            m_fViewWndProc_Backup;
 
         /**
         * Enables OpenGL

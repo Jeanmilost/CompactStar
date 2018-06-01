@@ -114,7 +114,6 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'Altitude:'
-      ExplicitTop = 40
       ExplicitWidth = 41
     end
     object laFPS: TLabel
@@ -124,7 +123,6 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'FPS:'
-      ExplicitTop = 53
       ExplicitWidth = 22
     end
     object laPolygonCount: TLabel
@@ -160,7 +158,6 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 86
       ExplicitWidth = 62
     end
     object laX: TLabel
@@ -170,8 +167,7 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'X:'
-      ExplicitLeft = 6
-      ExplicitTop = 33
+      ExplicitWidth = 10
     end
     object laZ: TLabel
       Left = 0
@@ -180,7 +176,6 @@ object MainForm: TMainForm
       Height = 13
       Align = alTop
       Caption = 'Z:'
-      ExplicitTop = 40
       ExplicitWidth = 10
     end
     object btLoadModel: TButton
@@ -191,7 +186,7 @@ object MainForm: TMainForm
       Height = 25
       Align = alBottom
       Caption = 'Open Model...'
-      TabOrder = 5
+      TabOrder = 6
       OnClick = btLoadModelClick
     end
     object ckAntialiasing: TCheckBox
@@ -205,52 +200,63 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitTop = 113
     end
     object ckDisableSound: TCheckBox
       AlignWithMargins = True
       Left = 3
-      Top = 208
+      Top = 231
       Width = 179
       Height = 17
       Align = alTop
       Caption = 'Disable the sound'
-      TabOrder = 3
-      ExplicitTop = 182
+      TabOrder = 4
+      ExplicitTop = 208
     end
     object btResetViewport: TButton
       AlignWithMargins = True
       Left = 3
-      Top = 231
+      Top = 254
       Width = 179
       Height = 25
       Align = alTop
       Caption = 'Reset the viewport'
-      TabOrder = 4
+      TabOrder = 5
       OnClick = btResetViewportClick
-      ExplicitTop = 205
+      ExplicitTop = 231
     end
     object ckShowBall: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 162
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show a ball on the camera front'
-      TabOrder = 1
-      ExplicitTop = 136
-    end
-    object ckSlipAgainstSlopes: TCheckBox
       AlignWithMargins = True
       Left = 3
       Top = 185
       Width = 179
       Height = 17
       Align = alTop
-      Caption = 'Slip against the slopes'
+      Caption = 'Show a ball on the camera front'
       TabOrder = 2
-      ExplicitTop = 159
+      ExplicitTop = 162
+    end
+    object ckSlipAgainstSlopes: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 208
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Slip against the slopes'
+      TabOrder = 3
+      ExplicitTop = 185
+    end
+    object ckOilPainting: TCheckBox
+      AlignWithMargins = True
+      Left = 3
+      Top = 162
+      Width = 179
+      Height = 17
+      Align = alTop
+      Caption = 'Oil painting'
+      TabOrder = 1
+      ExplicitLeft = 6
+      ExplicitTop = 185
     end
   end
   object aeEvents: TApplicationEvents
