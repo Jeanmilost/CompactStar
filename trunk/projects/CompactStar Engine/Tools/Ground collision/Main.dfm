@@ -53,7 +53,6 @@ object MainForm: TMainForm
     Constraints.MinWidth = 185
     ParentBackground = False
     TabOrder = 1
-    ExplicitLeft = 618
     object blFilesSeparator: TBevel
       Left = 0
       Top = 567
@@ -210,7 +209,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Disable the sound'
       TabOrder = 4
-      ExplicitTop = 208
     end
     object btResetViewport: TButton
       AlignWithMargins = True
@@ -222,7 +220,6 @@ object MainForm: TMainForm
       Caption = 'Reset the viewport'
       TabOrder = 5
       OnClick = btResetViewportClick
-      ExplicitTop = 231
     end
     object ckShowBall: TCheckBox
       AlignWithMargins = True
@@ -233,7 +230,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show a ball on the camera front'
       TabOrder = 2
-      ExplicitTop = 162
     end
     object ckSlipAgainstSlopes: TCheckBox
       AlignWithMargins = True
@@ -244,7 +240,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Slip against the slopes'
       TabOrder = 3
-      ExplicitTop = 185
     end
     object ckOilPainting: TCheckBox
       AlignWithMargins = True
@@ -255,8 +250,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Oil painting'
       TabOrder = 1
-      ExplicitLeft = 6
-      ExplicitTop = 185
     end
   end
   object aeEvents: TApplicationEvents
