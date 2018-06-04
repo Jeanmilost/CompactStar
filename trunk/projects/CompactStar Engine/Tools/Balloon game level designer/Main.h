@@ -39,6 +39,7 @@
 #include "CSR_Sound.h"
 
 // classes
+#include "CSR_VCLHelper.h"
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
 /**
@@ -48,7 +49,7 @@
 class TMainForm : public TForm
 {
     __published:
-    TPanel *paEngineView;
+        TPanel *paEngineView;
         TPanel *paControls;
         TSplitter *spMainView;
         TApplicationEvents *aeEvents;
@@ -60,21 +61,19 @@ class TMainForm : public TForm
         TCheckBox *ckShowBall;
         TCheckBox *ckSlipAgainstSlopes;
         TCheckBox *ckOilPainting;
-    TMainMenu *mmMainMenu;
-    TPanel *paDesignerView;
-    TPanel *paViews;
-    TSplitter *spViews;
-    TMenuItem *miFile;
-    TMenuItem *miFileNew;
-
-        void __fastcall FormCreate(TObject* pSender);
+        TMainMenu *mmMainMenu;
+        TPanel *paDesignerView;
+        TPanel *paViews;
+        TSplitter *spViews;
+        TMenuItem *miFile;
+        TMenuItem *miFileNew;
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall miFileNewClick(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
+        void __fastcall spViewsMoved(TObject* pSender);
         void __fastcall btResetViewportClick(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
-    void __fastcall miFileNewClick(TObject *Sender);
-    void __fastcall spViewsMoved(TObject *Sender);
 
     public:
         /**
@@ -131,12 +130,26 @@ class TMainForm : public TForm
 
     protected:
         /**
-        * View panel main procedure
-        *@param message- Windows procedure message
+        * Called when a Windows message is sent to the designer view
+        *@param pControl - hooked designer view control
+        *@param message - Windows message
+        *@param fCtrlOriginalProc - control original Windows procedure
+        *@return true if the message was resolved and should no longer be handled, otherwise false
         */
-        void __fastcall ViewWndProc(TMessage& message);
+        bool OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
+
+        /**
+        * Called when a Windows message is sent to the engine view
+        *@param pControl - hooked designer view control
+        *@param message - Windows message
+        *@param fCtrlOriginalProc - control original Windows procedure
+        *@return true if the message was resolved and should no longer be handled, otherwise false
+        */
+        bool OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
     private:
+        std::auto_ptr<CSR_VCLControlHook>     m_pDesignerViewHook;
+        std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
         HDC                                   m_hDC;
         HGLRC                                 m_hRC;
         ALCdevice*                            m_pOpenALDevice;
@@ -168,7 +181,6 @@ class TMainForm : public TForm
         unsigned __int64                      m_StartTime;
         unsigned __int64                      m_PreviousTime;
         bool                                  m_Initialized;
-        TWndMethod                            m_fEngineViewWndProc_Backup;
 
         /**
         * Enables OpenGL
