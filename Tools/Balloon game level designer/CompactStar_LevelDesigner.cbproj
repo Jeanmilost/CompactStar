@@ -183,6 +183,10 @@
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>22</BuildOrder>
         </None>
+        <CppCompile Include="Classes\CSR_DesignerHelper.cpp">
+            <DependentOn>Classes\CSR_DesignerHelper.h</DependentOn>
+            <BuildOrder>28</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Classes\CSR_PostProcessingEffect.cpp">
             <DependentOn>Classes\CSR_PostProcessingEffect.h</DependentOn>
             <BuildOrder>26</BuildOrder>
@@ -190,6 +194,10 @@
         <CppCompile Include="Classes\CSR_PostProcessingEffect_OilPainting.cpp">
             <DependentOn>Classes\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
             <BuildOrder>27</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Classes\CSR_VCLHelper.cpp">
+            <DependentOn>Classes\CSR_VCLHelper.h</DependentOn>
+            <BuildOrder>29</BuildOrder>
         </CppCompile>
         <CppCompile Include="CompactStar_LevelDesigner.cpp">
             <BuildOrder>0</BuildOrder>

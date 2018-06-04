@@ -30,6 +30,9 @@
 #include "CSR_Geometry.h"
 #include "CSR_Scene.h"
 
+// classes
+#include "CSR_DesignerHelper.h"
+
 // interface
 #include "TLandscapeSelection.h"
 
@@ -42,40 +45,6 @@
 #pragma link "OpenAL32E.lib"
 #pragma resource "*.dfm"
 
-//----------------------------------------------------------------------------
-/**
-* Vertex shader program to show a textured mesh
-*@note The view matrix is implicitly set to identity and combined to the model one
-*/
-const char g_VertexProgram_TexturedMesh[] =
-    "precision mediump float;"
-    "attribute vec3 csr_aVertex;"
-    "attribute vec4 csr_aColor;"
-    "attribute vec2 csr_aTexCoord;"
-    "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uView;"
-    "uniform   mat4 csr_uModel;"
-    "varying   vec4 csr_vColor;"
-    "varying   vec2 csr_vTexCoord;"
-    "void main(void)"
-    "{"
-    "    csr_vColor    = csr_aColor;"
-    "    csr_vTexCoord = csr_aTexCoord;"
-    "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertex, 1.0);"
-    "}";
-//----------------------------------------------------------------------------
-/**
-* Fragment shader program to show a textured mesh
-*/
-const char g_FragmentProgram_TexturedMesh[] =
-    "precision mediump float;"
-    "uniform sampler2D csr_sTexture;"
-    "varying lowp vec4 csr_vColor;"
-    "varying      vec2 csr_vTexCoord;"
-    "void main(void)"
-    "{"
-    "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
-    "}";
 //---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
@@ -104,8 +73,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_FPS(0.0),
     m_StartTime(0),
     m_PreviousTime(0),
-    m_Initialized(false),
-    m_fEngineViewWndProc_Backup(NULL)
+    m_Initialized(false)
 {
     // build the model dir from the application exe
     UnicodeString sceneDir = ::ExtractFilePath(Application->ExeName);
@@ -133,23 +101,20 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
 //---------------------------------------------------------------------------
 __fastcall TMainForm::~TMainForm()
 {
-    // restore the normal view procedure
-    if (m_fEngineViewWndProc_Backup)
-        paEngineView->WindowProc = m_fEngineViewWndProc_Backup;
+    // restore the normal views procedures
+    m_pDesignerViewHook.reset();
+    m_pEngineViewHook.reset();
 
     DeleteScene();
     DisableOpenGL(paEngineView->Handle, m_hDC, m_hRC);
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::FormCreate(TObject* pSender)
-{
-    // hook the panel procedure
-    m_fEngineViewWndProc_Backup = paEngineView->WindowProc;
-    paEngineView->WindowProc    = ViewWndProc;
-}
-//---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
 {
+    // hook the views procedures
+    m_pDesignerViewHook.reset (new CSR_VCLControlHook(paDesignerView, OnDesignerViewMessage));
+    m_pEngineViewHook.reset (new CSR_VCLControlHook(paEngineView, OnEngineViewMessage));
+
     // initialize the scene
     InitScene(paEngineView->ClientWidth, paEngineView->ClientHeight);
 
@@ -353,40 +318,111 @@ int TMainForm::OnCustomDetectCollisionCallback(const CSR_Scene*           pScene
                                               pCollisionOutput);
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::ViewWndProc(TMessage& message)
+bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
 {
     switch (message.Msg)
     {
+        case WM_ERASEBKGND:
+            // do nothing, the background will be fully repainted later
+            message.Result = 1L;
+            return true;
+
         case WM_PAINT:
         {
-            // is scene initialized?
-            if (!m_Initialized)
-                break;
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
 
-            HDC           hDC = NULL;
+            if (!pPanel)
+                return false;
+
             ::PAINTSTRUCT ps;
+            HDC           hDC;
 
             try
             {
-                // get and lock the view device context
-                hDC = ::BeginPaint(paEngineView->Handle, &ps);
+                // begin paint
+                hDC = ::BeginPaint(pPanel->Handle, &ps);
 
-                // on success, draw the scene
-                if (hDC)
-                    OnDrawScene(true);
+                // succeeded?
+                if (!hDC)
+                    return false;
+
+                // draw the background grid
+                CSR_DesignerHelper::DrawGrid(pControl->ClientRect,
+                                             CSR_DesignerHelper::IGridOptions(),
+                                             hDC);
             }
             __finally
             {
-                // unlock and release the device context
-                ::EndPaint(paEngineView->Handle, &ps);
+                // end paint
+                if (hDC)
+                    ::EndPaint(pPanel->Handle, &ps);
             }
 
-            return;
+            // validate entire client rect (it has just been completely redrawn)
+            ::ValidateRect(pPanel->Handle, NULL);
+
+            // notify main Windows procedure that the view was repainted
+            message.Result = 0L;
+            return true;
         }
     }
 
-    if (m_fEngineViewWndProc_Backup)
-        m_fEngineViewWndProc_Backup(message);
+    return false;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
+{
+    switch (message.Msg)
+    {
+        case WM_ERASEBKGND:
+            // do nothing, the background will be fully repainted later
+            message.Result = 1L;
+            return true;
+
+        case WM_WINDOWPOSCHANGED:
+        {
+            if (!m_pScene)
+                break;
+
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
+
+            if (!pPanel)
+                return false;
+
+            if (fCtrlOriginalProc)
+                fCtrlOriginalProc(message);
+
+            // redraw here, thus the view will be redrawn to the correct size in real time while the
+            // size changes
+            OnDrawScene(true);
+
+            return true;
+        }
+
+        case WM_PAINT:
+        {
+            // is scene initialized?
+            if (!m_pScene)
+                return false;
+
+            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
+
+            if (!pPanel)
+                return false;
+
+            // draw the scene
+            OnDrawScene(true);
+
+            // validate entire client rect (it has just been completely redrawn)
+            ::ValidateRect(pPanel->Handle, NULL);
+
+            // notify main Windows procedure that the view was repainted
+            message.Result = 0L;
+            return true;
+        }
+    }
+
+    return false;
 }
 //---------------------------------------------------------------------------
 void TMainForm::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
@@ -501,11 +537,14 @@ void TMainForm::InitScene(int w, int h)
     m_SceneContext.m_fOnSceneBegin = OnSceneBeginCallback;
     m_SceneContext.m_fOnSceneEnd   = OnSceneEndCallback;
 
+    const std::string vsTextured = CSR_DesignerHelper::GetVertexShader(CSR_DesignerHelper::IE_ST_Texture);
+    const std::string fsTextured = CSR_DesignerHelper::GetFragmentShader(CSR_DesignerHelper::IE_ST_Texture);
+
     // load the shader
-    m_pShader  = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
-                                      sizeof(g_VertexProgram_TexturedMesh),
-                                      g_FragmentProgram_TexturedMesh,
-                                      sizeof(g_FragmentProgram_TexturedMesh),
+    m_pShader  = csrShaderLoadFromStr(vsTextured.c_str(),
+                                      vsTextured.length(),
+                                      fsTextured.c_str(),
+                                      fsTextured.length(),
                                       0,
                                       0);
 
@@ -526,7 +565,7 @@ void TMainForm::InitScene(int w, int h)
     csrShaderEnable(m_pShader);
 
     // get shader attributes
-    m_pShader->m_VertexSlot   = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aVertex");
+    m_pShader->m_VertexSlot   = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aVertices");
     m_pShader->m_ColorSlot    = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aColor");
     m_pShader->m_TexCoordSlot = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aTexCoord");
     m_pShader->m_TextureSlot  = glGetUniformLocation(m_pShader->m_ProgramID, "csr_sTexture");

@@ -16,7 +16,6 @@ object MainForm: TMainForm
   Position = poScreenCenter
   PrintScale = poNone
   Scaled = False
-  OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -136,6 +135,8 @@ object MainForm: TMainForm
       Height = 17
       Align = alTop
       Caption = 'Oil painting'
+      Checked = True
+      State = cbChecked
       TabOrder = 1
       ExplicitTop = 162
     end
@@ -148,23 +149,23 @@ object MainForm: TMainForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitHeight = 559
     object spViews: TSplitter
       Left = 0
-      Top = 300
+      Top = 200
       Width = 612
       Height = 3
       Cursor = crVSplit
       Align = alTop
+      ResizeStyle = rsUpdate
       OnMoved = spViewsMoved
       ExplicitTop = 41
       ExplicitWidth = 559
     end
     object paEngineView: TPanel
       Left = 0
-      Top = 303
+      Top = 203
       Width = 612
-      Height = 300
+      Height = 400
       Cursor = crArrow
       Align = alClient
       BevelOuter = bvNone
@@ -172,14 +173,14 @@ object MainForm: TMainForm
       ParentBackground = False
       ParentDoubleBuffered = False
       TabOrder = 0
-      ExplicitTop = 41
-      ExplicitHeight = 559
+      ExplicitLeft = -3
+      ExplicitTop = 206
     end
     object paDesignerView: TPanel
       Left = 0
       Top = 0
       Width = 612
-      Height = 300
+      Height = 200
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
