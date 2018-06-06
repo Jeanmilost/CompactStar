@@ -56,6 +56,7 @@ void CSR_View::DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC)
         ::SelectObject(hDC, hBrush);
         ::SelectObject(hDC, hPen);
 
+        // select the background mode to apply
         ::SetBkMode(hDC, OPAQUE);
 
         // draw document background

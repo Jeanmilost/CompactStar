@@ -46,13 +46,40 @@ class CSR_DesignerView : public CSR_View
 
         virtual ~CSR_DesignerView();
 
+        /**
+        * Gets the current scene
+        *@return the scene
+        */
         CSR_Scene* GetScene() const;
+
+        /**
+        * Sets the current scene
+        *@param pScene - scene
+        */
         void SetScene(CSR_Scene* pScene);
 
+        /**
+        * Gets the view origin
+        *@return the view origin, in pixels
+        */
         int GetOrigin() const;
+
+        /**
+        * Sets the view origin
+        *@param origin - the view origin, in pixels
+        */
         void SetOrigin(int origin);
 
+        /**
+        * Gets the ratio to apply between the view and the scene
+        *@return the view ratio
+        */
         float GetRatio() const;
+
+        /**
+        * Sets the ratio to apply between the view and the scene
+        *@param ratio - the view ratio
+        */
         void SetRatio(float ratio);
 
     protected:
@@ -65,12 +92,29 @@ class CSR_DesignerView : public CSR_View
         */
         virtual bool OnViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
+        /**
+        * Draws the scene content onto the view
+        *@param pScene - scene to draw
+        *@param origin - view origin in pixels
+        *@param pos - position inside the 3d world
+        *@param ratio - ratio to apply between the view and the scene
+        *@param hDC - view device context on which the scene should be drawn
+        */
         virtual void Draw(const CSR_Scene*   pScene,
                           const TPoint&      origin,
                           const CSR_Vector2& pos,
                                 float        ratio,
                                 HDC          hDC) const;
 
+        /**
+        * Draws a polygon onto the view
+        *@param origin - view origin in pixels
+        *@param pos - position inside the 3d world
+        *@param pMatrix - model matrix
+        *@param polygon - model polygon to draw
+        *@param ratio - ratio to apply between the view and the scene
+        *@param hDC - view device context on which the scene should be drawn
+        */
         virtual void DrawPolygon(const TPoint&       origin,
                                  const CSR_Vector2&  pos,
                                  const CSR_Matrix4*  pMatrix,
