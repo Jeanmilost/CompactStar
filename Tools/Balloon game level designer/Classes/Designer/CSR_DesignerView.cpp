@@ -28,12 +28,13 @@ CSR_DesignerView::CSR_DesignerView(TPanel* pPanel) :
     m_pPanel(pPanel),
     m_Ratio(1.0f)
 {
-    m_pHook.reset (new CSR_VCLControlHook(m_pPanel, OnViewMessage));
+    // hook the view panel Windows procedure
+    m_pHook.reset(new CSR_VCLControlHook(m_pPanel, OnViewMessage));
 }
 //---------------------------------------------------------------------------
 CSR_DesignerView::~CSR_DesignerView()
 {
-    // restore the normal view procedures
+    // restore the previous view panel Windows procedure
     m_pHook.reset();
 }
 //---------------------------------------------------------------------------
@@ -168,39 +169,49 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
         ::SelectObject(hDC, hBrush);
         ::SelectObject(hDC, hPen);
 
+        // select the background mode to apply
         ::SetBkMode(hDC, OPAQUE);
 
+        // iterate through scene items
         for (std::size_t i = 0; i < pScene->m_ItemCount; ++i)
-        {
+            // iterate through item model matrices
             for (std::size_t j = 0; j < pScene->m_pItem[i].m_pMatrixArray->m_Count; ++j)
-            {
+                // search for item model type
                 switch (pScene->m_pItem[i].m_Type)
                 {
                     case CSR_MT_Model:
                     {
+                        // item contains a model, convert it
                         CSR_Model* pModel = static_cast<CSR_Model*>(pScene->m_pItem[i].m_pModel);
 
+                        // found it?
                         if (!pModel)
                             continue;
 
+                        // iterate through model meshes
                         for (std::size_t k = 0; k < pModel->m_MeshCount; ++k)
                         {
                             CSR_IndexedPolygonBuffer* pBuffer = NULL;
 
                             try
                             {
-                                pBuffer = csrIndexedPolygonBufferFromMesh(pModel->m_pMesh);
+                                // extract the mesh polygons
+                                pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[k]);
 
+                                // succeeded?
                                 if (!pBuffer)
                                     continue;
 
+                                // iterate through polygons
                                 for (std::size_t l = 0; l < pBuffer->m_Count; ++l)
                                 {
                                     CSR_Polygon3 polygon;
 
+                                    // get the next polygon to draw
                                     if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[l], &polygon))
                                         continue;
 
+                                    // draw the polygon
                                     DrawPolygon(origin,
                                                 pos,
                                                 static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
@@ -216,8 +227,6 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
                         }
                     }
                 }
-            }
-        }
     }
     __finally
     {
