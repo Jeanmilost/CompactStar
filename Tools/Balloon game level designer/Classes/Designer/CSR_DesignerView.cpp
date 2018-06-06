@@ -179,6 +179,53 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
                 // search for item model type
                 switch (pScene->m_pItem[i].m_Type)
                 {
+                    case CSR_MT_Mesh:
+                    {
+                        // item contains a mesh, convert it
+                        CSR_Mesh* pMesh = static_cast<CSR_Mesh*>(pScene->m_pItem[i].m_pModel);
+
+                        // found it?
+                        if (!pMesh)
+                            continue;
+
+                        // iterate through model meshes
+                        CSR_IndexedPolygonBuffer* pBuffer = NULL;
+
+                        try
+                        {
+                            // extract the mesh polygons
+                            pBuffer = csrIndexedPolygonBufferFromMesh(pMesh);
+
+                            // succeeded?
+                            if (!pBuffer)
+                                continue;
+
+                            // iterate through polygons
+                            for (std::size_t k = 0; k < pBuffer->m_Count; ++k)
+                            {
+                                CSR_Polygon3 polygon;
+
+                                // get the next polygon to draw
+                                if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[k], &polygon))
+                                    continue;
+
+                                // draw the polygon
+                                DrawPolygon(origin,
+                                            pos,
+                                            static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
+                                            polygon,
+                                            ratio,
+                                            hDC);
+                            }
+                        }
+                        __finally
+                        {
+                            csrIndexedPolygonBufferRelease(pBuffer);
+                        }
+
+                        continue;
+                    }
+
                     case CSR_MT_Model:
                     {
                         // item contains a model, convert it
@@ -225,6 +272,69 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
                                 csrIndexedPolygonBufferRelease(pBuffer);
                             }
                         }
+
+                        continue;
+                    }
+
+                    case CSR_MT_MDL:
+                    {
+                        // item contains a Quake I model, convert it
+                        CSR_MDL* pMDL = static_cast<CSR_MDL*>(pScene->m_pItem[i].m_pModel);
+
+                        // found it?
+                        if (!pMDL)
+                            continue;
+
+                        // is empty?
+                        if (!pMDL->m_ModelCount)
+                            continue;
+
+                        // get the first model (enough to be shown on the view)
+                        CSR_Model* pModel = &pMDL->m_pModel[0];
+
+                        // found it?
+                        if (!pModel)
+                            continue;
+
+                        // iterate through model meshes
+                        for (std::size_t k = 0; k < pModel->m_MeshCount; ++k)
+                        {
+                            CSR_IndexedPolygonBuffer* pBuffer = NULL;
+
+                            try
+                            {
+                                // extract the mesh polygons
+                                pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[k]);
+
+                                // succeeded?
+                                if (!pBuffer)
+                                    continue;
+
+                                // iterate through polygons
+                                for (std::size_t l = 0; l < pBuffer->m_Count; ++l)
+                                {
+                                    CSR_Polygon3 polygon;
+
+                                    // get the next polygon to draw
+                                    if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[l], &polygon))
+                                        continue;
+
+                                    // draw the polygon
+                                    DrawPolygon(origin,
+                                                pos,
+                                                static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
+                                                polygon,
+                                                ratio,
+                                                hDC);
+                                }
+                            }
+                            __finally
+                            {
+                                csrIndexedPolygonBufferRelease(pBuffer);
+                            }
+                        }
+
+                        continue;
                     }
                 }
     }
