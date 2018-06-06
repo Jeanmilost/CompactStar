@@ -39,7 +39,7 @@
 #include "CSR_Sound.h"
 
 // classes
-#include "CSR_VCLHelper.h"
+#include "CSR_DesignerView.h"
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
 /**
@@ -67,6 +67,7 @@ class TMainForm : public TForm
         TSplitter *spViews;
         TMenuItem *miFile;
         TMenuItem *miFileNew;
+
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall miFileNewClick(TObject* pSender);
@@ -130,15 +131,6 @@ class TMainForm : public TForm
 
     protected:
         /**
-        * Called when a Windows message is sent to the designer view
-        *@param pControl - hooked designer view control
-        *@param message - Windows message
-        *@param fCtrlOriginalProc - control original Windows procedure
-        *@return true if the message was resolved and should no longer be handled, otherwise false
-        */
-        bool OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
-
-        /**
         * Called when a Windows message is sent to the engine view
         *@param pControl - hooked designer view control
         *@param message - Windows message
@@ -148,8 +140,8 @@ class TMainForm : public TForm
         bool OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
     private:
-        std::auto_ptr<CSR_VCLControlHook>     m_pDesignerViewHook;
         std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
+        std::auto_ptr<CSR_DesignerView>       m_pDesignerView;
         HDC                                   m_hDC;
         HGLRC                                 m_hRC;
         ALCdevice*                            m_pOpenALDevice;
@@ -168,7 +160,9 @@ class TMainForm : public TForm
         CSR_Matrix4                           m_SphereMatrix;
         CSR_Sphere                            m_ViewSphere;
         CSR_Sphere                            m_ModelSphere;
+        std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
+        int                                   m_PrevOrigin;
         float                                 m_Angle;
         float                                 m_PosVelocity;
         float                                 m_DirVelocity;
@@ -177,26 +171,9 @@ class TMainForm : public TForm
         float                                 m_DriftOffsetX;
         float                                 m_DriftOffsetZ;
         double                                m_FPS;
-        std::string                           m_SceneDir;
         unsigned __int64                      m_StartTime;
         unsigned __int64                      m_PreviousTime;
         bool                                  m_Initialized;
-
-        /**
-        * Enables OpenGL
-        *@param hWnd - Windows handle
-        *@param hDC - device context
-        *@param hRC - OpenGL rendering context
-        */
-        void EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC);
-
-        /**
-        * Disables OpenGL
-        *@param hWnd - Windows handle
-        *@param hDC - device context
-        *@param hRC - OpenGL rendering context
-        */
-        void DisableOpenGL(HWND hWnd, HDC hDC, HGLRC hRC);
 
         /**
         * Creates the viewport
@@ -235,18 +212,18 @@ class TMainForm : public TForm
         bool AddSphere();
 
         /**
-        * Loads a model from a file
+        * Loads a landscape from a file
         *@param fileName - model file name to load from
         *@return true on success, otherwise false
         */
-        bool LoadModel(const std::string& fileName);
+        bool LoadLandscape(const std::string& fileName);
 
         /**
-        * Loads a model from a grayscale bitmap
+        * Loads a landscape from a grayscale bitmap
         *@param fileName - grayscale bitmap from which the model will be generated
         *@return true on success, otherwise false
         */
-        bool LoadModelFromBitmap(const std::string& fileName);
+        bool LoadLandscapeFromBitmap(const std::string& fileName);
 
         /**
         * Loads a texture

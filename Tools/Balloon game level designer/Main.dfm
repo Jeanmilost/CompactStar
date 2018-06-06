@@ -41,7 +41,6 @@ object MainForm: TMainForm
     Constraints.MinWidth = 185
     ParentBackground = False
     TabOrder = 0
-    ExplicitHeight = 600
     object blOptions: TBevel
       Left = 0
       Top = 42
@@ -66,7 +65,6 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitTop = 112
       ExplicitWidth = 62
     end
     object ckAntialiasing: TCheckBox
@@ -80,7 +78,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 0
-      ExplicitTop = 139
     end
     object ckDisableSound: TCheckBox
       AlignWithMargins = True
@@ -91,7 +88,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Disable the sound'
       TabOrder = 4
-      ExplicitTop = 231
     end
     object btResetViewport: TButton
       AlignWithMargins = True
@@ -103,7 +99,6 @@ object MainForm: TMainForm
       Caption = 'Reset the viewport'
       TabOrder = 5
       OnClick = btResetViewportClick
-      ExplicitTop = 254
     end
     object ckShowBall: TCheckBox
       AlignWithMargins = True
@@ -114,7 +109,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Show a ball on the camera front'
       TabOrder = 2
-      ExplicitTop = 185
     end
     object ckSlipAgainstSlopes: TCheckBox
       AlignWithMargins = True
@@ -125,7 +119,6 @@ object MainForm: TMainForm
       Align = alTop
       Caption = 'Slip against the slopes'
       TabOrder = 3
-      ExplicitTop = 208
     end
     object ckOilPainting: TCheckBox
       AlignWithMargins = True
@@ -138,7 +131,6 @@ object MainForm: TMainForm
       Checked = True
       State = cbChecked
       TabOrder = 1
-      ExplicitTop = 162
     end
   end
   object paViews: TPanel
@@ -173,8 +165,6 @@ object MainForm: TMainForm
       ParentBackground = False
       ParentDoubleBuffered = False
       TabOrder = 0
-      ExplicitLeft = -3
-      ExplicitTop = 206
     end
     object paDesignerView: TPanel
       Left = 0

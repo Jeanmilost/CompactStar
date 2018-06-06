@@ -31,7 +31,8 @@
 #include "CSR_Scene.h"
 
 // classes
-#include "CSR_DesignerHelper.h"
+#include "CSR_OpenGLHelper.h"
+#include "CSR_ShaderHelper.h"
 
 // interface
 #include "TLandscapeSelection.h"
@@ -63,6 +64,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pEffect(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
+    m_PrevOrigin(0),
     m_Angle(0.0f),
     m_PosVelocity(0.0f),
     m_DirVelocity(0.0f),
@@ -83,7 +85,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
                 m_SceneDir =   AnsiString(sceneDir).c_str();
 
     // enable OpenGL
-    EnableOpenGL(paEngineView->Handle, &m_hDC, &m_hRC);
+    CSR_OpenGLHelper::EnableOpenGL(paEngineView->Handle, &m_hDC, &m_hRC);
 
     // stop GLEW crashing on OSX :-/
     glewExperimental = GL_TRUE;
@@ -92,31 +94,36 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     if (glewInit() != GLEW_OK)
     {
         // shutdown OpenGL
-        DisableOpenGL(Handle, m_hDC, m_hRC);
+        CSR_OpenGLHelper::DisableOpenGL(Handle, m_hDC, m_hRC);
 
         // close the app
         Application->Terminate();
     }
+
+    // create a designer view
+    m_pDesignerView.reset(new CSR_DesignerView(paDesignerView));
 }
 //---------------------------------------------------------------------------
 __fastcall TMainForm::~TMainForm()
 {
-    // restore the normal views procedures
-    m_pDesignerViewHook.reset();
+    // required to reset the hooked procedures
+    m_pDesignerView.reset();
     m_pEngineViewHook.reset();
 
     DeleteScene();
-    DisableOpenGL(paEngineView->Handle, m_hDC, m_hRC);
+    CSR_OpenGLHelper::DisableOpenGL(paEngineView->Handle, m_hDC, m_hRC);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
 {
-    // hook the views procedures
-    m_pDesignerViewHook.reset (new CSR_VCLControlHook(paDesignerView, OnDesignerViewMessage));
-    m_pEngineViewHook.reset (new CSR_VCLControlHook(paEngineView, OnEngineViewMessage));
-
     // initialize the scene
     InitScene(paEngineView->ClientWidth, paEngineView->ClientHeight);
+
+    // link the scene to the designer view
+    m_pDesignerView->SetScene(m_pScene);
+
+    // hook the engine view procedure
+    m_pEngineViewHook.reset (new CSR_VCLControlHook(paEngineView, OnEngineViewMessage));
 
     // initialize the timer
     m_StartTime    = ::GetTickCount();
@@ -149,7 +156,7 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
     if (pLandscapeSelection->rbSourceBitmap->Checked)
     {
         // load the landscape from a grayscale image
-        if (!LoadModelFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str()))
+        if (!LoadLandscapeFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str()))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape from the grayscale image.",
@@ -163,7 +170,7 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
     if (pLandscapeSelection->rbSourceModel->Checked)
     {
         // load the landscape from a model file
-        if (!LoadModel(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str()))
+        if (!LoadLandscape(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str()))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape.",
@@ -225,12 +232,34 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
+    // get back the scene item containing the model
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+    // found it?
+    if (pItem)
+        // calculate the ratio to use to draw the designer view
+        if (pItem->m_AABBTreeCount)
+            m_pDesignerView->SetRatio
+                    (paDesignerView->ClientHeight / (pItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
+                            pItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
+
     // update the viewport
     CreateViewport(paEngineView->ClientWidth, paEngineView->ClientHeight);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spViewsMoved(TObject *Sender)
 {
+    // get back the scene item containing the model
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+    // found it?
+    if (pItem)
+        // calculate the ratio to use to draw the designer view
+        if (pItem->m_AABBTreeCount)
+            m_pDesignerView->SetRatio
+                    (paDesignerView->ClientHeight / (pItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
+                            pItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
+
     // update the viewport
     CreateViewport(paEngineView->ClientWidth, paEngineView->ClientHeight);
 }
@@ -318,58 +347,6 @@ int TMainForm::OnCustomDetectCollisionCallback(const CSR_Scene*           pScene
                                               pCollisionOutput);
 }
 //---------------------------------------------------------------------------
-bool TMainForm::OnDesignerViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
-{
-    switch (message.Msg)
-    {
-        case WM_ERASEBKGND:
-            // do nothing, the background will be fully repainted later
-            message.Result = 1L;
-            return true;
-
-        case WM_PAINT:
-        {
-            TPanel* pPanel = dynamic_cast<TPanel*>(pControl);
-
-            if (!pPanel)
-                return false;
-
-            ::PAINTSTRUCT ps;
-            HDC           hDC;
-
-            try
-            {
-                // begin paint
-                hDC = ::BeginPaint(pPanel->Handle, &ps);
-
-                // succeeded?
-                if (!hDC)
-                    return false;
-
-                // draw the background grid
-                CSR_DesignerHelper::DrawGrid(pControl->ClientRect,
-                                             CSR_DesignerHelper::IGridOptions(),
-                                             hDC);
-            }
-            __finally
-            {
-                // end paint
-                if (hDC)
-                    ::EndPaint(pPanel->Handle, &ps);
-            }
-
-            // validate entire client rect (it has just been completely redrawn)
-            ::ValidateRect(pPanel->Handle, NULL);
-
-            // notify main Windows procedure that the view was repainted
-            message.Result = 0L;
-            return true;
-        }
-    }
-
-    return false;
-}
-//---------------------------------------------------------------------------
 bool TMainForm::OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
 {
     switch (message.Msg)
@@ -424,64 +401,14 @@ bool TMainForm::OnEngineViewMessage(TControl* pControl, TMessage& message, TWndM
 
     return false;
 }
-//---------------------------------------------------------------------------
-void TMainForm::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
-{
-    PIXELFORMATDESCRIPTOR pfd;
-
-    int iFormat;
-
-    // get the device context
-    *hDC = ::GetDC(hWnd);
-
-    ZeroMemory(&pfd, sizeof(pfd));
-    pfd.nSize      = sizeof(pfd);
-    pfd.nVersion   = 1;
-    pfd.dwFlags    = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 32;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-
-    // set the pixel format for the device context
-    iFormat = ChoosePixelFormat(*hDC, &pfd);
-    SetPixelFormat(*hDC, iFormat, &pfd);
-
-    // create and enable the OpenGL render context
-    *hRC = wglCreateContext(*hDC);
-    wglMakeCurrent(*hDC, *hRC);
-}
-//------------------------------------------------------------------------------
-void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
-{
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(hRC);
-    ReleaseDC(hwnd, hDC);
-}
 //------------------------------------------------------------------------------
 void TMainForm::CreateViewport(float w, float h)
 {
     if (!m_pShader)
         return;
 
-    // calculate matrix items
-    const float zNear  = 0.001f;
-    const float zFar   = 1000.0f;
-    const float fov    = 45.0f;
-    const float aspect = w / h;
-
-    // create the OpenGL viewport
-    glViewport(0, 0, w, h);
-
-    // create a perspective projection matrix
-    csrMat4Perspective(fov, aspect, zNear, zFar, &m_ProjectionMatrix);
-
-    // enable the shader program
-    csrShaderEnable(m_pShader);
-
-    // connect projection matrix to shader
-    GLint projectionSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionSlot, 1, 0, &m_ProjectionMatrix.m_Table[0][0]);
+    // configure the OpenGL viewport
+    CSR_OpenGLHelper::CreateViewport(w, h, 0.001f, 1000.0f, m_pShader, m_ProjectionMatrix);
 
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
@@ -537,8 +464,8 @@ void TMainForm::InitScene(int w, int h)
     m_SceneContext.m_fOnSceneBegin = OnSceneBeginCallback;
     m_SceneContext.m_fOnSceneEnd   = OnSceneEndCallback;
 
-    const std::string vsTextured = CSR_DesignerHelper::GetVertexShader(CSR_DesignerHelper::IE_ST_Texture);
-    const std::string fsTextured = CSR_DesignerHelper::GetFragmentShader(CSR_DesignerHelper::IE_ST_Texture);
+    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Texture);
+    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
 
     // load the shader
     m_pShader  = csrShaderLoadFromStr(vsTextured.c_str(),
@@ -571,7 +498,7 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_TextureSlot  = glGetUniformLocation(m_pShader->m_ProgramID, "csr_sTexture");
 
     // load the landscape model from a grayscale bitmap file
-    if (!LoadModelFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp"))
+    if (!LoadLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp"))
     {
         // show the error message to the user
         ::MessageDlg(L"An error occurred while the default landscape model was created.\r\n\r\nThe application will quit.",
@@ -732,6 +659,13 @@ void TMainForm::UpdateScene(float elapsedTime)
         // previous position is always considered as valid)
         ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix);
     }
+
+    GLint viewPort[4];
+    glGetIntegerv(GL_VIEWPORT, viewPort);
+
+    // calculate the designer view origin in relation to the current view position
+    m_pDesignerView->SetOrigin
+            (-m_pDesignerView->GetRatio() * ((m_pScene->m_Matrix.m_Table[3][0] * paDesignerView->ClientWidth) / viewPort[2]));
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -785,7 +719,7 @@ bool TMainForm::AddSphere()
     return true;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadModel(const std::string& fileName)
+bool TMainForm::LoadLandscape(const std::string& fileName)
 {
     // release the previous model, if exists
     csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
@@ -823,7 +757,15 @@ bool TMainForm::LoadModel(const std::string& fileName)
 
     // found it?
     if (pItem)
+    {
         pItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
+
+        // calculate the ratio to use to draw the designer view
+        if (pItem->m_AABBTreeCount)
+            m_pDesignerView->SetRatio
+                    (paDesignerView->ClientHeight / (pItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
+                            pItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
+    }
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -840,7 +782,7 @@ bool TMainForm::LoadModel(const std::string& fileName)
     return true;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
+bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
 {
     // release the previous model, if exists
     csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
@@ -889,7 +831,15 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
 
     // found it?
     if (pItem)
+    {
         pItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
+
+        // calculate the ratio to use to draw the designer view
+        if (pItem->m_AABBTreeCount)
+            m_pDesignerView->SetRatio
+                    (paDesignerView->ClientHeight / (pItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
+                            pItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
+    }
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -1139,6 +1089,13 @@ void TMainForm::OnDrawScene(bool resize)
     DrawScene();
 
     ::SwapBuffers(m_hDC);
+
+    // also invalidate the designer view, if required
+    if (m_pDesignerView->GetOrigin() != m_PrevOrigin)
+    {
+        m_PrevOrigin = m_pDesignerView->GetOrigin();
+        paDesignerView->Invalidate();
+    }
 }
 //---------------------------------------------------------------------------
 CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)

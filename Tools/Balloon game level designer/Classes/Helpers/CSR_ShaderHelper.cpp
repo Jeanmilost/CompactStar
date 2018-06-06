@@ -1,7 +1,7 @@
 /****************************************************************************
- * ==> CSR_DesignerHelper --------------------------------------------------*
+ * ==> CSR_ShaderHelper ----------------------------------------------------*
  ****************************************************************************
- * Description : This module provides an helper class for the designer      *
+ * Description : This module provides an helper class for the shader        *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -13,78 +13,15 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#include "CSR_DesignerHelper.h"
+#include "CSR_ShaderHelper.h"
+
+// compactStar engine
+#include "CSR_Model.h"
 
 //---------------------------------------------------------------------------
-// CSR_DesignerHelper::IGridOptions
+// CSR_ShaderHelper
 //---------------------------------------------------------------------------
-CSR_DesignerHelper::IGridOptions::IGridOptions() :
-    m_BgColor(clWhite),
-    m_GridColor(clSilver),
-    m_Offset(15)
-{}
-//---------------------------------------------------------------------------
-CSR_DesignerHelper::IGridOptions::~IGridOptions()
-{}
-//---------------------------------------------------------------------------
-// CSR_DesignerHelper
-//---------------------------------------------------------------------------
-void CSR_DesignerHelper::DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC)
-{
-    if (!hDC)
-        return;
-
-    HBRUSH hBrush = NULL;
-    HPEN   hPen   = NULL;
-
-    try
-    {
-        // create the brush and pen to use
-        hBrush = ::CreateSolidBrush(Graphics::ColorToRGB(options.m_BgColor));
-        hPen   = ::CreatePen(PS_DOT, 1, Graphics::ColorToRGB(options.m_GridColor));
-
-        if (!hBrush || !hPen)
-            return;
-
-        // select the brush and pen to use
-        ::SelectObject(hDC, hBrush);
-        ::SelectObject(hDC, hPen);
-
-        ::SetBkMode(hDC, OPAQUE);
-
-        // draw document background
-        ::FillRect(hDC, &rect, hBrush);
-
-        const std::size_t width  = rect.Width();
-        const std::size_t height = rect.Height();
-
-        ::SetBkMode(hDC, TRANSPARENT);
-
-        // draw horizontal lines
-        for (std::size_t i = 0; i < height; i += options.m_Offset)
-        {
-            ::MoveToEx(hDC, rect.Left,  i, NULL);
-            ::LineTo  (hDC, rect.Right, i);
-        }
-
-        // draw vertical lines
-        for (std::size_t i = 0; i < width; i += options.m_Offset)
-        {
-            ::MoveToEx(hDC, i, rect.Top, NULL);
-            ::LineTo  (hDC, i, rect.Bottom);
-        }
-    }
-    __finally
-    {
-        if (hPen)
-            ::DeleteObject(hPen);
-
-        if (hBrush)
-            ::DeleteObject(hBrush);
-    }
-}
-//---------------------------------------------------------------------------
-std::string CSR_DesignerHelper::GetVertexShader(IEShaderType type)
+std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
 {
     switch (type)
     {
@@ -123,7 +60,7 @@ std::string CSR_DesignerHelper::GetVertexShader(IEShaderType type)
     return "";
 }
 //---------------------------------------------------------------------------
-std::string CSR_DesignerHelper::GetFragmentShader(IEShaderType type)
+std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
 {
     switch (type)
     {
