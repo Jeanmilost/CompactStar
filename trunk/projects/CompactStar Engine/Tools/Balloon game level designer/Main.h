@@ -27,8 +27,9 @@
 #include <Vcl.Menus.hpp>
 
 // std
-#include <vector>
 #include <string>
+#include <vector>
+#include <map>
 
 // compactStar engine
 #include "CSR_Model.h"
@@ -67,10 +68,16 @@ class TMainForm : public TForm
         TSplitter *spViews;
         TMenuItem *miFile;
         TMenuItem *miFileNew;
+        TMenuItem *miLandscape;
+        TMenuItem *miAdd;
+        TMenuItem *miAddBox;
+        TMenuItem *miPostProcessing;
+        TMenuItem *miEffects;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall miFileNewClick(TObject* pSender);
+        void __fastcall miAddBoxClick(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
         void __fastcall spViewsMoved(TObject* pSender);
         void __fastcall btResetViewportClick(TObject* pSender);
@@ -140,6 +147,17 @@ class TMainForm : public TForm
         bool OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc);
 
     private:
+        struct IDesignerItem
+        {
+            CSR_SceneItem* m_pItem;
+            CSR_Matrix4    m_Matrix;
+
+            IDesignerItem();
+            ~IDesignerItem();
+        };
+
+        typedef std::map<void*, IDesignerItem*> IDesigner;
+
         std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
         std::auto_ptr<CSR_DesignerView>       m_pDesignerView;
         HDC                                   m_hDC;
@@ -151,8 +169,10 @@ class TMainForm : public TForm
         CSR_Shader*                           m_pShader;
         CSR_Scene*                            m_pScene;
         CSR_SceneContext                      m_SceneContext;
+        IDesigner                             m_Designer;
         void*                                 m_pLandscapeKey;
         void*                                 m_pSphereKey;
+        void*                                 m_pSelectedObjectKey;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
         CSR_MSAA*                             m_pMSAA;
         CSR_Matrix4                           m_ProjectionMatrix;
@@ -174,6 +194,9 @@ class TMainForm : public TForm
         unsigned __int64                      m_StartTime;
         unsigned __int64                      m_PreviousTime;
         bool                                  m_Initialized;
+
+        // FIXME
+        CSR_Matrix4 m_Matrix;
 
         /**
         * Creates the viewport

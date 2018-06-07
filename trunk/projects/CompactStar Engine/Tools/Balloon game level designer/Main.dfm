@@ -191,5 +191,21 @@ object MainForm: TMainForm
         OnClick = miFileNewClick
       end
     end
+    object miLandscape: TMenuItem
+      Caption = 'Landscape'
+      object miAdd: TMenuItem
+        Caption = 'Add...'
+        object miAddBox: TMenuItem
+          Caption = 'Box'
+          OnClick = miAddBoxClick
+        end
+      end
+    end
+    object miPostProcessing: TMenuItem
+      Caption = 'Post-Processing'
+      object miEffects: TMenuItem
+        Caption = 'Effects...'
+      end
+    end
   end
 end

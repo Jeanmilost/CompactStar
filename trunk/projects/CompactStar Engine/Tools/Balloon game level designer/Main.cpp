@@ -47,6 +47,17 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TMainForm::IDesignerItem
+//---------------------------------------------------------------------------
+TMainForm::IDesignerItem::IDesignerItem() :
+    m_pItem(NULL)
+{
+    csrMat4Identity(&m_Matrix);
+}
+//---------------------------------------------------------------------------
+TMainForm::IDesignerItem::~IDesignerItem()
+{}
+//---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
 TMainForm* MainForm;
@@ -61,6 +72,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pShader(NULL),
     m_pScene(NULL),
     m_pLandscapeKey(NULL),
+    m_pSelectedObjectKey(NULL),
     m_pEffect(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
@@ -112,6 +124,11 @@ __fastcall TMainForm::~TMainForm()
 
     DeleteScene();
     CSR_OpenGLHelper::DisableOpenGL(paEngineView->Handle, m_hDC, m_hRC);
+
+    for (IDesigner::iterator it = m_Designer.begin(); it != m_Designer.end(); ++it)
+        delete it->second;
+
+    m_Designer.clear();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
@@ -228,6 +245,56 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
         // load the sound file
         m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
+{
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    //
+    CSR_Mesh* pBox = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, &material, 0);
+
+    if (!pBox)
+        return;
+
+    try
+    {
+        CSR_CollisionInput collisionInput;
+        csrCollisionInputInit(&collisionInput);
+        collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+        CSR_CollisionOutput collisionOutput;
+
+        // calculate the collisions in the whole scene
+        csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // update the ground position directly inside the matrix (this is where the final value is required)
+        pItem->m_Matrix.m_Table[3][1] = collisionOutput.m_GroundPos;
+
+        csrSceneAddMesh(m_pScene, pBox, 0, 0);
+        csrSceneAddModelMatrix(m_pScene, pBox, &pItem->m_Matrix);
+
+        m_Designer[pBox] = pItem.get();
+        pItem.release();
+
+        pBox = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pBox);
+    }
+
+    paDesignerView->Invalidate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
@@ -749,11 +816,8 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
     csrMat4Identity(&m_LandscapeMatrix);
 
     // add the model to the scene
-    csrSceneAddModel(m_pScene, pModel, 0, 1);
+    CSR_SceneItem* pItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
-
-    // get back the scene item containing the model
-    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, pModel);
 
     // found it?
     if (pItem)
@@ -778,6 +842,8 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
 
     if (!AddSphere())
         return false;
+
+    paDesignerView->Invalidate();
 
     return true;
 }
@@ -823,11 +889,8 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
     csrMat4Identity(&m_LandscapeMatrix);
 
     // add the model to the scene
-    csrSceneAddModel(m_pScene, pModel, 0, 1);
+    CSR_SceneItem* pItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
-
-    // get back the scene item containing the model
-    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, pModel);
 
     // found it?
     if (pItem)
@@ -852,6 +915,8 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
 
     if (!AddSphere())
         return false;
+
+    paDesignerView->Invalidate();
 
     return true;
 }

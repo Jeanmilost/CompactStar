@@ -159,8 +159,8 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
     try
     {
         // create the brush and pen to use
-        hBrush = ::CreateSolidBrush(Graphics::ColorToRGB(clRed));
-        hPen   = ::CreatePen(PS_SOLID, 1, Graphics::ColorToRGB(clRed));
+        hBrush = ::CreateSolidBrush(Graphics::ColorToRGB(TColor(0x555555)));
+        hPen   = ::CreatePen(PS_SOLID, 1, Graphics::ColorToRGB(TColor(0x555555)));
 
         if (!hBrush || !hPen)
             return;
@@ -361,11 +361,12 @@ void CSR_DesignerView::DrawPolygon(const TPoint&       origin,
     csrMat4Transform(pMatrix, &polygon.m_Vertex[1], &v[1]);
     csrMat4Transform(pMatrix, &polygon.m_Vertex[2], &v[2]);
 
-    // transform the polygon points into view
+    // transform the polygon points into view. NOTE vertex 1 and 2 are crossed, otherwise several
+    // polygons may not appear on the edges
     std::vector<POINT> points;
     points.push_back(TPoint(origin.X + ((v[0].m_X + pos.m_X) * ratio), origin.Y + ((v[0].m_Z + pos.m_Y) * ratio)));
-    points.push_back(TPoint(origin.X + ((v[1].m_X + pos.m_X) * ratio), origin.Y + ((v[1].m_Z + pos.m_Y) * ratio)));
     points.push_back(TPoint(origin.X + ((v[2].m_X + pos.m_X) * ratio), origin.Y + ((v[2].m_Z + pos.m_Y) * ratio)));
+    points.push_back(TPoint(origin.X + ((v[1].m_X + pos.m_X) * ratio), origin.Y + ((v[1].m_Z + pos.m_Y) * ratio)));
 
     // draw the polygon
     ::Polyline(hDC, &points[0], points.size());
