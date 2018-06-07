@@ -62,6 +62,9 @@ void CSR_View::DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC)
         // draw document background
         ::FillRect(hDC, &rect, hBrush);
 
+        // get the dot width
+        const int dotWidth = 6;
+
         // get the view width and height
         const std::size_t width  = rect.Width();
         const std::size_t height = rect.Height();
@@ -70,20 +73,24 @@ void CSR_View::DrawGrid(const TRect& rect, const IGridOptions& options, HDC hDC)
         const int shiftX = -(options.m_Origin.X % int(options.m_Offset));
         const int shiftY = -(options.m_Origin.Y % int(options.m_Offset));
 
+        // calculate the value to apply to the lines to keep the grid coherent with the scrolling
+        const int scrollX = options.m_Origin.X % dotWidth;
+        const int scrollY = options.m_Origin.Y % dotWidth;
+
         ::SetBkMode(hDC, TRANSPARENT);
 
         // draw horizontal lines
         for (std::size_t i = 0; i < height + options.m_Offset; i += options.m_Offset)
         {
-            ::MoveToEx(hDC, rect.Left,  i + shiftY, NULL);
-            ::LineTo  (hDC, rect.Right, i + shiftY);
+            ::MoveToEx(hDC, (rect.Left  - dotWidth) - scrollX, i + shiftY, NULL);
+            ::LineTo  (hDC, (rect.Right + dotWidth) - scrollX, i + shiftY);
         }
 
         // draw vertical lines
         for (std::size_t i = 0; i < width + options.m_Offset; i += options.m_Offset)
         {
-            ::MoveToEx(hDC, i + shiftX, rect.Top, NULL);
-            ::LineTo  (hDC, i + shiftX, rect.Bottom);
+            ::MoveToEx(hDC, i + shiftX, (rect.Top    - dotWidth) - scrollY, NULL);
+            ::LineTo  (hDC, i + shiftX, (rect.Bottom + dotWidth) - scrollY);
         }
     }
     __finally
