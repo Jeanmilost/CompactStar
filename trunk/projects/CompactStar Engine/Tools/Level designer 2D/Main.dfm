@@ -79,39 +79,6 @@ object MainForm: TMainForm
       State = cbChecked
       TabOrder = 0
     end
-    object ckDisableSound: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 116
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Disable the sound'
-      TabOrder = 3
-      ExplicitTop = 139
-    end
-    object btResetViewport: TButton
-      AlignWithMargins = True
-      Left = 3
-      Top = 139
-      Width = 179
-      Height = 25
-      Align = alTop
-      Caption = 'Reset the viewport'
-      TabOrder = 4
-      OnClick = btResetViewportClick
-      ExplicitTop = 162
-    end
-    object ckShowBall: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 93
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Show a ball on the camera front'
-      TabOrder = 2
-    end
     object ckOilPainting: TCheckBox
       AlignWithMargins = True
       Left = 3
@@ -192,6 +159,13 @@ object MainForm: TMainForm
           OnClick = miAddBoxClick
         end
       end
+      object miLandscapeSeparator: TMenuItem
+        Caption = '-'
+      end
+      object miLandscapeResetViewport: TMenuItem
+        Caption = 'Reset the viewport'
+        OnClick = miLandscapeResetViewportClick
+      end
     end
     object miPostProcessing: TMenuItem
       Caption = 'Post-Processing'
@@ -201,6 +175,15 @@ object MainForm: TMainForm
     end
     object miSound: TMenuItem
       Caption = 'Sound'
+      object miSoundOpen: TMenuItem
+        Caption = 'Open...'
+        OnClick = miSoundOpenClick
+      end
+      object miSoundPause: TMenuItem
+        AutoCheck = True
+        Caption = 'Pause'
+        OnClick = miSoundPauseClick
+      end
     end
   end
 end
