@@ -4,7 +4,7 @@ object LandscapeSelection: TLandscapeSelection
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Landscape selection'
-  ClientHeight = 495
+  ClientHeight = 418
   ClientWidth = 400
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,6 +16,17 @@ object LandscapeSelection: TLandscapeSelection
   Position = poOwnerFormCenter
   PixelsPerInch = 96
   TextHeight = 13
+  object blBottomLine: TBevel
+    AlignWithMargins = True
+    Left = 3
+    Top = 383
+    Width = 394
+    Height = 1
+    Align = alTop
+    Shape = bsTopLine
+    ExplicitLeft = -2
+    ExplicitTop = 390
+  end
   object paSource: TPanel
     Left = 0
     Top = 0
@@ -39,7 +50,7 @@ object LandscapeSelection: TLandscapeSelection
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 394
+      Width = 295
       Height = 24
       Align = alTop
       Caption = 'Select a source for the landscape'
@@ -49,7 +60,6 @@ object LandscapeSelection: TLandscapeSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 295
     end
     object paBitmap: TPanel
       AlignWithMargins = True
@@ -157,13 +167,12 @@ object LandscapeSelection: TLandscapeSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 284
+          Width = 55
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
-          ExplicitWidth = 55
         end
         object paBitmapFileName: TPanel
           AlignWithMargins = True
@@ -260,13 +269,12 @@ object LandscapeSelection: TLandscapeSelection
         AlignWithMargins = True
         Left = 3
         Top = 0
-        Width = 374
+        Width = 55
         Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Select a file'
-        ExplicitWidth = 55
       end
       object paModelFileName: TPanel
         AlignWithMargins = True
@@ -332,7 +340,7 @@ object LandscapeSelection: TLandscapeSelection
     Left = 0
     Top = 257
     Width = 400
-    Height = 130
+    Height = 123
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
@@ -341,7 +349,7 @@ object LandscapeSelection: TLandscapeSelection
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 394
+      Width = 301
       Height = 24
       Align = alTop
       Caption = 'Select a texture for the landscape'
@@ -351,19 +359,6 @@ object LandscapeSelection: TLandscapeSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 301
-    end
-    object blTexture: TBevel
-      AlignWithMargins = True
-      Left = 3
-      Top = 126
-      Width = 394
-      Height = 1
-      Align = alTop
-      Shape = bsTopLine
-      ExplicitLeft = 0
-      ExplicitTop = 8
-      ExplicitWidth = 504
     end
     object paTexture: TPanel
       AlignWithMargins = True
@@ -471,13 +466,12 @@ object LandscapeSelection: TLandscapeSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 281
+          Width = 55
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
-          ExplicitWidth = 55
         end
         object paTextureScreenshot: TPanel
           AlignWithMargins = True
@@ -524,12 +518,13 @@ object LandscapeSelection: TLandscapeSelection
   object paButtons: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 467
+    Top = 390
     Width = 394
     Height = 25
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = 467
     object btOk: TButton
       Left = 319
       Top = 0
@@ -551,108 +546,6 @@ object LandscapeSelection: TLandscapeSelection
       OnClick = btCancelClick
     end
   end
-  object paSound: TPanel
-    Left = 0
-    Top = 387
-    Width = 400
-    Height = 77
-    Align = alTop
-    AutoSize = True
-    BevelOuter = bvNone
-    TabOrder = 3
-    object laSound: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 394
-      Height = 24
-      Align = alTop
-      Caption = 'Select a sound for the walk'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -20
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      ExplicitWidth = 242
-    end
-    object blSound: TBevel
-      AlignWithMargins = True
-      Left = 3
-      Top = 73
-      Width = 394
-      Height = 1
-      Align = alTop
-      Shape = bsTopLine
-      ExplicitLeft = 0
-      ExplicitTop = 8
-      ExplicitWidth = 504
-    end
-    object paSoundFile: TPanel
-      AlignWithMargins = True
-      Left = 20
-      Top = 33
-      Width = 377
-      Height = 37
-      Margins.Left = 20
-      Margins.Bottom = 0
-      Align = alTop
-      AutoSize = True
-      BevelOuter = bvNone
-      TabOrder = 0
-      object laSoundFileName: TLabel
-        AlignWithMargins = True
-        Left = 3
-        Top = 0
-        Width = 371
-        Height = 13
-        Margins.Top = 0
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Select a file'
-        ExplicitWidth = 55
-      end
-      object paSoundFileName: TPanel
-        AlignWithMargins = True
-        Left = 3
-        Top = 16
-        Width = 371
-        Height = 21
-        Margins.Bottom = 0
-        Align = alTop
-        BevelOuter = bvNone
-        TabOrder = 0
-        object edSoundFileName: TEdit
-          AlignWithMargins = True
-          Left = 0
-          Top = 0
-          Width = 347
-          Height = 21
-          Margins.Left = 0
-          Margins.Top = 0
-          Margins.Bottom = 0
-          Align = alClient
-          ReadOnly = True
-          TabOrder = 0
-        end
-        object btSoundBrowse: TButton
-          AlignWithMargins = True
-          Left = 350
-          Top = 0
-          Width = 21
-          Height = 21
-          Margins.Left = 0
-          Margins.Top = 0
-          Margins.Right = 0
-          Margins.Bottom = 0
-          Align = alRight
-          Caption = '...'
-          TabOrder = 1
-          OnClick = btSoundBrowseClick
-        end
-      end
-    end
-  end
   object odModel: TOpenDialog
     Filter = 'All model files|*.obj|WaveFront model|*.obj'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
@@ -662,12 +555,6 @@ object LandscapeSelection: TLandscapeSelection
   object opdPicture: TOpenPictureDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 348
-    Top = 5
-  end
-  object odSound: TOpenDialog
-    Filter = 'All sound files|*.wav|Wave sound|*.wav'
-    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 273
     Top = 5
   end
 end

@@ -22,6 +22,8 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TLandscapeSelection
+//---------------------------------------------------------------------------
 TLandscapeSelection* LandscapeSelection;
 //---------------------------------------------------------------------------
 __fastcall TLandscapeSelection::TLandscapeSelection(TComponent* pOwner, const std::wstring& initialDir) :
@@ -30,7 +32,6 @@ __fastcall TLandscapeSelection::TLandscapeSelection(TComponent* pOwner, const st
     // set the initial dirs
     odModel->InitialDir    = initialDir.c_str();
     opdPicture->InitialDir = initialDir.c_str();
-    odSound->InitialDir    = initialDir.c_str();
 }
 //---------------------------------------------------------------------------
 void __fastcall TLandscapeSelection::btBitmapBrowseClick(TObject* pSender)
@@ -63,16 +64,6 @@ void __fastcall TLandscapeSelection::btTextureBrowseClick(TObject* pSender)
     // update the interface and open the picture
     edTextureFileName->Text = opdPicture->FileName;
     imTexture->Picture->LoadFromFile(edTextureFileName->Text);
-}
-//---------------------------------------------------------------------------
-void __fastcall TLandscapeSelection::btSoundBrowseClick(TObject *Sender)
-{
-    // open the load sound dialog box
-    if (!odSound->Execute())
-        return;
-
-    // update the interface
-    edSoundFileName->Text = odSound->FileName;
 }
 //---------------------------------------------------------------------------
 void __fastcall TLandscapeSelection::btCancelClick(TObject* pSender)

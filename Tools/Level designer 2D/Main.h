@@ -57,9 +57,6 @@ class TMainForm : public TForm
         TBevel *blOptions;
         TLabel *laOptions;
         TCheckBox *ckAntialiasing;
-        TCheckBox *ckDisableSound;
-        TButton *btResetViewport;
-        TCheckBox *ckShowBall;
         TCheckBox *ckOilPainting;
         TMainMenu *mmMainMenu;
         TPanel *paDesignerView;
@@ -73,14 +70,20 @@ class TMainForm : public TForm
         TMenuItem *miPostProcessing;
         TMenuItem *miEffects;
         TMenuItem *miSound;
+        TMenuItem *miSoundOpen;
+        TMenuItem *miSoundPause;
+        TMenuItem *miLandscapeResetViewport;
+        TMenuItem *miLandscapeSeparator;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall miFileNewClick(TObject* pSender);
         void __fastcall miAddBoxClick(TObject* pSender);
+        void __fastcall miLandscapeResetViewportClick(TObject* pSender);
+        void __fastcall miSoundOpenClick(TObject* pSender);
+        void __fastcall miSoundPauseClick(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
         void __fastcall spViewsMoved(TObject* pSender);
-        void __fastcall btResetViewportClick(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
 
     public:
@@ -117,24 +120,6 @@ class TMainForm : public TForm
         *@param pContext - scene context
         */
         static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
-
-        /**
-        * Called when a custom collision should be detected in a scene
-        *@param pScene - scene in which the models to check are contained
-        *@param pSceneItem - the scene item currently tested
-        *@param index - model matrix currently tested in the scene item
-        *@param pInvertedModelMatrix - invert of the currently tested model matrix
-        *@param pCollisionInput - collision input
-        *@param[in, out] pCollisionOutput - collision output
-        *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
-        *@note This callback will be called only for the items containing the CSR_CO_Custom collision type
-        */
-        static int OnCustomDetectCollisionCallback(const CSR_Scene*           pScene,
-                                                   const CSR_SceneItem*       pSceneItem,
-                                                         size_t               index,
-                                                   const CSR_Matrix4*         pInvertedModelMatrix,
-                                                   const CSR_CollisionInput*  pCollisionInput,
-                                                         CSR_CollisionOutput* pCollisionOutput);
 
     protected:
         /**
@@ -176,14 +161,11 @@ class TMainForm : public TForm
         CSR_SceneContext                      m_SceneContext;
         IDesigner                             m_Designer;
         void*                                 m_pLandscapeKey;
-        void*                                 m_pSphereKey;
         void*                                 m_pSelectedObjectKey;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
         CSR_MSAA*                             m_pMSAA;
         CSR_Matrix4                           m_ProjectionMatrix;
-        CSR_Matrix4                           m_SphereMatrix;
         CSR_Sphere                            m_ViewSphere;
-        CSR_Sphere                            m_ModelSphere;
         std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
         int                                   m_PrevOrigin;
@@ -204,6 +186,35 @@ class TMainForm : public TForm
         * Closes a landscape document
         */
         void CloseDocument();
+
+        /**
+        * Loads a landscape from a file
+        *@param fileName - model file name to load from
+        *@return true on success, otherwise false
+        */
+        bool LoadLandscape(const std::string& fileName);
+
+        /**
+        * Loads a landscape from a grayscale bitmap
+        *@param fileName - grayscale bitmap from which the model will be generated
+        *@return true on success, otherwise false
+        */
+        bool LoadLandscapeFromBitmap(const std::string& fileName);
+
+        /**
+        * Loads a texture
+        *@param fileName - texture file name to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        GLuint LoadTexture(const std::wstring& fileName) const;
+
+        /**
+        * Loads a sound
+        *@param fileName - sound file name to load
+        *@return loaded sound on success, otherwise NULL
+        *@note The returned sound should be released once useless
+        */
+        CSR_Sound* LoadSound(const std::string& fileName) const;
 
         /**
         * Initializes the viewpoint
@@ -246,33 +257,6 @@ class TMainForm : public TForm
         void DrawScene();
 
         /**
-        * Adds a sphere to the scene
-        *@return true on success, otherwise false
-        */
-        bool AddSphere();
-
-        /**
-        * Loads a landscape from a file
-        *@param fileName - model file name to load from
-        *@return true on success, otherwise false
-        */
-        bool LoadLandscape(const std::string& fileName);
-
-        /**
-        * Loads a landscape from a grayscale bitmap
-        *@param fileName - grayscale bitmap from which the model will be generated
-        *@return true on success, otherwise false
-        */
-        bool LoadLandscapeFromBitmap(const std::string& fileName);
-
-        /**
-        * Loads a texture
-        *@param fileName - texture file name to load
-        *@return texture identifier on the GPU, M_CSR_Error_Code on error
-        */
-        GLuint LoadTexture(const std::wstring& fileName);
-
-        /**
         * Calculates a matrix where to put the point of view to lie on the ground
         *@param pBoundingSphere - sphere surrounding the point of view
         *@param[out] pMatrix - resulting view matrix
@@ -308,24 +292,6 @@ class TMainForm : public TForm
         *@param pContext - scene context
         */
         void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
-
-        /**
-        * Called when a custom collision should be detected in a scene
-        *@param pScene - scene in which the models to check are contained
-        *@param pSceneItem - the scene item currently tested
-        *@param index - model matrix currently tested in the scene item
-        *@param pInvertedModelMatrix - invert of the currently tested model matrix
-        *@param pCollisionInput - collision input
-        *@param[in, out] pCollisionOutput - collision output
-        *@return 1 if collision detection is done, 0 if default collisions (ground, edge, mouse) should be processed
-        *@note This callback will be called only for the items containing the CSR_CO_Custom collision type
-        */
-        int OnCustomDetectCollision(const CSR_Scene*           pScene,
-                                    const CSR_SceneItem*       pSceneItem,
-                                          size_t               index,
-                                    const CSR_Matrix4*         pInvertedModelMatrix,
-                                    const CSR_CollisionInput*  pCollisionInput,
-                                          CSR_CollisionOutput* pCollisionOutput);
 
         /**
         * Called while application is idle

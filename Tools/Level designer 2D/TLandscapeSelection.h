@@ -65,25 +65,15 @@ class TLandscapeSelection : public TForm
         TImage *imTexture;
         TPanel *paButtons;
         TButton *btOk;
-        TBevel *blTexture;
         TButton *btCancel;
         TOpenDialog *odModel;
         TOpenPictureDialog *opdPicture;
         TRadioButton *rbSourceDontModify;
-        TPanel *paSound;
-        TLabel *laSound;
-        TBevel *blSound;
-        TPanel *paSoundFile;
-        TLabel *laSoundFileName;
-        TPanel *paSoundFileName;
-        TEdit *edSoundFileName;
-        TButton *btSoundBrowse;
-        TOpenDialog *odSound;
+        TBevel *blBottomLine;
 
         void __fastcall btBitmapBrowseClick(TObject* pSender);
         void __fastcall btModelBrowseClick(TObject* pSender);
         void __fastcall btTextureBrowseClick(TObject* pSender);
-        void __fastcall btSoundBrowseClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
         void __fastcall btOkClick(TObject* pSender);
         void __fastcall rbSourceBitmapClick(TObject* pSender);
