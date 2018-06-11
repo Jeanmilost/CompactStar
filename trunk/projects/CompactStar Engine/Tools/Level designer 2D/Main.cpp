@@ -76,6 +76,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pEffect(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
+    m_PropertiesItemCount(0),
     m_PrevOrigin(0),
     m_Angle(0.0f),
     m_PosVelocity(0.0f),
@@ -213,6 +214,9 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     }
 
     paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
@@ -306,6 +310,23 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
             {
                 case VK_LEFT:  m_PosVelocity = -1.0f; handled = true; break;
                 case VK_RIGHT: m_PosVelocity =  1.0f; handled = true; break;
+                case VK_TAB:
+                {
+                    if (!m_pDesignerView.get())
+                        return;
+
+                    // get pressed key and shift state
+                    const TShiftState shiftState = ::KeyDataToShiftState(msg.lParam);
+
+                    // select the prev or next model
+                    if (shiftState.Contains(ssShift))
+                        m_pDesignerView->SelectPrev();
+                    else
+                        m_pDesignerView->SelectNext();
+
+                    // refresh the model properties
+                    RefreshProperties();
+                }
             }
 
             return;
@@ -407,12 +428,12 @@ bool TMainForm::OpenDocument()
     if (pLandscapeSelection->ShowModal() != mrOk)
         return true;
 
-    // recreate the scene
-    CreateScene();
-
     // do change the landscape model?
     if (pLandscapeSelection->rbSourceBitmap->Checked)
     {
+        // recreate the scene
+        CreateScene();
+
         // load the landscape from a grayscale image
         if (!LoadLandscapeFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str()))
         {
@@ -427,6 +448,9 @@ bool TMainForm::OpenDocument()
     else
     if (pLandscapeSelection->rbSourceModel->Checked)
     {
+        // recreate the scene
+        CreateScene();
+
         // load the landscape from a model file
         if (!LoadLandscape(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str()))
         {
@@ -499,6 +523,10 @@ void TMainForm::CloseDocument()
     // stop the sound
     csrSoundStop(m_pSound);
     csrSoundRelease(m_pSound);
+    m_pSound = NULL;
+
+    // clear the properties view
+    ClearProperties();
 
     // clear the designer view
     m_pDesignerView->SetSelectedKey(NULL);
@@ -579,6 +607,9 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
     // keep the key
     m_pLandscapeKey = pModel;
 
+    // refresh the selected model properties
+    RefreshProperties();
+
     return true;
 }
 //---------------------------------------------------------------------------
@@ -649,6 +680,9 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
 
     // keep the key
     m_pLandscapeKey = pModel;
+
+    // refresh the selected model properties
+    RefreshProperties();
 
     return true;
 }
@@ -747,6 +781,73 @@ CSR_Sound* TMainForm::LoadSound(const std::string& fileName) const
     csrSoundPlay(pSound);
 
     return pSound;
+}
+//------------------------------------------------------------------------------
+void TMainForm::ClearProperties()
+{
+    // delete the entire group. This is a annoying constraint of the properties group, because added
+    // items can never be deleted dynamically. For a stupid reason I cannot figure out, the VCL
+    // developers thought very intelligent to make the RemovePanel() function protected, preventing
+    // thus any panel to be deleted dynamically!!!
+    // (See: https://stackoverflow.com/questions/20809310/tcategorypanelgroup-delete-panel)
+    if (cgProperties)
+    {
+        cgProperties->Parent = NULL;
+        delete cgProperties;
+        cgProperties = NULL;
+    }
+
+    m_PropertiesItemCount = 0;
+
+    // is component currently deleting?
+    if (!paProperties || paProperties->ComponentState.Contains(csDestroying))
+        // don't try to recreate properties group, otherwise an access violation may be raised under
+        // some compiler versions, as e.g. in XE6
+        return;
+
+    // recreate properties panel
+    std::auto_ptr<TCategoryPanelGroup> pProperties(new TCategoryPanelGroup(paProperties));
+    pProperties->Name                    = L"cgProperties";
+    pProperties->Align                   = alClient;
+    pProperties->BevelInner              = bvNone;
+    pProperties->BevelOuter              = bvNone;
+    pProperties->VertScrollBar->Tracking = false;
+    pProperties->Parent                  = paProperties;
+    cgProperties                         = pProperties.release();
+}
+//------------------------------------------------------------------------------
+void TMainForm::RefreshProperties()
+{
+    try
+    {
+        // workaround: lock the refresh while interface is updated, to avoid flickering when group
+        // is deleted then recreated
+        ::LockWindowUpdate(paProperties->Handle);
+
+        ClearProperties();
+
+        // create a category panel
+        TCategoryPanel* pCategory = dynamic_cast<TCategoryPanel*>(cgProperties->CreatePanel(cgProperties));
+
+        // created?
+        if (!pCategory)
+            return;
+
+        // populate category panel
+        pCategory->Name    = "cpCategory" + ::IntToStr(int(++m_PropertiesItemCount));
+        pCategory->Caption = L"TEST !!! ";
+    }
+    __finally
+    {
+        // unlock component painting
+        ::LockWindowUpdate(NULL);
+
+         // scroll to first control
+         cgProperties->VertScrollBar->Position = 0;
+
+         // show properties
+         cgProperties->Visible = true;
+    }
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitializeViewPoint()
@@ -1131,10 +1232,10 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
-    if (ckOilPainting->Checked)
+    if (miPostProcessingOilPainting->Checked)
         m_pEffect->DrawBegin(&pScene->m_Color);
     else
-    if (ckAntialiasing->Checked)
+    if (miPostProcessingAntialiasing->Checked)
         csrMSAADrawBegin(&pScene->m_Color, m_pMSAA);
     else
         csrDrawBegin(&pScene->m_Color);
@@ -1142,10 +1243,10 @@ void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pC
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
-    if (ckOilPainting->Checked)
+    if (miPostProcessingOilPainting->Checked)
         m_pEffect->DrawEnd();
     else
-    if (ckAntialiasing->Checked)
+    if (miPostProcessingAntialiasing->Checked)
         csrMSAADrawEnd(m_pMSAA);
     else
         csrDrawEnd();

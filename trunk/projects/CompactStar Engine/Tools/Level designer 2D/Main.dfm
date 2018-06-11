@@ -31,7 +31,7 @@ object MainForm: TMainForm
     ExplicitTop = -8
     ExplicitHeight = 600
   end
-  object paControls: TPanel
+  object paProperties: TPanel
     Left = 615
     Top = 0
     Width = 185
@@ -41,55 +41,24 @@ object MainForm: TMainForm
     Constraints.MinWidth = 185
     ParentBackground = False
     TabOrder = 0
-    object blOptions: TBevel
+    object cgProperties: TCategoryPanelGroup
       Left = 0
-      Top = 42
+      Top = 0
       Width = 185
-      Height = 2
-      Align = alTop
-      Shape = bsTopLine
-      ExplicitTop = 217
-    end
-    object laOptions: TLabel
-      AlignWithMargins = True
-      Left = 3
-      Top = 20
-      Width = 179
-      Height = 19
-      Margins.Top = 20
-      Align = alTop
-      Caption = 'Options'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
-      ExplicitWidth = 62
-    end
-    object ckAntialiasing: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 47
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Antialiasing'
-      Checked = True
-      State = cbChecked
+      Height = 603
+      Align = alClient
+      BevelInner = bvNone
+      BevelOuter = bvNone
+      HeaderFont.Charset = DEFAULT_CHARSET
+      HeaderFont.Color = clWindowText
+      HeaderFont.Height = -11
+      HeaderFont.Name = 'Tahoma'
+      HeaderFont.Style = []
       TabOrder = 0
-    end
-    object ckOilPainting: TCheckBox
-      AlignWithMargins = True
-      Left = 3
-      Top = 70
-      Width = 179
-      Height = 17
-      Align = alTop
-      Caption = 'Oil painting'
-      Checked = True
-      State = cbChecked
-      TabOrder = 1
+      ExplicitLeft = 72
+      ExplicitTop = 144
+      ExplicitWidth = 200
+      ExplicitHeight = 350
     end
   end
   object paViews: TPanel
@@ -133,6 +102,8 @@ object MainForm: TMainForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitLeft = -3
+      ExplicitTop = -3
     end
   end
   object aeEvents: TApplicationEvents
@@ -169,8 +140,21 @@ object MainForm: TMainForm
     end
     object miPostProcessing: TMenuItem
       Caption = 'Post-Processing'
-      object miEffects: TMenuItem
-        Caption = 'Effects...'
+      object miPostProcessingNone: TMenuItem
+        AutoCheck = True
+        Caption = 'None'
+        RadioItem = True
+      end
+      object miPostProcessingAntialiasing: TMenuItem
+        AutoCheck = True
+        Caption = 'Antialiasing'
+        RadioItem = True
+      end
+      object miPostProcessingOilPainting: TMenuItem
+        AutoCheck = True
+        Caption = 'Oil painting'
+        Checked = True
+        RadioItem = True
       end
     end
     object miSound: TMenuItem

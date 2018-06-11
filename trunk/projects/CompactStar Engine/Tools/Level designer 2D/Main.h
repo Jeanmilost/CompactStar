@@ -51,13 +51,9 @@ class TMainForm : public TForm
 {
     __published:
         TPanel *paEngineView;
-        TPanel *paControls;
+        TPanel *paProperties;
         TSplitter *spMainView;
         TApplicationEvents *aeEvents;
-        TBevel *blOptions;
-        TLabel *laOptions;
-        TCheckBox *ckAntialiasing;
-        TCheckBox *ckOilPainting;
         TMainMenu *mmMainMenu;
         TPanel *paDesignerView;
         TPanel *paViews;
@@ -68,12 +64,15 @@ class TMainForm : public TForm
         TMenuItem *miAdd;
         TMenuItem *miAddBox;
         TMenuItem *miPostProcessing;
-        TMenuItem *miEffects;
         TMenuItem *miSound;
         TMenuItem *miSoundOpen;
         TMenuItem *miSoundPause;
         TMenuItem *miLandscapeResetViewport;
         TMenuItem *miLandscapeSeparator;
+        TMenuItem *miPostProcessingAntialiasing;
+        TMenuItem *miPostProcessingOilPainting;
+        TMenuItem *miPostProcessingNone;
+        TCategoryPanelGroup *cgProperties;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
@@ -144,7 +143,7 @@ class TMainForm : public TForm
         };
 
         // IMPORTANT NOTE don't use a CSR_SceneItem as key for the map, because this pointer may
-        // change during the document lifecycle
+        // change during the document lifecycle, whereas the model pointer not
         typedef std::vector<IDesignerItem*>     IDesignerItems;
         typedef std::map<void*, IDesignerItems> IDesigner;
 
@@ -168,6 +167,7 @@ class TMainForm : public TForm
         CSR_Sphere                            m_ViewSphere;
         std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
+        std::size_t                           m_PropertiesItemCount;
         int                                   m_PrevOrigin;
         float                                 m_Angle;
         float                                 m_PosVelocity;
@@ -215,6 +215,16 @@ class TMainForm : public TForm
         *@note The returned sound should be released once useless
         */
         CSR_Sound* LoadSound(const std::string& fileName) const;
+
+        /**
+        * Clears the properties view
+        */
+        void ClearProperties();
+
+        /**
+        * Refreshes the properties view
+        */
+        void RefreshProperties();
 
         /**
         * Initializes the viewpoint
