@@ -83,6 +83,234 @@ void CSR_DesignerView::SetSelectedKey(void* pKey)
     m_pSelectedKey = pKey;
 }
 //---------------------------------------------------------------------------
+void CSR_DesignerView::SelectPrev()
+{
+    if (!m_pScene)
+        return;
+
+    try
+    {
+        // no selected item?
+        if (!m_pSelectedKey)
+        {
+            // select the last transparent item, if any. Transparent items are always drawn on the end
+            if (m_pScene->m_TransparentItemCount)
+            {
+                m_pSelectedKey =
+                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
+                return;
+            }
+
+            // select the last item, if any
+            if (m_pScene->m_ItemCount)
+                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
+
+            return;
+        }
+
+        bool doGetLast = false;
+
+        // iterate through scene items to select
+        for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
+            // found the current item?
+            if (m_pScene->m_pItem[i].m_pModel == m_pSelectedKey)
+            {
+                // is the first item of the scene?
+                if (!i)
+                {
+                    // the prev item to get is the last scene item in this case
+                    doGetLast = true;
+                    break;
+                }
+
+                // get the previous item in the scene
+                m_pSelectedKey = m_pScene->m_pItem[i - 1].m_pModel;
+                return;
+            }
+
+        // do get the last scene item?
+        if (doGetLast)
+        {
+            // select the last transparent item, if any. Transparent items are always drawn on the end
+            if (m_pScene->m_TransparentItemCount)
+            {
+                m_pSelectedKey =
+                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
+                return;
+            }
+
+            // select the last item, if any
+            if (m_pScene->m_ItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
+                return;
+            }
+
+            // no item to select
+            m_pSelectedKey = NULL;
+
+            return;
+        }
+
+        // iterate through scene transparent items to select
+        for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
+            // found the current item?
+            if (m_pScene->m_pTransparentItem[i].m_pModel == m_pSelectedKey)
+            {
+                // is the first transparent item of the scene?
+                if (!i)
+                {
+                    // the prev item to get is the last scene item in this case
+                    doGetLast = true;
+                    break;
+                }
+
+                // get the previous item in the scene
+                m_pSelectedKey = m_pScene->m_pTransparentItem[i - 1].m_pModel;
+                return;
+            }
+
+        // do get the last scene item?
+        if (doGetLast)
+        {
+            // first select the last item
+            if (m_pScene->m_ItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
+                return;
+            }
+
+            // no normal item, select the last transparent item
+            if (m_pScene->m_TransparentItemCount)
+            {
+                m_pSelectedKey =
+                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
+                return;
+            }
+        }
+
+        // no item to select
+        m_pSelectedKey = NULL;
+    }
+    __finally
+    {
+        m_pPanel->Invalidate();
+    }
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::SelectNext()
+{
+    if (!m_pScene)
+        return;
+
+    try
+    {
+        // no selected item?
+        if (!m_pSelectedKey)
+        {
+            // select the first item, if any
+            if (m_pScene->m_ItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
+                return;
+            }
+
+            // select the last transparent item, if any. Transparent items are always drawn on the end
+            if (m_pScene->m_TransparentItemCount)
+                m_pSelectedKey = m_pScene->m_pTransparentItem[0].m_pModel;
+
+            return;
+        }
+
+        bool doGetFirst = false;
+
+        // iterate through scene items to select
+        for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
+            // found the current item?
+            if (m_pScene->m_pItem[i].m_pModel == m_pSelectedKey)
+            {
+                // is the last item of the scene?
+                if (i == m_pScene->m_ItemCount - 1)
+                {
+                    // the next item to get is the first scene item in this case
+                    doGetFirst = true;
+                    break;
+                }
+
+                // get the next item in the scene
+                m_pSelectedKey = m_pScene->m_pItem[i + 1].m_pModel;
+                return;
+            }
+
+        // do get the first scene item?
+        if (doGetFirst)
+        {
+            // select the first transparent item, if any. Transparent items are always drawn on the end
+            if (m_pScene->m_TransparentItemCount)
+            {
+                m_pSelectedKey =
+                        m_pScene->m_pTransparentItem[0].m_pModel;
+                return;
+            }
+
+            // select the first item, if any
+            if (m_pScene->m_ItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
+                return;
+            }
+
+            // no item to select
+            m_pSelectedKey = NULL;
+
+            return;
+        }
+
+        // iterate through scene transparent items to select
+        for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
+            // found the current item?
+            if (m_pScene->m_pTransparentItem[i].m_pModel == m_pSelectedKey)
+            {
+                // is the last transparent item of the scene?
+                if (i == m_pScene->m_TransparentItemCount - 1)
+                {
+                    // the next item to get is the first scene item in this case
+                    doGetFirst = true;
+                    break;
+                }
+
+                // get the next item in the scene
+                m_pSelectedKey = m_pScene->m_pTransparentItem[i + 1].m_pModel;
+                return;
+            }
+
+        // do get the first scene item?
+        if (doGetFirst)
+        {
+            // first select the first item
+            if (m_pScene->m_ItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
+                return;
+            }
+
+            // no normal item, select the last transparent item
+            if (m_pScene->m_TransparentItemCount)
+            {
+                m_pSelectedKey = m_pScene->m_pTransparentItem[0].m_pModel;
+                return;
+            }
+        }
+
+        // no item to select
+        m_pSelectedKey = NULL;
+    }
+    __finally
+    {
+        m_pPanel->Invalidate();
+    }
+}
+//---------------------------------------------------------------------------
 int CSR_DesignerView::GetOrigin() const
 {
     return m_GridOptions.m_Origin.X;
@@ -238,184 +466,219 @@ void CSR_DesignerView::Draw(const CSR_Scene*   pScene,
     // select the background mode to apply
     ::SetBkMode(hDC, OPAQUE);
 
-    // iterate through scene items
+    // iterate through scene items to draw
     for (std::size_t i = 0; i < pScene->m_ItemCount; ++i)
+        DrawItem(&pScene->m_pItem[i], origin, pos, ratio, hDC);
+
+    // iterate through scene transparent items to draw
+    for (std::size_t i = 0; i < pScene->m_TransparentItemCount; ++i)
+        DrawItem(&pScene->m_pTransparentItem[i], origin, pos, ratio, hDC);
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::DrawItem(const CSR_SceneItem* pSceneItem,
+                                const TPoint&        origin,
+                                const CSR_Vector2&   pos,
+                                      float          ratio,
+                                      HDC            hDC) const
+{
+    if (!pSceneItem)
+        return;
+
+    // select the brush and pen to use
+    if (pSceneItem->m_pModel == m_pSelectedKey)
     {
-        // select the brush and pen to use
-        if (pScene->m_pItem[i].m_pModel == m_pSelectedKey)
-        {
-            ::SelectObject(hDC, m_hSelectedBrush);
-            ::SelectObject(hDC, m_hSelectedPen);
-        }
-        else
-        {
-            ::SelectObject(hDC, m_hBrush);
-            ::SelectObject(hDC, m_hPen);
-        }
+        ::SelectObject(hDC, m_hSelectedBrush);
+        ::SelectObject(hDC, m_hSelectedPen);
+    }
+    else
+    {
+        ::SelectObject(hDC, m_hBrush);
+        ::SelectObject(hDC, m_hPen);
+    }
 
-        // iterate through item model matrices
-        for (std::size_t j = 0; j < pScene->m_pItem[i].m_pMatrixArray->m_Count; ++j)
-            // search for item model type
-            switch (pScene->m_pItem[i].m_Type)
+    // iterate through item model matrices
+    for (std::size_t i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
+        // draw the next model
+        DrawModel(pSceneItem->m_pModel,
+                  pSceneItem->m_Type,
+                  static_cast<CSR_Matrix4*>(pSceneItem->m_pMatrixArray->m_pItem[i].m_pData),
+                  origin,
+                  pos,
+                  ratio,
+                  hDC);
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::DrawModel(const void*          pModelItem,
+                                       CSR_EModelType modelType,
+                                 const CSR_Matrix4*   pMatrix,
+                                 const TPoint&        origin,
+                                 const CSR_Vector2&   pos,
+                                       float          ratio,
+                                       HDC            hDC) const
+{
+    if (!pModelItem)
+        return;
+
+    // search for item model type
+    switch (modelType)
+    {
+        case CSR_MT_Mesh:
+        {
+            // item contains a mesh, convert it
+            const CSR_Mesh* pMesh = static_cast<const CSR_Mesh*>(pModelItem);
+
+            // found it?
+            if (!pMesh)
+                return;
+
+            // iterate through model meshes
+            CSR_IndexedPolygonBuffer* pBuffer = NULL;
+
+            try
             {
-                case CSR_MT_Mesh:
+                // extract the mesh polygons
+                pBuffer = csrIndexedPolygonBufferFromMesh(pMesh);
+
+                // succeeded?
+                if (!pBuffer)
+                    return;
+
+                // iterate through polygons
+                for (std::size_t i = 0; i < pBuffer->m_Count; ++i)
                 {
-                    // item contains a mesh, convert it
-                    CSR_Mesh* pMesh = static_cast<CSR_Mesh*>(pScene->m_pItem[i].m_pModel);
+                    CSR_Polygon3 polygon;
 
-                    // found it?
-                    if (!pMesh)
+                    // get the next polygon to draw
+                    if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[i], &polygon))
                         continue;
 
-                    // iterate through model meshes
-                    CSR_IndexedPolygonBuffer* pBuffer = NULL;
-
-                    try
-                    {
-                        // extract the mesh polygons
-                        pBuffer = csrIndexedPolygonBufferFromMesh(pMesh);
-
-                        // succeeded?
-                        if (!pBuffer)
-                            continue;
-
-                        // iterate through polygons
-                        for (std::size_t k = 0; k < pBuffer->m_Count; ++k)
-                        {
-                            CSR_Polygon3 polygon;
-
-                            // get the next polygon to draw
-                            if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[k], &polygon))
-                                continue;
-
-                            // draw the polygon
-                            DrawPolygon(origin,
-                                        pos,
-                                        static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
-                                        polygon,
-                                        ratio,
-                                        hDC);
-                        }
-                    }
-                    __finally
-                    {
-                        csrIndexedPolygonBufferRelease(pBuffer);
-                    }
-
-                    continue;
-                }
-
-                case CSR_MT_Model:
-                {
-                    // item contains a model, convert it
-                    CSR_Model* pModel = static_cast<CSR_Model*>(pScene->m_pItem[i].m_pModel);
-
-                    // found it?
-                    if (!pModel)
-                        continue;
-
-                    // iterate through model meshes
-                    for (std::size_t k = 0; k < pModel->m_MeshCount; ++k)
-                    {
-                        CSR_IndexedPolygonBuffer* pBuffer = NULL;
-
-                        try
-                        {
-                            // extract the mesh polygons
-                            pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[k]);
-
-                            // succeeded?
-                            if (!pBuffer)
-                                continue;
-
-                            // iterate through polygons
-                            for (std::size_t l = 0; l < pBuffer->m_Count; ++l)
-                            {
-                                CSR_Polygon3 polygon;
-
-                                // get the next polygon to draw
-                                if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[l], &polygon))
-                                    continue;
-
-                                // draw the polygon
-                                DrawPolygon(origin,
-                                            pos,
-                                            static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
-                                            polygon,
-                                            ratio,
-                                            hDC);
-                            }
-                        }
-                        __finally
-                        {
-                            csrIndexedPolygonBufferRelease(pBuffer);
-                        }
-                    }
-
-                    continue;
-                }
-
-                case CSR_MT_MDL:
-                {
-                    // item contains a Quake I model, convert it
-                    CSR_MDL* pMDL = static_cast<CSR_MDL*>(pScene->m_pItem[i].m_pModel);
-
-                    // found it?
-                    if (!pMDL)
-                        continue;
-
-                    // is empty?
-                    if (!pMDL->m_ModelCount)
-                        continue;
-
-                    // get the first model (enough to be shown on the view)
-                    CSR_Model* pModel = &pMDL->m_pModel[0];
-
-                    // found it?
-                    if (!pModel)
-                        continue;
-
-                    // iterate through model meshes
-                    for (std::size_t k = 0; k < pModel->m_MeshCount; ++k)
-                    {
-                        CSR_IndexedPolygonBuffer* pBuffer = NULL;
-
-                        try
-                        {
-                            // extract the mesh polygons
-                            pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[k]);
-
-                            // succeeded?
-                            if (!pBuffer)
-                                continue;
-
-                            // iterate through polygons
-                            for (std::size_t l = 0; l < pBuffer->m_Count; ++l)
-                            {
-                                CSR_Polygon3 polygon;
-
-                                // get the next polygon to draw
-                                if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[l], &polygon))
-                                    continue;
-
-                                // draw the polygon
-                                DrawPolygon(origin,
-                                            pos,
-                                            static_cast<CSR_Matrix4*>(pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData),
-                                            polygon,
-                                            ratio,
-                                            hDC);
-                            }
-                        }
-                        __finally
-                        {
-                            csrIndexedPolygonBufferRelease(pBuffer);
-                        }
-                    }
-
-                    continue;
+                    // draw the polygon
+                    DrawPolygon(origin,
+                                pos,
+                                pMatrix,
+                                polygon,
+                                ratio,
+                                hDC);
                 }
             }
+            __finally
+            {
+                csrIndexedPolygonBufferRelease(pBuffer);
+            }
+
+            return;
+        }
+
+        case CSR_MT_Model:
+        {
+            // item contains a model, convert it
+            const CSR_Model* pModel = static_cast<const CSR_Model*>(pModelItem);
+
+            // found it?
+            if (!pModel)
+                return;
+
+            // iterate through model meshes
+            for (std::size_t i = 0; i < pModel->m_MeshCount; ++i)
+            {
+                CSR_IndexedPolygonBuffer* pBuffer = NULL;
+
+                try
+                {
+                    // extract the mesh polygons
+                    pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[i]);
+
+                    // succeeded?
+                    if (!pBuffer)
+                        continue;
+
+                    // iterate through polygons
+                    for (std::size_t j = 0; j < pBuffer->m_Count; ++j)
+                    {
+                        CSR_Polygon3 polygon;
+
+                        // get the next polygon to draw
+                        if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[j], &polygon))
+                            continue;
+
+                        // draw the polygon
+                        DrawPolygon(origin,
+                                    pos,
+                                    pMatrix,
+                                    polygon,
+                                    ratio,
+                                    hDC);
+                    }
+                }
+                __finally
+                {
+                    csrIndexedPolygonBufferRelease(pBuffer);
+                }
+            }
+
+            return;
+        }
+
+        case CSR_MT_MDL:
+        {
+            // item contains a Quake I model, convert it
+            const CSR_MDL* pMDL = static_cast<const CSR_MDL*>(pModelItem);
+
+            // found it?
+            if (!pMDL)
+                return;
+
+            // is empty?
+            if (!pMDL->m_ModelCount)
+                return;
+
+            // get the first model (enough to be shown on the view)
+            CSR_Model* pModel = &pMDL->m_pModel[0];
+
+            // found it?
+            if (!pModel)
+                return;
+
+            // iterate through model meshes
+            for (std::size_t i = 0; i < pModel->m_MeshCount; ++i)
+            {
+                CSR_IndexedPolygonBuffer* pBuffer = NULL;
+
+                try
+                {
+                    // extract the mesh polygons
+                    pBuffer = csrIndexedPolygonBufferFromMesh(&pModel->m_pMesh[i]);
+
+                    // succeeded?
+                    if (!pBuffer)
+                        continue;
+
+                    // iterate through polygons
+                    for (std::size_t j = 0; j < pBuffer->m_Count; ++j)
+                    {
+                        CSR_Polygon3 polygon;
+
+                        // get the next polygon to draw
+                        if (!csrIndexedPolygonToPolygon(&pBuffer->m_pIndexedPolygon[j], &polygon))
+                            continue;
+
+                        // draw the polygon
+                        DrawPolygon(origin,
+                                    pos,
+                                    pMatrix,
+                                    polygon,
+                                    ratio,
+                                    hDC);
+                    }
+                }
+                __finally
+                {
+                    csrIndexedPolygonBufferRelease(pBuffer);
+                }
+            }
+
+            return;
+        }
     }
 }
 //---------------------------------------------------------------------------

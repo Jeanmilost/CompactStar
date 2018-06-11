@@ -71,6 +71,16 @@ class CSR_DesignerView : public CSR_View
         void SetSelectedKey(void* pKey);
 
         /**
+        * Selects the previous model in the scene
+        */
+        void SelectPrev();
+
+        /**
+        * Selects the next model in the scene
+        */
+        void SelectNext();
+
+        /**
         * Gets the view origin
         *@return the view origin, in pixels
         */
@@ -141,6 +151,38 @@ class CSR_DesignerView : public CSR_View
                           const CSR_Vector2& pos,
                                 float        ratio,
                                 HDC          hDC) const;
+
+        /**
+        * Draws a scene item content onto the view
+        *@param pSceneItem - scene item to draw
+        *@param origin - view origin in pixels
+        *@param pos - position inside the 3d world
+        *@param ratio - ratio to apply between the view and the scene
+        *@param hDC - view device context on which the scene should be drawn
+        */
+        virtual void DrawItem(const CSR_SceneItem* pSceneItem,
+                              const TPoint&        origin,
+                              const CSR_Vector2&   pos,
+                                    float          ratio,
+                                    HDC            hDC) const;
+
+        /**
+        * Draws a model onto the view
+        *@param pModelItem - model to draw
+        *@param modelType - model type
+        *@param pMatrix - model matrix
+        *@param origin - view origin in pixels
+        *@param pos - position inside the 3d world
+        *@param ratio - ratio to apply between the view and the scene
+        *@param hDC - view device context on which the scene should be drawn
+        */
+        virtual void DrawModel(const void*          pModelItem,
+                                     CSR_EModelType modelType,
+                               const CSR_Matrix4*   pMatrix,
+                               const TPoint&        origin,
+                               const CSR_Vector2&   pos,
+                                     float          ratio,
+                                     HDC            hDC) const;
 
         /**
         * Draws a polygon onto the view
