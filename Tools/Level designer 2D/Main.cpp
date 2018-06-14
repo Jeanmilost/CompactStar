@@ -48,6 +48,24 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TMainForm::IDesignerProperties
+//---------------------------------------------------------------------------
+TMainForm::IDesignerProperties::IDesignerProperties() :
+    m_pTransformTranslate(NULL),
+    m_pTransformRotate(NULL),
+    m_pTransformScale(NULL)
+{}
+//---------------------------------------------------------------------------
+TMainForm::IDesignerProperties::~IDesignerProperties()
+{}
+//---------------------------------------------------------------------------
+void TMainForm::IDesignerProperties::Clear()
+{
+    m_pTransformTranslate = NULL;
+    m_pTransformRotate    = NULL;
+    m_pTransformScale     = NULL;
+}
+//---------------------------------------------------------------------------
 // TMainForm::IDesignerItem
 //---------------------------------------------------------------------------
 TMainForm::IDesignerItem::IDesignerItem()
@@ -76,7 +94,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pEffect(NULL),
     m_pMSAA(NULL),
     m_FrameCount(0),
-    m_PropertiesItemCount(0),
     m_PrevOrigin(0),
     m_Angle(0.0f),
     m_PosVelocity(0.0f),
@@ -300,6 +317,10 @@ void __fastcall TMainForm::spViewsMoved(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 {
+    if (Application->MainForm->ActiveControl &&
+        Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
+        return;
+
     m_PosVelocity = 0.0f;
     m_DirVelocity = 0.0f;
 
@@ -308,8 +329,16 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_PosVelocity = -1.0f; handled = true; break;
-                case VK_RIGHT: m_PosVelocity =  1.0f; handled = true; break;
+                case VK_LEFT:
+                    m_PosVelocity = -1.0f;
+                    handled       =  true;
+                    break;
+
+                case VK_RIGHT:
+                    m_PosVelocity = 1.0f;
+                    handled       = true;
+                    break;
+
                 case VK_TAB:
                 {
                     if (!m_pDesignerView.get())
@@ -326,11 +355,23 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 
                     // refresh the model properties
                     RefreshProperties();
+
+                    handled = true;
                 }
             }
 
             return;
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::OnViewClick(TObject* pSender)
+{
+    // get the view that sent the event as a Windows control
+    TWinControl* pWinControl = dynamic_cast<TWinControl*>(pSender);
+
+    // focus the view, if possible
+    if (pWinControl && pWinControl->CanFocus())
+        Application->MainForm->ActiveControl = pWinControl;
 }
 //------------------------------------------------------------------------------
 CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
@@ -785,6 +826,9 @@ CSR_Sound* TMainForm::LoadSound(const std::string& fileName) const
 //------------------------------------------------------------------------------
 void TMainForm::ClearProperties()
 {
+    // clear the designer properties
+    m_DesignerProperties.Clear();
+
     // delete the entire group. This is a annoying constraint of the properties group, because added
     // items can never be deleted dynamically. For a stupid reason I cannot figure out, the VCL
     // developers thought very intelligent to make the RemovePanel() function protected, preventing
@@ -796,8 +840,6 @@ void TMainForm::ClearProperties()
         delete cgProperties;
         cgProperties = NULL;
     }
-
-    m_PropertiesItemCount = 0;
 
     // is component currently deleting?
     if (!paProperties || paProperties->ComponentState.Contains(csDestroying))
@@ -833,9 +875,114 @@ void TMainForm::RefreshProperties()
         if (!pCategory)
             return;
 
+        // get the selected scene item
+        CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelectedKey());
+
+        // not found?
+        if (!pItem || !pItem->m_pMatrixArray->m_Count)
+            return;
+
+        CSR_Matrix4 matrix = *((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData);
+
+        std::auto_ptr<TLabel>        pLabel;
+        std::auto_ptr<TVector3Frame> pVector3Frame;
+
+        CSR_VCLHelper::IControls controls;
+
         // populate category panel
-        pCategory->Name    = "cpCategory" + ::IntToStr(int(++m_PropertiesItemCount));
-        pCategory->Caption = L"TEST !!! ";
+        pCategory->Name    =  "cpTransform";
+        pCategory->Caption = L"Transform";
+
+        // create the transform translate label
+        pLabel.reset(new TLabel(pCategory));
+        pLabel->Name             =  "laTransformTranslate";
+        pLabel->Caption          = L"Translate";
+        pLabel->Align            = alTop;
+        pLabel->Margins->Left    = 3;
+        pLabel->Margins->Top     = 0;
+        pLabel->Margins->Right   = 3;
+        pLabel->Margins->Bottom  = 0;
+        pLabel->AlignWithMargins = true;
+        pLabel->Font->Size       = 10;
+        pLabel->Parent           = pCategory;
+        controls.push_back(pLabel.get());
+        pLabel.release();
+
+        // create the transform translate panel
+        pVector3Frame.reset(new TVector3Frame(pCategory));
+        pVector3Frame->Name                        = "vfTransformTranslate";
+        pVector3Frame->Align                       = alTop;
+        pVector3Frame->Parent                      = pCategory;
+        m_DesignerProperties.m_pTransformTranslate = pVector3Frame.release();
+        m_DesignerProperties.m_pTransformTranslate->Set_OnValueChanged(OnPropertiesValueChanged);
+        controls.push_back(m_DesignerProperties.m_pTransformTranslate);
+
+        CSR_Vector3 translation;
+        csrMat4TranslationFrom(&matrix, &translation.m_X, &translation.m_Y, &translation.m_Z);
+        m_DesignerProperties.m_pTransformTranslate->SetVector(translation);
+
+        // create the transform translate label
+        pLabel.reset(new TLabel(pCategory));
+        pLabel->Name             =  "laTransformRotate";
+        pLabel->Caption          = L"Rotate";
+        pLabel->Align            = alTop;
+        pLabel->Margins->Left    = 3;
+        pLabel->Margins->Top     = 5;
+        pLabel->Margins->Right   = 3;
+        pLabel->Margins->Bottom  = 0;
+        pLabel->AlignWithMargins = true;
+        pLabel->Font->Size       = 10;
+        pLabel->Parent           = pCategory;
+        controls.push_back(pLabel.get());
+        pLabel.release();
+
+        // create the transform rotate panel
+        pVector3Frame.reset(new TVector3Frame(pCategory));
+        pVector3Frame->Name                     = "vfTransformRotate";
+        pVector3Frame->Align                    = alTop;
+        pVector3Frame->Parent                   = pCategory;
+        m_DesignerProperties.m_pTransformRotate = pVector3Frame.release();
+        m_DesignerProperties.m_pTransformRotate->Set_OnValueChanged(OnPropertiesValueChanged);
+        controls.push_back(m_DesignerProperties.m_pTransformRotate);
+
+        CSR_Vector3 rotation;
+        csrMat4RotationFrom(&matrix, &rotation.m_X, &rotation.m_Y, &rotation.m_Z);
+        m_DesignerProperties.m_pTransformRotate->SetVector(rotation);
+
+        // create the transform translate label
+        pLabel.reset(new TLabel(pCategory));
+        pLabel->Name             =  "laTransformScale";
+        pLabel->Caption          = L"Scale";
+        pLabel->Align            = alTop;
+        pLabel->Margins->Left    = 3;
+        pLabel->Margins->Top     = 5;
+        pLabel->Margins->Right   = 3;
+        pLabel->Margins->Bottom  = 0;
+        pLabel->AlignWithMargins = true;
+        pLabel->Font->Size       = 10;
+        pLabel->Parent           = pCategory;
+        controls.push_back(pLabel.get());
+        pLabel.release();
+
+        // create the transform scale panel
+        pVector3Frame.reset(new TVector3Frame(pCategory));
+        pVector3Frame->Name                    = "vfTransformScale";
+        pVector3Frame->Align                   = alTop;
+        pVector3Frame->Parent                  = pCategory;
+        m_DesignerProperties.m_pTransformScale = pVector3Frame.release();
+        m_DesignerProperties.m_pTransformScale->Set_OnValueChanged(OnPropertiesValueChanged);
+        controls.push_back(m_DesignerProperties.m_pTransformScale);
+
+        CSR_VCLHelper::DistributeCtrlsTTB(controls);
+
+        // calculate the category height. NOTE the hardcoded value is the panel header height, which
+        // is, of course, impossible to get from the panel itself. Perhaps one day Embarcadero will
+        // provide a really working IDE?
+        pCategory->Height = 26                                          +
+                            m_DesignerProperties.m_pTransformScale->Top +
+                            m_DesignerProperties.m_pTransformScale->Height;
+
+        Application->MainForm->ActiveControl = NULL;
     }
     __finally
     {
@@ -1172,6 +1319,59 @@ bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matr
     pMatrix->m_Table[3][1] = -collisionOutput.m_GroundPos;
 
     return (collisionOutput.m_Collision & CSR_CO_Ground);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, float z)
+{
+    // get the selected scene item
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelectedKey());
+
+    // not found?
+    if (!pItem || !pItem->m_pMatrixArray->m_Count)
+        return;
+
+    // a translate value changed?
+    if (pSender == m_DesignerProperties.m_pTransformTranslate)
+    {
+        // set the new translate value
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
+
+        // refresh the designer
+        paDesignerView->Invalidate();
+        return;
+    }
+
+    // a rotate value changed?
+    if (pSender == m_DesignerProperties.m_pTransformRotate)
+    {
+        // set the new rotate value
+        /*
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
+        */
+
+        // refresh the designer
+        paDesignerView->Invalidate();
+        return;
+    }
+
+    // a scale value changed?
+    if (pSender == m_DesignerProperties.m_pTransformScale)
+    {
+        // set the new rotate value
+        /*
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
+        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
+        */
+
+        // refresh the designer
+        paDesignerView->Invalidate();
+        return;
+    }
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)

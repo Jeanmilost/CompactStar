@@ -14,6 +14,7 @@ object LandscapeSelection: TLandscapeSelection
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  PrintScale = poNone
   PixelsPerInch = 96
   TextHeight = 13
   object blBottomLine: TBevel
@@ -50,7 +51,7 @@ object LandscapeSelection: TLandscapeSelection
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 295
+      Width = 394
       Height = 24
       Align = alTop
       Caption = 'Select a source for the landscape'
@@ -60,6 +61,7 @@ object LandscapeSelection: TLandscapeSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
+      ExplicitWidth = 295
     end
     object paBitmap: TPanel
       AlignWithMargins = True
@@ -167,12 +169,13 @@ object LandscapeSelection: TLandscapeSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 55
+          Width = 284
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
+          ExplicitWidth = 55
         end
         object paBitmapFileName: TPanel
           AlignWithMargins = True
@@ -269,12 +272,13 @@ object LandscapeSelection: TLandscapeSelection
         AlignWithMargins = True
         Left = 3
         Top = 0
-        Width = 55
+        Width = 374
         Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Select a file'
+        ExplicitWidth = 55
       end
       object paModelFileName: TPanel
         AlignWithMargins = True
@@ -349,7 +353,7 @@ object LandscapeSelection: TLandscapeSelection
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 301
+      Width = 394
       Height = 24
       Align = alTop
       Caption = 'Select a texture for the landscape'
@@ -359,6 +363,7 @@ object LandscapeSelection: TLandscapeSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
+      ExplicitWidth = 301
     end
     object paTexture: TPanel
       AlignWithMargins = True
@@ -466,12 +471,13 @@ object LandscapeSelection: TLandscapeSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 55
+          Width = 281
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
+          ExplicitWidth = 55
         end
         object paTextureScreenshot: TPanel
           AlignWithMargins = True
@@ -524,7 +530,6 @@ object LandscapeSelection: TLandscapeSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitTop = 467
     object btOk: TButton
       Left = 319
       Top = 0
