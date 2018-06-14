@@ -973,6 +973,10 @@ void TMainForm::RefreshProperties()
         m_DesignerProperties.m_pTransformScale->Set_OnValueChanged(OnPropertiesValueChanged);
         controls.push_back(m_DesignerProperties.m_pTransformScale);
 
+        CSR_Vector3 factor;
+        csrMat4ScalingFrom(&matrix, &factor.m_X, &factor.m_Y, &factor.m_Z);
+        m_DesignerProperties.m_pTransformScale->SetVector(factor);
+
         CSR_VCLHelper::DistributeCtrlsTTB(controls);
 
         // calculate the category height. NOTE the hardcoded value is the panel header height, which
@@ -1167,7 +1171,11 @@ void TMainForm::InitScene(int w, int h)
 
     m_Initialized = true;
 
+    // show the changes on the designer view
     paDesignerView->Invalidate();
+
+    // to allow the engine view to be scrolled directly
+    Application->MainForm->ActiveControl = paEngineView;
 }
 //------------------------------------------------------------------------------
 void TMainForm::DeleteScene()
@@ -1330,48 +1338,66 @@ void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, flo
     if (!pItem || !pItem->m_pMatrixArray->m_Count)
         return;
 
-    // a translate value changed?
-    if (pSender == m_DesignerProperties.m_pTransformTranslate)
-    {
-        // set the new translate value
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
+    CSR_Vector3 t;
+    CSR_Vector3 axis;
+    CSR_Vector3 factor;
+    CSR_Matrix4 matrixTranslate;
+    CSR_Matrix4 matrixX;
+    CSR_Matrix4 matrixY;
+    CSR_Matrix4 matrixZ;
+    CSR_Matrix4 matrixScale;
+    CSR_Matrix4 buildMatrix1;
+    CSR_Matrix4 buildMatrix2;
+    CSR_Matrix4 buildMatrix3;
 
-        // refresh the designer
-        paDesignerView->Invalidate();
-        return;
-    }
+    // get the translation values to apply
+    t.m_X = m_DesignerProperties.m_pTransformTranslate->GetX();
+    t.m_Y = m_DesignerProperties.m_pTransformTranslate->GetY();
+    t.m_Z = m_DesignerProperties.m_pTransformTranslate->GetZ();
 
-    // a rotate value changed?
-    if (pSender == m_DesignerProperties.m_pTransformRotate)
-    {
-        // set the new rotate value
-        /*
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
-        */
+    // create a translation matrix
+    csrMat4Translate(&t, &matrixTranslate);
 
-        // refresh the designer
-        paDesignerView->Invalidate();
-        return;
-    }
+    // get the rotation x axis
+    axis.m_X = 1.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 0.0f;
 
-    // a scale value changed?
-    if (pSender == m_DesignerProperties.m_pTransformScale)
-    {
-        // set the new rotate value
-        /*
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][0] = x;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][1] = y;
-        ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData)->m_Table[3][2] = z;
-        */
+    // create a rotation matrix on the x axis
+    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetX(), &axis, &matrixX);
 
-        // refresh the designer
-        paDesignerView->Invalidate();
-        return;
-    }
+    // get the rotation y axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 1.0f;
+    axis.m_Z = 0.0f;
+
+    // create a rotation matrix on the y axis
+    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetY(), &axis, &matrixY);
+
+    // get the rotation z axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 1.0f;
+
+    // create a rotation matrix on the z axis
+    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetZ(), &axis, &matrixZ);
+
+    // get the scale values to apply
+    factor.m_X = m_DesignerProperties.m_pTransformScale->GetX();
+    factor.m_Y = m_DesignerProperties.m_pTransformScale->GetY();
+    factor.m_Z = m_DesignerProperties.m_pTransformScale->GetZ();
+
+    // create a scale matrix
+    csrMat4Scale(&factor, &matrixScale);
+
+    // rebuild the selected object model matrix
+    csrMat4Multiply(&matrixScale,  &matrixX,         &buildMatrix1);
+    csrMat4Multiply(&buildMatrix1, &matrixY,         &buildMatrix2);
+    csrMat4Multiply(&buildMatrix2, &matrixZ,         &buildMatrix3);
+    csrMat4Multiply(&buildMatrix3, &matrixTranslate, ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData));
+
+    // update the designer view
+    paDesignerView->Invalidate();
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
