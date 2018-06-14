@@ -22,6 +22,7 @@
 
 // std
 #include <string>
+#include <vector>
 
 /**
 * VCL control hook
@@ -80,6 +81,8 @@ class CSR_VCLHelper
             IE_IT_PNG
         };
 
+        typedef std::vector<TControl*> IControls;
+
         /**
         * Checks if a control is visible, considering also all his parents
         *@param pControl - control to check
@@ -126,6 +129,24 @@ class CSR_VCLHelper
         *      antialiasing factor of 4 is applied, will result to an image of 100x100 pixels
         */
         static void ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::size_t factor);
+
+        /**
+        * Distributes the controls horizontally, from first on the left to last on the right
+        *@param controls - controls to distribute
+        */
+        static void DistributeCtrlsLTR(const IControls& controls);
+
+        /**
+        * Distributes the controls horizontally, from first on the right to last on the left
+        *@param controls - controls to distribute
+        */
+        static void DistributeCtrlsRTL(const IControls& controls);
+
+        /**
+        * Distributes the controls vertically, from first on the top to last on the bottom
+        *@param controls - controls to distribute
+        */
+        static void DistributeCtrlsTTB(const IControls& controls);
 };
 
 #endif

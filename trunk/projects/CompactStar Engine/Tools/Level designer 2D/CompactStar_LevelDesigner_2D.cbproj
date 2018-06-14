@@ -234,9 +234,17 @@
             <DependentOn>TSoundSelection.h</DependentOn>
             <BuildOrder>33</BuildOrder>
         </CppCompile>
+        <CppCompile Include="TVector3Frame.cpp">
+            <Form>Vector3Frame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>TVector3Frame.h</DependentOn>
+            <BuildOrder>34</BuildOrder>
+        </CppCompile>
         <FormResources Include="Main.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
+        <FormResources Include="TVector3Frame.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

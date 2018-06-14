@@ -14,6 +14,8 @@ object SoundSelection: TSoundSelection
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  PrintScale = poNone
+  Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
   object blBottomLine: TBevel
@@ -61,8 +63,6 @@ object SoundSelection: TSoundSelection
       AutoSize = True
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitLeft = 20
-      ExplicitWidth = 377
       object laSoundFileName: TLabel
         AlignWithMargins = True
         Left = 3
@@ -85,7 +85,6 @@ object SoundSelection: TSoundSelection
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 371
         object edSoundFileName: TEdit
           AlignWithMargins = True
           Left = 0
@@ -98,7 +97,6 @@ object SoundSelection: TSoundSelection
           Align = alClient
           ReadOnly = True
           TabOrder = 0
-          ExplicitWidth = 347
         end
         object btSoundBrowse: TButton
           AlignWithMargins = True
@@ -114,7 +112,6 @@ object SoundSelection: TSoundSelection
           Caption = '...'
           TabOrder = 1
           OnClick = btSoundBrowseClick
-          ExplicitLeft = 350
         end
       end
     end
@@ -129,8 +126,6 @@ object SoundSelection: TSoundSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitLeft = -2
-    ExplicitTop = 171
     object btOk: TButton
       Left = 319
       Top = 0

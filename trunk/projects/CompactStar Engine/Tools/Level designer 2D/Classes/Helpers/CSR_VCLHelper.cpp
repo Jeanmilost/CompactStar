@@ -193,3 +193,55 @@ void CSR_VCLHelper::ApplyAntialiasing(TBitmap* pSource, TBitmap* pDest, std::siz
     }
 }
 //---------------------------------------------------------------------------
+void CSR_VCLHelper::DistributeCtrlsLTR(const IControls& controls)
+{
+    int pos = 0;
+
+    // iterate through controls to distribute
+    for (std::size_t i = 0; i < controls.size(); ++i)
+    {
+        // is control visible?
+        if (!controls[i]->Visible)
+            continue;
+
+        // place the control on the left
+        controls[i]->Left = pos;
+
+        // calculate the next position
+        pos += controls[i]->Margins->ControlWidth;
+    }
+}
+//---------------------------------------------------------------------------
+void CSR_VCLHelper::DistributeCtrlsRTL(const IControls& controls)
+{
+    // iterate through controls to distribute
+    for (std::size_t i = 0; i < controls.size(); ++i)
+    {
+        // is control visible?
+        if (!controls[i]->Visible)
+            continue;
+
+        // place the control on the right
+        controls[i]->Left = 0;
+    }
+}
+//---------------------------------------------------------------------------
+void CSR_VCLHelper::DistributeCtrlsTTB(const IControls& controls)
+{
+    int pos = 0;
+
+    // iterate through controls to distribute
+    for (std::size_t i = 0; i < controls.size(); ++i)
+    {
+        // is control visible?
+        if (!controls[i]->Visible)
+            continue;
+
+        // place the control on the left
+        controls[i]->Top = pos;
+
+        // calculate the next position
+        pos += controls[i]->Margins->ControlHeight;
+    }
+}
+//---------------------------------------------------------------------------

@@ -46,6 +46,7 @@ object MainForm: TMainForm
       Top = 0
       Width = 185
       Height = 603
+      VertScrollBar.Tracking = True
       Align = alClient
       BevelInner = bvNone
       BevelOuter = bvNone
@@ -55,10 +56,6 @@ object MainForm: TMainForm
       HeaderFont.Name = 'Tahoma'
       HeaderFont.Style = []
       TabOrder = 0
-      ExplicitLeft = 72
-      ExplicitTop = 144
-      ExplicitWidth = 200
-      ExplicitHeight = 350
     end
   end
   object paViews: TPanel
@@ -93,6 +90,8 @@ object MainForm: TMainForm
       ParentBackground = False
       ParentDoubleBuffered = False
       TabOrder = 0
+      TabStop = True
+      OnClick = OnViewClick
     end
     object paDesignerView: TPanel
       Left = 0
@@ -102,8 +101,8 @@ object MainForm: TMainForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitLeft = -3
-      ExplicitTop = -3
+      TabStop = True
+      OnClick = OnViewClick
     end
   end
   object aeEvents: TApplicationEvents

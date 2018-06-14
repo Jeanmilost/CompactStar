@@ -43,6 +43,9 @@
 #include "CSR_DesignerView.h"
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
+// interface
+#include "TVector3Frame.h"
+
 /**
 * Ground collision tool main form
 *@author Jean-Milost Reymond
@@ -84,6 +87,7 @@ class TMainForm : public TForm
         void __fastcall spMainViewMoved(TObject* pSender);
         void __fastcall spViewsMoved(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
+        void __fastcall OnViewClick(TObject* pSender);
 
     public:
         /**
@@ -132,6 +136,24 @@ class TMainForm : public TForm
 
     private:
         /**
+        * Dynamically created designer properties
+        */
+        struct IDesignerProperties
+        {
+            TVector3Frame* m_pTransformTranslate;
+            TVector3Frame* m_pTransformRotate;
+            TVector3Frame* m_pTransformScale;
+
+            IDesignerProperties();
+            ~IDesignerProperties();
+
+            /**
+            * Clears the designer properties content
+            */
+            void Clear();
+        };
+
+        /**
         * Designer item
         */
         struct IDesignerItem
@@ -149,6 +171,7 @@ class TMainForm : public TForm
 
         std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
         std::auto_ptr<CSR_DesignerView>       m_pDesignerView;
+        IDesignerProperties                   m_DesignerProperties;
         HDC                                   m_hDC;
         HGLRC                                 m_hRC;
         ALCdevice*                            m_pOpenALDevice;
@@ -167,7 +190,6 @@ class TMainForm : public TForm
         CSR_Sphere                            m_ViewSphere;
         std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
-        std::size_t                           m_PropertiesItemCount;
         int                                   m_PrevOrigin;
         float                                 m_Angle;
         float                                 m_PosVelocity;
@@ -273,6 +295,15 @@ class TMainForm : public TForm
         *@return true if new position is valid, otherwise false
         */
         bool ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix);
+
+        /**
+        * Called when a value changed
+        *@param pSender - event sender
+        *@param x - x value
+        *@param y - y value
+        *@param z - z value
+        */
+        void OnPropertiesValueChanged(TObject* pSender, float x, float y, float z);
 
         /**
         * Called when the scene should be drawn
