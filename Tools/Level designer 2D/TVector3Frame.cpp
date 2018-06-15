@@ -79,6 +79,7 @@ void __fastcall TVector3Frame::OnEditKeyUp(TObject* pSender, WORD& key, TShiftSt
     if (!pEdit)
         return;
 
+    // search for pressed key
     switch (key)
     {
         case VK_ESCAPE:
@@ -88,16 +89,13 @@ void __fastcall TVector3Frame::OnEditKeyUp(TObject* pSender, WORD& key, TShiftSt
             break;
 
         case VK_RETURN:
-        {
-            // get the parent form
-            TCustomForm* pForm = ::GetParentForm(this);
+            // notify that the value changed
+            if (m_fOnValueChanged)
+                m_fOnValueChanged(this, GetX(), GetY(), GetZ());
 
-            // post a message to the parent form to select the next focusable control
-            if (pForm)
-                ::PostMessage(pForm->Handle, WM_NEXTDLGCTL, shift.Contains(ssShift), 0);
-
+            // select the entire value
+            pEdit->SelectAll();
             break;
-        }
     }
 }
 //---------------------------------------------------------------------------
