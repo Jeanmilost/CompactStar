@@ -39,6 +39,18 @@ class CSR_DesignerView : public CSR_View
 {
     public:
         /**
+        * Selected item on the view
+        */
+        struct ISelection
+        {
+            void* m_pKey;
+            int   m_MatrixIndex;
+
+            ISelection();
+            virtual ~ISelection();
+        };
+
+        /**
         * Constructor
         *@param pPanel - panel owning the view
         */
@@ -59,16 +71,16 @@ class CSR_DesignerView : public CSR_View
         void SetScene(CSR_Scene* pScene);
 
         /**
-        * Gets the currently selected scene item key
+        * Gets the currently selected scene item
         *@return the selected scene item key
         */
-        void* GetSelectedKey() const;
+        const ISelection* GetSelection() const;
 
         /**
-        * Sets the currently selected scene item key
+        * Sets the currently selected scene item
         *@param pKey - scene item key
         */
-        void SetSelectedKey(void* pKey);
+        void SetSelection(const ISelection& selection);
 
         /**
         * Selects the previous model in the scene
@@ -79,6 +91,21 @@ class CSR_DesignerView : public CSR_View
         * Selects the next model in the scene
         */
         void SelectNext();
+
+        /**
+        * Selects the first model in the scene
+        */
+        void SelectFirst();
+
+        /**
+        * Selects the last model in the scene
+        */
+        void SelectLast();
+
+        /**
+        * Unselects any selected model in the scene
+        */
+        void Unselect();
 
         /**
         * Gets the view origin
@@ -205,7 +232,7 @@ class CSR_DesignerView : public CSR_View
         TPanel*                           m_pPanel;
         std::auto_ptr<CSR_VCLControlHook> m_pHook;
         std::auto_ptr<TBitmap>            m_pOverlay;
-        void*                             m_pSelectedKey;
+        ISelection                        m_Selection;
         TColor                            m_ModelColor;
         TColor                            m_SelectedModelColor;
         HBRUSH                            m_hBrush;
@@ -214,6 +241,20 @@ class CSR_DesignerView : public CSR_View
         HPEN                              m_hSelectedPen;
         IGridOptions                      m_GridOptions;
         float                             m_Ratio;
+
+        /**
+        * Selects the previous model matrix
+        *@param pItem - scene item containing the model
+        *@returns true if the previous model last matrix should be selected, otherwise false
+        */
+        bool SelectPrevMatrix(const CSR_SceneItem* pItem);
+
+        /**
+        * Selects the next model matrix
+        *@param pItem - scene item containing the model
+        *@returns true if the next model first matrix should be selected, otherwise false
+        */
+        bool SelectNextMatrix(const CSR_SceneItem* pItem);
 };
 
 #endif

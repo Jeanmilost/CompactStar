@@ -220,8 +220,12 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
         m_Designer[pBox].push_back(pItem.get());
         pItem.release();
 
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pBox;
+        selection.m_MatrixIndex = 0;
+
         // select the newly added model
-        m_pDesignerView->SetSelectedKey(pBox);
+        m_pDesignerView->SetSelection(selection);
 
         pBox = NULL;
     }
@@ -570,7 +574,7 @@ void TMainForm::CloseDocument()
     ClearProperties();
 
     // clear the designer view
-    m_pDesignerView->SetSelectedKey(NULL);
+    m_pDesignerView->Unselect();
     m_pDesignerView->SetScene(NULL);
 
     // iterate through the designer items
@@ -642,8 +646,12 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
     m_Designer[pModel].push_back(pItem.get());
     pItem.release();
 
+    CSR_DesignerView::ISelection selection;
+    selection.m_pKey        = pModel;
+    selection.m_MatrixIndex = 0;
+
     // select the newly added model
-    m_pDesignerView->SetSelectedKey(pModel);
+    m_pDesignerView->SetSelection(selection);
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -716,8 +724,12 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
     m_Designer[pModel].push_back(pItem.get());
     pItem.release();
 
+    CSR_DesignerView::ISelection selection;
+    selection.m_pKey        = pModel;
+    selection.m_MatrixIndex = 0;
+
     // select the newly added model
-    m_pDesignerView->SetSelectedKey(pModel);
+    m_pDesignerView->SetSelection(selection);
 
     // keep the key
     m_pLandscapeKey = pModel;
@@ -876,7 +888,7 @@ void TMainForm::RefreshProperties()
             return;
 
         // get the selected scene item
-        CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelectedKey());
+        CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelection()->m_pKey);
 
         // not found?
         if (!pItem || !pItem->m_pMatrixArray->m_Count)
@@ -1332,7 +1344,7 @@ bool TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matr
 void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, float z)
 {
     // get the selected scene item
-    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelectedKey());
+    CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pDesignerView->GetSelection()->m_pKey);
 
     // not found?
     if (!pItem || !pItem->m_pMatrixArray->m_Count)

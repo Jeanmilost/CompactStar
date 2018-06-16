@@ -20,13 +20,22 @@
 #include <vector>
 
 //---------------------------------------------------------------------------
+// CSR_DesignerView::ISelection
+//---------------------------------------------------------------------------
+CSR_DesignerView::ISelection::ISelection() :
+    m_pKey(NULL),
+    m_MatrixIndex(-1)
+{}
+//---------------------------------------------------------------------------
+CSR_DesignerView::ISelection::~ISelection()
+{}
+//---------------------------------------------------------------------------
 // CSR_DesignerView
 //---------------------------------------------------------------------------
 CSR_DesignerView::CSR_DesignerView(TPanel* pPanel) :
     CSR_View(),
     m_pScene(NULL),
     m_pPanel(pPanel),
-    m_pSelectedKey(NULL),
     m_ModelColor(TColor(0x555555)),
     m_SelectedModelColor(clRed),
     m_hBrush(NULL),
@@ -73,14 +82,14 @@ void CSR_DesignerView::SetScene(CSR_Scene* pScene)
     m_pScene = pScene;
 }
 //---------------------------------------------------------------------------
-void* CSR_DesignerView::GetSelectedKey() const
+const CSR_DesignerView::ISelection* CSR_DesignerView::GetSelection() const
 {
-    return m_pSelectedKey;
+    return &m_Selection;
 }
 //---------------------------------------------------------------------------
-void CSR_DesignerView::SetSelectedKey(void* pKey)
+void CSR_DesignerView::SetSelection(const ISelection& selection)
 {
-    m_pSelectedKey = pKey;
+    m_Selection = selection;
 }
 //---------------------------------------------------------------------------
 void CSR_DesignerView::SelectPrev()
@@ -91,106 +100,95 @@ void CSR_DesignerView::SelectPrev()
     try
     {
         // no selected item?
-        if (!m_pSelectedKey)
+        if (!m_Selection.m_pKey)
+            // select the last one
+            SelectLast();
+        else
         {
-            // select the last transparent item, if any. Transparent items are always drawn on the end
-            if (m_pScene->m_TransparentItemCount)
+            // iterate through scene transparent items to select
+            for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
             {
-                m_pSelectedKey =
-                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
-                return;
-            }
+                // get the transparent item
+                const CSR_SceneItem* pItem = &m_pScene->m_pTransparentItem[i];
+                assert(pItem);
 
-            // select the last item, if any
-            if (m_pScene->m_ItemCount)
-                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
-
-            return;
-        }
-
-        bool doGetLast = false;
-
-        // iterate through scene items to select
-        for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
-            // found the current item?
-            if (m_pScene->m_pItem[i].m_pModel == m_pSelectedKey)
-            {
-                // is the first item of the scene?
-                if (!i)
+                // found the currently selected model?
+                if (pItem->m_pModel == m_Selection.m_pKey)
                 {
-                    // the prev item to get is the last scene item in this case
-                    doGetLast = true;
-                    break;
+                    // select the prev matrix in the model, and check if prev model should be selected
+                    if (SelectPrevMatrix(pItem))
+                    {
+                        // is the first item in the list?
+                        if (!i)
+                        {
+                            // select the last matrix of the last model in the standard item list
+                            if (m_pScene->m_ItemCount)
+                            {
+                                // get the prev item to select
+                                const CSR_SceneItem* pPrevItem =
+                                    &m_pScene->m_pItem[m_pScene->m_ItemCount - 1];
+
+                                // select the prev item
+                                m_Selection.m_pKey        = pPrevItem->m_pModel;
+                                m_Selection.m_MatrixIndex = pPrevItem->m_pMatrixArray->m_Count     ?
+                                                            pPrevItem->m_pMatrixArray->m_Count - 1 :
+                                                            -1;
+                            }
+                            else
+                                // select the last item in the scene
+                                SelectLast();
+                        }
+                        else
+                        {
+                            // get the prev item to select
+                            const CSR_SceneItem* pPrevItem = &m_pScene->m_pTransparentItem[i - 1];
+
+                            // select the prev item
+                            m_Selection.m_pKey        = pPrevItem->m_pModel;
+                            m_Selection.m_MatrixIndex = pPrevItem->m_pMatrixArray->m_Count     ?
+                                                        pPrevItem->m_pMatrixArray->m_Count - 1 :
+                                                        -1;
+                        }
+                    }
+
+                    return;
                 }
-
-                // get the previous item in the scene
-                m_pSelectedKey = m_pScene->m_pItem[i - 1].m_pModel;
-                return;
             }
 
-        // do get the last scene item?
-        if (doGetLast)
-        {
-            // select the last transparent item, if any. Transparent items are always drawn on the end
-            if (m_pScene->m_TransparentItemCount)
+            // iterate through scene transparent items to select
+            for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
             {
-                m_pSelectedKey =
-                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
-                return;
-            }
+                // get the item
+                const CSR_SceneItem* pItem = &m_pScene->m_pItem[i];
+                assert(pItem);
 
-            // select the last item, if any
-            if (m_pScene->m_ItemCount)
-            {
-                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
-                return;
-            }
-
-            // no item to select
-            m_pSelectedKey = NULL;
-
-            return;
-        }
-
-        // iterate through scene transparent items to select
-        for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
-            // found the current item?
-            if (m_pScene->m_pTransparentItem[i].m_pModel == m_pSelectedKey)
-            {
-                // is the first transparent item of the scene?
-                if (!i)
+                // found the currently selected model?
+                if (pItem->m_pModel == m_Selection.m_pKey)
                 {
-                    // the prev item to get is the last scene item in this case
-                    doGetLast = true;
-                    break;
+                    // select the prev matrix in the model, and check if prev model should be selected
+                    if (SelectPrevMatrix(pItem))
+                    {
+                        // is the first item in the list?
+                        if (!i)
+                            // select the last item in the scene
+                            SelectLast();
+                        else
+                        {
+                            // get the prev item to select
+                            const CSR_SceneItem* pPrevItem = &m_pScene->m_pItem[i - 1];
+
+                            // select the prev item
+                            m_Selection.m_pKey        = pPrevItem->m_pModel;
+                            m_Selection.m_MatrixIndex = pPrevItem->m_pMatrixArray->m_Count     ?
+                                                        pPrevItem->m_pMatrixArray->m_Count - 1 :
+                                                        -1;
+                        }
+                    }
+
+                    return;
                 }
-
-                // get the previous item in the scene
-                m_pSelectedKey = m_pScene->m_pTransparentItem[i - 1].m_pModel;
-                return;
-            }
-
-        // do get the last scene item?
-        if (doGetLast)
-        {
-            // first select the last item
-            if (m_pScene->m_ItemCount)
-            {
-                m_pSelectedKey = m_pScene->m_pItem[m_pScene->m_ItemCount - 1].m_pModel;
-                return;
-            }
-
-            // no normal item, select the last transparent item
-            if (m_pScene->m_TransparentItemCount)
-            {
-                m_pSelectedKey =
-                        m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1].m_pModel;
-                return;
             }
         }
-
-        // no item to select
-        m_pSelectedKey = NULL;
     }
     __finally
     {
@@ -206,109 +204,194 @@ void CSR_DesignerView::SelectNext()
     try
     {
         // no selected item?
-        if (!m_pSelectedKey)
+        if (!m_Selection.m_pKey)
+            // select the first one
+            SelectFirst();
+        else
         {
-            // select the first item, if any
-            if (m_pScene->m_ItemCount)
+            // iterate through scene items to select
+            for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
             {
-                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
-                return;
-            }
+                // get the transparent item
+                const CSR_SceneItem* pItem = &m_pScene->m_pItem[i];
+                assert(pItem);
 
-            // select the last transparent item, if any. Transparent items are always drawn on the end
-            if (m_pScene->m_TransparentItemCount)
-                m_pSelectedKey = m_pScene->m_pTransparentItem[0].m_pModel;
-
-            return;
-        }
-
-        bool doGetFirst = false;
-
-        // iterate through scene items to select
-        for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
-            // found the current item?
-            if (m_pScene->m_pItem[i].m_pModel == m_pSelectedKey)
-            {
-                // is the last item of the scene?
-                if (i == m_pScene->m_ItemCount - 1)
+                // found the currently selected model?
+                if (pItem->m_pModel == m_Selection.m_pKey)
                 {
-                    // the next item to get is the first scene item in this case
-                    doGetFirst = true;
-                    break;
+                    // select the next matrix in the model, and check if next model should be selected
+                    if (SelectNextMatrix(pItem))
+                    {
+                        // is the last item in the list?
+                        if (i == m_pScene->m_ItemCount - 1)
+                        {
+                            // select the first matrix of the first model in the transparent item list
+                            if (m_pScene->m_TransparentItemCount)
+                            {
+                                // get the next item to select
+                                const CSR_SceneItem* pNextItem = &m_pScene->m_pTransparentItem[0];
+
+                                // select the next item
+                                m_Selection.m_pKey        = pNextItem->m_pModel;
+                                m_Selection.m_MatrixIndex = pNextItem->m_pMatrixArray->m_Count ? 0 : -1;
+                            }
+                            else
+                                // select the first item in the scene
+                                SelectFirst();
+                        }
+                        else
+                        {
+                            // get the next item to select
+                            const CSR_SceneItem* pNextItem = &m_pScene->m_pItem[i + 1];
+
+                            // select the prev item
+                            m_Selection.m_pKey        = pNextItem->m_pModel;
+                            m_Selection.m_MatrixIndex = pNextItem->m_pMatrixArray->m_Count ? 0 : -1;
+                        }
+                    }
+
+                    return;
                 }
-
-                // get the next item in the scene
-                m_pSelectedKey = m_pScene->m_pItem[i + 1].m_pModel;
-                return;
             }
 
-        // do get the first scene item?
-        if (doGetFirst)
-        {
-            // select the first transparent item, if any. Transparent items are always drawn on the end
-            if (m_pScene->m_TransparentItemCount)
+            // iterate through scene transparent items to select
+            for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
             {
-                m_pSelectedKey =
-                        m_pScene->m_pTransparentItem[0].m_pModel;
-                return;
-            }
+                // get the item
+                const CSR_SceneItem* pItem = &m_pScene->m_pTransparentItem[i];
+                assert(pItem);
 
-            // select the first item, if any
-            if (m_pScene->m_ItemCount)
-            {
-                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
-                return;
-            }
-
-            // no item to select
-            m_pSelectedKey = NULL;
-
-            return;
-        }
-
-        // iterate through scene transparent items to select
-        for (std::size_t i = 0; i < m_pScene->m_TransparentItemCount; ++i)
-            // found the current item?
-            if (m_pScene->m_pTransparentItem[i].m_pModel == m_pSelectedKey)
-            {
-                // is the last transparent item of the scene?
-                if (i == m_pScene->m_TransparentItemCount - 1)
+                // found the currently selected model?
+                if (pItem->m_pModel == m_Selection.m_pKey)
                 {
-                    // the next item to get is the first scene item in this case
-                    doGetFirst = true;
-                    break;
+                    // select the next matrix in the model, and check if next model should be selected
+                    if (SelectNextMatrix(pItem))
+                    {
+                        // is the last item in the list?
+                        if (i == m_pScene->m_TransparentItemCount - 1)
+                            // select the first item in the scene
+                            SelectFirst();
+                        else
+                        {
+                            // get the next item to select
+                            const CSR_SceneItem* pNextItem = &m_pScene->m_pTransparentItem[i + 1];
+
+                            // select the prev item
+                            m_Selection.m_pKey        = pNextItem->m_pModel;
+                            m_Selection.m_MatrixIndex = pNextItem->m_pMatrixArray->m_Count ? 0 : -1;
+                        }
+                    }
+
+                    return;
                 }
-
-                // get the next item in the scene
-                m_pSelectedKey = m_pScene->m_pTransparentItem[i + 1].m_pModel;
-                return;
-            }
-
-        // do get the first scene item?
-        if (doGetFirst)
-        {
-            // first select the first item
-            if (m_pScene->m_ItemCount)
-            {
-                m_pSelectedKey = m_pScene->m_pItem[0].m_pModel;
-                return;
-            }
-
-            // no normal item, select the last transparent item
-            if (m_pScene->m_TransparentItemCount)
-            {
-                m_pSelectedKey = m_pScene->m_pTransparentItem[0].m_pModel;
-                return;
             }
         }
-
-        // no item to select
-        m_pSelectedKey = NULL;
     }
     __finally
     {
         m_pPanel->Invalidate();
     }
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::SelectFirst()
+{
+    if (!m_pScene)
+        return;
+
+    // select the first item, if any
+    if (m_pScene->m_ItemCount)
+    {
+        // get the last transparent item
+        const CSR_SceneItem* pItem = &m_pScene->m_pItem[0];
+        assert(pItem);
+
+        // select the model
+        m_Selection.m_pKey = pItem->m_pModel;
+
+        // select the last model matrix
+        if (pItem->m_pMatrixArray->m_Count)
+            m_Selection.m_MatrixIndex =  0;
+        else
+            m_Selection.m_MatrixIndex = -1;
+
+        return;
+    }
+
+    // select the last transparent item, if any. Transparent items are always drawn on the end
+    if (m_pScene->m_TransparentItemCount)
+    {
+        // get the last transparent item
+        const CSR_SceneItem* pItem = &m_pScene->m_pTransparentItem[0];
+        assert(pItem);
+
+        // select the model
+        m_Selection.m_pKey = pItem->m_pModel;
+
+        // select the last model matrix
+        if (pItem->m_pMatrixArray->m_Count)
+            m_Selection.m_MatrixIndex =  0;
+        else
+            m_Selection.m_MatrixIndex = -1;
+
+        return;
+    }
+
+    // nothing to select
+    Unselect();
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::SelectLast()
+{
+    if (!m_pScene)
+        return;
+
+    // select the last transparent item, if any. Transparent items are always drawn on the end
+    if (m_pScene->m_TransparentItemCount)
+    {
+        // get the last transparent item
+        const CSR_SceneItem* pItem =
+                &m_pScene->m_pTransparentItem[m_pScene->m_TransparentItemCount - 1];
+        assert(pItem);
+
+        // select the model
+        m_Selection.m_pKey = pItem->m_pModel;
+
+        // select the last model matrix
+        if (pItem->m_pMatrixArray->m_Count)
+            m_Selection.m_MatrixIndex =  pItem->m_pMatrixArray->m_Count - 1;
+        else
+            m_Selection.m_MatrixIndex = -1;
+
+        return;
+    }
+
+    // otherwise select the last item, if any
+    if (m_pScene->m_ItemCount)
+    {
+        // get the last transparent item
+        const CSR_SceneItem* pItem = &m_pScene->m_pItem[m_pScene->m_ItemCount - 1];
+        assert(pItem);
+
+        // select the model
+        m_Selection.m_pKey = pItem->m_pModel;
+
+        // select the last model matrix
+        if (pItem->m_pMatrixArray->m_Count)
+            m_Selection.m_MatrixIndex =  pItem->m_pMatrixArray->m_Count - 1;
+        else
+            m_Selection.m_MatrixIndex = -1;
+
+        return;
+    }
+
+    // nothing to select
+    Unselect();
+}
+//---------------------------------------------------------------------------
+void CSR_DesignerView::Unselect()
+{
+    m_Selection.m_pKey        =  NULL;
+    m_Selection.m_MatrixIndex = -1;
 }
 //---------------------------------------------------------------------------
 int CSR_DesignerView::GetOrigin() const
@@ -484,20 +567,21 @@ void CSR_DesignerView::DrawItem(const CSR_SceneItem* pSceneItem,
     if (!pSceneItem)
         return;
 
-    // select the brush and pen to use
-    if (pSceneItem->m_pModel == m_pSelectedKey)
-    {
-        ::SelectObject(hDC, m_hSelectedBrush);
-        ::SelectObject(hDC, m_hSelectedPen);
-    }
-    else
-    {
-        ::SelectObject(hDC, m_hBrush);
-        ::SelectObject(hDC, m_hPen);
-    }
-
     // iterate through item model matrices
     for (std::size_t i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
+    {
+        // select the brush and pen to use
+        if (pSceneItem->m_pModel == m_Selection.m_pKey && i == m_Selection.m_MatrixIndex)
+        {
+            ::SelectObject(hDC, m_hSelectedBrush);
+            ::SelectObject(hDC, m_hSelectedPen);
+        }
+        else
+        {
+            ::SelectObject(hDC, m_hBrush);
+            ::SelectObject(hDC, m_hPen);
+        }
+
         // draw the next model
         DrawModel(pSceneItem->m_pModel,
                   pSceneItem->m_Type,
@@ -506,6 +590,7 @@ void CSR_DesignerView::DrawItem(const CSR_SceneItem* pSceneItem,
                   pos,
                   ratio,
                   hDC);
+    }
 }
 //---------------------------------------------------------------------------
 void CSR_DesignerView::DrawModel(const void*          pModelItem,
@@ -704,5 +789,45 @@ void CSR_DesignerView::DrawPolygon(const TPoint&       origin,
 
     // draw the polygon
     ::Polyline(hDC, &points[0], points.size());
+}
+//---------------------------------------------------------------------------
+bool CSR_DesignerView::SelectPrevMatrix(const CSR_SceneItem* pItem)
+{
+    // no item?
+    if (!pItem)
+        return false;
+
+    // is selected index out of bounds?
+    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= pItem->m_pMatrixArray->m_Count)
+        return true;
+
+    // do select the last matrix index of the prev model
+    if (!m_Selection.m_MatrixIndex)
+        return true;
+
+    // select the prev matrix
+    --m_Selection.m_MatrixIndex;
+
+    return false;
+}
+//---------------------------------------------------------------------------
+bool CSR_DesignerView::SelectNextMatrix(const CSR_SceneItem* pItem)
+{
+    // no item?
+    if (!pItem)
+        return false;
+
+    // is selected index out of bounds?
+    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= pItem->m_pMatrixArray->m_Count)
+        return true;
+
+    // do select the first matrix index of the next model
+    if (m_Selection.m_MatrixIndex == pItem->m_pMatrixArray->m_Count - 1)
+        return true;
+
+    // select the prev matrix
+    ++m_Selection.m_MatrixIndex;
+
+    return false;
 }
 //---------------------------------------------------------------------------
