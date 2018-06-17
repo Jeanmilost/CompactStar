@@ -46,6 +46,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <BCC_Defines>madExcept;LeakChecking;$(BCC_Defines)</BCC_Defines>
         <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <BCC_weff>false</BCC_weff>
         <VerInfo_Locale>4108</VerInfo_Locale>
@@ -222,6 +223,12 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="TBoxSelection.cpp">
+            <Form>BoxSelection</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>TBoxSelection.h</DependentOn>
+            <BuildOrder>35</BuildOrder>
+        </CppCompile>
         <CppCompile Include="TLandscapeSelection.cpp">
             <Form>LandscapeSelection</Form>
             <FormType>dfm</FormType>
@@ -241,10 +248,11 @@
             <DependentOn>TVector3Frame.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
-        <FormResources Include="Main.dfm"/>
-        <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
+        <FormResources Include="TBoxSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
+        <FormResources Include="TSoundSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
