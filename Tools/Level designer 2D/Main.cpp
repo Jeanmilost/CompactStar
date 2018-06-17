@@ -36,6 +36,7 @@
 
 // interface
 #include "TLandscapeSelection.h"
+#include "TBoxSelection.h"
 #include "TSoundSelection.h"
 
 #pragma package(smart_init)
@@ -178,6 +179,32 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 {
+    // create a box selection dialog box
+    std::auto_ptr<TBoxSelection>
+            pBoxSelection(new TBoxSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pBoxSelection->vfBoxPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pBoxSelection->vfBoxPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pBoxSelection->vfBoxScaling->edX->Text = L"1.0";
+    pBoxSelection->vfBoxScaling->edY->Text = L"1.0";
+    pBoxSelection->vfBoxScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pBoxSelection->ShowModal() != mrOk)
+        return;
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -197,14 +224,19 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 
     try
     {
-        CSR_CollisionInput collisionInput;
-        csrCollisionInputInit(&collisionInput);
-        collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+        // load the texture
+        pBox->m_Shader.m_TextureID = LoadTexture(pBoxSelection->edTextureFileName->Text.c_str());
 
-        CSR_CollisionOutput collisionOutput;
-
-        // calculate the collisions in the whole scene
-        csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+        // failed?
+        if (pBox->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe box could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
 
         std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
 
