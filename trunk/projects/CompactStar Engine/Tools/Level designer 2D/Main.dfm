@@ -125,8 +125,32 @@ object MainForm: TMainForm
       object miAdd: TMenuItem
         Caption = 'Add'
         object miAddBox: TMenuItem
-          Caption = 'Box'
+          Caption = 'Box...'
           OnClick = miAddBoxClick
+        end
+        object miAddCylinder: TMenuItem
+          Caption = 'Cylinder...'
+          OnClick = miAddCylinderClick
+        end
+        object miAddDisk: TMenuItem
+          Caption = 'Disk...'
+          OnClick = miAddDiskClick
+        end
+        object miAddRing: TMenuItem
+          Caption = 'Ring...'
+          OnClick = miAddRingClick
+        end
+        object miAddSphere: TMenuItem
+          Caption = 'Sphere...'
+          OnClick = miAddSphereClick
+        end
+        object miAddSpiral: TMenuItem
+          Caption = 'Spiral...'
+          OnClick = miAddSpiralClick
+        end
+        object miAddSurface: TMenuItem
+          Caption = 'Surface...'
+          OnClick = miAddSurfaceClick
         end
       end
       object miLandscapeSeparator: TMenuItem

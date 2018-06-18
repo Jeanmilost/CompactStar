@@ -36,7 +36,7 @@
 
 // interface
 #include "TLandscapeSelection.h"
-#include "TBoxSelection.h"
+#include "TShapeSelection.h"
 #include "TSoundSelection.h"
 
 #pragma package(smart_init)
@@ -179,9 +179,12 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 {
-    // create a box selection dialog box
-    std::auto_ptr<TBoxSelection>
-            pBoxSelection(new TBoxSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a box";
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -193,16 +196,16 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pBoxSelection->vfBoxPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
-    pBoxSelection->vfBoxPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
-    pBoxSelection->vfBoxScaling->edX->Text = L"1.0";
-    pBoxSelection->vfBoxScaling->edY->Text = L"1.0";
-    pBoxSelection->vfBoxScaling->edZ->Text = L"1.0";
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
 
     // show the dialog box to the user and check if action was canceled
-    if (pBoxSelection->ShowModal() != mrOk)
+    if (pShapeSelection->ShowModal() != mrOk)
         return;
 
     CSR_Material material;
@@ -216,7 +219,14 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default box mesh
-    CSR_Mesh* pBox = csrShapeCreateBox(1.0f, 1.0f, 1.0f, 0, &vf, 0, &material, 0);
+    CSR_Mesh* pBox = csrShapeCreateBox(1.0f,
+                                       1.0f,
+                                       1.0f,
+                                       pShapeSelection->ckRepeatTextureOnEachFace->Checked ? 1 : 0,
+                                      &vf,
+                                       0,
+                                      &material,
+                                       0);
 
     // succeeded?
     if (!pBox)
@@ -225,7 +235,7 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     try
     {
         // load the texture
-        pBox->m_Shader.m_TextureID = LoadTexture(pBoxSelection->edTextureFileName->Text.c_str());
+        pBox->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
 
         // failed?
         if (pBox->m_Shader.m_TextureID == M_CSR_Error_Code)
@@ -240,9 +250,8 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 
         std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
 
-        // update the position in the model matrix
-        pItem->m_Matrix.m_Table[3][0] = -m_pScene->m_Matrix.m_Table[3][0];
-        pItem->m_Matrix.m_Table[3][1] =  collisionOutput.m_GroundPos;
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pBox, 0, 1);
@@ -264,6 +273,630 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     __finally
     {
         csrMeshRelease(pBox);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a cylinder";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default box mesh
+    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f, 1.0f, 25, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pCylinder)
+        return;
+
+    try
+    {
+        // load the texture
+        pCylinder->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pCylinder->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe cylinder could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pCylinder, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pCylinder, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pCylinder].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pCylinder;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pCylinder = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pCylinder);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a disk";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default disk mesh
+    CSR_Mesh* pDisk = csrShapeCreateDisk(0.0f, 0.0f, 0.5f, 25, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pDisk)
+        return;
+
+    try
+    {
+        // load the texture
+        pDisk->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pDisk->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe disk could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pDisk, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pDisk, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pDisk].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pDisk;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pDisk = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pDisk);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddRingClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a ring";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default ring mesh
+    CSR_Mesh* pRing = csrShapeCreateRing(0.0f, 0.0f, 0.25f, 0.5f, 25, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pRing)
+        return;
+
+    try
+    {
+        // load the texture
+        pRing->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pRing->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe ring could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pRing, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pRing, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pRing].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pRing;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pRing = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pRing);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a sphere";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default sphere mesh
+    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 25, 25, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pSphere)
+        return;
+
+    try
+    {
+        // load the texture
+        pSphere->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pSphere->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe sphere could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pSphere, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pSphere, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pSphere].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pSphere;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pSphere = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pSphere);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a spiral";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default spiral mesh
+    CSR_Mesh* pSpiral = csrShapeCreateSpiral(0.0f,
+                                             0.0f,
+                                             0.25f,
+                                             0.5f,
+                                             0.0f,
+                                             0.0f,
+                                             0.01f,
+                                             25,
+                                             25,
+                                            &vf,
+                                             0,
+                                            &material,
+                                             0);
+
+    // succeeded?
+    if (!pSpiral)
+        return;
+
+    try
+    {
+        // load the texture
+        pSpiral->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pSpiral->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe spiral could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pSpiral, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pSpiral, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pSpiral].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pSpiral;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pSpiral = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pSpiral);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
+{
+    // create a shape selection dialog box
+    std::auto_ptr<TShapeSelection> pShapeSelection
+            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // set the dialog box title
+    pShapeSelection->Caption = L"Add a surface";
+
+    // hide the useless controls
+    pShapeSelection->laOptions->Visible                 = false;
+    pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->blBottomLine->Visible              = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pShapeSelection->vfScaling->edX->Text = L"1.0";
+    pShapeSelection->vfScaling->edY->Text = L"1.0";
+    pShapeSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pShapeSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // create a default surface mesh
+    CSR_Mesh* pSurface = csrShapeCreateSurface(1.0f, 1.0f, &vf, 0, &material, 0);
+
+    // succeeded?
+    if (!pSurface)
+        return;
+
+    try
+    {
+        // load the texture
+        pSurface->m_Shader.m_TextureID = LoadTexture(pShapeSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pSurface->m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe surface could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMesh(m_pScene, pSurface, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pSurface, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pSurface].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pSurface;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pSurface = NULL;
+    }
+    __finally
+    {
+        csrMeshRelease(pSurface);
     }
 
     paDesignerView->Invalidate();
@@ -558,7 +1191,7 @@ bool TMainForm::OpenDocument()
         }
 
         // get the landscape model from the scene item
-        const CSR_Model* pModel = (CSR_Model*)pItem->m_pModel;
+        const CSR_Model* pModel = static_cast<CSR_Model*>(pItem->m_pModel);
 
         // found it?
         if (!pModel || !pModel->m_MeshCount)
@@ -926,7 +1559,7 @@ void TMainForm::RefreshProperties()
         if (!pItem || !pItem->m_pMatrixArray->m_Count)
             return;
 
-        CSR_Matrix4 matrix = *((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData);
+        CSR_Matrix4 matrix = *static_cast<CSR_Matrix4*>(pItem->m_pMatrixArray->m_pItem[0].m_pData);
 
         std::auto_ptr<TLabel>        pLabel;
         std::auto_ptr<TVector3Frame> pVector3Frame;
@@ -1192,10 +1825,10 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // load the texture
-    ((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
+    static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
 
     // failed?
-    if (((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+    if (static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
     {
         // show the error message to the user
         ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
@@ -1308,7 +1941,8 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     // calculate the designer view origin in relation to the current view position
     m_pDesignerView->SetOrigin
-            (-m_pDesignerView->GetRatio() * ((m_pScene->m_Matrix.m_Table[3][0] * paDesignerView->ClientWidth) / viewPort[2]));
+            (-m_pDesignerView->GetRatio() *
+                    ((m_pScene->m_Matrix.m_Table[3][0] * paDesignerView->ClientWidth) / viewPort[2]));
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -1383,62 +2017,31 @@ void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, flo
         return;
 
     CSR_Vector3 t;
-    CSR_Vector3 axis;
-    CSR_Vector3 factor;
-    CSR_Matrix4 matrixTranslate;
-    CSR_Matrix4 matrixX;
-    CSR_Matrix4 matrixY;
-    CSR_Matrix4 matrixZ;
-    CSR_Matrix4 matrixScale;
-    CSR_Matrix4 buildMatrix1;
-    CSR_Matrix4 buildMatrix2;
-    CSR_Matrix4 buildMatrix3;
 
     // get the translation values to apply
     t.m_X = m_DesignerProperties.m_pTransformTranslate->GetX();
     t.m_Y = m_DesignerProperties.m_pTransformTranslate->GetY();
     t.m_Z = m_DesignerProperties.m_pTransformTranslate->GetZ();
 
-    // create a translation matrix
-    csrMat4Translate(&t, &matrixTranslate);
+    CSR_Vector3 r;
 
-    // get the rotation x axis
-    axis.m_X = 1.0f;
-    axis.m_Y = 0.0f;
-    axis.m_Z = 0.0f;
+    // get the rotation values to apply
+    r.m_X = m_DesignerProperties.m_pTransformRotate->GetX();
+    r.m_Y = m_DesignerProperties.m_pTransformRotate->GetX();
+    r.m_Z = m_DesignerProperties.m_pTransformRotate->GetX();
 
-    // create a rotation matrix on the x axis
-    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetX(), &axis, &matrixX);
-
-    // get the rotation y axis
-    axis.m_X = 0.0f;
-    axis.m_Y = 1.0f;
-    axis.m_Z = 0.0f;
-
-    // create a rotation matrix on the y axis
-    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetY(), &axis, &matrixY);
-
-    // get the rotation z axis
-    axis.m_X = 0.0f;
-    axis.m_Y = 0.0f;
-    axis.m_Z = 1.0f;
-
-    // create a rotation matrix on the z axis
-    csrMat4Rotate(m_DesignerProperties.m_pTransformRotate->GetZ(), &axis, &matrixZ);
+    CSR_Vector3 factor;
 
     // get the scale values to apply
     factor.m_X = m_DesignerProperties.m_pTransformScale->GetX();
     factor.m_Y = m_DesignerProperties.m_pTransformScale->GetY();
     factor.m_Z = m_DesignerProperties.m_pTransformScale->GetZ();
 
-    // create a scale matrix
-    csrMat4Scale(&factor, &matrixScale);
-
-    // rebuild the selected object model matrix
-    csrMat4Multiply(&matrixScale,  &matrixX,         &buildMatrix1);
-    csrMat4Multiply(&buildMatrix1, &matrixY,         &buildMatrix2);
-    csrMat4Multiply(&buildMatrix2, &matrixZ,         &buildMatrix3);
-    csrMat4Multiply(&buildMatrix3, &matrixTranslate, ((CSR_Matrix4*)pItem->m_pMatrixArray->m_pItem[0].m_pData));
+    // build the model matrix
+    CSR_OpenGLHelper::BuildMatrix(&t,
+                                  &r,
+                                  &factor,
+                                   static_cast<CSR_Matrix4*>(pItem->m_pMatrixArray->m_pItem[0].m_pData));
 
     // update the designer view
     paDesignerView->Invalidate();
