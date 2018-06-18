@@ -1,5 +1,5 @@
 /****************************************************************************
- * ==> TBoxSelection -------------------------------------------------------*
+ * ==> TShapeSelection -----------------------------------------------------*
  ****************************************************************************
  * Description : This module provides a dialog box to configure a box on    *
  *               the landscape                                              *
@@ -14,8 +14,8 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef TBoxSelectionH
-#define TBoxSelectionH
+#ifndef TShapeSelectionH
+#define TShapeSelectionH
 
 // vcl
 #include <System.Classes.hpp>
@@ -29,20 +29,20 @@
 #include <Vcl.ExtDlgs.hpp>
 
 /**
-* Box selection dialog box
+* Shape selection dialog box
 *@author Jean-Milost Reymond
 */
-class TBoxSelection : public TForm
+class TShapeSelection : public TForm
 {
     __published:
-        TLabel *laBoxTransform;
-        TLabel *laBoxPosition;
-        TLabel *laBoxRotation;
-        TLabel *laBoxScaling;
-        TVector3Frame *vfBoxPosition;
-        TVector3Frame *vfBoxRotation;
-        TVector3Frame *vfBoxScaling;
-        TPanel *paBoxTexture;
+        TLabel *laTransform;
+        TLabel *laPosition;
+        TLabel *laRotation;
+        TLabel *laScaling;
+        TVector3Frame *vfPosition;
+        TVector3Frame *vfRotation;
+        TVector3Frame *vfScaling;
+        TPanel *paShapeTexture;
         TLabel *laTexture;
         TPanel *paTexture;
         TImage *imTexture;
@@ -51,7 +51,7 @@ class TBoxSelection : public TForm
         TPanel *paTextureScreenshot;
         TEdit *edTextureFileName;
         TButton *btTextureBrowse;
-        TLabel *laBoxOptions;
+        TLabel *laOptions;
         TCheckBox *ckRepeatTextureOnEachFace;
         TPanel *paButtons;
         TButton *btOk;
@@ -71,7 +71,13 @@ class TBoxSelection : public TForm
         *@param pOwner - form owner
         *@param defaultDir - application default dir
         */
-        __fastcall TBoxSelection(TComponent* pOwner, const std::wstring& initialDir);
+        __fastcall TShapeSelection(TComponent* pOwner, const std::wstring& initialDir);
+
+        /**
+        * Builds a model matrix from the configured values on the interface
+        *@param[in, out] pMatrix - matrix to populate with the values, populated matrix on function ends
+        */
+        void BuildMatrix(CSR_Matrix4* pMatrix) const;
 };
-extern PACKAGE TBoxSelection* BoxSelection;
+extern PACKAGE TShapeSelection* ShapeSelection;
 #endif

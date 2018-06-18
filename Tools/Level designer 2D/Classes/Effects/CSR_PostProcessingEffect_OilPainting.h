@@ -75,10 +75,10 @@ class CSR_PostProcessingEffect_OilPainting : public CSR_PostProcessingEffect
         *@param vertexShader - effect fragment shader program
         *@return true on success, otherwise false
         */
-        bool Initialize(      std::size_t  width,
-                              std::size_t  height,
-                        const std::string& vertexShader,
-                        const std::string& fragmentShader);
+        bool Initialize(std::size_t  width,
+                        std::size_t  height,
+                  const std::string& vertexShader,
+                  const std::string& fragmentShader);
 
         /**
         * Configures the effect

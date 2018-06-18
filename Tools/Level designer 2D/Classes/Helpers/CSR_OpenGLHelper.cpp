@@ -63,12 +63,12 @@ void CSR_OpenGLHelper::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
     ReleaseDC(hwnd, hDC);
 }
 //---------------------------------------------------------------------------
-void CSR_OpenGLHelper::CreateViewport(      float        w,
-                                            float        h,
-                                            float        zNear,
-                                            float        zFar,
-                                      const CSR_Shader*  pShader,
-                                            CSR_Matrix4& matrix)
+void CSR_OpenGLHelper::CreateViewport(float        w,
+                                      float        h,
+                                      float        zNear,
+                                      float        zFar,
+                                const CSR_Shader*  pShader,
+                                      CSR_Matrix4& matrix)
 {
     if (!pShader)
         return;
@@ -191,5 +191,60 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
     csrMat4Multiply(&combinedMatrix3, &translateMatrix, &matrix);
 
     return matrix;
+}
+//---------------------------------------------------------------------------
+void CSR_OpenGLHelper::BuildMatrix(const CSR_Vector3* pTranslation,
+                                   const CSR_Vector3* pRotation,
+                                   const CSR_Vector3* pScaling,
+                                         CSR_Matrix4* pMatrix)
+{
+    if (!pTranslation || !pRotation || !pScaling || !pMatrix)
+        return;
+
+    CSR_Vector3 axis;
+    CSR_Matrix4 matrixTranslate;
+    CSR_Matrix4 matrixX;
+    CSR_Matrix4 matrixY;
+    CSR_Matrix4 matrixZ;
+    CSR_Matrix4 matrixScale;
+    CSR_Matrix4 buildMatrix1;
+    CSR_Matrix4 buildMatrix2;
+    CSR_Matrix4 buildMatrix3;
+
+    // create a translation matrix
+    csrMat4Translate(pTranslation, &matrixTranslate);
+
+    // get the rotation x axis
+    axis.m_X = 1.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 0.0f;
+
+    // create a rotation matrix on the x axis
+    csrMat4Rotate(pRotation->m_X, &axis, &matrixX);
+
+    // get the rotation y axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 1.0f;
+    axis.m_Z = 0.0f;
+
+    // create a rotation matrix on the y axis
+    csrMat4Rotate(pRotation->m_Y, &axis, &matrixY);
+
+    // get the rotation z axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 1.0f;
+
+    // create a rotation matrix on the z axis
+    csrMat4Rotate(pRotation->m_Z, &axis, &matrixZ);
+
+    // create a scale matrix
+    csrMat4Scale(pScaling, &matrixScale);
+
+    // rebuild the selected object model matrix
+    csrMat4Multiply(&matrixScale,  &matrixX,         &buildMatrix1);
+    csrMat4Multiply(&buildMatrix1, &matrixY,         &buildMatrix2);
+    csrMat4Multiply(&buildMatrix2, &matrixZ,         &buildMatrix3);
+    csrMat4Multiply(&buildMatrix3, &matrixTranslate, pMatrix);
 }
 //---------------------------------------------------------------------------

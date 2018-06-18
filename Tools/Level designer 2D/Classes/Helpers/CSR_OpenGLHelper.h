@@ -62,12 +62,12 @@ class CSR_OpenGLHelper
         *@param pShader - shader linked with the viewport
         *@param[out] matrix - the projection matrix used for the viewport
         */
-        static void CreateViewport(      float        w,
-                                         float        h,
-                                         float        zNear,
-                                         float        zFar,
-                                   const CSR_Shader*  pShader,
-                                         CSR_Matrix4& matrix);
+        static void CreateViewport(float        w,
+                                   float        h,
+                                   float        zNear,
+                                   float        zFar,
+                             const CSR_Shader*  pShader,
+                                   CSR_Matrix4& matrix);
 
         /**
         * Gets a model matrix which make a model to fit the viewport (as closest as possible)
@@ -80,6 +80,18 @@ class CSR_OpenGLHelper
         *      and a rotation of 45° on the y axis
         */
         static CSR_Matrix4 FitModelInView(const CSR_Box* pBox, float fov, bool rotated);
+
+        /**
+        * Builds a matrix from the translation, rotation and scaling values
+        *@param pTranslation - translation
+        *@param pRotation - rotation
+        *@param pScaling - scale factor
+        *@param[in, out] pMatrix - matrix to populate with the values, populated matrix on function ends
+        */
+        static void BuildMatrix(const CSR_Vector3* pTranslation,
+                                const CSR_Vector3* pRotation,
+                                const CSR_Vector3* pScaling,
+                                      CSR_Matrix4* pMatrix);
 };
 
 #endif

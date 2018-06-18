@@ -1,5 +1,5 @@
 /****************************************************************************
- * ==> TBoxSelection -------------------------------------------------------*
+ * ==> TShapeSelection -------------------------------------------------------*
  ****************************************************************************
  * Description : This module provides a dialog box to configure a box on    *
  *               the landscape                                              *
@@ -17,23 +17,26 @@
 #include <vcl.h>
 #pragma hdrstop
 
-#include "TBoxSelection.h"
+#include "TShapeSelection.h"
+
+// classes
+#include "CSR_OpenGLHelper.h"
 
 #pragma package(smart_init)
 #pragma link "TVector3Frame"
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
-TBoxSelection* BoxSelection;
+TShapeSelection* ShapeSelection;
 //---------------------------------------------------------------------------
-__fastcall TBoxSelection::TBoxSelection(TComponent* pOwner, const std::wstring& initialDir) :
+__fastcall TShapeSelection::TShapeSelection(TComponent* pOwner, const std::wstring& initialDir) :
     TForm(pOwner)
 {
     // set the initial dir
     opdPicture->InitialDir = initialDir.c_str();
 }
 //---------------------------------------------------------------------------
-void __fastcall TBoxSelection::btTextureBrowseClick(TObject* pSender)
+void __fastcall TShapeSelection::btTextureBrowseClick(TObject* pSender)
 {
     // open the load picture dialog box
     if (!opdPicture->Execute())
@@ -44,13 +47,21 @@ void __fastcall TBoxSelection::btTextureBrowseClick(TObject* pSender)
     imTexture->Picture->LoadFromFile(edTextureFileName->Text);
 }
 //---------------------------------------------------------------------------
-void __fastcall TBoxSelection::btCancelClick(TObject* pSender)
+void __fastcall TShapeSelection::btCancelClick(TObject* pSender)
 {
     ModalResult = mrCancel;
 }
 //---------------------------------------------------------------------------
-void __fastcall TBoxSelection::btOkClick(TObject* pSender)
+void __fastcall TShapeSelection::btOkClick(TObject* pSender)
 {
     ModalResult = mrOk;
+}
+//---------------------------------------------------------------------------
+void TShapeSelection::BuildMatrix(CSR_Matrix4* pMatrix) const
+{
+    CSR_OpenGLHelper::BuildMatrix(&vfPosition->GetVector(),
+                                  &vfRotation->GetVector(),
+                                  &vfScaling->GetVector(),
+                                   pMatrix);
 }
 //---------------------------------------------------------------------------

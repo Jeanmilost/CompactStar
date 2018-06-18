@@ -237,10 +237,10 @@ void CSR_PostProcessingEffect_OilPainting::DrawEnd() const
     }
 }
 //---------------------------------------------------------------------------
-bool CSR_PostProcessingEffect_OilPainting::Initialize(      std::size_t  width,
-                                                            std::size_t  height,
-                                                      const std::string& vertexShader,
-                                                      const std::string& fragmentShader)
+bool CSR_PostProcessingEffect_OilPainting::Initialize(std::size_t  width,
+                                                      std::size_t  height,
+                                                const std::string& vertexShader,
+                                                const std::string& fragmentShader)
 {
     // load the shader to use for MSAA
     m_pShader = csrShaderLoadFromStr(vertexShader.c_str(),

@@ -27,10 +27,10 @@
 
 //---------------------------------------------------------------------------
 USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
-USEFORM("TBoxSelection.cpp", BoxSelection);
 USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
 USEFORM("Main.cpp", MainForm);
+USEFORM("TShapeSelection.cpp", ShapeSelection);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

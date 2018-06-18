@@ -571,7 +571,7 @@ void CSR_DesignerView::DrawItem(const CSR_SceneItem* pSceneItem,
     for (std::size_t i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
     {
         // select the brush and pen to use
-        if (pSceneItem->m_pModel == m_Selection.m_pKey && i == m_Selection.m_MatrixIndex)
+        if (pSceneItem->m_pModel == m_Selection.m_pKey && int(i) == m_Selection.m_MatrixIndex)
         {
             ::SelectObject(hDC, m_hSelectedBrush);
             ::SelectObject(hDC, m_hSelectedPen);
@@ -798,7 +798,7 @@ bool CSR_DesignerView::SelectPrevMatrix(const CSR_SceneItem* pItem)
         return false;
 
     // is selected index out of bounds?
-    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= pItem->m_pMatrixArray->m_Count)
+    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= int(pItem->m_pMatrixArray->m_Count))
         return true;
 
     // do select the last matrix index of the prev model
@@ -818,11 +818,11 @@ bool CSR_DesignerView::SelectNextMatrix(const CSR_SceneItem* pItem)
         return false;
 
     // is selected index out of bounds?
-    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= pItem->m_pMatrixArray->m_Count)
+    if (m_Selection.m_MatrixIndex < 0 || m_Selection.m_MatrixIndex >= int(pItem->m_pMatrixArray->m_Count))
         return true;
 
     // do select the first matrix index of the next model
-    if (m_Selection.m_MatrixIndex == pItem->m_pMatrixArray->m_Count - 1)
+    if (m_Selection.m_MatrixIndex == int(pItem->m_pMatrixArray->m_Count) - 1)
         return true;
 
     // select the prev matrix

@@ -1,9 +1,9 @@
-object BoxSelection: TBoxSelection
+object ShapeSelection: TShapeSelection
   Left = 0
   Top = 0
   AutoSize = True
   BorderStyle = bsDialog
-  Caption = 'Add a box'
+  Caption = 'Add a %s'
   ClientHeight = 446
   ClientWidth = 315
   Color = clBtnFace
@@ -18,7 +18,7 @@ object BoxSelection: TBoxSelection
   Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
-  object laBoxTransform: TLabel
+  object laTransform: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 3
@@ -32,11 +32,9 @@ object BoxSelection: TBoxSelection
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ExplicitLeft = 0
-    ExplicitTop = 0
     ExplicitWidth = 96
   end
-  object laBoxPosition: TLabel
+  object laPosition: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 34
@@ -44,11 +42,9 @@ object BoxSelection: TBoxSelection
     Height = 13
     Align = alTop
     Caption = 'Position'
-    ExplicitLeft = 0
-    ExplicitTop = 25
     ExplicitWidth = 37
   end
-  object laBoxRotation: TLabel
+  object laRotation: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 97
@@ -56,11 +52,9 @@ object BoxSelection: TBoxSelection
     Height = 13
     Align = alTop
     Caption = 'Rotation'
-    ExplicitLeft = 19
-    ExplicitTop = 205
-    ExplicitWidth = 462
+    ExplicitWidth = 41
   end
-  object laBoxScaling: TLabel
+  object laScaling: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 160
@@ -68,11 +62,9 @@ object BoxSelection: TBoxSelection
     Height = 13
     Align = alTop
     Caption = 'Scaling'
-    ExplicitLeft = 8
-    ExplicitTop = 300
-    ExplicitWidth = 462
+    ExplicitWidth = 33
   end
-  object laBoxOptions: TLabel
+  object laOptions: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 357
@@ -87,8 +79,7 @@ object BoxSelection: TBoxSelection
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ExplicitLeft = 20
-    ExplicitTop = 418
+    ExplicitWidth = 71
   end
   object blBottomLine: TBevel
     AlignWithMargins = True
@@ -125,7 +116,7 @@ object BoxSelection: TBoxSelection
     ExplicitLeft = -2
     ExplicitTop = 216
   end
-  inline vfBoxPosition: TVector3Frame
+  inline vfPosition: TVector3Frame
     Left = 0
     Top = 50
     Width = 315
@@ -138,16 +129,18 @@ object BoxSelection: TBoxSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitLeft = 156
-    ExplicitTop = 296
+    ExplicitTop = 50
+    ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
     inherited paValues: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
   end
-  inline vfBoxRotation: TVector3Frame
+  inline vfRotation: TVector3Frame
     Left = 0
     Top = 113
     Width = 315
@@ -160,16 +153,18 @@ object BoxSelection: TBoxSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 1
-    ExplicitLeft = 128
-    ExplicitTop = 296
+    ExplicitTop = 113
+    ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
     inherited paValues: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
   end
-  inline vfBoxScaling: TVector3Frame
+  inline vfScaling: TVector3Frame
     Left = 0
     Top = 176
     Width = 315
@@ -182,16 +177,18 @@ object BoxSelection: TBoxSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 2
-    ExplicitLeft = 156
-    ExplicitTop = 328
+    ExplicitTop = 176
+    ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
     inherited paValues: TPanel
       Width = 309
+      ExplicitWidth = 309
     end
   end
-  object paBoxTexture: TPanel
+  object paShapeTexture: TPanel
     Left = 0
     Top = 227
     Width = 315
@@ -215,7 +212,6 @@ object BoxSelection: TBoxSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitTop = 3
       ExplicitWidth = 69
     end
     object paTexture: TPanel
@@ -229,8 +225,6 @@ object BoxSelection: TBoxSelection
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitTop = 33
-      ExplicitWidth = 377
       object imTexture: TImage
         AlignWithMargins = True
         Left = 0
@@ -322,7 +316,6 @@ object BoxSelection: TBoxSelection
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 287
         object laTextureFileName: TLabel
           AlignWithMargins = True
           Left = 3
@@ -345,7 +338,6 @@ object BoxSelection: TBoxSelection
           Align = alBottom
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitWidth = 281
           object edTextureFileName: TEdit
             AlignWithMargins = True
             Left = 0
@@ -358,7 +350,6 @@ object BoxSelection: TBoxSelection
             Align = alClient
             ReadOnly = True
             TabOrder = 0
-            ExplicitWidth = 257
           end
           object btTextureBrowse: TButton
             AlignWithMargins = True
@@ -374,7 +365,6 @@ object BoxSelection: TBoxSelection
             Caption = '...'
             TabOrder = 1
             OnClick = btTextureBrowseClick
-            ExplicitLeft = 260
           end
         end
       end
@@ -389,9 +379,7 @@ object BoxSelection: TBoxSelection
     Align = alTop
     Caption = 'Repeat texture on each face'
     TabOrder = 4
-    ExplicitLeft = 88
-    ExplicitTop = 432
-    ExplicitWidth = 97
+    ExplicitLeft = -2
   end
   object paButtons: TPanel
     AlignWithMargins = True
@@ -402,8 +390,6 @@ object BoxSelection: TBoxSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitLeft = -2
-    ExplicitTop = 457
     object btOk: TButton
       Left = 234
       Top = 0
@@ -413,7 +399,6 @@ object BoxSelection: TBoxSelection
       Caption = 'Ok'
       TabOrder = 1
       OnClick = btOkClick
-      ExplicitLeft = 231
     end
     object btCancel: TButton
       Left = 0
