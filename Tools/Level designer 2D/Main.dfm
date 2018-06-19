@@ -172,6 +172,13 @@ object MainForm: TMainForm
         OnClick = miLandscapeResetViewportClick
       end
     end
+    object miSkyBox: TMenuItem
+      Caption = 'Skybox'
+      object miSkyboxAdd: TMenuItem
+        Caption = 'Add...'
+        OnClick = miSkyboxAddClick
+      end
+    end
     object miPostProcessing: TMenuItem
       Caption = 'Post-Processing'
       object miPostProcessingNone: TMenuItem

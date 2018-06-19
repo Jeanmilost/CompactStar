@@ -1151,6 +1151,11 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     RefreshProperties();
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 {
     // reset the viewpoint bounding sphere to his default position
@@ -1232,16 +1237,22 @@ void __fastcall TMainForm::spViewsMoved(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 {
-    if (Application->MainForm->ActiveControl &&
-        Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
-        return;
-
     m_PosVelocity = 0.0f;
     m_DirVelocity = 0.0f;
 
     switch (msg.message)
     {
         case WM_KEYDOWN:
+            // no scene?
+            if (!m_pScene)
+                break;
+
+            // ignore any edit event
+            if (Application->MainForm->ActiveControl &&
+                Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
+                break;
+
+            // search for the pressed key
             switch (msg.wParam)
             {
                 case VK_LEFT:
@@ -1272,6 +1283,32 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                     RefreshProperties();
 
                     handled = true;
+                    break;
+                }
+
+                case VK_DELETE:
+                {
+                    // get the currently selected item
+                    const CSR_DesignerView::ISelection* pSelection = m_pDesignerView->GetSelection();
+
+                    // found it?
+                    if (!pSelection)
+                        break;
+
+                    // is the main landscape model?
+                    if (pSelection->m_pKey == m_pLandscapeKey)
+                        break;
+
+                    // get the model key to delete from scene
+                    const void* pKeyToDel = pSelection->m_pKey;
+
+                    // select the next model
+                    m_pDesignerView->SelectNext();
+
+                    // delete the currently selected model
+                    csrSceneDeleteFrom(m_pScene, pKeyToDel);
+
+                    break;
                 }
             }
 
