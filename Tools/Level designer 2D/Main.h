@@ -82,11 +82,22 @@ class TMainForm : public TForm
         TMenuItem *miAddDisk;
         TMenuItem *miAddRing;
         TMenuItem *miAddSpiral;
+        TMenuItem *miLandscapeAddSeparator;
+        TMenuItem *miAddWaveFront;
+        TMenuItem *miAddMDLModel;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall miFileNewClick(TObject* pSender);
         void __fastcall miAddBoxClick(TObject* pSender);
+        void __fastcall miAddCylinderClick(TObject* pSender);
+        void __fastcall miAddDiskClick(TObject* pSender);
+        void __fastcall miAddRingClick(TObject* pSender);
+        void __fastcall miAddSphereClick(TObject* pSender);
+        void __fastcall miAddSpiralClick(TObject* pSender);
+        void __fastcall miAddSurfaceClick(TObject* pSender);
+        void __fastcall miAddWaveFrontClick(TObject* pSender);
+        void __fastcall miAddMDLModelClick(TObject* pSender);
         void __fastcall miLandscapeResetViewportClick(TObject* pSender);
         void __fastcall miSoundOpenClick(TObject* pSender);
         void __fastcall miSoundPauseClick(TObject* pSender);
@@ -94,12 +105,6 @@ class TMainForm : public TForm
         void __fastcall spViewsMoved(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
         void __fastcall OnViewClick(TObject* pSender);
-        void __fastcall miAddCylinderClick(TObject* pSender);
-        void __fastcall miAddDiskClick(TObject* pSender);
-        void __fastcall miAddRingClick(TObject* pSender);
-        void __fastcall miAddSphereClick(TObject* pSender);
-        void __fastcall miAddSpiralClick(TObject* pSender);
-        void __fastcall miAddSurfaceClick(TObject* pSender);
 
     public:
         /**

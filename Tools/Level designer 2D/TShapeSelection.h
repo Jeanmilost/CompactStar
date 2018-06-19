@@ -22,11 +22,14 @@
 #include <Vcl.Controls.hpp>
 #include <Vcl.StdCtrls.hpp>
 #include <Vcl.Forms.hpp>
-#include "TVector3Frame.h"
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.Imaging.pngimage.hpp>
 #include <Vcl.Dialogs.hpp>
 #include <Vcl.ExtDlgs.hpp>
+#include <Vcl.ComCtrls.hpp>
+
+// interface
+#include "TVector3Frame.h"
 
 /**
 * Shape selection dialog box
@@ -60,6 +63,32 @@ class TShapeSelection : public TForm
         TBevel *blMiddleLine;
         TBevel *blTopLine;
         TOpenPictureDialog *opdPicture;
+        TPanel *paSlicesAndStacks;
+        TLabel *laStacks;
+        TEdit *edSlices;
+        TUpDown *udSlices;
+        TLabel *laSlices;
+        TEdit *edStacks;
+        TUpDown *udStacks;
+        TPanel *paFaces;
+        TLabel *laFaces;
+        TEdit *edFaces;
+        TUpDown *udFaces;
+        TPanel *paMinRadius;
+        TLabel *laMinRadius;
+        TEdit *edMinRadius;
+        TUpDown *udMinRadius;
+        TLabel *laMinRadiusPercent;
+        TPanel *paDeltas;
+        TLabel *laDeltaMiax;
+        TLabel *laDeltaMin;
+        TEdit *edDeltaMin;
+        TUpDown *udDeltaMin;
+        TEdit *edDeltaMax;
+        TUpDown *udDeltaMax;
+        TLabel *laDeltaZ;
+        TEdit *edDeltaZ;
+        TUpDown *udDeltaZ;
 
         void __fastcall btTextureBrowseClick(TObject* pSender);
         void __fastcall btCancelClick(TObject* pSender);
