@@ -152,6 +152,17 @@ object MainForm: TMainForm
           Caption = 'Surface...'
           OnClick = miAddSurfaceClick
         end
+        object miLandscapeAddSeparator: TMenuItem
+          Caption = '-'
+        end
+        object miAddWaveFront: TMenuItem
+          Caption = 'WaveFront model...'
+          OnClick = miAddWaveFrontClick
+        end
+        object miAddMDLModel: TMenuItem
+          Caption = 'MDL (Quake I) model...'
+          OnClick = miAddMDLModelClick
+        end
       end
       object miLandscapeSeparator: TMenuItem
         Caption = '-'

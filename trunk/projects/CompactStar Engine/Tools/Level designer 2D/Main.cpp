@@ -186,6 +186,12 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     // set the dialog box title
     pShapeSelection->Caption = L"Add a box";
 
+    // hide the useless controls
+    pShapeSelection->paSlicesAndStacks->Visible = false;
+    pShapeSelection->paFaces->Visible           = false;
+    pShapeSelection->paMinRadius->Visible       = false;
+    pShapeSelection->paDeltas->Visible          = false;
+
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
     collisionInput.m_BoundingSphere.m_Radius = 0.5f;
@@ -291,9 +297,10 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     pShapeSelection->Caption = L"Add a cylinder";
 
     // hide the useless controls
-    pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
-    pShapeSelection->blBottomLine->Visible              = false;
+    pShapeSelection->paSlicesAndStacks->Visible         = false;
+    pShapeSelection->paMinRadius->Visible               = false;
+    pShapeSelection->paDeltas->Visible                  = false;
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -327,8 +334,14 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
 
-    // create a default box mesh
-    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f, 1.0f, 25, &vf, 0, &material, 0);
+    // create a default cylinder mesh
+    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f,
+                                                 1.0f,
+                                                 ::StrToInt(pShapeSelection->edFaces->Text),
+                                                &vf,
+                                                 0,
+                                                &material,
+                                                 0);
 
     // succeeded?
     if (!pCylinder)
@@ -393,9 +406,13 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     pShapeSelection->Caption = L"Add a disk";
 
     // hide the useless controls
-    pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
-    pShapeSelection->blBottomLine->Visible              = false;
+    pShapeSelection->laStacks->Visible                  = false;
+    pShapeSelection->edStacks->Visible                  = false;
+    pShapeSelection->udStacks->Visible                  = false;
+    pShapeSelection->paFaces->Visible                   = false;
+    pShapeSelection->paMinRadius->Visible               = false;
+    pShapeSelection->paDeltas->Visible                  = false;
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -430,7 +447,14 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default disk mesh
-    CSR_Mesh* pDisk = csrShapeCreateDisk(0.0f, 0.0f, 0.5f, 25, &vf, 0, &material, 0);
+    CSR_Mesh* pDisk = csrShapeCreateDisk(0.0f,
+                                         0.0f,
+                                         0.5f,
+                                         ::StrToInt(pShapeSelection->edSlices->Text),
+                                        &vf,
+                                         0,
+                                        &material,
+                                         0);
 
     // succeeded?
     if (!pDisk)
@@ -495,9 +519,12 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     pShapeSelection->Caption = L"Add a ring";
 
     // hide the useless controls
-    pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
-    pShapeSelection->blBottomLine->Visible              = false;
+    pShapeSelection->laStacks->Visible                  = false;
+    pShapeSelection->edStacks->Visible                  = false;
+    pShapeSelection->udStacks->Visible                  = false;
+    pShapeSelection->paFaces->Visible                   = false;
+    pShapeSelection->paDeltas->Visible                  = false;
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -532,7 +559,15 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default ring mesh
-    CSR_Mesh* pRing = csrShapeCreateRing(0.0f, 0.0f, 0.25f, 0.5f, 25, &vf, 0, &material, 0);
+    CSR_Mesh* pRing = csrShapeCreateRing(0.0f,
+                                         0.0f,
+                                         ::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f,
+                                         0.5f,
+                                         ::StrToInt(pShapeSelection->edSlices->Text),
+                                        &vf,
+                                         0,
+                                        &material,
+                                         0);
 
     // succeeded?
     if (!pRing)
@@ -597,9 +632,10 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     pShapeSelection->Caption = L"Add a sphere";
 
     // hide the useless controls
-    pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
-    pShapeSelection->blBottomLine->Visible              = false;
+    pShapeSelection->paFaces->Visible                   = false;
+    pShapeSelection->paMinRadius->Visible               = false;
+    pShapeSelection->paDeltas->Visible                  = false;
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -634,7 +670,13 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default sphere mesh
-    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, 25, 25, &vf, 0, &material, 0);
+    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f,
+                                             ::StrToInt(pShapeSelection->edSlices->Text),
+                                             ::StrToInt(pShapeSelection->edStacks->Text),
+                                            &vf,
+                                             0,
+                                            &material,
+                                             0);
 
     // succeeded?
     if (!pSphere)
@@ -699,9 +741,8 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     pShapeSelection->Caption = L"Add a spiral";
 
     // hide the useless controls
-    pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
-    pShapeSelection->blBottomLine->Visible              = false;
+    pShapeSelection->paFaces->Visible                   = false;
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -738,13 +779,13 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     // create a default spiral mesh
     CSR_Mesh* pSpiral = csrShapeCreateSpiral(0.0f,
                                              0.0f,
-                                             0.25f,
+                                             ::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f,
                                              0.5f,
-                                             0.0f,
-                                             0.0f,
-                                             0.01f,
-                                             25,
-                                             25,
+                                             ::StrToFloat(pShapeSelection->edDeltaMin->Text)  * 0.01f,
+                                             ::StrToFloat(pShapeSelection->edDeltaMax->Text)  * 0.01f,
+                                             ::StrToFloat(pShapeSelection->edDeltaZ->Text)    * 0.01f,
+                                             ::StrToInt(pShapeSelection->edSlices->Text),
+                                             ::StrToInt(pShapeSelection->edStacks->Text),
                                             &vf,
                                              0,
                                             &material,
@@ -815,6 +856,10 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
     // hide the useless controls
     pShapeSelection->laOptions->Visible                 = false;
     pShapeSelection->ckRepeatTextureOnEachFace->Visible = false;
+    pShapeSelection->paSlicesAndStacks->Visible         = false;
+    pShapeSelection->paFaces->Visible                   = false;
+    pShapeSelection->paMinRadius->Visible               = false;
+    pShapeSelection->paDeltas->Visible                  = false;
     pShapeSelection->blBottomLine->Visible              = false;
 
     CSR_CollisionInput collisionInput;
@@ -903,6 +948,16 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
 
     // refresh the selected model properties
     RefreshProperties();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
+{
+    //
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
@@ -1407,84 +1462,91 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
 //---------------------------------------------------------------------------
 GLuint TMainForm::LoadTexture(const std::wstring& fileName) const
 {
-    // load texture in a picture
-    std::auto_ptr<TPicture> pPicture(new TPicture());
-    pPicture->LoadFromFile(fileName.c_str());
-
-    // convert it to a bitmap
-    std::auto_ptr<TBitmap> pTexture(new TBitmap());
-    pTexture->Assign(pPicture->Graphic);
-
-    int pixelSize;
-
-    // search for bitmap pixel format
-    switch (pTexture->PixelFormat)
-    {
-        case pf24bit: pixelSize = 3; break;
-        case pf32bit: pixelSize = 4; break;
-        default:      return M_CSR_Error_Code;
-    }
-
-    GLuint           textureID    = M_CSR_Error_Code;
-    CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
-
     try
     {
-        // configure the pixel buffer
-        pPixelBuffer->m_PixelType    = CSR_PT_BGR;
-        pPixelBuffer->m_ImageType    = CSR_IT_Raw;
-        pPixelBuffer->m_Width        = pTexture->Width;
-        pPixelBuffer->m_Height       = pTexture->Height;
-        pPixelBuffer->m_BytePerPixel = pixelSize;
-        pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+        // load texture in a picture
+        std::auto_ptr<TPicture> pPicture(new TPicture());
+        pPicture->LoadFromFile(fileName.c_str());
 
-        // reserve memory for the pixel array
-        pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+        // convert it to a bitmap
+        std::auto_ptr<TBitmap> pTexture(new TBitmap());
+        pTexture->Assign(pPicture->Graphic);
 
-        TRGBTriple* pLineRGB;
-        TRGBQuad*   pLineRGBA;
+        int pixelSize;
 
-        // iterate through lines to copy
-        for (int y = 0; y < pTexture->Height; ++y)
+        // search for bitmap pixel format
+        switch (pTexture->PixelFormat)
         {
-            // get the next pixel line from bitmap
-            if (pixelSize == 3)
-                pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
-            else
-                pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
-
-            // calculate the start y position
-            const int yPos = y * pTexture->Width * pixelSize;
-
-            // iterate through pixels to copy
-            for (int x = 0; x < pTexture->Width; ++x)
-            {
-                // copy to pixel array and take the opportunity to swap the pixel RGB values
-                if (pixelSize == 3)
-                {
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
-                }
-                else
-                {
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
-                    ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
-                }
-            }
+            case pf24bit: pixelSize = 3; break;
+            case pf32bit: pixelSize = 4; break;
+            default:      return M_CSR_Error_Code;
         }
 
-        // load the texture on the GPU
-        textureID = csrTextureFromPixelBuffer(pPixelBuffer);
-    }
-    __finally
-    {
-        csrPixelBufferRelease(pPixelBuffer);
-    }
+        GLuint           textureID    = M_CSR_Error_Code;
+        CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
 
-    return textureID;
+        try
+        {
+            // configure the pixel buffer
+            pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+            pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+            pPixelBuffer->m_Width        = pTexture->Width;
+            pPixelBuffer->m_Height       = pTexture->Height;
+            pPixelBuffer->m_BytePerPixel = pixelSize;
+            pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
+            // reserve memory for the pixel array
+            pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+
+            TRGBTriple* pLineRGB;
+            TRGBQuad*   pLineRGBA;
+
+            // iterate through lines to copy
+            for (int y = 0; y < pTexture->Height; ++y)
+            {
+                // get the next pixel line from bitmap
+                if (pixelSize == 3)
+                    pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
+                else
+                    pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
+
+                // calculate the start y position
+                const int yPos = y * pTexture->Width * pixelSize;
+
+                // iterate through pixels to copy
+                for (int x = 0; x < pTexture->Width; ++x)
+                {
+                    // copy to pixel array and take the opportunity to swap the pixel RGB values
+                    if (pixelSize == 3)
+                    {
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                    }
+                    else
+                    {
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                        ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                    }
+                }
+            }
+
+            // load the texture on the GPU
+            textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+        }
+        __finally
+        {
+            csrPixelBufferRelease(pPixelBuffer);
+        }
+
+        return textureID;
+    }
+    catch (...)
+    {
+        return M_CSR_Error_Code;
+    }
 }
 //---------------------------------------------------------------------------
 CSR_Sound* TMainForm::LoadSound(const std::string& fileName) const

@@ -4,7 +4,7 @@ object ShapeSelection: TShapeSelection
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Add a %s'
-  ClientHeight = 446
+  ClientHeight = 554
   ClientWidth = 315
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -84,7 +84,7 @@ object ShapeSelection: TShapeSelection
   object blBottomLine: TBevel
     AlignWithMargins = True
     Left = 3
-    Top = 411
+    Top = 519
     Width = 309
     Height = 1
     Align = alTop
@@ -384,12 +384,13 @@ object ShapeSelection: TShapeSelection
   object paButtons: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 418
+    Top = 526
     Width = 309
     Height = 25
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 5
+    ExplicitTop = 418
     object btOk: TButton
       Left = 234
       Top = 0
@@ -409,6 +410,369 @@ object ShapeSelection: TShapeSelection
       Caption = 'Cancel'
       TabOrder = 0
       OnClick = btCancelClick
+    end
+  end
+  object paSlicesAndStacks: TPanel
+    AlignWithMargins = True
+    Left = 3
+    Top = 411
+    Width = 309
+    Height = 21
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 6
+    ExplicitLeft = 8
+    object laStacks: TLabel
+      AlignWithMargins = True
+      Left = 198
+      Top = 0
+      Width = 60
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alRight
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Stacks'
+      Layout = tlCenter
+      ExplicitLeft = 207
+    end
+    object laSlices: TLabel
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 60
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alLeft
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Slices'
+      Layout = tlCenter
+    end
+    object edSlices: TEdit
+      AlignWithMargins = True
+      Left = 65
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 0
+      Text = '25'
+    end
+    object udSlices: TUpDown
+      Left = 95
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edSlices
+      Min = 3
+      Max = 50
+      Position = 25
+      TabOrder = 1
+    end
+    object edStacks: TEdit
+      Left = 263
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 16
+      Margins.Bottom = 0
+      Align = alRight
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 2
+      Text = '25'
+    end
+    object udStacks: TUpDown
+      Left = 293
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edStacks
+      Min = 2
+      Max = 50
+      Position = 25
+      TabOrder = 3
+    end
+  end
+  object paFaces: TPanel
+    AlignWithMargins = True
+    Left = 3
+    Top = 438
+    Width = 309
+    Height = 21
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 7
+    ExplicitLeft = 6
+    ExplicitTop = 419
+    object laFaces: TLabel
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 60
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alLeft
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Faces'
+      Layout = tlCenter
+    end
+    object edFaces: TEdit
+      AlignWithMargins = True
+      Left = 65
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 0
+      Text = '25'
+    end
+    object udFaces: TUpDown
+      Left = 95
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edFaces
+      Min = 3
+      Max = 50
+      Position = 25
+      TabOrder = 1
+    end
+  end
+  object paMinRadius: TPanel
+    AlignWithMargins = True
+    Left = 3
+    Top = 465
+    Width = 309
+    Height = 21
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 9
+    ExplicitLeft = 35
+    ExplicitTop = 452
+    object laMinRadius: TLabel
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 60
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alLeft
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Min. Radius'
+      Layout = tlCenter
+    end
+    object laMinRadiusPercent: TLabel
+      AlignWithMargins = True
+      Left = 115
+      Top = 0
+      Width = 11
+      Height = 21
+      Margins.Left = 20
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      Caption = '%'
+      Layout = tlCenter
+      ExplicitLeft = 151
+      ExplicitHeight = 13
+    end
+    object edMinRadius: TEdit
+      AlignWithMargins = True
+      Left = 65
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 0
+      Text = '50'
+      ExplicitTop = 3
+    end
+    object udMinRadius: TUpDown
+      Left = 95
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edMinRadius
+      Min = 1
+      Max = 99
+      Position = 50
+      TabOrder = 1
+    end
+  end
+  object paDeltas: TPanel
+    AlignWithMargins = True
+    Left = 3
+    Top = 492
+    Width = 309
+    Height = 21
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 8
+    ExplicitLeft = -2
+    ExplicitTop = 478
+    object laDeltaMiax: TLabel
+      AlignWithMargins = True
+      Left = 111
+      Top = 0
+      Width = 55
+      Height = 21
+      Margins.Left = 16
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alLeft
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Delta max'
+      Layout = tlCenter
+      ExplicitLeft = 95
+    end
+    object laDeltaMin: TLabel
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 60
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alLeft
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Delta min'
+      Layout = tlCenter
+      ExplicitLeft = -44
+      ExplicitTop = -3
+    end
+    object laDeltaZ: TLabel
+      AlignWithMargins = True
+      Left = 203
+      Top = 0
+      Width = 55
+      Height = 21
+      Margins.Left = 16
+      Margins.Top = 0
+      Margins.Right = 5
+      Margins.Bottom = 0
+      Align = alRight
+      Alignment = taRightJustify
+      AutoSize = False
+      Caption = 'Delta Z'
+      Layout = tlCenter
+      ExplicitLeft = 198
+    end
+    object edDeltaMin: TEdit
+      AlignWithMargins = True
+      Left = 65
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 0
+      Text = '0'
+    end
+    object udDeltaMin: TUpDown
+      Left = 95
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edDeltaMin
+      Max = 1000
+      TabOrder = 1
+    end
+    object edDeltaMax: TEdit
+      Left = 171
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 16
+      Margins.Bottom = 0
+      Align = alLeft
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 2
+      Text = '0'
+    end
+    object udDeltaMax: TUpDown
+      Left = 201
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edDeltaMax
+      Max = 1000
+      TabOrder = 3
+    end
+    object edDeltaZ: TEdit
+      AlignWithMargins = True
+      Left = 263
+      Top = 0
+      Width = 30
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alRight
+      NumbersOnly = True
+      ReadOnly = True
+      TabOrder = 4
+      Text = '1'
+    end
+    object udDeltaZ: TUpDown
+      Left = 293
+      Top = 0
+      Width = 16
+      Height = 21
+      Associate = edDeltaZ
+      Max = 1000
+      Position = 1
+      TabOrder = 5
     end
   end
   object opdPicture: TOpenPictureDialog
