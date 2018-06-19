@@ -37,6 +37,7 @@
 // interface
 #include "TLandscapeSelection.h"
 #include "TShapeSelection.h"
+#include "TModelSelection.h"
 #include "TSoundSelection.h"
 
 #pragma package(smart_init)
@@ -561,7 +562,7 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     // create a default ring mesh
     CSR_Mesh* pRing = csrShapeCreateRing(0.0f,
                                          0.0f,
-                                         ::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f,
+                                         0.5f * (::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f),
                                          0.5f,
                                          ::StrToInt(pShapeSelection->edSlices->Text),
                                         &vf,
@@ -779,11 +780,11 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     // create a default spiral mesh
     CSR_Mesh* pSpiral = csrShapeCreateSpiral(0.0f,
                                              0.0f,
-                                             ::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f,
+                                             0.5f * (::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f),
                                              0.5f,
-                                             ::StrToFloat(pShapeSelection->edDeltaMin->Text)  * 0.01f,
-                                             ::StrToFloat(pShapeSelection->edDeltaMax->Text)  * 0.01f,
-                                             ::StrToFloat(pShapeSelection->edDeltaZ->Text)    * 0.01f,
+                                             ::StrToFloat(pShapeSelection->edDeltaMin->Text) * 0.001f,
+                                             ::StrToFloat(pShapeSelection->edDeltaMax->Text) * 0.001f,
+                                             ::StrToFloat(pShapeSelection->edDeltaZ->Text)   * 0.001f,
                                              ::StrToInt(pShapeSelection->edSlices->Text),
                                              ::StrToInt(pShapeSelection->edStacks->Text),
                                             &vf,
@@ -952,12 +953,202 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
 {
-    //
+    // create a model selection dialog box
+    std::auto_ptr<TModelSelection> pModelSelection
+            (new TModelSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pModelSelection->vfScaling->edX->Text = L"1.0";
+    pModelSelection->vfScaling->edY->Text = L"1.0";
+    pModelSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pModelSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // load the Wavefront model
+    CSR_Model* pModel = csrWaveFrontOpen(AnsiString(pModelSelection->edModelFileName->Text).c_str(),
+                                        &vf,
+                                         0,
+                                        &material,
+                                         0,
+                                         0);
+
+    // succeeded?
+    if (!pModel || !pModel->m_MeshCount)
+    {
+        // show the error message to the user
+        ::MessageDlg(L"Failed to load the WaveFront model.", mtError, TMsgDlgButtons() << mbOK, 0);
+        return;
+    }
+
+    try
+    {
+        // load the texture
+        pModel->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(pModelSelection->edTextureFileName->Text.c_str());
+
+        // failed?
+        if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Unknown texture format.\r\n\r\nThe WaveFront model could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pModelSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddModel(m_pScene, pModel, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pModel, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pModel].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pModel;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pModel = NULL;
+    }
+    __finally
+    {
+        csrModelRelease(pModel);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
 {
-    //
+    // create a model selection dialog box
+    std::auto_ptr<TModelSelection> pModelSelection
+            (new TModelSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // change the file filters
+    pModelSelection->odModel->Filter = L"All model files|*.mdl|Quake I model|*.mdl";
+
+    // hide the useless controls
+    pModelSelection->paModelTexture->Visible = false;
+    pModelSelection->blBottomLine->Visible   = false;
+
+    CSR_CollisionInput collisionInput;
+    csrCollisionInputInit(&collisionInput);
+    collisionInput.m_BoundingSphere.m_Radius = 0.5f;
+
+    CSR_CollisionOutput collisionOutput;
+
+    // find the ground position at which the box will be set
+    csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
+
+    // show the default position
+    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+
+    // show the default scaling
+    pModelSelection->vfScaling->edX->Text = L"1.0";
+    pModelSelection->vfScaling->edY->Text = L"1.0";
+    pModelSelection->vfScaling->edZ->Text = L"1.0";
+
+    // show the dialog box to the user and check if action was canceled
+    if (pModelSelection->ShowModal() != mrOk)
+        return;
+
+    CSR_Material material;
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+
+    CSR_VertexFormat vf;
+    vf.m_HasNormal         = 0;
+    vf.m_HasTexCoords      = 1;
+    vf.m_HasPerVertexColor = 1;
+
+    // load the MDL model
+    CSR_MDL* pMDL = csrMDLOpen(AnsiString(pModelSelection->edModelFileName->Text).c_str(),
+                               0,
+                              &vf,
+                               0,
+                              &material,
+                               0,
+                               0);
+
+    // succeeded?
+    if (!pMDL)
+    {
+        // show the error message to the user
+        ::MessageDlg(L"Failed to load the MDL model.", mtError, TMsgDlgButtons() << mbOK, 0);
+        return;
+    }
+
+    try
+    {
+        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+
+        // build the model matrix from the interface
+        pModelSelection->BuildMatrix(&pItem->m_Matrix);
+
+        // add the model to the scene. Generate the AABB tree to allow the mouse collision
+        csrSceneAddMDL(m_pScene, pMDL, 0, 1);
+        csrSceneAddModelMatrix(m_pScene, pMDL, &pItem->m_Matrix);
+
+        // link the scene item to the designer
+        m_Designer[pMDL].push_back(pItem.get());
+        pItem.release();
+
+        CSR_DesignerView::ISelection selection;
+        selection.m_pKey        = pMDL;
+        selection.m_MatrixIndex = 0;
+
+        // select the newly added model
+        m_pDesignerView->SetSelection(selection);
+
+        pMDL = NULL;
+    }
+    __finally
+    {
+        csrMDLRelease(pMDL);
+    }
+
+    paDesignerView->Invalidate();
+
+    // refresh the selected model properties
+    RefreshProperties();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
@@ -2089,8 +2280,8 @@ void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, flo
 
     // get the rotation values to apply
     r.m_X = m_DesignerProperties.m_pTransformRotate->GetX();
-    r.m_Y = m_DesignerProperties.m_pTransformRotate->GetX();
-    r.m_Z = m_DesignerProperties.m_pTransformRotate->GetX();
+    r.m_Y = m_DesignerProperties.m_pTransformRotate->GetY();
+    r.m_Z = m_DesignerProperties.m_pTransformRotate->GetZ();
 
     CSR_Vector3 factor;
 
