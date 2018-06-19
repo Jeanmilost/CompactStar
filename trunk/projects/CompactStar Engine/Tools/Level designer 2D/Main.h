@@ -85,6 +85,8 @@ class TMainForm : public TForm
         TMenuItem *miLandscapeAddSeparator;
         TMenuItem *miAddWaveFront;
         TMenuItem *miAddMDLModel;
+        TMenuItem *miSkyBox;
+        TMenuItem *miSkyboxAdd;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
@@ -99,6 +101,7 @@ class TMainForm : public TForm
         void __fastcall miAddWaveFrontClick(TObject* pSender);
         void __fastcall miAddMDLModelClick(TObject* pSender);
         void __fastcall miLandscapeResetViewportClick(TObject* pSender);
+        void __fastcall miSkyboxAddClick(TObject* pSender);
         void __fastcall miSoundOpenClick(TObject* pSender);
         void __fastcall miSoundPauseClick(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
