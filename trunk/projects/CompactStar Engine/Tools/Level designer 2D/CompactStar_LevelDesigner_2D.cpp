@@ -1,7 +1,7 @@
 /****************************************************************************
- * ==> CompactStar_GroundCollision -----------------------------------------*
+ * ==> Level deesigner for 2D games ----------------------------------------*
  ****************************************************************************
- * Description : Ground collision tool main entry point                     *
+ * Description : Main entry point                                           *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -15,22 +15,17 @@
 
 #include <vcl.h>
 #pragma hdrstop
-#pragma package(smart_init) // madExcept
-#pragma link "madExcept"
-#pragma link "madLinkDisAsm"
-#pragma link "madListHardware"
-#pragma link "madListProcesses"
-#pragma link "madListModules"
 
 // vcl
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
-USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
+USEFORM("TShapeSelection.cpp", ShapeSelection);
+USEFORM("TModelSelection.cpp", ModelSelection);
 USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
+USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 USEFORM("Main.cpp", MainForm);
-USEFORM("TShapeSelection.cpp", ShapeSelection);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

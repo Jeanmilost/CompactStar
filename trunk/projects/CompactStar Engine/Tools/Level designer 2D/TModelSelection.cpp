@@ -1,7 +1,7 @@
 /****************************************************************************
- * ==> TShapeSelection -----------------------------------------------------*
+ * ==> TModelSelection -----------------------------------------------------*
  ****************************************************************************
- * Description : This module provides a dialog box to configure a shape on  *
+ * Description : This module provides a dialog box to configure a model on  *
  *               the landscape                                              *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
@@ -16,7 +16,7 @@
 
 #include <vcl.h>
 #pragma hdrstop
-#include "TShapeSelection.h"
+#include "TModelSelection.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
@@ -26,16 +26,27 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
-TShapeSelection* ShapeSelection;
+TModelSelection* ModelSelection;
 //---------------------------------------------------------------------------
-__fastcall TShapeSelection::TShapeSelection(TComponent* pOwner, const std::wstring& initialDir) :
+__fastcall TModelSelection::TModelSelection(TComponent* pOwner, const std::wstring& initialDir) :
     TForm(pOwner)
 {
-    // set the initial dir
+    // set the initial dirs
+    odModel->InitialDir    = initialDir.c_str();
     opdPicture->InitialDir = initialDir.c_str();
 }
 //---------------------------------------------------------------------------
-void __fastcall TShapeSelection::btTextureBrowseClick(TObject* pSender)
+void __fastcall TModelSelection::btModelBrowseClick(TObject* pSender)
+{
+    // open the load model dialog box
+    if (!odModel->Execute())
+        return;
+
+    // update the interface
+    edModelFileName->Text = odModel->FileName;
+}
+//---------------------------------------------------------------------------
+void __fastcall TModelSelection::btTextureBrowseClick(TObject* pSender)
 {
     // open the load picture dialog box
     if (!opdPicture->Execute())
@@ -46,17 +57,17 @@ void __fastcall TShapeSelection::btTextureBrowseClick(TObject* pSender)
     imTexture->Picture->LoadFromFile(edTextureFileName->Text);
 }
 //---------------------------------------------------------------------------
-void __fastcall TShapeSelection::btCancelClick(TObject* pSender)
+void __fastcall TModelSelection::btCancelClick(TObject* pSender)
 {
     ModalResult = mrCancel;
 }
 //---------------------------------------------------------------------------
-void __fastcall TShapeSelection::btOkClick(TObject* pSender)
+void __fastcall TModelSelection::btOkClick(TObject* pSender)
 {
     ModalResult = mrOk;
 }
 //---------------------------------------------------------------------------
-void TShapeSelection::BuildMatrix(CSR_Matrix4* pMatrix) const
+void TModelSelection::BuildMatrix(CSR_Matrix4* pMatrix) const
 {
     CSR_OpenGLHelper::BuildMatrix(&vfPosition->GetVector(),
                                   &vfRotation->GetVector(),

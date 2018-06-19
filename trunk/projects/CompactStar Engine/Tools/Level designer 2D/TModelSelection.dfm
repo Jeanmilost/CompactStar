@@ -1,10 +1,9 @@
-object ShapeSelection: TShapeSelection
+object ModelSelection: TModelSelection
   Left = 0
   Top = 0
   AutoSize = True
-  BorderStyle = bsDialog
-  Caption = 'Add a %s'
-  ClientHeight = 554
+  Caption = 'Add a model'
+  ClientHeight = 466
   ClientWidth = 315
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,7 +20,7 @@ object ShapeSelection: TShapeSelection
   object laTransform: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 3
+    Top = 81
     Width = 309
     Height = 25
     Align = alTop
@@ -32,61 +31,49 @@ object ShapeSelection: TShapeSelection
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ExplicitTop = 78
     ExplicitWidth = 96
   end
   object laPosition: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 34
+    Top = 112
     Width = 309
     Height = 13
     Align = alTop
     Caption = 'Position'
+    ExplicitTop = 109
     ExplicitWidth = 37
   end
   object laRotation: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 97
+    Top = 175
     Width = 309
     Height = 13
     Align = alTop
     Caption = 'Rotation'
+    ExplicitTop = 172
     ExplicitWidth = 41
   end
   object laScaling: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 160
+    Top = 238
     Width = 309
     Height = 13
     Align = alTop
     Caption = 'Scaling'
+    ExplicitTop = 235
     ExplicitWidth = 33
-  end
-  object laOptions: TLabel
-    AlignWithMargins = True
-    Left = 3
-    Top = 357
-    Width = 309
-    Height = 25
-    Margins.Top = 0
-    Align = alTop
-    Caption = 'Options'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -21
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
-    ExplicitWidth = 71
   end
   object blBottomLine: TBevel
     AlignWithMargins = True
     Left = 3
-    Top = 519
+    Top = 431
     Width = 309
     Height = 1
+    Margins.Top = 6
     Align = alTop
     Shape = bsTopLine
     ExplicitLeft = -79
@@ -96,29 +83,45 @@ object ShapeSelection: TShapeSelection
   object blMiddleLine: TBevel
     AlignWithMargins = True
     Left = 3
-    Top = 353
+    Top = 301
+    Width = 309
+    Height = 1
+    Align = alTop
+    Shape = bsTopLine
+    ExplicitLeft = 20
+    ExplicitTop = 295
+  end
+  object blTopLine: TBevel
+    AlignWithMargins = True
+    Left = 3
+    Top = 74
     Width = 309
     Height = 1
     Margins.Top = 6
     Align = alTop
     Shape = bsTopLine
     ExplicitLeft = -2
-    ExplicitTop = 350
+    ExplicitTop = 71
   end
-  object blTopLine: TBevel
+  object laModelFileName: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 223
+    Top = 3
     Width = 309
-    Height = 1
+    Height = 25
     Align = alTop
-    Shape = bsTopLine
-    ExplicitLeft = -2
-    ExplicitTop = 216
+    Caption = 'Model file name'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -21
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ExplicitWidth = 149
   end
   inline vfPosition: TVector3Frame
     Left = 0
-    Top = 50
+    Top = 128
     Width = 315
     Height = 44
     Align = alTop
@@ -129,7 +132,7 @@ object ShapeSelection: TShapeSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitTop = 50
+    ExplicitTop = 125
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -142,7 +145,7 @@ object ShapeSelection: TShapeSelection
   end
   inline vfRotation: TVector3Frame
     Left = 0
-    Top = 113
+    Top = 191
     Width = 315
     Height = 44
     Align = alTop
@@ -153,7 +156,7 @@ object ShapeSelection: TShapeSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 1
-    ExplicitTop = 113
+    ExplicitTop = 188
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -166,7 +169,7 @@ object ShapeSelection: TShapeSelection
   end
   inline vfScaling: TVector3Frame
     Left = 0
-    Top = 176
+    Top = 254
     Width = 315
     Height = 44
     Align = alTop
@@ -177,7 +180,7 @@ object ShapeSelection: TShapeSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 2
-    ExplicitTop = 176
+    ExplicitTop = 251
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -188,15 +191,16 @@ object ShapeSelection: TShapeSelection
       ExplicitWidth = 309
     end
   end
-  object paShapeTexture: TPanel
+  object paModelTexture: TPanel
     Left = 0
-    Top = 227
+    Top = 305
     Width = 315
     Height = 120
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitTop = 302
     object laTexture: TLabel
       AlignWithMargins = True
       Left = 3
@@ -370,25 +374,16 @@ object ShapeSelection: TShapeSelection
       end
     end
   end
-  object ckRepeatTextureOnEachFace: TCheckBox
-    AlignWithMargins = True
-    Left = 3
-    Top = 388
-    Width = 309
-    Height = 17
-    Align = alTop
-    Caption = 'Repeat texture on each face'
-    TabOrder = 4
-  end
   object paButtons: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 526
+    Top = 438
     Width = 309
     Height = 25
     Align = alTop
     BevelOuter = bvNone
-    TabOrder = 5
+    TabOrder = 4
+    ExplicitTop = 435
     object btOk: TButton
       Left = 234
       Top = 0
@@ -410,362 +405,82 @@ object ShapeSelection: TShapeSelection
       OnClick = btCancelClick
     end
   end
-  object paSlicesAndStacks: TPanel
+  object paModel: TPanel
     AlignWithMargins = True
-    Left = 3
-    Top = 411
-    Width = 309
-    Height = 21
+    Left = 20
+    Top = 31
+    Width = 295
+    Height = 37
+    Margins.Left = 20
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
     Align = alTop
+    AutoSize = True
     BevelOuter = bvNone
-    TabOrder = 6
-    object laStacks: TLabel
+    TabOrder = 5
+    object laModelFileNameTitle: TLabel
       AlignWithMargins = True
-      Left = 198
+      Left = 3
       Top = 0
-      Width = 60
-      Height = 21
-      Margins.Left = 0
+      Width = 289
+      Height = 13
       Margins.Top = 0
-      Margins.Right = 5
       Margins.Bottom = 0
-      Align = alRight
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Stacks'
-      Layout = tlCenter
-      ExplicitLeft = 207
+      Align = alTop
+      Caption = 'Select a file'
+      ExplicitWidth = 55
     end
-    object laSlices: TLabel
+    object paModelFileName: TPanel
       AlignWithMargins = True
-      Left = 0
-      Top = 0
-      Width = 60
+      Left = 3
+      Top = 16
+      Width = 289
       Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 5
       Margins.Bottom = 0
-      Align = alLeft
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Slices'
-      Layout = tlCenter
-    end
-    object edSlices: TEdit
-      AlignWithMargins = True
-      Left = 65
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      NumbersOnly = True
-      ReadOnly = True
+      Align = alTop
+      BevelOuter = bvNone
       TabOrder = 0
-      Text = '25'
-    end
-    object udSlices: TUpDown
-      Left = 95
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edSlices
-      Min = 3
-      Max = 50
-      Position = 25
-      TabOrder = 1
-    end
-    object edStacks: TEdit
-      Left = 263
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 16
-      Margins.Bottom = 0
-      Align = alRight
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 2
-      Text = '25'
-    end
-    object udStacks: TUpDown
-      Left = 293
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edStacks
-      Min = 2
-      Max = 50
-      Position = 25
-      TabOrder = 3
-    end
-  end
-  object paFaces: TPanel
-    AlignWithMargins = True
-    Left = 3
-    Top = 438
-    Width = 309
-    Height = 21
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 7
-    object laFaces: TLabel
-      AlignWithMargins = True
-      Left = 0
-      Top = 0
-      Width = 60
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 5
-      Margins.Bottom = 0
-      Align = alLeft
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Faces'
-      Layout = tlCenter
-    end
-    object edFaces: TEdit
-      AlignWithMargins = True
-      Left = 65
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 0
-      Text = '25'
-    end
-    object udFaces: TUpDown
-      Left = 95
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edFaces
-      Min = 3
-      Max = 50
-      Position = 25
-      TabOrder = 1
-    end
-  end
-  object paMinRadius: TPanel
-    AlignWithMargins = True
-    Left = 3
-    Top = 465
-    Width = 309
-    Height = 21
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 9
-    object laMinRadius: TLabel
-      AlignWithMargins = True
-      Left = 0
-      Top = 0
-      Width = 60
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 5
-      Margins.Bottom = 0
-      Align = alLeft
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Min. Radius'
-      Layout = tlCenter
-    end
-    object laMinRadiusPercent: TLabel
-      AlignWithMargins = True
-      Left = 98
-      Top = 0
-      Width = 11
-      Height = 21
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      Caption = '%'
-      Layout = tlCenter
-      ExplicitLeft = 131
-      ExplicitHeight = 13
-    end
-    object edMinRadius: TEdit
-      AlignWithMargins = True
-      Left = 65
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 0
-      Text = '50'
-    end
-    object udMinRadius: TUpDown
-      Left = 95
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edMinRadius
-      Min = 1
-      Max = 99
-      Position = 50
-      TabOrder = 1
-    end
-  end
-  object paDeltas: TPanel
-    AlignWithMargins = True
-    Left = 3
-    Top = 492
-    Width = 309
-    Height = 21
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 8
-    object laDeltaMiax: TLabel
-      AlignWithMargins = True
-      Left = 111
-      Top = 0
-      Width = 55
-      Height = 21
-      Margins.Left = 16
-      Margins.Top = 0
-      Margins.Right = 5
-      Margins.Bottom = 0
-      Align = alLeft
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Delta max'
-      Layout = tlCenter
-      ExplicitLeft = 95
-    end
-    object laDeltaMin: TLabel
-      AlignWithMargins = True
-      Left = 0
-      Top = 0
-      Width = 60
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 5
-      Margins.Bottom = 0
-      Align = alLeft
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Delta min'
-      Layout = tlCenter
-      ExplicitLeft = -44
-      ExplicitTop = -3
-    end
-    object laDeltaZ: TLabel
-      AlignWithMargins = True
-      Left = 203
-      Top = 0
-      Width = 55
-      Height = 21
-      Margins.Left = 16
-      Margins.Top = 0
-      Margins.Right = 5
-      Margins.Bottom = 0
-      Align = alRight
-      Alignment = taRightJustify
-      AutoSize = False
-      Caption = 'Delta Z'
-      Layout = tlCenter
-      ExplicitLeft = 198
-    end
-    object edDeltaMin: TEdit
-      AlignWithMargins = True
-      Left = 65
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alLeft
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 0
-      Text = '0'
-    end
-    object udDeltaMin: TUpDown
-      Left = 95
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edDeltaMin
-      Max = 1000
-      TabOrder = 1
-    end
-    object edDeltaMax: TEdit
-      Left = 171
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 16
-      Margins.Bottom = 0
-      Align = alLeft
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 2
-      Text = '0'
-    end
-    object udDeltaMax: TUpDown
-      Left = 201
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edDeltaMax
-      Max = 1000
-      TabOrder = 3
-    end
-    object edDeltaZ: TEdit
-      AlignWithMargins = True
-      Left = 263
-      Top = 0
-      Width = 30
-      Height = 21
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 0
-      Align = alRight
-      NumbersOnly = True
-      ReadOnly = True
-      TabOrder = 4
-      Text = '10'
-    end
-    object udDeltaZ: TUpDown
-      Left = 293
-      Top = 0
-      Width = 16
-      Height = 21
-      Associate = edDeltaZ
-      Position = 10
-      TabOrder = 5
+      object edModelFileName: TEdit
+        AlignWithMargins = True
+        Left = 0
+        Top = 0
+        Width = 265
+        Height = 21
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Bottom = 0
+        Align = alClient
+        Enabled = False
+        ReadOnly = True
+        TabOrder = 0
+      end
+      object btModelBrowse: TButton
+        AlignWithMargins = True
+        Left = 268
+        Top = 0
+        Width = 21
+        Height = 21
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alRight
+        Caption = '...'
+        TabOrder = 1
+        OnClick = btModelBrowseClick
+      end
     end
   end
   object opdPicture: TOpenPictureDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 279
+    Top = 5
+  end
+  object odModel: TOpenDialog
+    Filter = 'All model files|*.obj|WaveFront model|*.obj'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 247
     Top = 5
   end
 end
