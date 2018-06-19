@@ -1151,32 +1151,15 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     RefreshProperties();
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
-{
-    //
-}
-//---------------------------------------------------------------------------
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 {
     // reset the viewpoint bounding sphere to his default position
     InitializeViewPoint();
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::miSoundPauseClick(TObject* pSender)
+void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 {
-    // do pause the sound?
-    if (miSoundPause->Checked)
-    {
-        // pause the background sound
-        if (csrSoundIsPlaying(m_pSound))
-            csrSoundPause(m_pSound);
-
-        return;
-    }
-
-    // play the background sound
-    if (!csrSoundIsPlaying(m_pSound))
-        csrSoundPlay(m_pSound);
+    //
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
@@ -1199,6 +1182,23 @@ void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
         // load the sound file
         m_pSound = LoadSound(AnsiString(pSoundSelection->edSoundFileName->Text).c_str());
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miSoundPauseClick(TObject* pSender)
+{
+    // do pause the sound?
+    if (miSoundPause->Checked)
+    {
+        // pause the background sound
+        if (csrSoundIsPlaying(m_pSound))
+            csrSoundPause(m_pSound);
+
+        return;
+    }
+
+    // play the background sound
+    if (!csrSoundIsPlaying(m_pSound))
+        csrSoundPlay(m_pSound);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
