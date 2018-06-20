@@ -90,6 +90,7 @@ typedef struct
 {
     GLuint m_TextureID;
     GLuint m_BumpMapID;
+    GLuint m_CubeMapID;
 } CSR_TextureShader;
 
 #ifdef __cplusplus

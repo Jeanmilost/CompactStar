@@ -1371,6 +1371,20 @@ CSR_Mesh* csrShapeCreateSpiral(float                 centerX,
     return pMesh;
 }
 //---------------------------------------------------------------------------
+// Skybox functions
+//---------------------------------------------------------------------------
+CSR_Mesh* csrSkyboxCreate(float width, float height, float depth)
+{
+    CSR_VertexCulling vc;
+
+    // configure the vertex culling to use with the skybox
+    vc.m_Type = CSR_CT_Back;
+    vc.m_Face = CSR_CF_CW;
+
+    // create the skybox geometry
+    return csrShapeCreateBox(width, height, depth, 0, 0, &vc, 0, 0);
+}
+//---------------------------------------------------------------------------
 // Model functions
 //---------------------------------------------------------------------------
 CSR_Model* csrModelCreate(void)

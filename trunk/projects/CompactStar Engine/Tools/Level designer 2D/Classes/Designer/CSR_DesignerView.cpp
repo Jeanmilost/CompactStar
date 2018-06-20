@@ -500,7 +500,7 @@ bool CSR_DesignerView::OnViewMessage(TControl* pControl, TMessage& message, TWnd
 
                 // get the current landscape position from the view matrix
                 CSR_Vector2 pos;
-                pos.m_X = m_pScene->m_Matrix.m_Table[3][0];
+                pos.m_X = m_pScene->m_ViewMatrix.m_Table[3][0];
                 pos.m_Y = 0.0f;
 
                 // draw the scene on the overlay
