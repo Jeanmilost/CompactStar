@@ -41,7 +41,8 @@ class CSR_ShaderHelper
         enum IEShaderType
         {
             IE_ST_Color,
-            IE_ST_Texture
+            IE_ST_Texture,
+            IE_ST_Skybox
         };
 
         /**

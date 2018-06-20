@@ -266,7 +266,7 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
         *@param pVertCulling - mesh vertex culling, if 0 the default culling will be used
         *@param pMaterial - mesh material, if 0 the default material will be used
         *@param fOnGetVertexColor - get vertex color callback function to use, 0 if not used
-        *@return mesh containing the surface, 0 on error
+        *@return mesh containing the box, 0 on error
         *@note The mesh must be released when no longer used, see csrMeshRelease()
         */
         CSR_Mesh* csrShapeCreateBox(float                 width,
@@ -395,6 +395,20 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
                                  const CSR_VertexCulling*    pVertCulling,
                                  const CSR_Material*         pMaterial,
                                  const CSR_fOnGetVertexColor fOnGetVertexColor);
+
+        //-------------------------------------------------------------------
+        // Skybox functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a skybox
+        *@param width - skybox width (on the x axis)
+        *@param height - skybox height (on the y axis)
+        *@param depth - skybox depth (on the z axis)
+        *@return mesh containing the skybox, 0 on error
+        *@note The mesh must be released when no longer used, see csrMeshRelease()
+        */
+        CSR_Mesh* csrSkyboxCreate(float width, float height, float depth);
 
         //-------------------------------------------------------------------
         // Model functions

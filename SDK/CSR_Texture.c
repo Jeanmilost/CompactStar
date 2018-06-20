@@ -448,5 +448,6 @@ void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
     // initialize the texture shader content
     pTextureShader->m_TextureID = M_CSR_Error_Code;
     pTextureShader->m_BumpMapID = M_CSR_Error_Code;
+    pTextureShader->m_CubeMapID = M_CSR_Error_Code;
 }
 //---------------------------------------------------------------------------

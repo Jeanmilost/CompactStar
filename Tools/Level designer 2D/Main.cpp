@@ -90,6 +90,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pOpenALContext(NULL),
     m_pSound(NULL),
     m_pShader(NULL),
+    m_pSkyboxShader(NULL),
     m_pScene(NULL),
     m_pLandscapeKey(NULL),
     m_pSelectedObjectKey(NULL),
@@ -203,7 +204,7 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -313,7 +314,7 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -425,7 +426,7 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -537,7 +538,7 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -648,7 +649,7 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -755,7 +756,7 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -873,7 +874,7 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -967,7 +968,7 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -1077,7 +1078,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     csrSceneDetectCollision(m_pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_Matrix.m_Table[3][0]);
+    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-m_pScene->m_ViewMatrix.m_Table[3][0]);
     pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
 
     // show the default scaling
@@ -1159,7 +1160,56 @@ void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 {
-    //
+    // is skybox shader still not loaded?
+    if (!m_pSkyboxShader)
+    {
+        const std::string vsTextured = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Skybox);
+        const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
+
+        // load the shader
+        m_pSkyboxShader  = csrShaderLoadFromStr(vsTextured.c_str(),
+                                                vsTextured.length(),
+                                                fsTextured.c_str(),
+                                                fsTextured.length(),
+                                                0,
+                                                0);
+
+        // succeeded?
+        if (!m_pSkyboxShader)
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Failed to load the skybox shader.\r\n\r\nThe skybox could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // enable the shader program
+        csrShaderEnable(m_pSkyboxShader);
+
+        // get shader attributes
+        m_pSkyboxShader->m_VertexSlot  = glGetAttribLocation (m_pSkyboxShader->m_ProgramID, "csr_aVertices");
+        m_pSkyboxShader->m_CubemapSlot = glGetUniformLocation(m_pSkyboxShader->m_ProgramID, "csr_sCubemap");
+    }
+
+    // do delete the previous skybox?
+    if (m_pScene->m_pSkybox)
+        csrMeshRelease(m_pScene->m_pSkybox);
+
+    // create the skybox
+    m_pScene->m_pSkybox = csrSkyboxCreate(1.0f, 1.0f, 1.0f);
+
+    IFileNames fileNames;
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\right.jpg");
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\left.jpg");
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\top.jpg");
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\bottom.jpg");
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\front.jpg");
+    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\back.jpg");
+
+    // load the cubemap texture
+    m_pScene->m_pSkybox->m_Shader.m_CubeMapID = LoadCubemap(fileNames);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
@@ -1777,6 +1827,120 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName) const
     }
 }
 //---------------------------------------------------------------------------
+GLuint TMainForm::LoadCubemap(const IFileNames fileNames) const
+{
+    try
+    {
+        GLuint textureID = M_CSR_Error_Code;
+
+        // create new OpenGL texture
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        const std::size_t fileNameCount = fileNames.size();
+
+        // iterate through the cubemap texture files to load
+        for (std::size_t i = 0; i < fileNameCount; i++)
+        {
+            // load texture in a picture
+            std::auto_ptr<TPicture> pPicture(new TPicture());
+            pPicture->LoadFromFile(fileNames[i].c_str());
+
+            // convert it to a bitmap
+            std::auto_ptr<TBitmap> pTexture(new TBitmap());
+            pTexture->Assign(pPicture->Graphic);
+
+            int pixelSize;
+
+            // search for bitmap pixel format
+            switch (pTexture->PixelFormat)
+            {
+                case pf24bit: pixelSize = 3; break;
+                case pf32bit: pixelSize = 4; break;
+                default:      return M_CSR_Error_Code;
+            }
+
+            CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
+
+            try
+            {
+                // configure the pixel buffer
+                pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+                pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+                pPixelBuffer->m_Width        = pTexture->Width;
+                pPixelBuffer->m_Height       = pTexture->Height;
+                pPixelBuffer->m_BytePerPixel = pixelSize;
+                pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
+                // reserve memory for the pixel array
+                pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+
+                TRGBTriple* pLineRGB;
+                TRGBQuad*   pLineRGBA;
+
+                // iterate through lines to copy
+                for (int y = 0; y < pTexture->Height; ++y)
+                {
+                    // get the next pixel line from bitmap
+                    if (pixelSize == 3)
+                        pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
+                    else
+                        pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
+
+                    // calculate the start y position
+                    const int yPos = y * pTexture->Width * pixelSize;
+
+                    // iterate through pixels to copy
+                    for (int x = 0; x < pTexture->Width; ++x)
+                    {
+                        // copy to pixel array and take the opportunity to swap the pixel RGB values
+                        if (pixelSize == 3)
+                        {
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                        }
+                        else
+                        {
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
+                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                        }
+                    }
+                }
+
+                // load the texture on the GPU
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                             0,
+                             GL_RGB,
+                             pPixelBuffer->m_Width,
+                             pPixelBuffer->m_Height,
+                             0,
+                             GL_RGB,
+                             GL_UNSIGNED_BYTE,
+                             pPixelBuffer->m_pData);
+            }
+            __finally
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+            }
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        return textureID;
+    }
+    catch (...)
+    {
+        return M_CSR_Error_Code;
+    }
+}
+//---------------------------------------------------------------------------
 CSR_Sound* TMainForm::LoadSound(const std::string& fileName) const
 {
     // load the sound file
@@ -1983,7 +2147,7 @@ void TMainForm::CreateViewport(float w, float h)
         return;
 
     // configure the OpenGL viewport
-    CSR_OpenGLHelper::CreateViewport(w, h, 0.001f, 1000.0f, m_pShader, m_ProjectionMatrix);
+    CSR_OpenGLHelper::CreateViewport(w, h, 0.001f, 1000.0f, m_pShader, m_pScene->m_ProjectionMatrix);
 
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
@@ -2022,7 +2186,7 @@ void TMainForm::CreateScene()
     m_pScene->m_GroundDir.m_Z =  0.0f;
 
     // configure the scene view matrix
-    csrMat4Identity(&m_pScene->m_Matrix);
+    csrMat4Identity(&m_pScene->m_ViewMatrix);
 
     // link the scene to the designer view
     m_pDesignerView->SetScene(m_pScene);
@@ -2152,7 +2316,8 @@ void TMainForm::DeleteScene()
     // release the scene
     csrSceneRelease(m_pScene);
 
-    // release the shader
+    // release the shaders
+    csrShaderRelease(m_pSkyboxShader);
     csrShaderRelease(m_pShader);
 
     // release the oil painting post processing effect
@@ -2197,7 +2362,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     csrShaderEnable(m_pShader);
 
     // calculate the ground position and check if next position is valid
-    if (!ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix))
+    if (!ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_ViewMatrix))
     {
         // invalid next position, get the scene item (just one for this scene)
         const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
@@ -2223,7 +2388,7 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // recalculate the ground value (this time the collision result isn't tested, because the
         // previous position is always considered as valid)
-        ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix);
+        ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_ViewMatrix);
     }
 
     GLint viewPort[4];
@@ -2232,7 +2397,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     // calculate the designer view origin in relation to the current view position
     m_pDesignerView->SetOrigin
             (-m_pDesignerView->GetRatio() *
-                    ((m_pScene->m_Matrix.m_Table[3][0] * paDesignerView->ClientWidth) / viewPort[2]));
+                    ((m_pScene->m_ViewMatrix.m_Table[3][0] * paDesignerView->ClientWidth) / viewPort[2]));
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -2390,6 +2555,9 @@ void TMainForm::OnDrawScene(bool resize)
 //---------------------------------------------------------------------------
 CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
+    if (pModel == m_pScene->m_pSkybox)
+        return m_pSkyboxShader;
+
     return m_pShader;
 }
 //---------------------------------------------------------------------------

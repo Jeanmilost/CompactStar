@@ -27,7 +27,7 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
     {
         case IE_ST_Color:
             return "precision mediump float;"
-                   "attribute    vec4 csr_aVertices;"
+                   "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
                    "uniform      mat4 csr_uProjection;"
                    "uniform      mat4 csr_uView;"
@@ -36,12 +36,12 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "void main(void)"
                    "{"
                    "    csr_vColor   = csr_aColor;"
-                   "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * csr_aVertices;"
+                   "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
                    "}";
 
         case IE_ST_Texture:
             return "precision mediump float;"
-                   "attribute    vec4 csr_aVertices;"
+                   "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
                    "attribute    vec2 csr_aTexCoord;"
                    "uniform      mat4 csr_uProjection;"
@@ -53,7 +53,18 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "{"
                    "    csr_vColor    = csr_aColor;"
                    "    csr_vTexCoord = csr_aTexCoord;"
-                   "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * csr_aVertices;"
+                   "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
+                   "}";
+
+        case IE_ST_Skybox:
+            return "attribute vec3 csr_aVertices;"
+                   "uniform   mat4 csr_uProjection;"
+                   "uniform   mat4 csr_uView;"
+                   "varying   vec3 csr_vTexCoord;"
+                   "void main()"
+                   "{"
+                   "    csr_vTexCoord = csr_aVertices;"
+                   "    gl_Position   = csr_uProjection * csr_uView * vec4(csr_aVertices, 1.0);"
                    "}";
     }
 
@@ -80,6 +91,14 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                    "void main(void)"
                    "{"
                    "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
+                   "}";
+
+        case IE_ST_Skybox:
+            return "uniform samplerCube csr_sCubemap;"
+                   "varying vec3        csr_vTexCoord;"
+                   "void main()"
+                   "{"
+                   "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
                    "}";
     }
 

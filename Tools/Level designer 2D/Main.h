@@ -184,6 +184,8 @@ class TMainForm : public TForm
             ~IDesignerItem();
         };
 
+        typedef std::vector<std::wstring> IFileNames;
+
         // IMPORTANT NOTE don't use a CSR_SceneItem as key for the map, because this pointer may
         // change during the document lifecycle, whereas the model pointer not
         typedef std::vector<IDesignerItem*>     IDesignerItems;
@@ -199,6 +201,7 @@ class TMainForm : public TForm
         CSR_Sound*                            m_pSound;
         CSR_Color                             m_Background;
         CSR_Shader*                           m_pShader;
+        CSR_Shader*                           m_pSkyboxShader;
         CSR_Scene*                            m_pScene;
         CSR_SceneContext                      m_SceneContext;
         IDesigner                             m_Designer;
@@ -206,7 +209,6 @@ class TMainForm : public TForm
         void*                                 m_pSelectedObjectKey;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
         CSR_MSAA*                             m_pMSAA;
-        CSR_Matrix4                           m_ProjectionMatrix;
         CSR_Sphere                            m_ViewSphere;
         std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
@@ -249,6 +251,13 @@ class TMainForm : public TForm
         *@return texture identifier on the GPU, M_CSR_Error_Code on error
         */
         GLuint LoadTexture(const std::wstring& fileName) const;
+
+        /**
+        * Loads a cubemap texture
+        *@param fileNames - textures file names to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        GLuint LoadCubemap(const IFileNames fileNames) const;
 
         /**
         * Loads a sound
