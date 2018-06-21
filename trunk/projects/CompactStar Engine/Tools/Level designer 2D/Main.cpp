@@ -1761,7 +1761,7 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName) const
         {
             case pf24bit: pixelSize = 3; break;
             case pf32bit: pixelSize = 4; break;
-            default:      return M_CSR_Error_Code;
+            default:                     return M_CSR_Error_Code;
         }
 
         GLuint           textureID    = M_CSR_Error_Code;
@@ -1861,7 +1861,7 @@ GLuint TMainForm::LoadCubemap(const TSkyboxSelection::IFileNames fileNames) cons
             {
                 case pf24bit: pixelSize = 3; break;
                 case pf32bit: pixelSize = 4; break;
-                default:      return M_CSR_Error_Code;
+                default:                     return M_CSR_Error_Code;
             }
 
             CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
