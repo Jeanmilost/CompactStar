@@ -26,6 +26,7 @@ USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
 USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 USEFORM("Main.cpp", MainForm);
+USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

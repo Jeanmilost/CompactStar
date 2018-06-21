@@ -1160,6 +1160,14 @@ void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 {
+    // create a model selection dialog box
+    std::auto_ptr<TSkyboxSelection> pSkyboxSelection
+            (new TSkyboxSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+
+    // show the dialog box to the user and check if action was canceled
+    if (pSkyboxSelection->ShowModal() != mrOk)
+        return;
+
     // is skybox shader still not loaded?
     if (!m_pSkyboxShader)
     {
@@ -1200,13 +1208,9 @@ void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
     // create the skybox
     m_pScene->m_pSkybox = csrSkyboxCreate(1.0f, 1.0f, 1.0f);
 
-    IFileNames fileNames;
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\right.jpg");
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\left.jpg");
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\top.jpg");
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\bottom.jpg");
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\front.jpg");
-    fileNames.push_back(L"N:\\Jeanmilost\\Devel\\Projects\\CompactStar Engine\\Tools\\Level designer 2D\\Scenes\\Skyboxes\\Sun and clouds\\back.jpg");
+    // get the skybox file names
+    TSkyboxSelection::IFileNames fileNames;
+    pSkyboxSelection->GetFileNames(fileNames);
 
     // load the cubemap texture
     m_pScene->m_pSkybox->m_Shader.m_CubeMapID = LoadCubemap(fileNames);
@@ -1827,7 +1831,7 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName) const
     }
 }
 //---------------------------------------------------------------------------
-GLuint TMainForm::LoadCubemap(const IFileNames fileNames) const
+GLuint TMainForm::LoadCubemap(const TSkyboxSelection::IFileNames fileNames) const
 {
     try
     {
