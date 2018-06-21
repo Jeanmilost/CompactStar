@@ -240,6 +240,12 @@
             <DependentOn>TShapeSelection.h</DependentOn>
             <BuildOrder>35</BuildOrder>
         </CppCompile>
+        <CppCompile Include="TSkyboxSelection.cpp">
+            <Form>SkyboxSelection</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>TSkyboxSelection.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
         <CppCompile Include="TSoundSelection.cpp">
             <Form>SoundSelection</Form>
             <FormType>dfm</FormType>
@@ -259,6 +265,7 @@
         <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
         <FormResources Include="Main.dfm"/>
+        <FormResources Include="TSkyboxSelection.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

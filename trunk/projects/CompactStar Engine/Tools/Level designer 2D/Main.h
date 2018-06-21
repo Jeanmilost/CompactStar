@@ -44,6 +44,7 @@
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
 // interface
+#include "TSkyboxSelection.h"
 #include "TVector3Frame.h"
 
 /**
@@ -184,8 +185,6 @@ class TMainForm : public TForm
             ~IDesignerItem();
         };
 
-        typedef std::vector<std::wstring> IFileNames;
-
         // IMPORTANT NOTE don't use a CSR_SceneItem as key for the map, because this pointer may
         // change during the document lifecycle, whereas the model pointer not
         typedef std::vector<IDesignerItem*>     IDesignerItems;
@@ -257,7 +256,7 @@ class TMainForm : public TForm
         *@param fileNames - textures file names to load
         *@return texture identifier on the GPU, M_CSR_Error_Code on error
         */
-        GLuint LoadCubemap(const IFileNames fileNames) const;
+        GLuint LoadCubemap(const TSkyboxSelection::IFileNames fileNames) const;
 
         /**
         * Loads a sound
