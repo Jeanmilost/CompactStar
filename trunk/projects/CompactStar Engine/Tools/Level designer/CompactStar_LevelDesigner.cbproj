@@ -174,12 +174,6 @@
         <None Include="..\..\SDK\CSR_Scene.h">
             <BuildOrder>30</BuildOrder>
         </None>
-        <CppCompile Include="..\..\SDK\CSR_Serializer.c">
-            <BuildOrder>27</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Serializer.h">
-            <BuildOrder>28</BuildOrder>
-        </None>
         <CppCompile Include="..\..\SDK\CSR_Shader.c">
             <BuildOrder>13</BuildOrder>
         </CppCompile>

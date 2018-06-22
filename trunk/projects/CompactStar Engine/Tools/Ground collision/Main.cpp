@@ -489,7 +489,7 @@ void TMainForm::InitScene(int w, int h)
     m_pScene->m_GroundDir.m_Z =  0.0f;
 
     // configure the scene view matrix
-    csrMat4Identity(&m_pScene->m_Matrix);
+    csrMat4Identity(&m_pScene->m_ViewMatrix);
 
     // set the viewpoint bounding sphere default position
     m_ViewSphere.m_Center.m_X = 0.0f;
@@ -671,7 +671,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     csrShaderEnable(m_pShader);
 
     // calculate the ground position and check if next position is valid
-    if (!ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix))
+    if (!ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_ViewMatrix))
     {
         // invalid next position, get the scene item (just one for this scene)
         const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
@@ -697,11 +697,11 @@ void TMainForm::UpdateScene(float elapsedTime)
 
         // recalculate the ground value (this time the collision result isn't tested, because the
         // previous position is always considered as valid)
-        ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_Matrix);
+        ApplyGroundCollision(&m_ViewSphere, &m_pScene->m_ViewMatrix);
     }
 
     // update the stats
-    m_Stats.m_Altitude = -m_pScene->m_Matrix.m_Table[3][1];
+    m_Stats.m_Altitude = -m_pScene->m_ViewMatrix.m_Table[3][1];
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()

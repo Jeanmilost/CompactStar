@@ -331,7 +331,7 @@ void TMainForm::CalculateMouseRay(TPanel* pView)
     viewRect.m_Max.m_Y = -1.0f;
 
     // calculate the mouse ray in the viewport coordinate system
-    csrSceneGetTouchRay(&clientPos, &clientRect, m_pCurrentMatrix, &m_pScene->m_Matrix, &m_Ray);
+    csrSceneGetTouchRay(&clientPos, &clientRect, m_pCurrentMatrix, &m_pScene->m_ViewMatrix, &m_Ray);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene()
@@ -532,7 +532,7 @@ void TMainForm::UpdateScene(float elapsedTime)
     CSR_Matrix4 combinedMatrixLevel2;
 
     // build the scene view matrix
-    csrSceneArcBallToMatrix(&m_ArcBall, &m_pScene->m_Matrix);
+    csrSceneArcBallToMatrix(&m_ArcBall, &m_pScene->m_ViewMatrix);
 
     for (std::size_t i = 0; i < m_pScene->m_ItemCount; ++i)
     {
