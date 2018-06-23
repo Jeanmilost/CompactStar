@@ -33,6 +33,7 @@
 // classes
 #include "CSR_OpenGLHelper.h"
 #include "CSR_ShaderHelper.h"
+#include "CSR_SceneSerializer.h"
 
 // interface
 #include "TLandscapeSelection.h"
