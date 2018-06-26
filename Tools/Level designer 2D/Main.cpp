@@ -1320,6 +1320,20 @@ void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 
     // load the cubemap texture
     m_pScene->m_pSkybox->m_Shader.m_CubeMapID = LoadCubemap(fileNames);
+
+    const std::size_t fileNameCount = fileNames.size();
+
+    // iterate through the cubemap texture files and keep each of them in the level manager resources
+    for (std::size_t i = 0; i < fileNameCount; i++)
+        switch (i)
+        {
+            case 0: m_LevelManager.m_Skybox.m_Right  = fileNames[i]; continue;
+            case 1: m_LevelManager.m_Skybox.m_Left   = fileNames[i]; continue;
+            case 2: m_LevelManager.m_Skybox.m_Top    = fileNames[i]; continue;
+            case 3: m_LevelManager.m_Skybox.m_Bottom = fileNames[i]; continue;
+            case 4: m_LevelManager.m_Skybox.m_Front  = fileNames[i]; continue;
+            case 5: m_LevelManager.m_Skybox.m_Back   = fileNames[i]; continue;
+        }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
