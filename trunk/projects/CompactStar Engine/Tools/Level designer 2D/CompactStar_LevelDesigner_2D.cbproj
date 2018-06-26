@@ -47,21 +47,27 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
+        <BCC_MonitorThis>true</BCC_MonitorThis>
+        <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
+        <BCC_Defines>madExcept;LeakChecking;$(BCC_Defines)</BCC_Defines>
+        <BCC_MonitorInlinePtrAccess>true</BCC_MonitorInlinePtrAccess>
+        <ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
+        <BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
+        <BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
+        <UsingDelphiRTL>true</UsingDelphiRTL>
         <BCC_weff>false</BCC_weff>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_LevelDesigner_2D</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Serializer\;Third-party\sxml\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Classes\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
+        <IncludePath>Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Serializer\;Third-party\sxml\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Classes\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
-        <DynamicRTL>true</DynamicRTL>
-        <UsePackages>true</UsePackages>
         <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
         <FinalOutputDir>.\$(Platform)\$(Config)</FinalOutputDir>
         <BCC_wpar>false</BCC_wpar>
@@ -103,9 +109,9 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <LinkPackageStatics>rtl.lib;vcl.lib;vclimg.lib</LinkPackageStatics>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <LinkPackageImports>rtl.bpi;vcl.bpi;vclimg.bpi</LinkPackageImports>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -210,6 +216,10 @@
             <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
             <BuildOrder>31</BuildOrder>
         </CppCompile>
+        <CppCompile Include="Classes\Level\CSR_LevelManager.cpp">
+            <DependentOn>Classes\Level\CSR_LevelManager.h</DependentOn>
+            <BuildOrder>43</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Classes\Serializer\CSR_SceneSerializer.cpp">
             <DependentOn>Classes\Serializer\CSR_SceneSerializer.h</DependentOn>
             <BuildOrder>42</BuildOrder>
@@ -217,7 +227,7 @@
         <CppCompile Include="CompactStar_LevelDesigner_2D.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
-        <None Include="CompactStar_LevelDesigner_PCH.h">
+        <None Include="CompactStar_LevelDesigner_2D_PCH.h">
             <BuildOrder>22</BuildOrder>
         </None>
         <CppCompile Include="Main.cpp">
@@ -275,13 +285,13 @@
             <DependentOn>TVector3Frame.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
-        <FormResources Include="TSkyboxSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <FormResources Include="TShapeSelection.dfm"/>
+        <FormResources Include="TModelSelection.dfm"/>
+        <FormResources Include="TSkyboxSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
-        <FormResources Include="TModelSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
-        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

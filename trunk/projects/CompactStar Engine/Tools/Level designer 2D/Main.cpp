@@ -69,16 +69,6 @@ void TMainForm::IDesignerProperties::Clear()
     m_pTransformScale     = NULL;
 }
 //---------------------------------------------------------------------------
-// TMainForm::IDesignerItem
-//---------------------------------------------------------------------------
-TMainForm::IDesignerItem::IDesignerItem()
-{
-    csrMat4Identity(&m_Matrix);
-}
-//---------------------------------------------------------------------------
-TMainForm::IDesignerItem::~IDesignerItem()
-{}
-//---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
 TMainForm* MainForm;
@@ -217,6 +207,8 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const bool repeatTexOnEachFace = pShapeSelection->ckRepeatTextureOnEachFace->Checked;
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -231,7 +223,7 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     CSR_Mesh* pBox = csrShapeCreateBox(1.0f,
                                        1.0f,
                                        1.0f,
-                                       pShapeSelection->ckRepeatTextureOnEachFace->Checked ? 1 : 0,
+                                       repeatTexOnEachFace ? 1 : 0,
                                       &vf,
                                        0,
                                       &material,
@@ -257,18 +249,31 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pBox);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe box could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType               = CSR_LevelManager::IE_S_Box;
+        pItem->m_Resource.m_Files.m_Texture         = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_RepeatTextureOnEachFace = repeatTexOnEachFace;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pBox, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pBox, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pBox].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pBox, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pBox;
@@ -327,6 +332,8 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const int faces = ::StrToInt(pShapeSelection->edFaces->Text);
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -338,13 +345,7 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default cylinder mesh
-    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f,
-                                                 1.0f,
-                                                 ::StrToInt(pShapeSelection->edFaces->Text),
-                                                &vf,
-                                                 0,
-                                                &material,
-                                                 0);
+    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f, 1.0f, faces, &vf, 0, &material, 0);
 
     // succeeded?
     if (!pCylinder)
@@ -366,18 +367,31 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pCylinder);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe cylinder could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Cylinder;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Faces           = faces;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pCylinder, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pCylinder, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pCylinder].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pCylinder, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pCylinder;
@@ -439,6 +453,8 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const int slices = ::StrToInt(pShapeSelection->edSlices->Text);
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -450,14 +466,7 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default disk mesh
-    CSR_Mesh* pDisk = csrShapeCreateDisk(0.0f,
-                                         0.0f,
-                                         0.5f,
-                                         ::StrToInt(pShapeSelection->edSlices->Text),
-                                        &vf,
-                                         0,
-                                        &material,
-                                         0);
+    CSR_Mesh* pDisk = csrShapeCreateDisk(0.0f, 0.0f, 0.5f, slices, &vf, 0, &material, 0);
 
     // succeeded?
     if (!pDisk)
@@ -479,18 +488,31 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pDisk);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe disk could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Cylinder;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Slices          = slices;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pDisk, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pDisk, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pDisk].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pDisk, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pDisk;
@@ -551,6 +573,9 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const int slices = ::StrToInt(pShapeSelection->edSlices->Text);
+    const int radius = ::StrToInt(pShapeSelection->edMinRadius->Text);
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -564,9 +589,9 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     // create a default ring mesh
     CSR_Mesh* pRing = csrShapeCreateRing(0.0f,
                                          0.0f,
-                                         0.5f * (::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f),
+                                         0.5f * (float(radius) * 0.01f),
                                          0.5f,
-                                         ::StrToInt(pShapeSelection->edSlices->Text),
+                                         slices,
                                         &vf,
                                          0,
                                         &material,
@@ -592,18 +617,32 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pRing);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe ring could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Ring;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Slices          = slices;
+        pItem->m_Resource.m_Radius          = radius;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pRing, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pRing, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pRing].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pRing, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pRing;
@@ -662,6 +701,9 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const int slices = ::StrToInt(pShapeSelection->edSlices->Text);
+    const int stacks = ::StrToInt(pShapeSelection->edStacks->Text);
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -673,13 +715,7 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // create a default sphere mesh
-    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f,
-                                             ::StrToInt(pShapeSelection->edSlices->Text),
-                                             ::StrToInt(pShapeSelection->edStacks->Text),
-                                            &vf,
-                                             0,
-                                            &material,
-                                             0);
+    CSR_Mesh* pSphere = csrShapeCreateSphere(0.5f, slices, stacks, &vf, 0, &material, 0);
 
     // succeeded?
     if (!pSphere)
@@ -701,18 +737,32 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pSphere);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe sphere could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Sphere;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Slices          = slices;
+        pItem->m_Resource.m_Stacks          = stacks;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pSphere, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pSphere, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pSphere].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pSphere, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pSphere;
@@ -769,6 +819,13 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     if (pShapeSelection->ShowModal() != mrOk)
         return;
 
+    const int radius   = ::StrToInt(pShapeSelection->edMinRadius->Text);
+    const int deltaMin = ::StrToInt(pShapeSelection->edDeltaMin->Text);
+    const int deltaMax = ::StrToInt(pShapeSelection->edDeltaMax->Text);
+    const int deltaZ   = ::StrToInt(pShapeSelection->edDeltaZ->Text);
+    const int slices   = ::StrToInt(pShapeSelection->edSlices->Text);
+    const int stacks   = ::StrToInt(pShapeSelection->edStacks->Text);
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -782,13 +839,13 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     // create a default spiral mesh
     CSR_Mesh* pSpiral = csrShapeCreateSpiral(0.0f,
                                              0.0f,
-                                             0.5f * (::StrToFloat(pShapeSelection->edMinRadius->Text) * 0.01f),
+                                             0.5f * (float(radius) * 0.01f),
                                              0.5f,
-                                             ::StrToFloat(pShapeSelection->edDeltaMin->Text) * 0.001f,
-                                             ::StrToFloat(pShapeSelection->edDeltaMax->Text) * 0.001f,
-                                             ::StrToFloat(pShapeSelection->edDeltaZ->Text)   * 0.001f,
-                                             ::StrToInt(pShapeSelection->edSlices->Text),
-                                             ::StrToInt(pShapeSelection->edStacks->Text),
+                                             float(deltaMin) * 0.001f,
+                                             float(deltaMax) * 0.001f,
+                                             float(deltaZ)   * 0.001f,
+                                             slices,
+                                             stacks,
                                             &vf,
                                              0,
                                             &material,
@@ -814,18 +871,36 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pSpiral);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe spiral could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Spiral;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Radius          = radius;
+        pItem->m_Resource.m_DeltaMin        = deltaMin;
+        pItem->m_Resource.m_DeltaMax        = deltaMax;
+        pItem->m_Resource.m_DeltaZ          = deltaZ;
+        pItem->m_Resource.m_Slices          = slices;
+        pItem->m_Resource.m_Stacks          = stacks;
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pSpiral, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pSpiral, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pSpiral].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pSpiral, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pSpiral;
@@ -920,18 +995,30 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pSurface);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe surface could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Surface;
+        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
 
         // build the model matrix from the interface
-        pShapeSelection->BuildMatrix(&pItem->m_Matrix);
+        pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMesh(m_pScene, pSurface, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pSurface, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pSurface].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pSurface, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pSurface;
@@ -981,6 +1068,8 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
     if (pModelSelection->ShowModal() != mrOk)
         return;
 
+    const std::string fileName = AnsiString(pModelSelection->edModelFileName->Text).c_str();
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -992,12 +1081,7 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // load the Wavefront model
-    CSR_Model* pModel = csrWaveFrontOpen(AnsiString(pModelSelection->edModelFileName->Text).c_str(),
-                                        &vf,
-                                         0,
-                                        &material,
-                                         0,
-                                         0);
+    CSR_Model* pModel = csrWaveFrontOpen(fileName.c_str(), &vf, 0, &material, 0, 0);
 
     // succeeded?
     if (!pModel || !pModel->m_MeshCount)
@@ -1023,18 +1107,31 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
             return;
         }
 
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pModel);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe WaveFront model could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_WaveFront;
+        pItem->m_Resource.m_Files.m_Model   = fileName;
+        pItem->m_Resource.m_Files.m_Texture = pModelSelection->edTextureFileName->Text.c_str();
 
         // build the model matrix from the interface
-        pModelSelection->BuildMatrix(&pItem->m_Matrix);
+        pModelSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddModel(m_pScene, pModel, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pModel, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pModel].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pModel, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pModel;
@@ -1091,6 +1188,8 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     if (pModelSelection->ShowModal() != mrOk)
         return;
 
+    const std::string fileName = AnsiString(pModelSelection->edModelFileName->Text).c_str();
+
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
@@ -1102,13 +1201,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     vf.m_HasPerVertexColor = 1;
 
     // load the MDL model
-    CSR_MDL* pMDL = csrMDLOpen(AnsiString(pModelSelection->edModelFileName->Text).c_str(),
-                               0,
-                              &vf,
-                               0,
-                              &material,
-                               0,
-                               0);
+    CSR_MDL* pMDL = csrMDLOpen(fileName.c_str(), 0, &vf, 0, &material, 0, 0);
 
     // succeeded?
     if (!pMDL)
@@ -1120,18 +1213,30 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
 
     try
     {
-        std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+        // add a new item to the manager
+        CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pMDL);
+
+        // succeeded?
+        if (!pItem || !pItem->m_Matrices.size())
+        {
+            // show the error message to the user
+            ::MessageDlg(L"Internal error while creating the scene manager item.\r\n\r\nThe MDL model could not be created.",
+                         mtError,
+                         TMsgDlgButtons() << mbOK,
+                         0);
+            return;
+        }
+
+        // keep the model resources
+        pItem->m_Resource.m_ShapeType     = CSR_LevelManager::IE_S_MDL;
+        pItem->m_Resource.m_Files.m_Model = fileName;
 
         // build the model matrix from the interface
-        pModelSelection->BuildMatrix(&pItem->m_Matrix);
+        pModelSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
         csrSceneAddMDL(m_pScene, pMDL, 0, 1);
-        csrSceneAddModelMatrix(m_pScene, pMDL, &pItem->m_Matrix);
-
-        // link the scene item to the designer
-        m_Designer[pMDL].push_back(pItem.get());
-        pItem.release();
+        csrSceneAddModelMatrix(m_pScene, pMDL, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
         CSR_DesignerView::ISelection selection;
         selection.m_pKey        = pMDL;
@@ -1234,8 +1339,11 @@ void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
         csrSoundStop(m_pSound);
         csrSoundRelease(m_pSound);
 
+        // keep the sound file in the level manager resources
+        m_LevelManager.m_Sound.m_FileName = AnsiString(pSoundSelection->edSoundFileName->Text).c_str();
+
         // load the sound file
-        m_pSound = LoadSound(AnsiString(pSoundSelection->edSoundFileName->Text).c_str());
+        m_pSound = LoadSound(m_LevelManager.m_Sound.m_FileName);
     }
 }
 //---------------------------------------------------------------------------
@@ -1476,6 +1584,8 @@ bool TMainForm::OpenDocument()
     if (pLandscapeSelection->ShowModal() != mrOk)
         return true;
 
+    const std::wstring textureFileName = pLandscapeSelection->edTextureFileName->Text.c_str();
+
     // do change the landscape model?
     if (pLandscapeSelection->rbSourceBitmap->Checked)
     {
@@ -1483,7 +1593,8 @@ bool TMainForm::OpenDocument()
         CreateScene();
 
         // load the landscape from a grayscale image
-        if (!LoadLandscapeFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str()))
+        if (!LoadLandscapeFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str(),
+                textureFileName))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape from the grayscale image.",
@@ -1500,7 +1611,8 @@ bool TMainForm::OpenDocument()
         CreateScene();
 
         // load the landscape from a model file
-        if (!LoadLandscape(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str()))
+        if (!LoadLandscape(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str(),
+                textureFileName))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape.",
@@ -1512,7 +1624,7 @@ bool TMainForm::OpenDocument()
     }
 
     // do change the texture?
-    if (!pLandscapeSelection->edTextureFileName->Text.IsEmpty())
+    if (!textureFileName.empty())
     {
         // get back the landscape scene item
         const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
@@ -1546,8 +1658,7 @@ bool TMainForm::OpenDocument()
         glDeleteTextures(1, &pModel->m_pMesh[0].m_Shader.m_TextureID);
 
         // load the new one
-        pModel->m_pMesh[0].m_Shader.m_TextureID =
-                LoadTexture(pLandscapeSelection->edTextureFileName->Text.c_str());
+        pModel->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFileName);
 
         // failed?
         if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
@@ -1580,20 +1691,8 @@ void TMainForm::CloseDocument()
     m_pDesignerView->Unselect();
     m_pDesignerView->SetScene(NULL);
 
-    // iterate through the designer items
-    for (IDesigner::iterator it = m_Designer.begin(); it != m_Designer.end(); ++it)
-    {
-        // iterate through the designer item sub-objects
-        for (std::size_t i = 0; i < it->second.size(); ++i)
-            // delete all of them
-            delete it->second[i];
-
-        // clear the designer item
-        it->second.clear();
-    }
-
-    // clear the designer
-    m_Designer.clear();
+    // clear the level manager
+    m_LevelManager.Clear();
 
     // release the scene
     csrSceneRelease(m_pScene);
@@ -1604,7 +1703,7 @@ void TMainForm::CloseDocument()
     m_pSelectedObjectKey = NULL;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadLandscape(const std::string& fileName)
+bool TMainForm::LoadLandscape(const std::string& fileName, const std::wstring& textureName)
 {
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -1627,11 +1726,21 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
     if (!pModel)
         return false;
 
-    std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+    // add a new item to the manager
+    CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pModel);
+
+    // succeeded?
+    if (!pItem || !pItem->m_Matrices.size())
+        return false;
+
+    // keep the model resources
+    pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Landscape;
+    pItem->m_Resource.m_Files.m_Model   = fileName;
+    pItem->m_Resource.m_Files.m_Texture = textureName;
 
     // add the model to the scene
     CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
-    csrSceneAddModelMatrix(m_pScene, pModel, &pItem->m_Matrix);
+    csrSceneAddModelMatrix(m_pScene, pModel, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
     // succeeded?
     if (pSceneItem)
@@ -1644,10 +1753,6 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
                     (paDesignerView->ClientHeight / (pSceneItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
                             pSceneItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
     }
-
-    // link the scene item to the designer
-    m_Designer[pModel].push_back(pItem.get());
-    pItem.release();
 
     CSR_DesignerView::ISelection selection;
     selection.m_pKey        = pModel;
@@ -1665,7 +1770,7 @@ bool TMainForm::LoadLandscape(const std::string& fileName)
     return true;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
+bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName, const std::wstring& textureName)
 {
     CSR_Model*       pModel  = NULL;
     CSR_PixelBuffer* pBitmap = NULL;
@@ -1705,11 +1810,21 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
         csrPixelBufferRelease(pBitmap);
     }
 
-    std::auto_ptr<IDesignerItem> pItem(new IDesignerItem());
+    // add a new item to the manager
+    CSR_LevelManager::IItem* pItem = m_LevelManager.Add(pModel);
+
+    // succeeded?
+    if (!pItem || !pItem->m_Matrices.size())
+        return false;
+
+    // keep the model resources
+    pItem->m_Resource.m_ShapeType            = CSR_LevelManager::IE_S_Landscape;
+    pItem->m_Resource.m_Files.m_LandscapeMap = fileName;
+    pItem->m_Resource.m_Files.m_Texture      = textureName;
 
     // add the model to the scene
     CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
-    csrSceneAddModelMatrix(m_pScene, pModel, &pItem->m_Matrix);
+    csrSceneAddModelMatrix(m_pScene, pModel, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
     // succeeded?
     if (pSceneItem)
@@ -1722,10 +1837,6 @@ bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName)
                     (paDesignerView->ClientHeight / (pSceneItem->m_pAABBTree[0].m_pBox->m_Max.m_Z -
                             pSceneItem->m_pAABBTree[0].m_pBox->m_Min.m_Z));
     }
-
-    // link the scene item to the designer
-    m_Designer[pModel].push_back(pItem.get());
-    pItem.release();
 
     CSR_DesignerView::ISelection selection;
     selection.m_pKey        = pModel;
@@ -1778,8 +1889,9 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName) const
             pPixelBuffer->m_BytePerPixel = pixelSize;
             pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
 
-            // reserve memory for the pixel array
-            pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+            // reserve memory for the pixel array. NOTE use malloc and not new here to be conform
+            // with the c standards (otherwise CodeGuard will not be happy)
+            pPixelBuffer->m_pData = malloc(pPixelBuffer->m_DataLength);
 
             TRGBTriple* pLineRGB;
             TRGBQuad*   pLineRGBA;
@@ -1877,8 +1989,9 @@ GLuint TMainForm::LoadCubemap(const TSkyboxSelection::IFileNames fileNames) cons
                 pPixelBuffer->m_BytePerPixel = pixelSize;
                 pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
 
-                // reserve memory for the pixel array
-                pPixelBuffer->m_pData = new unsigned char[pPixelBuffer->m_DataLength];
+                // reserve memory for the pixel array. NOTE use malloc and not new here to be conform
+                // with the c standards (otherwise CodeGuard will not be happy)
+                pPixelBuffer->m_pData = malloc(pPixelBuffer->m_DataLength);
 
                 TRGBTriple* pLineRGB;
                 TRGBQuad*   pLineRGBA;
@@ -2250,8 +2363,12 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_TexCoordSlot = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aTexCoord");
     m_pShader->m_TextureSlot  = glGetUniformLocation(m_pShader->m_ProgramID, "csr_sTexture");
 
+    // get a default texture file name
+    const UnicodeString textureFile =
+            UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Textures\\mountain2.jpg";
+
     // load the landscape model from a grayscale bitmap file
-    if (!LoadLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp"))
+    if (!LoadLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp", textureFile.c_str()))
     {
         // show the error message to the user
         ::MessageDlg(L"An error occurred while the default landscape model was created.\r\n\r\nThe application will quit.",
@@ -2262,10 +2379,6 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
-
-    // get a default texture file name
-    const UnicodeString textureFile =
-            UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Textures\\mountain2.jpg";
 
     // get back the scene item containing the model
     CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
@@ -2302,8 +2415,11 @@ void TMainForm::InitScene(int w, int h)
     // initialize OpenAL
     csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
 
+    // keep the sound file name in the level manager resources
+    m_LevelManager.m_Sound.m_FileName = m_SceneDir + "\\Sounds\\landscape_ambient_sound.wav";
+
     // load the ambient sound to play
-    m_pSound = LoadSound(m_SceneDir + "\\Sounds\\landscape_ambient_sound.wav");
+    m_pSound = LoadSound(m_LevelManager.m_Sound.m_FileName);
 
     m_Initialized = true;
 

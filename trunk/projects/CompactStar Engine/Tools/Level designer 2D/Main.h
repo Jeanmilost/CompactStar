@@ -40,6 +40,7 @@
 #include "CSR_Sound.h"
 
 // classes
+#include "CSR_LevelManager.h"
 #include "CSR_DesignerView.h"
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
@@ -174,22 +175,6 @@ class TMainForm : public TForm
             void Clear();
         };
 
-        /**
-        * Designer item
-        */
-        struct IDesignerItem
-        {
-            CSR_Matrix4 m_Matrix;
-
-            IDesignerItem();
-            ~IDesignerItem();
-        };
-
-        // IMPORTANT NOTE don't use a CSR_SceneItem as key for the map, because this pointer may
-        // change during the document lifecycle, whereas the model pointer not
-        typedef std::vector<IDesignerItem*>     IDesignerItems;
-        typedef std::map<void*, IDesignerItems> IDesigner;
-
         std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
         std::auto_ptr<CSR_DesignerView>       m_pDesignerView;
         IDesignerProperties                   m_DesignerProperties;
@@ -203,7 +188,7 @@ class TMainForm : public TForm
         CSR_Shader*                           m_pSkyboxShader;
         CSR_Scene*                            m_pScene;
         CSR_SceneContext                      m_SceneContext;
-        IDesigner                             m_Designer;
+        CSR_LevelManager                      m_LevelManager;
         void*                                 m_pLandscapeKey;
         void*                                 m_pSelectedObjectKey;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
@@ -233,16 +218,18 @@ class TMainForm : public TForm
         /**
         * Loads a landscape from a file
         *@param fileName - model file name to load from
+        *@param textureName - model texture name
         *@return true on success, otherwise false
         */
-        bool LoadLandscape(const std::string& fileName);
+        bool LoadLandscape(const std::string& fileName, const std::wstring& textureName);
 
         /**
         * Loads a landscape from a grayscale bitmap
         *@param fileName - grayscale bitmap from which the model will be generated
+        *@param textureName - model texture name
         *@return true on success, otherwise false
         */
-        bool LoadLandscapeFromBitmap(const std::string& fileName);
+        bool LoadLandscapeFromBitmap(const std::string& fileName, const std::wstring& textureName);
 
         /**
         * Loads a texture

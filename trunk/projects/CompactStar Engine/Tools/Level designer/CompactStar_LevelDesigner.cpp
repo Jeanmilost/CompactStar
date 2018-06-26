@@ -38,26 +38,27 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
     try
     {
-         Application->Initialize();
-         Application->MainFormOnTaskBar = true;
-         Application->CreateForm(__classid(TMainForm), &MainForm);
-         Application->Run();
+        Application->Initialize();
+        Application->MainFormOnTaskBar = true;
+        Application->CreateForm(__classid(TMainForm), &MainForm);
+        Application->Run();
     }
     catch (Exception &exception)
     {
-         Application->ShowException(&exception);
+        Application->ShowException(&exception);
     }
     catch (...)
     {
-         try
-         {
-             throw Exception("");
-         }
-         catch (Exception &exception)
-         {
-             Application->ShowException(&exception);
-         }
+        try
+        {
+            throw Exception("");
+        }
+        catch (Exception &exception)
+        {
+            Application->ShowException(&exception);
+        }
     }
+
     return 0;
 }
 //---------------------------------------------------------------------------
