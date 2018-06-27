@@ -89,10 +89,17 @@ class TMainForm : public TForm
         TMenuItem *miAddMDLModel;
         TMenuItem *miSkyBox;
         TMenuItem *miSkyboxAdd;
+        TMenuItem *miFileLoad;
+        TMenuItem *miFileSave;
+        TMenuItem *miFileSeparator;
+        TMenuItem *miFileExit;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall miFileNewClick(TObject* pSender);
+        void __fastcall miFileLoadClick(TObject* pSender);
+        void __fastcall miFileSaveClick(TObject* pSender);
+        void __fastcall miFileExitClick(TObject* pSender);
         void __fastcall miAddBoxClick(TObject* pSender);
         void __fastcall miAddCylinderClick(TObject* pSender);
         void __fastcall miAddDiskClick(TObject* pSender);
@@ -221,7 +228,7 @@ class TMainForm : public TForm
         *@param textureName - model texture name
         *@return true on success, otherwise false
         */
-        bool LoadLandscape(const std::string& fileName, const std::wstring& textureName);
+        bool LoadLandscape(const std::string& fileName, const std::string& textureName);
 
         /**
         * Loads a landscape from a grayscale bitmap
@@ -229,7 +236,7 @@ class TMainForm : public TForm
         *@param textureName - model texture name
         *@return true on success, otherwise false
         */
-        bool LoadLandscapeFromBitmap(const std::string& fileName, const std::wstring& textureName);
+        bool LoadLandscapeFromBitmap(const std::string& fileName, const std::string& textureName);
 
         /**
         * Loads a texture

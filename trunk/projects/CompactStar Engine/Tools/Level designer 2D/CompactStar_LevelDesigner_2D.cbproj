@@ -61,10 +61,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_LevelDesigner_2D</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
+        <IncludePath>Classes\Base\;Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -189,6 +189,10 @@
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>22</BuildOrder>
         </None>
+        <CppCompile Include="Classes\Base\CSR_Base64.cpp">
+            <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
+            <BuildOrder>44</BuildOrder>
+        </CppCompile>
         <CppCompile Include="Classes\Designer\CSR_DesignerView.cpp">
             <DependentOn>Classes\Designer\CSR_DesignerView.h</DependentOn>
             <BuildOrder>26</BuildOrder>
@@ -220,9 +224,9 @@
             <DependentOn>Classes\Level\CSR_LevelManager.h</DependentOn>
             <BuildOrder>43</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Serializer\CSR_SceneSerializer.cpp">
-            <DependentOn>Classes\Serializer\CSR_SceneSerializer.h</DependentOn>
-            <BuildOrder>42</BuildOrder>
+        <CppCompile Include="Classes\Level\CSR_LevelSerializer.cpp">
+            <DependentOn>Classes\Level\CSR_LevelSerializer.h</DependentOn>
+            <BuildOrder>43</BuildOrder>
         </CppCompile>
         <CppCompile Include="CompactStar_LevelDesigner_2D.cpp">
             <BuildOrder>0</BuildOrder>
@@ -285,13 +289,13 @@
             <DependentOn>TVector3Frame.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="TShapeSelection.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
         <FormResources Include="TSkyboxSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

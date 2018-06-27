@@ -132,7 +132,7 @@ void CSR_LevelManager::Clear()
 //---------------------------------------------------------------------------
 CSR_LevelManager::IItem* CSR_LevelManager::Add(void* pKey)
 {
-    // search for a matching item
+    // search for an item matching with key
     IItems::iterator it = m_Items.find(pKey);
 
     // found one?
@@ -155,7 +155,7 @@ CSR_LevelManager::IItem* CSR_LevelManager::Add(void* pKey)
 //---------------------------------------------------------------------------
 void CSR_LevelManager::Delete(void* pKey, std::size_t index)
 {
-    // search for the matching item
+    // search for the item matching with key
     IItems::iterator it = m_Items.find(pKey);
 
     // found it?
@@ -173,5 +173,17 @@ void CSR_LevelManager::Delete(void* pKey, std::size_t index)
         delete it->second;
         m_Items.erase(it);
     }
+}
+//---------------------------------------------------------------------------
+CSR_LevelManager::IItem* CSR_LevelManager::Get(void* pKey) const
+{
+    // search for the item matching with key
+    IItems::const_iterator it = m_Items.find(pKey);
+
+    // found it?
+    if (it == m_Items.end())
+        return NULL;
+
+    return it->second;
 }
 //---------------------------------------------------------------------------
