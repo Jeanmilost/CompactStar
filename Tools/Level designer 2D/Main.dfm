@@ -119,6 +119,21 @@ object MainForm: TMainForm
         Caption = 'New...'
         OnClick = miFileNewClick
       end
+      object miFileLoad: TMenuItem
+        Caption = 'Load...'
+        OnClick = miFileLoadClick
+      end
+      object miFileSave: TMenuItem
+        Caption = 'Save...'
+        OnClick = miFileSaveClick
+      end
+      object miFileSeparator: TMenuItem
+        Caption = '-'
+      end
+      object miFileExit: TMenuItem
+        Caption = 'Exit'
+        OnClick = miFileExitClick
+      end
     end
     object miLandscape: TMenuItem
       Caption = 'Landscape'

@@ -33,7 +33,7 @@
 // classes
 #include "CSR_OpenGLHelper.h"
 #include "CSR_ShaderHelper.h"
-#include "CSR_SceneSerializer.h"
+#include "CSR_LevelSerializer.h"
 
 // interface
 #include "TLandscapeSelection.h"
@@ -170,11 +170,30 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
         CloseDocument();
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
+{
+    CSR_LevelSerializer serializer;
+
+    if (!serializer.Save("test.xml", m_pScene, m_LevelManager))
+    {
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miFileExitClick(TObject* pSender)
+{
+    Close();
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a box";
@@ -265,7 +284,7 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType               = CSR_LevelManager::IE_S_Box;
-        pItem->m_Resource.m_Files.m_Texture         = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture         = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_RepeatTextureOnEachFace = repeatTexOnEachFace;
 
         // build the model matrix from the interface
@@ -299,7 +318,7 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a cylinder";
@@ -383,7 +402,7 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Cylinder;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_Faces           = faces;
 
         // build the model matrix from the interface
@@ -417,7 +436,7 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a disk";
@@ -504,7 +523,7 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Cylinder;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_Slices          = slices;
 
         // build the model matrix from the interface
@@ -538,7 +557,7 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a ring";
@@ -633,7 +652,7 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Ring;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_Slices          = slices;
         pItem->m_Resource.m_Radius          = radius;
 
@@ -668,7 +687,7 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a sphere";
@@ -753,7 +772,7 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Sphere;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_Slices          = slices;
         pItem->m_Resource.m_Stacks          = stacks;
 
@@ -788,7 +807,7 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a spiral";
@@ -887,7 +906,7 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Spiral;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
         pItem->m_Resource.m_Radius          = radius;
         pItem->m_Resource.m_DeltaMin        = deltaMin;
         pItem->m_Resource.m_DeltaMax        = deltaMax;
@@ -926,7 +945,7 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
 {
     // create a shape selection dialog box
     std::auto_ptr<TShapeSelection> pShapeSelection
-            (new TShapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TShapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // set the dialog box title
     pShapeSelection->Caption = L"Add a surface";
@@ -1011,7 +1030,7 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
 
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_Surface;
-        pItem->m_Resource.m_Files.m_Texture = pShapeSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pShapeSelection->edTextureFileName->Text).c_str();
 
         // build the model matrix from the interface
         pShapeSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
@@ -1044,7 +1063,7 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
 {
     // create a model selection dialog box
     std::auto_ptr<TModelSelection> pModelSelection
-            (new TModelSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TModelSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     CSR_CollisionInput collisionInput;
     csrCollisionInputInit(&collisionInput);
@@ -1124,7 +1143,7 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
         // keep the model resources
         pItem->m_Resource.m_ShapeType       = CSR_LevelManager::IE_S_WaveFront;
         pItem->m_Resource.m_Files.m_Model   = fileName;
-        pItem->m_Resource.m_Files.m_Texture = pModelSelection->edTextureFileName->Text.c_str();
+        pItem->m_Resource.m_Files.m_Texture = AnsiString(pModelSelection->edTextureFileName->Text).c_str();
 
         // build the model matrix from the interface
         pModelSelection->BuildMatrix(pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
@@ -1157,7 +1176,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
 {
     // create a model selection dialog box
     std::auto_ptr<TModelSelection> pModelSelection
-            (new TModelSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TModelSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // change the file filters
     pModelSelection->odModel->Filter = L"All model files|*.mdl|Quake I model|*.mdl";
@@ -1268,7 +1287,7 @@ void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 {
     // create a model selection dialog box
     std::auto_ptr<TSkyboxSelection> pSkyboxSelection
-            (new TSkyboxSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TSkyboxSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // show the dialog box to the user and check if action was canceled
     if (pSkyboxSelection->ShowModal() != mrOk)
@@ -1327,12 +1346,12 @@ void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
     for (std::size_t i = 0; i < fileNameCount; i++)
         switch (i)
         {
-            case 0: m_LevelManager.m_Skybox.m_Right  = fileNames[i]; continue;
-            case 1: m_LevelManager.m_Skybox.m_Left   = fileNames[i]; continue;
-            case 2: m_LevelManager.m_Skybox.m_Top    = fileNames[i]; continue;
-            case 3: m_LevelManager.m_Skybox.m_Bottom = fileNames[i]; continue;
-            case 4: m_LevelManager.m_Skybox.m_Front  = fileNames[i]; continue;
-            case 5: m_LevelManager.m_Skybox.m_Back   = fileNames[i]; continue;
+            case 0: m_LevelManager.m_Skybox.m_Right  = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
+            case 1: m_LevelManager.m_Skybox.m_Left   = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
+            case 2: m_LevelManager.m_Skybox.m_Top    = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
+            case 3: m_LevelManager.m_Skybox.m_Bottom = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
+            case 4: m_LevelManager.m_Skybox.m_Front  = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
+            case 5: m_LevelManager.m_Skybox.m_Back   = CSR_VCLHelper::WStrToStr(fileNames[i]); continue;
         }
 }
 //---------------------------------------------------------------------------
@@ -1340,7 +1359,7 @@ void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
 {
     // create a sound selection dialog box
     std::auto_ptr<TSoundSelection> pSoundSelection
-            (new TSoundSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TSoundSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // show it to user
     if (pSoundSelection->ShowModal() != mrOk)
@@ -1592,7 +1611,7 @@ bool TMainForm::OpenDocument()
 {
     // create a landscape selection dialog box
     std::auto_ptr<TLandscapeSelection> pLandscapeSelection
-            (new TLandscapeSelection(this, UnicodeString(AnsiString(m_SceneDir.c_str())).c_str()));
+            (new TLandscapeSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
 
     // execute the dialog and check if user canceled it
     if (pLandscapeSelection->ShowModal() != mrOk)
@@ -1608,7 +1627,7 @@ bool TMainForm::OpenDocument()
 
         // load the landscape from a grayscale image
         if (!LoadLandscapeFromBitmap(AnsiString(pLandscapeSelection->edBitmapFileName->Text).c_str(),
-                textureFileName))
+                CSR_VCLHelper::WStrToStr(textureFileName)))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape from the grayscale image.",
@@ -1626,7 +1645,7 @@ bool TMainForm::OpenDocument()
 
         // load the landscape from a model file
         if (!LoadLandscape(AnsiString(pLandscapeSelection->edModelFileName->Text).c_str(),
-                textureFileName))
+                CSR_VCLHelper::WStrToStr(textureFileName)))
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the landscape.",
@@ -1717,7 +1736,7 @@ void TMainForm::CloseDocument()
     m_pSelectedObjectKey = NULL;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadLandscape(const std::string& fileName, const std::wstring& textureName)
+bool TMainForm::LoadLandscape(const std::string& fileName, const std::string& textureName)
 {
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -1784,7 +1803,7 @@ bool TMainForm::LoadLandscape(const std::string& fileName, const std::wstring& t
     return true;
 }
 //---------------------------------------------------------------------------
-bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName, const std::wstring& textureName)
+bool TMainForm::LoadLandscapeFromBitmap(const std::string& fileName, const std::string& textureName)
 {
     CSR_Model*       pModel  = NULL;
     CSR_PixelBuffer* pBitmap = NULL;
@@ -2378,11 +2397,10 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_TextureSlot  = glGetUniformLocation(m_pShader->m_ProgramID, "csr_sTexture");
 
     // get a default texture file name
-    const UnicodeString textureFile =
-            UnicodeString(AnsiString(m_SceneDir.c_str())) + L"\\Textures\\mountain2.jpg";
+    const std::string textureFile = m_SceneDir + "\\Textures\\mountain2.jpg";
 
     // load the landscape model from a grayscale bitmap file
-    if (!LoadLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp", textureFile.c_str()))
+    if (!LoadLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp", textureFile))
     {
         // show the error message to the user
         ::MessageDlg(L"An error occurred while the default landscape model was created.\r\n\r\nThe application will quit.",
@@ -2411,7 +2429,8 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // load the texture
-    static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
+    static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID =
+            LoadTexture(CSR_VCLHelper::StrToWStr(textureFile));
 
     // failed?
     if (static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)

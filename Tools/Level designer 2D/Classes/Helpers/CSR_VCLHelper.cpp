@@ -245,3 +245,13 @@ void CSR_VCLHelper::DistributeCtrlsTTB(const IControls& controls)
     }
 }
 //---------------------------------------------------------------------------
+std::wstring CSR_VCLHelper::StrToWStr(const std::string& str)
+{
+    return UnicodeString(AnsiString(str.c_str())).c_str();
+}
+//---------------------------------------------------------------------------
+std::string CSR_VCLHelper::WStrToStr(const std::wstring& str)
+{
+    return AnsiString(UnicodeString(str.c_str())).c_str();
+}
+//---------------------------------------------------------------------------

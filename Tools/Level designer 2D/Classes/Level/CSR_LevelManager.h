@@ -23,6 +23,10 @@
 // compactStar engine
 #include "CSR_Geometry.h"
 
+/**
+* Level manager
+*@author Jean-Milost Reymond
+*/
 class CSR_LevelManager
 {
     public:
@@ -51,10 +55,10 @@ class CSR_LevelManager
         */
         struct IFiles
         {
-            std::wstring m_Texture;
-            std::wstring m_BumpMap;
-            std::string  m_LandscapeMap;
-            std::string  m_Model;
+            std::string m_Texture;
+            std::string m_BumpMap;
+            std::string m_LandscapeMap;
+            std::string m_Model;
 
             IFiles();
             virtual ~IFiles();
@@ -110,12 +114,12 @@ class CSR_LevelManager
         */
         struct ISkybox
         {
-            std::wstring m_Left;
-            std::wstring m_Top;
-            std::wstring m_Right;
-            std::wstring m_Bottom;
-            std::wstring m_Front;
-            std::wstring m_Back;
+            std::string m_Left;
+            std::string m_Top;
+            std::string m_Right;
+            std::string m_Bottom;
+            std::string m_Front;
+            std::string m_Back;
 
             ISkybox();
             virtual ~ISkybox();
@@ -156,6 +160,7 @@ class CSR_LevelManager
         /**
         * Adds a new item in the level manager, or a new matrix in an existing item
         *@param pKey - key for which the item should be added
+        *@return the item containing the newly added matrix, NULL on error
         *@note The item will be added if still not exists, but the matching item will be returned if
         *      the key already exists. In all case the last item matrix is always the one added for
         *      the new item
@@ -170,6 +175,13 @@ class CSR_LevelManager
         *      longer contains matrix, it will be deleted from the manager
         */
         virtual void Delete(void* pKey, std::size_t index);
+
+        /**
+        * Gets the item in the level manager matching with a key
+        *@param pKey - key for which the item should be get
+        *@return the item matching with the key, NULL if not found or on error
+        */
+        virtual IItem* Get(void* pKey) const;
 
     private:
         // IMPORTANT NOTE don't use a CSR_LevelItem as key for the map, because this pointer may

@@ -147,6 +147,20 @@ class CSR_VCLHelper
         *@param controls - controls to distribute
         */
         static void DistributeCtrlsTTB(const IControls& controls);
+
+        /**
+        * Converts a string to a wstring (using the VCL functions)
+        *@param str - string to convert
+        *@return converted string
+        */
+        static std::wstring StrToWStr(const std::string& str);
+
+        /**
+        * Converts a wstring to a string (using the VCL functions)
+        *@param str - string to convert
+        *@return converted string
+        */
+        static std::string WStrToStr(const std::wstring& str);
 };
 
 #endif
