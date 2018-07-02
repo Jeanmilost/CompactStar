@@ -287,7 +287,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
         const std::string soundFile = AnsiString(pLandscapeSelection->edSoundFileName->Text).c_str();
 
         // load the sound file
-        m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
+        m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str());
     }
 }
 //---------------------------------------------------------------------------
@@ -595,7 +595,7 @@ void TMainForm::InitScene(int w, int h)
     const std::string soundFile = m_SceneDir + "\\Sounds\\human_walk_grass_step.wav";
 
     // load the sound file
-    m_pSound = csrSoundOpen(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str(), 44100);
+    m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, soundFile.c_str());
 
     m_Initialized = true;
 }
@@ -835,7 +835,7 @@ bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
         vf.m_HasPerVertexColor = 1;
 
         // load a default grayscale bitmap from which a landscape will be generated
-        pBitmap = csrPixelBufferFromBitmap(fileName.c_str());
+        pBitmap = csrPixelBufferFromBitmapFile(fileName.c_str());
 
         // create a landscape model from the grayscale bitmap
         pModel              = csrModelCreate();
