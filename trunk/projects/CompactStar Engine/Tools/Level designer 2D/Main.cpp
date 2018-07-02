@@ -782,6 +782,17 @@ void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
 {
+    // is level opened?
+    if (!m_pLevel.get() || !m_pLevel->GetScene())
+    {
+        // show the error message to the user
+        ::MessageDlg(L"No skybox can be added to the scene, because no scene is currently opened.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+        return;
+    }
+
     // create a model selection dialog box
     std::auto_ptr<TSkyboxSelection> pSkyboxSelection
             (new TSkyboxSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
@@ -828,6 +839,17 @@ void __fastcall TMainForm::miPostProcessingOilPaintingClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSoundOpenClick(TObject* pSender)
 {
+    // is level opened?
+    if (!m_pLevel.get() || !m_pLevel->GetScene())
+    {
+        // show the error message to the user
+        ::MessageDlg(L"No sound can be opened for the scene, because no scene is currently opened.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+        return;
+    }
+
     // create a sound selection dialog box
     std::auto_ptr<TSoundSelection> pSoundSelection
             (new TSoundSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
