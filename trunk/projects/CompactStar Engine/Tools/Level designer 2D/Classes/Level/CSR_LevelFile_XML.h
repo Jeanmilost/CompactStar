@@ -1,8 +1,8 @@
 /****************************************************************************
- * ==> CSR_LevelSerializer -------------------------------------------------*
+ * ==> CSR_LevelFile_XML ---------------------------------------------------*
  ****************************************************************************
- * Description : This module provides the functions required to serialize   *
- *               the level                                                  *
+ * Description : This module provides the functions required to read and    *
+ *               write the level from/to a xml file                         *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -14,14 +14,18 @@
  *               DIRECTLY OR NOT.                                           *
  ****************************************************************************/
 
-#ifndef CSR_LevelSerializerH
-#define CSR_LevelSerializerH
+#ifndef CSR_LevelFile_XMLH
+#define CSR_LevelFile_XMLH
+
+// std
+#include <map>
 
 // compactStar engine
+#include "CSR_Common.h"
 #include "CSR_Scene.h"
 
 // classes
-#include "CSR_LevelManager.h"
+#include "CSR_LevelFile.h"
 
 // xml
 #include "sxmlc.h"
@@ -30,63 +34,122 @@
 * Level serializer
 *@author Jean-Milost Reymond
 */
-class CSR_LevelSerializer
+class CSR_LevelFile_XML
 {
     public:
         /**
         * Constructor
-        *@param writeFileName - if true, the file name will be written instead of the file content
+        *@param sceneDir - path to the scene dir, if empty the full name of each file will be used
         */
-        CSR_LevelSerializer(bool writeFileName = true);
+        CSR_LevelFile_XML(const std::string& sceneDir);
 
-        virtual ~CSR_LevelSerializer();
+        virtual ~CSR_LevelFile_XML();
+
+        /**
+        * Loads the level
+        *@param fileName - level file name
+        *@param[in, out] level - level to load
+        *@return true on success, otherwise false
+        */
+        virtual bool Load(const std::string& fileName, CSR_Level& level);
 
         /**
         * Saves the level
         *@param fileName - level file name
-        *@param pScene - scene belonging to the level to save
         *@param level - level to save
         *@return true on success, otherwise false
         */
-        virtual bool Save(const std::string&      fileName,
-                          const CSR_Scene*        pScene,
-                          const CSR_LevelManager& level) const;
+        virtual bool Save(const std::string& fileName, const CSR_Level& level) const;
 
     private:
-        bool m_WriteFileName;
+        typedef std::map<std::string, CSR_Buffer*> IFiles;
+
+        std::string m_SceneDir;
+        IFiles      m_Files;
+        bool        m_SaveContent;
+
+        /**
+        * Clears the serializer
+        */
+        void Clear();
+
+        bool Read(const XMLNode* pNode, CSR_Level& level);
+
+        bool ReadScene(const XMLNode* pNode, CSR_Level& level);
+
+        bool ReadSceneItem(const XMLNode* pNode, CSR_Level& level);
+
+        /**
+        * Reads a skybox from an xml node
+        *@param pNode - xml node containing the skybox to read
+        *@param[in, out] level - level for which the skybox should be load
+        *@return true on success, otherwise false
+        */
+        bool ReadSkybox(const XMLNode* pNode, CSR_Level& level);
+
+        /**
+        * Reads a sound from an xml node
+        *@param pNode - xml node containing the sound to read
+        *@param[in, out] level - level for which the sound should be load
+        *@return true on success, otherwise false
+        */
+        bool ReadSound(const XMLNode* pNode, CSR_Level& level);
+
+        /**
+        * Reads a file from an xml node
+        *@param pNode - xml node containing the file name to read
+        *@param[out] fileName - file name to populate with the value
+        *@return true on success, otherwise false
+        */
+        bool ReadFile(const XMLNode* pNode, std::string& fileName);
+
+        /**
+        * Reads the content of a matrix from an xml node
+        *@param pNode - xml node containing the matrix to read
+        *@param pMat4 - matrix to populate with the values
+        *@return true on success, otherwise false
+        */
+        bool ReadMatrix(const XMLNode* pNode, CSR_Matrix4* pMat4);
+
+        /**
+        * Reads the content of a vector from an xml node
+        *@param pNode - xml node containing the vector to read
+        *@param pVec3 - vector to populate with the values
+        *@return true on success, otherwise false
+        */
+        bool ReadVector(const XMLNode* pNode, CSR_Vector3* pVec3);
+
+        /**
+        * Reads the content of a color from an xml node
+        *@param pNode - xml node containing the color to read
+        *@param pColor - color to populate with the values
+        *@return true on success, otherwise false
+        */
+        bool ReadColor(const XMLNode* pNode, CSR_Color* pColor);
 
         /**
         * Writes the level
         *@param doc - xml document in which the level should be written
-        *@param pScene - scene belonging to the level to save
         *@param level - level to save
         *@return true on success, otherwise false
         */
-        bool Write(XMLDoc&           doc,
-             const CSR_Scene*        pScene,
-             const CSR_LevelManager& level) const;
+        bool Write(XMLDoc& doc, const CSR_Level& level) const;
 
         /**
         * Writes the level
         *@param doc - xml document in which the level should be written
-        *@param pScene - scene belonging to the level to save
         *@param level - level to save
         *@return true on success, otherwise false
         */
-        bool WriteLevel(XMLDoc&           doc,
-                  const CSR_Scene*        pScene,
-                  const CSR_LevelManager& level) const;
+        bool WriteLevel(XMLDoc& doc, const CSR_Level& level) const;
 
         /**
         * Writes the scene belonging to the level
         *@param pNode - xml node in which the scene should be written
-        *@param pScene - scene belonging to the level to save
         *@param level - level to save
         *@return true on success, otherwise false
         */
-        bool WriteScene(XMLNode*          pNode,
-                  const CSR_Scene*        pScene,
-                  const CSR_LevelManager& level) const;
+        bool WriteScene(XMLNode* pNode, const CSR_Level& level) const;
 
         /**
         * Writes a scene item
@@ -95,38 +158,39 @@ class CSR_LevelSerializer
         *@param pLevelItem - level item to save
         *@return true on success, otherwise false
         */
-        bool WriteSceneItem(XMLNode*                 pNode,
-                      const CSR_SceneItem*           pSceneItem,
-                      const CSR_LevelManager::IItem* pLevelItem) const;
+        bool WriteSceneItem(      XMLNode*          pNode,
+                            const CSR_SceneItem*    pSceneItem,
+                            const CSR_Level::IItem* pLevelItem) const;
 
         /**
         * Writes the skybox
         *@param pNode - xml node in which the skybox should be written
-        *@param level - level at which the skybox belongs
+        *@param level - level containing the skybox to save
         *@return true on success, otherwise false
         */
-        bool WriteSkybox(XMLNode* pNode, const CSR_LevelManager& level) const;
+        bool WriteSkybox(XMLNode* pNode, const CSR_Level& level) const;
 
         /**
         * Writes the sound
         *@param pNode - xml node in which the sound should be written
-        *@param level - level at which the skybox belongs
+        *@param level - level containing the sound to save
         *@return true on success, otherwise false
         */
-        bool WriteSound(XMLNode* pNode, const CSR_LevelManager& level) const;
+        bool WriteSound(XMLNode* pNode, const CSR_Level& level) const;
 
         /**
         * Writes a file
         *@param pNode - xml node in which the file should be written
+        *@param name - tag name
         *@param fileName - file name to write
         *@return true on success, otherwise false
         */
-        bool WriteFile(XMLNode* pNode, const std::string& fileName) const;
+        bool WriteFile(XMLNode* pNode, const std::string& name, const std::string& fileName) const;
 
         /**
         * Writes a matrix
         *@param pNode - xml node in which the matrix should be written
-        *@param name - matrix name
+        *@param name - tag name
         *@param pMat4 - matrix to write
         *@return true on success, otherwise false
         */
@@ -135,7 +199,7 @@ class CSR_LevelSerializer
         /**
         * Writes a vector
         *@param pNode - xml node in which the vector should be written
-        *@param name - vector name
+        *@param name - tag name
         *@param pVec3 - vector to write
         *@return true on success, otherwise false
         */
@@ -144,7 +208,7 @@ class CSR_LevelSerializer
         /**
         * Writes a color
         *@param pNode - xml node in which the color should be written
-        *@param name - color name
+        *@param name - tag name
         *@param pColor - color to write
         *@return true on success, otherwise false
         */
