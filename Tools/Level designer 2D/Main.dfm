@@ -200,17 +200,20 @@ object MainForm: TMainForm
         AutoCheck = True
         Caption = 'None'
         RadioItem = True
+        OnClick = miPostProcessingNoneClick
       end
       object miPostProcessingAntialiasing: TMenuItem
         AutoCheck = True
         Caption = 'Antialiasing'
         RadioItem = True
+        OnClick = miPostProcessingAntialiasingClick
       end
       object miPostProcessingOilPainting: TMenuItem
         AutoCheck = True
         Caption = 'Oil painting'
         Checked = True
         RadioItem = True
+        OnClick = miPostProcessingOilPaintingClick
       end
     end
     object miSound: TMenuItem

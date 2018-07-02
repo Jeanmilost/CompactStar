@@ -31,22 +31,16 @@
 #include <vector>
 #include <map>
 
-// compactStar engine
-#include "CSR_Model.h"
-#include "CSR_Collision.h"
-#include "CSR_Shader.h"
-#include "CSR_Renderer.h"
-#include "CSR_Scene.h"
-#include "CSR_Sound.h"
-
 // classes
-#include "CSR_LevelManager.h"
+#include "CSR_Level.h"
 #include "CSR_DesignerView.h"
-#include "CSR_PostProcessingEffect_OilPainting.h"
 
 // interface
 #include "TSkyboxSelection.h"
 #include "TVector3Frame.h"
+
+// FIXME empty edit text
+// FIXME floating point symbol on different systems
 
 /**
 * Ground collision tool main form
@@ -111,6 +105,9 @@ class TMainForm : public TForm
         void __fastcall miAddMDLModelClick(TObject* pSender);
         void __fastcall miLandscapeResetViewportClick(TObject* pSender);
         void __fastcall miSkyboxAddClick(TObject* pSender);
+        void __fastcall miPostProcessingNoneClick(TObject* pSender);
+        void __fastcall miPostProcessingAntialiasingClick(TObject* pSender);
+        void __fastcall miPostProcessingOilPaintingClick(TObject* pSender);
         void __fastcall miSoundOpenClick(TObject* pSender);
         void __fastcall miSoundPauseClick(TObject* pSender);
         void __fastcall spMainViewMoved(TObject* pSender);
@@ -131,27 +128,56 @@ class TMainForm : public TForm
         virtual __fastcall ~TMainForm();
 
         /**
+        * Called when a cubemap texture should be loaded
+        *@param fileNames - textures file names to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        static GLuint OnLoadCubemap(const CSR_Level::IFileNames& fileNames);
+
+        /**
+        * Called when a texture should be loaded
+        *@param fileName - textures file name to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        static GLuint OnLoadTexture(const std::string& fileName);
+
+        /**
+        * Called when a model should be selected on the designer
+        *@param pKey - item key to update
+        *@param index - model matrix index
+        */
+        static void OnSelectModel(void* pKey, int index);
+
+        /**
+        * Called when the level designer should be updated
+        *@param pKey - item key to update
+        *@param index - model matrix index
+        *@param modelLength - model length on each axis
+        */
+        static void OnUpdateDesigner(void* pKey, int index, const CSR_Vector3& modelLength);
+
+        /**
         * Called when a shader should be get for a model
         *@param pModel - model for which the shader shoudl be get
         *@param type - model type
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+        static CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
         *@param pScene - scene to begin
         *@param pContext - scene context
         */
-        static void OnSceneBeginCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+        static void OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
         /**
         * Called when scene ends
         *@param pScene - scene to end
         *@param pContext - scene context
         */
-        static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+        static void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
     protected:
         /**
@@ -182,35 +208,23 @@ class TMainForm : public TForm
             void Clear();
         };
 
-        std::auto_ptr<CSR_VCLControlHook>     m_pEngineViewHook;
-        std::auto_ptr<CSR_DesignerView>       m_pDesignerView;
-        IDesignerProperties                   m_DesignerProperties;
-        HDC                                   m_hDC;
-        HGLRC                                 m_hRC;
-        ALCdevice*                            m_pOpenALDevice;
-        ALCcontext*                           m_pOpenALContext;
-        CSR_Sound*                            m_pSound;
-        CSR_Color                             m_Background;
-        CSR_Shader*                           m_pShader;
-        CSR_Shader*                           m_pSkyboxShader;
-        CSR_Scene*                            m_pScene;
-        CSR_SceneContext                      m_SceneContext;
-        CSR_LevelManager                      m_LevelManager;
-        void*                                 m_pLandscapeKey;
-        void*                                 m_pSelectedObjectKey;
-        CSR_PostProcessingEffect_OilPainting* m_pEffect;
-        CSR_MSAA*                             m_pMSAA;
-        CSR_Sphere                            m_ViewSphere;
-        std::string                           m_SceneDir;
-        std::size_t                           m_FrameCount;
-        int                                   m_PrevOrigin;
-        float                                 m_Angle;
-        float                                 m_PosVelocity;
-        float                                 m_DirVelocity;
-        double                                m_FPS;
-        unsigned __int64                      m_StartTime;
-        unsigned __int64                      m_PreviousTime;
-        bool                                  m_Initialized;
+        std::auto_ptr<CSR_Level>          m_pLevel;
+        std::auto_ptr<CSR_VCLControlHook> m_pEngineViewHook;
+        std::auto_ptr<CSR_DesignerView>   m_pDesignerView;
+        IDesignerProperties               m_DesignerProperties;
+        HDC                               m_hDC;
+        HGLRC                             m_hRC;
+        CSR_Sphere                        m_ViewSphere;
+        std::string                       m_SceneDir;
+        std::size_t                       m_FrameCount;
+        int                               m_PrevOrigin;
+        float                             m_Angle;
+        float                             m_PosVelocity;
+        float                             m_DirVelocity;
+        double                            m_FPS;
+        unsigned __int64                  m_StartTime;
+        unsigned __int64                  m_PreviousTime;
+        bool                              m_Initialized;
 
         /**
         * Opens a new landscape document
@@ -223,34 +237,18 @@ class TMainForm : public TForm
         void CloseDocument();
 
         /**
-        * Loads a landscape from a file
-        *@param fileName - model file name to load from
-        *@param textureName - model texture name
-        *@return true on success, otherwise false
-        */
-        bool LoadLandscape(const std::string& fileName, const std::string& textureName);
-
-        /**
-        * Loads a landscape from a grayscale bitmap
-        *@param fileName - grayscale bitmap from which the model will be generated
-        *@param textureName - model texture name
-        *@return true on success, otherwise false
-        */
-        bool LoadLandscapeFromBitmap(const std::string& fileName, const std::string& textureName);
-
-        /**
         * Loads a texture
         *@param fileName - texture file name to load
         *@return texture identifier on the GPU, M_CSR_Error_Code on error
         */
-        GLuint LoadTexture(const std::wstring& fileName) const;
+        GLuint LoadTexture(const std::string& fileName) const;
 
         /**
         * Loads a cubemap texture
         *@param fileNames - textures file names to load
         *@return texture identifier on the GPU, M_CSR_Error_Code on error
         */
-        GLuint LoadCubemap(const TSkyboxSelection::IFileNames fileNames) const;
+        GLuint LoadCubemap(const CSR_Level::IFileNames fileNames) const;
 
         /**
         * Loads a sound
@@ -276,13 +274,6 @@ class TMainForm : public TForm
         void InitializeViewPoint();
 
         /**
-        * Creates the viewport
-        *@param w - viewport width
-        *@param h - viewport height
-        */
-        void CreateViewport(float w, float h);
-
-        /**
         * Creates a default scene
         */
         void CreateScene();
@@ -306,19 +297,6 @@ class TMainForm : public TForm
         void UpdateScene(float elapsedTime);
 
         /**
-        * Draws the scene
-        */
-        void DrawScene();
-
-        /**
-        * Calculates a matrix where to put the point of view to lie on the ground
-        *@param pBoundingSphere - sphere surrounding the point of view
-        *@param[out] pMatrix - resulting view matrix
-        *@return true if new position is valid, otherwise false
-        */
-        bool ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix);
-
-        /**
         * Called when a value changed
         *@param pSender - event sender
         *@param x - x value
@@ -332,29 +310,6 @@ class TMainForm : public TForm
         *@param resize - if true, the scene should be repainted during a resize
         */
         void OnDrawScene(bool resize);
-
-        /**
-        * Called when a shader should be get for a model
-        *@param pModel - model for which the shader shoudl be get
-        *@param type - model type
-        *@return shader to use to draw the model, 0 if no shader
-        *@note The model will not be drawn if no shader is returned
-        */
-        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
-
-        /**
-        * Called when scene begins
-        *@param pScene - scene to begin
-        *@param pContext - scene context
-        */
-        void OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
-
-        /**
-        * Called when scene ends
-        *@param pScene - scene to end
-        *@param pContext - scene context
-        */
-        void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
         /**
         * Called while application is idle

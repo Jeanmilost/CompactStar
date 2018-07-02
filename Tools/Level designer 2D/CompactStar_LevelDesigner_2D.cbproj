@@ -46,7 +46,6 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <BCC_MonitorThis>true</BCC_MonitorThis>
         <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
         <BCC_Defines>madExcept;LeakChecking;$(BCC_Defines)</BCC_Defines>
@@ -76,6 +75,7 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\release\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
@@ -220,13 +220,17 @@
             <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
             <BuildOrder>31</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelManager.cpp">
-            <DependentOn>Classes\Level\CSR_LevelManager.h</DependentOn>
+        <CppCompile Include="Classes\Level\CSR_Level.cpp">
+            <DependentOn>Classes\Level\CSR_Level.h</DependentOn>
             <BuildOrder>43</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelSerializer.cpp">
-            <DependentOn>Classes\Level\CSR_LevelSerializer.h</DependentOn>
-            <BuildOrder>43</BuildOrder>
+        <CppCompile Include="Classes\Level\CSR_LevelFile.cpp">
+            <DependentOn>Classes\Level\CSR_LevelFile.h</DependentOn>
+            <BuildOrder>45</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="Classes\Level\CSR_LevelFile_XML.cpp">
+            <DependentOn>Classes\Level\CSR_LevelFile_XML.h</DependentOn>
+            <BuildOrder>44</BuildOrder>
         </CppCompile>
         <CppCompile Include="CompactStar_LevelDesigner_2D.cpp">
             <BuildOrder>0</BuildOrder>
