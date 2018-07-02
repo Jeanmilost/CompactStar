@@ -850,6 +850,10 @@ void __fastcall TMainForm::miSoundPauseClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 {
+    // is level created?
+    if (!m_pLevel.get() || !m_pLevel->GetScene())
+        return;
+
     // get back the scene item containing the model
     CSR_SceneItem* pItem = m_pLevel->GetLandscape();
 
@@ -867,6 +871,10 @@ void __fastcall TMainForm::spMainViewMoved(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::spViewsMoved(TObject *Sender)
 {
+    // is level created?
+    if (!m_pLevel.get() || !m_pLevel->GetScene())
+        return;
+
     // get back the scene item containing the model
     CSR_SceneItem* pItem = m_pLevel->GetLandscape();
 
@@ -1840,6 +1848,14 @@ void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, flo
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
 {
+    // is level created?
+    if (!m_pLevel.get() || !m_pLevel->GetScene())
+    {
+        paEngineView->Invalidate();
+        paDesignerView->Invalidate();
+        return;
+    }
+
     // do draw the scene for a resize?
     if (resize)
     {

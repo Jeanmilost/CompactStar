@@ -1110,6 +1110,10 @@ bool CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
         else
             pBitmap = csrPixelBufferFromBitmapFile(fileName.c_str());
 
+        // succeeded?
+        if (!pBitmap)
+            return false;
+
         // create a model to contain the landscape
         pModel = csrModelCreate();
 

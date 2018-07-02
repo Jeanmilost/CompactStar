@@ -498,18 +498,22 @@ bool CSR_DesignerView::OnViewMessage(TControl* pControl, TMessage& message, TWnd
                 // draw the background grid
                 DrawGrid(pControl->ClientRect, m_GridOptions, m_pOverlay->Canvas->Handle);
 
-                // get the current landscape position from the view matrix
-                CSR_Vector2 pos;
-                pos.m_X = m_pScene->m_ViewMatrix.m_Table[3][0];
-                pos.m_Y = 0.0f;
+                // is there a scene to draw?
+                if (m_pScene)
+                {
+                    // get the current landscape position from the view matrix
+                    CSR_Vector2 pos;
+                    pos.m_X = m_pScene->m_ViewMatrix.m_Table[3][0];
+                    pos.m_Y = 0.0f;
 
-                // draw the scene on the overlay
-                Draw(m_pScene,
-                     TPoint(m_pPanel->ClientWidth  / 2,
-                            m_pPanel->ClientHeight / 2),
-                     pos,
-                     m_Ratio,
-                     m_pOverlay->Canvas->Handle);
+                    // draw the scene on the overlay
+                    Draw(m_pScene,
+                         TPoint(m_pPanel->ClientWidth  / 2,
+                                m_pPanel->ClientHeight / 2),
+                         pos,
+                         m_Ratio,
+                         m_pOverlay->Canvas->Handle);
+                }
 
                 // copy the overlay content onto the designer view
                 ::BitBlt(hDC, 0, 0, m_pPanel->ClientWidth, m_pPanel->ClientHeight,
