@@ -40,6 +40,8 @@ class CSR_LevelFile_XML
         /**
         * Constructor
         *@param sceneDir - path to the scene dir, if empty the full name of each file will be used
+        *@note The sceneDir should be terminated by a valid file separator, according to the target
+        *      OS file system
         */
         CSR_LevelFile_XML(const std::string& sceneDir);
 
@@ -61,12 +63,47 @@ class CSR_LevelFile_XML
         */
         virtual bool Save(const std::string& fileName, const CSR_Level& level) const;
 
+        /**
+        * Gets a file buffer from cache
+        *@param fileName - file name for which the buffer should be get
+        *@return file buffer, NULL if not found or on error
+        */
+        virtual const CSR_Buffer* GetFile(const std::string& fileName);
+
+        /**
+        * Sets the OnLoadCubemap callback
+        *@param fHandler - function handler
+        */
+        void Set_OnLoadCubemap(CSR_Level::ITfLoadCubemap fHandler);
+
+        /**
+        * Sets the OnLoadTexture callback
+        *@param fHandler - function handler
+        */
+        void Set_OnLoadTexture(CSR_Level::ITfLoadTexture fHandler);
+
+        /**
+        * Sets the OnSelectModel callback
+        *@param fHandler - function handler
+        */
+        void Set_OnSelectModel(CSR_Level::ITfSelectModel fHandler);
+
+        /**
+        * Sets the OnUpdateDesigner callback
+        *@param fHandler - function handler
+        */
+        void Set_OnUpdateDesigner(CSR_Level::ITfOnUpdateDesigner fHandler);
+
     private:
         typedef std::map<std::string, CSR_Buffer*> IFiles;
 
-        std::string m_SceneDir;
-        IFiles      m_Files;
-        bool        m_SaveContent;
+        std::string                    m_SceneDir;
+        IFiles                         m_Files;
+        bool                           m_SaveContent;
+        CSR_Level::ITfLoadCubemap      m_fOnLoadCubemap;
+        CSR_Level::ITfLoadTexture      m_fOnLoadTexture;
+        CSR_Level::ITfSelectModel      m_fOnSelectModel;
+        CSR_Level::ITfOnUpdateDesigner m_fOnUpdateDesigner;
 
         /**
         * Clears the serializer
@@ -77,6 +114,12 @@ class CSR_LevelFile_XML
 
         bool ReadScene(const XMLNode* pNode, CSR_Level& level);
 
+        /**
+        * Reads a scene item
+        *@param pNode - xml node containing the scene item to read
+        *@param[in, out] level - level in which the scene item should be added
+        *@return true on success, otherwise false
+        */
         bool ReadSceneItem(const XMLNode* pNode, CSR_Level& level);
 
         /**

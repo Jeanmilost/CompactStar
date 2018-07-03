@@ -216,7 +216,7 @@ class CSR_Level
         *      2. The skybox left image
         *      3. The skybox top image
         *      4. The skybox bottom image
-        *      5. The skybox fromt image
+        *      5. The skybox front image
         *      6. The skybox back image
         */
         virtual bool AddSkybox(const IFileNames& fileNames, ITfLoadCubemap fLoadCubemap);
@@ -226,45 +226,51 @@ class CSR_Level
         *@param matrix - model matrix
         *@param textureName - box texture file name to use
         *@param repeatTexOnEachFace - if true, the whole texture is repeated on each face
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddBox(const CSR_Matrix4&   matrix,
-                            const std::string&   textureName,
-                                  bool           repeatTexOnEachFace,
-                                  ITfLoadTexture fLoadTexture,
-                                  ITfSelectModel fSelectModel);
+        virtual void* AddBox(const CSR_Matrix4&       matrix,
+                             const std::string&       textureName,
+                                   bool               repeatTexOnEachFace,
+                                   CSR_ECollisionType collisionType,
+                                   ITfLoadTexture     fLoadTexture,
+                                   ITfSelectModel     fSelectModel);
 
         /**
         * Adds a cylinder in the level
         *@param matrix - model matrix
         *@param textureName - cylinder texture file name to use
         *@param faces - faces count
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
         *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddCylinder(const CSR_Matrix4&   matrix,
-                                 const std::string&   textureName,
-                                       int            faces,
-                                       ITfLoadTexture fLoadTexture,
-                                       ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddCylinder(const CSR_Matrix4&       matrix,
+                                  const std::string&       textureName,
+                                        int                faces,
+                                        CSR_ECollisionType collisionType,
+                                        ITfLoadTexture     fLoadTexture,
+                                        ITfSelectModel     fSelectModel);
 
         /**
         * Adds a disk in the level
         *@param matrix - model matrix
         *@param textureName - disk texture file name to use
         *@param slices - slices count
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddDisk(const CSR_Matrix4&   matrix,
-                             const std::string&   textureName,
-                                   int            slices,
-                                   ITfLoadTexture fLoadTexture,
-                                   ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddDisk(const CSR_Matrix4&       matrix,
+                              const std::string&       textureName,
+                                    int                slices,
+                                    CSR_ECollisionType collisionType,
+                                    ITfLoadTexture     fLoadTexture,
+                                    ITfSelectModel     fSelectModel);
 
         /**
         * Adds a ring in the level
@@ -272,16 +278,18 @@ class CSR_Level
         *@param textureName - ring texture file name to use
         *@param slices - slices count
         *@param radius - ring internal radius in percent (between 0 and 100)
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddRing(const CSR_Matrix4&   matrix,
-                             const std::string&   textureName,
-                                   int            slices,
-                                   int            radius,
-                                   ITfLoadTexture fLoadTexture,
-                                   ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddRing(const CSR_Matrix4&       matrix,
+                              const std::string&       textureName,
+                                    int                slices,
+                                    int                radius,
+                                    CSR_ECollisionType collisionType,
+                                    ITfLoadTexture     fLoadTexture,
+                                    ITfSelectModel     fSelectModel);
 
         /**
         * Adds a sphere in the level
@@ -289,16 +297,18 @@ class CSR_Level
         *@param textureName - sphere texture file name to use
         *@param slices - slices count
         *@param stacks - stacks count
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddSphere(const CSR_Matrix4&   matrix,
-                               const std::string&   textureName,
-                                     int            slices,
-                                     int            stacks,
-                                     ITfLoadTexture fLoadTexture,
-                                     ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddSphere(const CSR_Matrix4&       matrix,
+                                const std::string&       textureName,
+                                      int                slices,
+                                      int                stacks,
+                                      CSR_ECollisionType collisionType,
+                                      ITfLoadTexture     fLoadTexture,
+                                      ITfSelectModel     fSelectModel);
 
         /**
         * Adds a spiral in the level
@@ -310,33 +320,37 @@ class CSR_Level
         *@param deltaZ - delta to apply to the deep
         *@param slices - slices count
         *@param stacks - stacks count
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddSpiral(const CSR_Matrix4&   matrix,
-                               const std::string&   textureName,
-                                     int            radius,
-                                     int            deltaMin,
-                                     int            deltaMax,
-                                     int            deltaZ,
-                                     int            slices,
-                                     int            stacks,
-                                     ITfLoadTexture fLoadTexture,
-                                     ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddSpiral(const CSR_Matrix4&       matrix,
+                                const std::string&       textureName,
+                                      int                radius,
+                                      int                deltaMin,
+                                      int                deltaMax,
+                                      int                deltaZ,
+                                      int                slices,
+                                      int                stacks,
+                                      CSR_ECollisionType collisionType,
+                                      ITfLoadTexture     fLoadTexture,
+                                      ITfSelectModel     fSelectModel);
 
         /**
         * Adds a surface in the level
         *@param matrix - model matrix
         *@param textureName - surface texture file name to use
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddSurface(const CSR_Matrix4&   matrix,
-                                const std::string&   textureName,
-                                      ITfLoadTexture fLoadTexture,
-                                      ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddSurface(const CSR_Matrix4&       matrix,
+                                 const std::string&       textureName,
+                                       CSR_ECollisionType collisionType,
+                                       ITfLoadTexture     fLoadTexture,
+                                       ITfSelectModel     fSelectModel);
 
         /**
         * Adds a WaveFront model in the level
@@ -344,30 +358,34 @@ class CSR_Level
         *@param fileName - model file name to load
         *@param textureName - model texture file name to use
         *@param pBuffer - optional buffer containing the model file content, ignored if NULL
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddWaveFront(const CSR_Matrix4&   matrix,
-                                  const std::string&   fileName,
-                                  const std::string&   textureName,
-                                  const CSR_Buffer*    pBuffer,
-                                        ITfLoadTexture fLoadTexture,
-                                        ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddWaveFront(const CSR_Matrix4&       matrix,
+                                   const std::string&       fileName,
+                                   const std::string&       textureName,
+                                   const CSR_Buffer*        pBuffer,
+                                         CSR_ECollisionType collisionType,
+                                         ITfLoadTexture     fLoadTexture,
+                                         ITfSelectModel     fSelectModel);
 
         /**
         * Adds a Quake I model in the level
         *@param matrix - model matrix
         *@param fileName - model file name to load
         *@param pBuffer - optional buffer containing the model file content, ignored if NULL
+        *@param collisionType - collision type to apply to the model
         *@param fLoadTexture - callback function to use to load a texture
-        *@param fSelectModelOnDesigner - callback function to select the newly added model on designer
-        *@return true on success, otherwise false
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added item key, NULL on error
         */
-        virtual bool AddMDL(const CSR_Matrix4&   matrix,
-                            const std::string&   fileName,
-                            const CSR_Buffer*    pBuffer,
-                                  ITfSelectModel fSelectModelOnDesigner);
+        virtual void* AddMDL(const CSR_Matrix4&       matrix,
+                             const std::string&       fileName,
+                             const CSR_Buffer*        pBuffer,
+                                   CSR_ECollisionType collisionType,
+                                   ITfSelectModel     fSelectModel);
 
         /**
         * Adds a landscape from a file
@@ -375,12 +393,13 @@ class CSR_Level
         *@param textureName - model texture name
         *@param pBuffer - optional buffer containing the model file content, ignored if NULL
         *@param fOnUpdateDesigner - callback function to use to update the designer, may be NULL
-        *@return true on success, otherwise false
+        *@return newly added item key, NULL on error
+        *@note All landscape model will always support the ground and custom collision types
         */
-        virtual bool AddLandscape(const std::string&        fileName,
-                                  const std::string&        textureName,
-                                  const CSR_Buffer*         pBuffer,
-                                        ITfOnUpdateDesigner fOnUpdateDesigner = NULL);
+        virtual void* AddLandscape(const std::string&        fileName,
+                                   const std::string&        textureName,
+                                   const CSR_Buffer*         pBuffer,
+                                         ITfOnUpdateDesigner fOnUpdateDesigner);
 
         /**
         * Adds a landscape from a grayscale bitmap
@@ -388,12 +407,22 @@ class CSR_Level
         *@param textureName - model texture name
         *@param pBuffer - optional buffer containing the grayscale bitmap file content, ignored if NULL
         *@param fOnUpdateDesigner - callback function to use to update the designer, may be NULL
-        *@return true on success, otherwise false
+        *@return newly added item key, NULL on error
+        *@note All landscape model will always support the ground and custom collision types
         */
-        virtual bool AddLandscapeFromBitmap(const std::string&        fileName,
-                                            const std::string&        textureName,
-                                            const CSR_Buffer*         pBuffer,
-                                                  ITfOnUpdateDesigner fOnUpdateDesigner = NULL);
+        virtual void* AddLandscapeFromBitmap(const std::string&        fileName,
+                                             const std::string&        textureName,
+                                             const CSR_Buffer*         pBuffer,
+                                                   ITfOnUpdateDesigner fOnUpdateDesigner);
+
+        /**
+        * Adds a duplicate of an existing model in the level
+        *@param pKey - key of the model to duplicate
+        *@param matrix - model matrix
+        *@param fSelectModel - callback function to select the newly added model on designer
+        *@return newly added duplicate matrix index, -1 on error
+        */
+        virtual int AddDuplicate(void* pKey, const CSR_Matrix4& matrix, ITfSelectModel fSelectModel);
 
         /**
         * Opens the level ambient sound

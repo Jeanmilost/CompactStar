@@ -169,6 +169,10 @@ void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
     CloseDocument();
 
     CSR_LevelFile_XML levelFile(m_SceneDir);
+    levelFile.Set_OnLoadCubemap(OnLoadCubemap);
+    levelFile.Set_OnLoadTexture(OnLoadTexture);
+    levelFile.Set_OnSelectModel(OnSelectModel);
+    levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
     if (!levelFile.Load("test.xml", *m_pLevel.get()))
     {}
@@ -177,6 +181,10 @@ void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
 void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
 {
     CSR_LevelFile_XML levelFile(m_SceneDir);
+    levelFile.Set_OnLoadCubemap(OnLoadCubemap);
+    levelFile.Set_OnLoadTexture(OnLoadTexture);
+    levelFile.Set_OnSelectModel(OnSelectModel);
+    levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
     if (!levelFile.Save("test.xml", *m_pLevel.get()))
     {
@@ -247,6 +255,7 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     if (!m_pLevel->AddBox(matrix,
                           AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
                           pShapeSelection->ckRepeatTextureOnEachFace->Checked,
+                          CSR_CO_None,
                           OnLoadTexture,
                           OnSelectModel))
         // show the error message to the user
@@ -312,6 +321,7 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     if (!m_pLevel->AddCylinder(matrix,
                                AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
                              ::StrToInt(pShapeSelection->edFaces->Text),
+                               CSR_CO_None,
                                OnLoadTexture,
                                OnSelectModel))
         // show the error message to the user
@@ -380,6 +390,7 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     if (!m_pLevel->AddDisk(matrix,
                            AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
                          ::StrToInt(pShapeSelection->edSlices->Text),
+                           CSR_CO_None,
                            OnLoadTexture,
                            OnSelectModel))
         // show the error message to the user
@@ -448,6 +459,7 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
                            AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
                          ::StrToInt(pShapeSelection->edSlices->Text),
                          ::StrToInt(pShapeSelection->edMinRadius->Text),
+                           CSR_CO_None,
                            OnLoadTexture,
                            OnSelectModel))
         // show the error message to the user
@@ -514,6 +526,7 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
                              AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
                            ::StrToInt(pShapeSelection->edSlices->Text),
                            ::StrToInt(pShapeSelection->edStacks->Text),
+                             CSR_CO_None,
                              OnLoadTexture,
                              OnSelectModel))
         // show the error message to the user
@@ -582,6 +595,7 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
                            ::StrToInt(pShapeSelection->edDeltaZ->Text),
                            ::StrToInt(pShapeSelection->edSlices->Text),
                            ::StrToInt(pShapeSelection->edStacks->Text),
+                             CSR_CO_None,
                              OnLoadTexture,
                              OnSelectModel))
         // show the error message to the user
@@ -649,6 +663,7 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
     // add the surface to the level
     if (!m_pLevel->AddSurface(matrix,
                               AnsiString(pShapeSelection->edTextureFileName->Text).c_str(),
+                              CSR_CO_None,
                               OnLoadTexture,
                               OnSelectModel))
         // show the error message to the user
@@ -706,6 +721,7 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
                                 AnsiString(pModelSelection->edModelFileName->Text).c_str(),
                                 AnsiString(pModelSelection->edTextureFileName->Text).c_str(),
                                 NULL,
+                                CSR_CO_None,
                                 OnLoadTexture,
                                 OnSelectModel))
         // show the error message to the user
@@ -769,6 +785,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     if (!m_pLevel->AddMDL(matrix,
                           AnsiString(pModelSelection->edModelFileName->Text).c_str(),
                           NULL,
+                          CSR_CO_None,
                           OnSelectModel))
         // show the error message to the user
         ::MessageDlg(L"Failed to add the Quake I model.", mtError, TMsgDlgButtons() << mbOK, 0);

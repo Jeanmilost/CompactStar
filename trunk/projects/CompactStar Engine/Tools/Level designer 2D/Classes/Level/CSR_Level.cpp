@@ -303,15 +303,16 @@ bool CSR_Level::AddSkybox(const IFileNames& fileNames, ITfLoadCubemap fLoadCubem
     return true;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddBox(const CSR_Matrix4&   matrix,
-                       const std::string&   textureName,
-                             bool           repeatTexOnEachFace,
-                             ITfLoadTexture fLoadTexture,
-                             ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddBox(const CSR_Matrix4&       matrix,
+                        const std::string&       textureName,
+                              bool               repeatTexOnEachFace,
+                              CSR_ECollisionType collisionType,
+                              ITfLoadTexture     fLoadTexture,
+                              ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -335,7 +336,7 @@ bool CSR_Level::AddBox(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pBox)
-        return false;
+        return NULL;
 
     try
     {
@@ -346,7 +347,7 @@ bool CSR_Level::AddBox(const CSR_Matrix4&   matrix,
         if (pBox->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pBox);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -356,7 +357,7 @@ bool CSR_Level::AddBox(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pBox);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -368,31 +369,42 @@ bool CSR_Level::AddBox(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pBox, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pBox, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pBox, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pBox);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pBox, 0);
+        if (fSelectModel)
+            fSelectModel(pBox, 0);
     }
     catch (...)
     {
         csrMeshRelease(pBox);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pBox;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddCylinder(const CSR_Matrix4&   matrix,
-                            const std::string&   textureName,
-                                  int            faces,
-                                  ITfLoadTexture fLoadTexture,
-                                  ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddCylinder(const CSR_Matrix4&       matrix,
+                             const std::string&       textureName,
+                                   int                faces,
+                                   CSR_ECollisionType collisionType,
+                                   ITfLoadTexture     fLoadTexture,
+                                   ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -409,7 +421,7 @@ bool CSR_Level::AddCylinder(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pCylinder)
-        return false;
+        return NULL;
 
     try
     {
@@ -420,7 +432,7 @@ bool CSR_Level::AddCylinder(const CSR_Matrix4&   matrix,
         if (pCylinder->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pCylinder);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -430,7 +442,7 @@ bool CSR_Level::AddCylinder(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pCylinder);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -442,31 +454,42 @@ bool CSR_Level::AddCylinder(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pCylinder, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pCylinder, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pCylinder, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pCylinder);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pCylinder, 0);
+        if (fSelectModel)
+            fSelectModel(pCylinder, 0);
     }
     catch (...)
     {
         csrMeshRelease(pCylinder);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pCylinder;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddDisk(const CSR_Matrix4&   matrix,
-                        const std::string&   textureName,
-                              int            slices,
-                              ITfLoadTexture fLoadTexture,
-                              ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddDisk(const CSR_Matrix4&       matrix,
+                         const std::string&       textureName,
+                               int                slices,
+                               CSR_ECollisionType collisionType,
+                               ITfLoadTexture     fLoadTexture,
+                               ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -483,7 +506,7 @@ bool CSR_Level::AddDisk(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pDisk)
-        return false;
+        return NULL;
 
     try
     {
@@ -494,7 +517,7 @@ bool CSR_Level::AddDisk(const CSR_Matrix4&   matrix,
         if (pDisk->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pDisk);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -504,7 +527,7 @@ bool CSR_Level::AddDisk(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pDisk);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -516,32 +539,43 @@ bool CSR_Level::AddDisk(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pDisk, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pDisk, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pDisk, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pDisk);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pDisk, 0);
+        if (fSelectModel)
+            fSelectModel(pDisk, 0);
     }
     catch (...)
     {
         csrMeshRelease(pDisk);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pDisk;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddRing(const CSR_Matrix4&   matrix,
-                        const std::string&   textureName,
-                              int            slices,
-                              int            radius,
-                              ITfLoadTexture fLoadTexture,
-                              ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddRing(const CSR_Matrix4&       matrix,
+                         const std::string&       textureName,
+                               int                slices,
+                               int                radius,
+                               CSR_ECollisionType collisionType,
+                               ITfLoadTexture     fLoadTexture,
+                               ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -566,7 +600,7 @@ bool CSR_Level::AddRing(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pRing)
-        return false;
+        return NULL;
 
     try
     {
@@ -577,7 +611,7 @@ bool CSR_Level::AddRing(const CSR_Matrix4&   matrix,
         if (pRing->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pRing);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -587,7 +621,7 @@ bool CSR_Level::AddRing(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pRing);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -600,32 +634,43 @@ bool CSR_Level::AddRing(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pRing, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pRing, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pRing, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pRing);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pRing, 0);
+        if (fSelectModel)
+            fSelectModel(pRing, 0);
     }
     catch (...)
     {
         csrMeshRelease(pRing);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pRing;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddSphere(const CSR_Matrix4&   matrix,
-                          const std::string&   textureName,
-                                int            slices,
-                                int            stacks,
-                                ITfLoadTexture fLoadTexture,
-                                ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddSphere(const CSR_Matrix4&       matrix,
+                           const std::string&       textureName,
+                                 int                slices,
+                                 int                stacks,
+                                 CSR_ECollisionType collisionType,
+                                 ITfLoadTexture     fLoadTexture,
+                                 ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -642,7 +687,7 @@ bool CSR_Level::AddSphere(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pSphere)
-        return false;
+        return NULL;
 
     try
     {
@@ -653,7 +698,7 @@ bool CSR_Level::AddSphere(const CSR_Matrix4&   matrix,
         if (pSphere->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pSphere);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -663,7 +708,7 @@ bool CSR_Level::AddSphere(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pSphere);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -676,36 +721,47 @@ bool CSR_Level::AddSphere(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pSphere, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pSphere, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pSphere, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pSphere);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pSphere, 0);
+        if (fSelectModel)
+            fSelectModel(pSphere, 0);
     }
     catch (...)
     {
         csrMeshRelease(pSphere);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pSphere;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddSpiral(const CSR_Matrix4&   matrix,
-                          const std::string&   textureName,
-                                int            radius,
-                                int            deltaMin,
-                                int            deltaMax,
-                                int            deltaZ,
-                                int            slices,
-                                int            stacks,
-                                ITfLoadTexture fLoadTexture,
-                                ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddSpiral(const CSR_Matrix4&       matrix,
+                           const std::string&       textureName,
+                                 int                radius,
+                                 int                deltaMin,
+                                 int                deltaMax,
+                                 int                deltaZ,
+                                 int                slices,
+                                 int                stacks,
+                                 CSR_ECollisionType collisionType,
+                                 ITfLoadTexture     fLoadTexture,
+                                 ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -734,7 +790,7 @@ bool CSR_Level::AddSpiral(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pSpiral)
-        return false;
+        return NULL;
 
     try
     {
@@ -745,7 +801,7 @@ bool CSR_Level::AddSpiral(const CSR_Matrix4&   matrix,
         if (pSpiral->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pSpiral);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -755,7 +811,7 @@ bool CSR_Level::AddSpiral(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pSpiral);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -772,30 +828,41 @@ bool CSR_Level::AddSpiral(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pSpiral, 0, 1);
+        CSR_SceneItem* pSceneItem =csrSceneAddMesh(m_pScene, pSpiral, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pSpiral, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pSpiral);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pSpiral, 0);
+        if (fSelectModel)
+            fSelectModel(pSpiral, 0);
     }
     catch (...)
     {
         csrMeshRelease(pSpiral);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pSpiral;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddSurface(const CSR_Matrix4&   matrix,
-                           const std::string&   textureName,
-                                 ITfLoadTexture fLoadTexture,
-                                 ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddSurface(const CSR_Matrix4&       matrix,
+                            const std::string&       textureName,
+                                  CSR_ECollisionType collisionType,
+                                  ITfLoadTexture     fLoadTexture,
+                                  ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -812,7 +879,7 @@ bool CSR_Level::AddSurface(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pSurface)
-        return false;
+        return NULL;
 
     try
     {
@@ -823,7 +890,7 @@ bool CSR_Level::AddSurface(const CSR_Matrix4&   matrix,
         if (pSurface->m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrMeshRelease(pSurface);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -833,7 +900,7 @@ bool CSR_Level::AddSurface(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMeshRelease(pSurface);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -844,32 +911,43 @@ bool CSR_Level::AddSurface(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMesh(m_pScene, pSurface, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pSurface, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pSurface, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMeshRelease(pSurface);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pSurface, 0);
+        if (fSelectModel)
+            fSelectModel(pSurface, 0);
     }
     catch (...)
     {
         csrMeshRelease(pSurface);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pSurface;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddWaveFront(const CSR_Matrix4&   matrix,
-                             const std::string&   fileName,
-                             const std::string&   textureName,
-                             const CSR_Buffer*    pBuffer,
-                                   ITfLoadTexture fLoadTexture,
-                                   ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddWaveFront(const CSR_Matrix4&       matrix,
+                              const std::string&       fileName,
+                              const std::string&       textureName,
+                              const CSR_Buffer*        pBuffer,
+                                    CSR_ECollisionType collisionType,
+                                    ITfLoadTexture     fLoadTexture,
+                                    ITfSelectModel     fSelectModel)
 {
     // no load texture callback?
     if (!fLoadTexture)
-        return false;
+        return NULL;
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -891,13 +969,13 @@ bool CSR_Level::AddWaveFront(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pModel)
-        return false;
+        return NULL;
 
     // empty model?
     if (!pModel->m_MeshCount)
     {
         csrModelRelease(pModel);
-        return false;
+        return NULL;
     }
 
     try
@@ -909,7 +987,7 @@ bool CSR_Level::AddWaveFront(const CSR_Matrix4&   matrix,
         if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
         {
             csrModelRelease(pModel);
-            return false;
+            return NULL;
         }
 
         // add a new item to the manager
@@ -919,7 +997,7 @@ bool CSR_Level::AddWaveFront(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrModelRelease(pModel);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -931,26 +1009,37 @@ bool CSR_Level::AddWaveFront(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddModel(m_pScene, pModel, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pModel, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrModelRelease(pModel);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pModel, 0);
+        if (fSelectModel)
+            fSelectModel(pModel, 0);
     }
     catch (...)
     {
         csrModelRelease(pModel);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pModel;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddMDL(const CSR_Matrix4&   matrix,
-                       const std::string&   fileName,
-                       const CSR_Buffer*    pBuffer,
-                             ITfSelectModel fSelectModelOnDesigner)
+void* CSR_Level::AddMDL(const CSR_Matrix4&       matrix,
+                        const std::string&       fileName,
+                        const CSR_Buffer*        pBuffer,
+                              CSR_ECollisionType collisionType,
+                              ITfSelectModel     fSelectModel)
 {
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -972,7 +1061,7 @@ bool CSR_Level::AddMDL(const CSR_Matrix4&   matrix,
 
     // succeeded?
     if (!pMDL)
-        return false;
+        return NULL;
 
     try
     {
@@ -983,7 +1072,7 @@ bool CSR_Level::AddMDL(const CSR_Matrix4&   matrix,
         if (!pItem || !pItem->m_Matrices.size())
         {
             csrMDLRelease(pMDL);
-            return false;
+            return NULL;
         }
 
         // keep the model resources
@@ -994,26 +1083,36 @@ bool CSR_Level::AddMDL(const CSR_Matrix4&   matrix,
         *pItem->m_Matrices[pItem->m_Matrices.size() - 1] = matrix;
 
         // add the model to the scene. Generate the AABB tree to allow the mouse collision
-        csrSceneAddMDL(m_pScene, pMDL, 0, 1);
+        CSR_SceneItem* pSceneItem = csrSceneAddMDL(m_pScene, pMDL, 0, collisionType != CSR_CO_None);
         csrSceneAddModelMatrix(m_pScene, pMDL, pItem->m_Matrices[pItem->m_Matrices.size() - 1]);
 
+        // succeeded?
+        if (!pSceneItem)
+        {
+            csrMDLRelease(pMDL);
+            return NULL;
+        }
+
+        // set the collision type
+        pSceneItem->m_CollisionType = collisionType;
+
         // notify the designer about the new selection
-        if (fSelectModelOnDesigner)
-            fSelectModelOnDesigner(pMDL, 0);
+        if (fSelectModel)
+            fSelectModel(pMDL, 0);
     }
     catch (...)
     {
         csrMDLRelease(pMDL);
-        return false;
+        return NULL;
     }
 
-    return true;
+    return pMDL;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddLandscape(const std::string&        fileName,
-                             const std::string&        textureName,
-                             const CSR_Buffer*         pBuffer,
-                                   ITfOnUpdateDesigner fOnUpdateDesigner)
+void* CSR_Level::AddLandscape(const std::string&        fileName,
+                              const std::string&        textureName,
+                              const CSR_Buffer*         pBuffer,
+                                    ITfOnUpdateDesigner fOnUpdateDesigner)
 {
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -1039,14 +1138,17 @@ bool CSR_Level::AddLandscape(const std::string&        fileName,
 
     // succeeded?
     if (!pModel)
-        return false;
+        return NULL;
 
     // add a new item to the manager
     CSR_Level::IItem* pItem = Add(pModel);
 
     // succeeded?
     if (!pItem || !pItem->m_Matrices.size())
-        return false;
+    {
+        csrModelRelease(pModel);
+        return NULL;
+    }
 
     // keep the model resources
     pItem->m_Type                        = CSR_Level::IE_IT_Landscape;
@@ -1059,7 +1161,10 @@ bool CSR_Level::AddLandscape(const std::string&        fileName,
 
     // succeeded?
     if (!pSceneItem)
-        return false;
+    {
+        csrModelRelease(pModel);
+        return NULL;
+    }
 
     // set the collision type
     pSceneItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
@@ -1077,13 +1182,13 @@ bool CSR_Level::AddLandscape(const std::string&        fileName,
         fOnUpdateDesigner(pModel, 0, modelLength);
     }
 
-    return true;
+    return pModel;
 }
 //---------------------------------------------------------------------------
-bool CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
-                                       const std::string&        textureName,
-                                       const CSR_Buffer*         pBuffer,
-                                             ITfOnUpdateDesigner fOnUpdateDesigner)
+void* CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
+                                        const std::string&        textureName,
+                                        const CSR_Buffer*         pBuffer,
+                                              ITfOnUpdateDesigner fOnUpdateDesigner)
 {
     CSR_Model*       pModel  = NULL;
     CSR_PixelBuffer* pBitmap = NULL;
@@ -1112,30 +1217,36 @@ bool CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
 
         // succeeded?
         if (!pBitmap)
-            return false;
+            return NULL;
 
         // create a model to contain the landscape
         pModel = csrModelCreate();
 
         // succeeded?
         if (!pModel)
-            return false;
+            return NULL;
 
         // load the landscape mesh from the grayscale bitmap
         pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
         pModel->m_MeshCount = 1;
     }
-    __finally
+    catch (...)
     {
         csrPixelBufferRelease(pBitmap);
+        return NULL;
     }
+
+    csrPixelBufferRelease(pBitmap);
 
     // add a new item to the manager
     CSR_Level::IItem* pItem = Add(pModel);
 
     // succeeded?
     if (!pItem || !pItem->m_Matrices.size())
-        return false;
+    {
+        csrModelRelease(pModel);
+        return NULL;
+    }
 
     // keep the model resources
     pItem->m_Type                             = CSR_Level::IE_IT_Landscape;
@@ -1148,7 +1259,10 @@ bool CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
 
     // succeeded?
     if (!pSceneItem)
-        return false;
+    {
+        csrModelRelease(pModel);
+        return NULL;
+    }
 
     // set the collision type
     pSceneItem->m_CollisionType = CSR_ECollisionType(CSR_CO_Ground | CSR_CO_Custom);
@@ -1166,7 +1280,34 @@ bool CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
         fOnUpdateDesigner(pModel, 0, modelLength);
     }
 
-    return true;
+    return pModel;
+}
+//---------------------------------------------------------------------------
+int CSR_Level::AddDuplicate(void* pKey, const CSR_Matrix4& matrix, ITfSelectModel fSelectModel)
+{
+    // no key?
+    if (!pKey)
+        return -1;
+
+    // duplicate the model
+    const IItem* pItem = Add(pKey);
+
+    // succeeded?
+    if (!pItem)
+        return -1;
+
+    // get the matrix index
+    const int index = pItem->m_Matrices.size() - 1;
+
+    // add the duplicate matrix in the scene item
+    if (!csrSceneAddModelMatrix(m_pScene, pKey, pItem->m_Matrices[index]))
+        return -1;
+
+    // notify the designer about the new selection
+    if (fSelectModel)
+        fSelectModel(pKey, index);
+
+    return index;
 }
 //---------------------------------------------------------------------------
 bool CSR_Level::OpenSound(const std::string& fileName, const CSR_Buffer* pBuffer)
