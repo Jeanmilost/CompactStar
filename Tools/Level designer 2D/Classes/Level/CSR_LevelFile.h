@@ -29,5 +29,21 @@ class CSR_LevelFile
     public:
         CSR_LevelFile();
         virtual ~CSR_LevelFile();
+
+        /**
+        * Loads the level
+        *@param fileName - level file name
+        *@param[in, out] level - level to load
+        *@return true on success, otherwise false
+        */
+        virtual bool Load(const std::string& fileName, CSR_Level& level) = 0;
+
+        /**
+        * Saves the level
+        *@param fileName - level file name
+        *@param level - level to save
+        *@return true on success, otherwise false
+        */
+        virtual bool Save(const std::string& fileName, const CSR_Level& level) const = 0;
 };
 #endif

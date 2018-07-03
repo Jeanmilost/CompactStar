@@ -25,61 +25,73 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
-#define M_CSR_Xml_Header                 "xml version=\"1.0\" encoding=\"UTF-8\""
-#define M_CSR_Xml_Tag_Level              "level"
-#define M_CSR_Xml_Tag_Scene              "scene"
-#define M_CSR_Xml_Tag_Scene_Item         "scene_item"
-#define M_CSR_Xml_Tag_Shape_Type         "shape_type"
-#define M_CSR_Xml_Tag_Collision_Type     "collision_type"
-#define M_CSR_Xml_Tag_Skybox             "skybox"
-#define M_CSR_Xml_Tag_Sound              "sound"
-#define M_CSR_Xml_Tag_Landscape_Map_File "landscape_map_file"
-#define M_CSR_Xml_Tag_Model_File         "model_file"
-#define M_CSR_Xml_Tag_Texture_File       "texture_file"
-#define M_CSR_Xml_Tag_Bumpmap_File       "bumpmap_file"
-#define M_CSR_Xml_Tag_Left_File          "left_file"
-#define M_CSR_Xml_Tag_Top_File           "top_file"
-#define M_CSR_Xml_Tag_Right_File         "right_file"
-#define M_CSR_Xml_Tag_Bottom_File        "bottom_file"
-#define M_CSR_Xml_Tag_Front_File         "front_file"
-#define M_CSR_Xml_Tag_Back_File          "back_file"
-#define M_CSR_Xml_Tag_File               "file"
-#define M_CSR_Xml_Tag_Name               "name"
-#define M_CSR_Xml_Tag_Content            "content"
-#define M_CSR_Xml_Tag_Bg_Color           "bg_color"
-#define M_CSR_Xml_Tag_Proj_Mat           "proj_mat"
-#define M_CSR_Xml_Tag_View_Mat           "view_mat"
-#define M_CSR_Xml_Tag_Model_Mat          "model_mat"
-#define M_CSR_Xml_Tag_Ground_Dir         "ground_dir"
-#define M_CSR_Xml_Attribute_X            "x"
-#define M_CSR_Xml_Attribute_Y            "y"
-#define M_CSR_Xml_Attribute_Z            "z"
-#define M_CSR_Xml_Attribute_R            "r"
-#define M_CSR_Xml_Attribute_G            "g"
-#define M_CSR_Xml_Attribute_B            "b"
-#define M_CSR_Xml_Attribute_A            "a"
-#define M_CSR_Xml_Attribute_11           "_11"
-#define M_CSR_Xml_Attribute_12           "_12"
-#define M_CSR_Xml_Attribute_13           "_13"
-#define M_CSR_Xml_Attribute_14           "_14"
-#define M_CSR_Xml_Attribute_21           "_21"
-#define M_CSR_Xml_Attribute_22           "_22"
-#define M_CSR_Xml_Attribute_23           "_23"
-#define M_CSR_Xml_Attribute_24           "_24"
-#define M_CSR_Xml_Attribute_31           "_31"
-#define M_CSR_Xml_Attribute_32           "_32"
-#define M_CSR_Xml_Attribute_33           "_33"
-#define M_CSR_Xml_Attribute_34           "_34"
-#define M_CSR_Xml_Attribute_41           "_41"
-#define M_CSR_Xml_Attribute_42           "_42"
-#define M_CSR_Xml_Attribute_43           "_43"
-#define M_CSR_Xml_Attribute_44           "_44"
+#define M_CSR_Xml_Header                          "xml version=\"1.0\" encoding=\"UTF-8\""
+#define M_CSR_Xml_Tag_Level                       "level"
+#define M_CSR_Xml_Tag_Scene                       "scene"
+#define M_CSR_Xml_Tag_Scene_Item                  "scene_item"
+#define M_CSR_Xml_Tag_Shape_Type                  "shape_type"
+#define M_CSR_Xml_Tag_Collision_Type              "collision_type"
+#define M_CSR_Xml_Tag_Skybox                      "skybox"
+#define M_CSR_Xml_Tag_Sound                       "sound"
+#define M_CSR_Xml_Tag_Landscape_Map_File          "landscape_map_file"
+#define M_CSR_Xml_Tag_Model_File                  "model_file"
+#define M_CSR_Xml_Tag_Texture_File                "texture_file"
+#define M_CSR_Xml_Tag_Bumpmap_File                "bumpmap_file"
+#define M_CSR_Xml_Tag_Left_File                   "left_file"
+#define M_CSR_Xml_Tag_Top_File                    "top_file"
+#define M_CSR_Xml_Tag_Right_File                  "right_file"
+#define M_CSR_Xml_Tag_Bottom_File                 "bottom_file"
+#define M_CSR_Xml_Tag_Front_File                  "front_file"
+#define M_CSR_Xml_Tag_Back_File                   "back_file"
+#define M_CSR_Xml_Tag_File                        "file"
+#define M_CSR_Xml_Tag_Name                        "name"
+#define M_CSR_Xml_Tag_Content                     "content"
+#define M_CSR_Xml_Tag_Bg_Color                    "bg_color"
+#define M_CSR_Xml_Tag_Proj_Mat                    "proj_mat"
+#define M_CSR_Xml_Tag_View_Mat                    "view_mat"
+#define M_CSR_Xml_Tag_Model_Mat                   "model_mat"
+#define M_CSR_Xml_Tag_Ground_Dir                  "ground_dir"
+#define M_CSR_Xml_Tag_Repeat_Texture_On_Each_Face "repeat_texture_on_each_face"
+#define M_CSR_Xml_Tag_Slices                      "slices"
+#define M_CSR_Xml_Tag_Stacks                      "stacks"
+#define M_CSR_Xml_Tag_Faces                       "faces"
+#define M_CSR_Xml_Tag_Radius                      "radius"
+#define M_CSR_Xml_Tag_Delta_Min                   "delta_min"
+#define M_CSR_Xml_Tag_Delta_Max                   "delta_max"
+#define M_CSR_Xml_Tag_Delta_Z                     "delta_z"
+#define M_CSR_Xml_Attribute_X                     "x"
+#define M_CSR_Xml_Attribute_Y                     "y"
+#define M_CSR_Xml_Attribute_Z                     "z"
+#define M_CSR_Xml_Attribute_R                     "r"
+#define M_CSR_Xml_Attribute_G                     "g"
+#define M_CSR_Xml_Attribute_B                     "b"
+#define M_CSR_Xml_Attribute_A                     "a"
+#define M_CSR_Xml_Attribute_11                    "_11"
+#define M_CSR_Xml_Attribute_12                    "_12"
+#define M_CSR_Xml_Attribute_13                    "_13"
+#define M_CSR_Xml_Attribute_14                    "_14"
+#define M_CSR_Xml_Attribute_21                    "_21"
+#define M_CSR_Xml_Attribute_22                    "_22"
+#define M_CSR_Xml_Attribute_23                    "_23"
+#define M_CSR_Xml_Attribute_24                    "_24"
+#define M_CSR_Xml_Attribute_31                    "_31"
+#define M_CSR_Xml_Attribute_32                    "_32"
+#define M_CSR_Xml_Attribute_33                    "_33"
+#define M_CSR_Xml_Attribute_34                    "_34"
+#define M_CSR_Xml_Attribute_41                    "_41"
+#define M_CSR_Xml_Attribute_42                    "_42"
+#define M_CSR_Xml_Attribute_43                    "_43"
+#define M_CSR_Xml_Attribute_44                    "_44"
 //---------------------------------------------------------------------------
 // CSR_LevelFile_XML
 //---------------------------------------------------------------------------
 CSR_LevelFile_XML::CSR_LevelFile_XML(const std::string& sceneDir) :
     m_SceneDir(sceneDir),
-    m_SaveContent(false)
+    m_SaveContent(false),
+    m_fOnLoadCubemap(NULL),
+    m_fOnLoadTexture(NULL),
+    m_fOnSelectModel(NULL),
+    m_fOnUpdateDesigner(NULL)
 {}
 //---------------------------------------------------------------------------
 CSR_LevelFile_XML::~CSR_LevelFile_XML()
@@ -172,6 +184,65 @@ bool CSR_LevelFile_XML::Save(const std::string& fileName, const CSR_Level& level
     return true;
 }
 //---------------------------------------------------------------------------
+const CSR_Buffer* CSR_LevelFile_XML::GetFile(const std::string& fileName)
+{
+    // get the buffer matching with file name
+    IFiles::iterator it = m_Files.find(fileName);
+
+    // found it?
+    if (it != m_Files.end())
+    {
+        // is buffer empty?
+        if (!it->second)
+        {
+            // open the file
+            std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen((m_SceneDir + fileName).c_str()));
+
+            // succeeded?
+            if (!pBuffer.get())
+                return NULL;
+
+            // add to the file list
+            it->second = pBuffer.get();
+            pBuffer.release();
+        }
+
+        return it->second;
+    }
+
+    // open the file
+    std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen((m_SceneDir + fileName).c_str()));
+
+    // succeeded?
+    if (!pBuffer.get())
+        return NULL;
+
+    // add to the file list
+    m_Files[fileName] = pBuffer.get();
+
+    return pBuffer.release();
+}
+//---------------------------------------------------------------------------
+void CSR_LevelFile_XML::Set_OnLoadCubemap(CSR_Level::ITfLoadCubemap fHandler)
+{
+    m_fOnLoadCubemap = fHandler;
+}
+//---------------------------------------------------------------------------
+void CSR_LevelFile_XML::Set_OnLoadTexture(CSR_Level::ITfLoadTexture fHandler)
+{
+    m_fOnLoadTexture = fHandler;
+}
+//---------------------------------------------------------------------------
+void CSR_LevelFile_XML::Set_OnSelectModel(CSR_Level::ITfSelectModel fHandler)
+{
+    m_fOnSelectModel = fHandler;
+}
+//---------------------------------------------------------------------------
+void CSR_LevelFile_XML::Set_OnUpdateDesigner(CSR_Level::ITfOnUpdateDesigner fHandler)
+{
+    m_fOnUpdateDesigner = fHandler;
+}
+//---------------------------------------------------------------------------
 void CSR_LevelFile_XML::Clear()
 {
     // delete all the read files
@@ -216,72 +287,13 @@ bool CSR_LevelFile_XML::Read(const XMLNode* pNode, CSR_Level& level)
 //---------------------------------------------------------------------------
 bool CSR_LevelFile_XML::ReadScene(const XMLNode* pNode, CSR_Level& level)
 {
-    /*REM
-    XMLNode* pChild = NULL;
+    // create the scene
+    CSR_Scene* pScene = level.CreateScene();
 
-    try
-    {
-        // create new xml node to contain the scene data
-        pChild = AddTag(pNode, M_CSR_Xml_Tag_Scene);
+    // found it?
+    if (!pScene)
+        return false;
 
-        // succeeded?
-        if (!pChild)
-            return false;
-
-        // write the scene backgroud color
-        if (!WriteColor(pChild, M_CSR_Xml_Tag_Bg_Color, &pScene->m_Color))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // write the scene projection matrix
-        if (!WriteMatrix(pChild, M_CSR_Xml_Tag_Proj_Mat, &pScene->m_ProjectionMatrix))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // write the scene view matrix
-        if (!WriteMatrix(pChild, M_CSR_Xml_Tag_View_Mat, &pScene->m_ViewMatrix))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // write the scene ground dir
-        if (!WriteVector(pChild, M_CSR_Xml_Tag_Ground_Dir, &pScene->m_GroundDir))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // write the scene items
-        for (std::size_t i = 0; i < pScene->m_ItemCount; ++i)
-            if (!WriteSceneItem(pChild, &pScene->m_pItem[i], level.Get(pScene->m_pItem[i].m_pModel)))
-            {
-                XMLNode_free(pChild);
-                return false;
-            }
-
-        // write the scene transparent items
-        for (std::size_t i = 0; i < pScene->m_TransparentItemCount; ++i)
-            if (!WriteSceneItem(pChild,
-                               &pScene->m_pTransparentItem[i],
-                                level.Get(pScene->m_pTransparentItem[i].m_pModel)))
-            {
-                XMLNode_free(pChild);
-                return false;
-            }
-    }
-    catch (...)
-    {
-        XMLNode_free(pChild);
-        throw;
-    }
-
-    return true;
-    */
     // iterate through node children
     for (int i = 0; i < pNode->n_children; ++i)
     {
@@ -291,110 +303,50 @@ bool CSR_LevelFile_XML::ReadScene(const XMLNode* pNode, CSR_Level& level)
         // found it?
         if (!pChild)
             continue;
+
+        // found an useful tag?
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Bg_Color) == 0)
+        {
+            // found the background color
+            if (!ReadColor(pChild, &pScene->m_Color))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Proj_Mat) == 0)
+        {
+            // found the projection matrix
+            if (!ReadMatrix(pChild, &pScene->m_ProjectionMatrix))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_View_Mat) == 0)
+        {
+            // found the view matrix
+            if (!ReadMatrix(pChild, &pScene->m_ViewMatrix))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Ground_Dir) == 0)
+        {
+            // found the view matrix
+            if (!ReadVector(pChild, &pScene->m_GroundDir))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Scene_Item) == 0)
+            // found the view matrix
+            if (!ReadSceneItem(pChild, level))
+                return false;
     }
+
+    return true;
 }
 //---------------------------------------------------------------------------
 bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
 {
-    /*REM
-    // validate the inputs
-    if (!pSceneItem || !pLevelItem)
-        return false;
+    CSR_Level::IItem   item;
+    CSR_ECollisionType collisionType = CSR_CO_None;
 
-    XMLNode* pChild = NULL;
-
-    try
-    {
-        // create new xml node to contain the skybox
-        pChild = AddTag(pNode, M_CSR_Xml_Tag_Scene_Item);
-
-        // succeeded?
-        if (!pChild)
-            return false;
-
-        // write the shape type
-        if (!AddTag(pChild, M_CSR_Xml_Tag_Shape_Type, pLevelItem->m_Resource.m_ShapeType))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // write the collision type
-        if (!AddTag(pChild, M_CSR_Xml_Tag_Collision_Type, pSceneItem->m_CollisionType))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
-
-        // if the shape type is a model, write his resources
-        switch (pLevelItem->m_Resource.m_ShapeType)
-        {
-            case CSR_LevelManager::IE_S_Landscape:
-                // write the landscape map, if exists
-                if (!pLevelItem->m_Resource.m_Files.m_LandscapeMap.empty())
-                {
-                    if (!WriteFile(pChild, M_CSR_Xml_Tag_File, pLevelItem->m_Resource.m_Files.m_LandscapeMap))
-                    {
-                        XMLNode_free(pChild);
-                        return false;
-                    }
-
-                    break;
-                }
-
-                // NOTE don't break because the landscape may be a model too
-
-            case CSR_LevelManager::IE_S_WaveFront:
-            case CSR_LevelManager::IE_S_MDL:
-                // write the landscape model, if exists
-                if (!pLevelItem->m_Resource.m_Files.m_Model.empty())
-                    if (!WriteFile(pChild, M_CSR_Xml_Tag_File, pLevelItem->m_Resource.m_Files.m_Model))
-                    {
-                        XMLNode_free(pChild);
-                        return false;
-                    }
-
-                break;
-        }
-
-        // write the texture, if exists
-        if (!pLevelItem->m_Resource.m_Files.m_Texture.empty())
-            if (!WriteFile(pChild, M_CSR_Xml_Tag_File, pLevelItem->m_Resource.m_Files.m_Texture))
-            {
-                XMLNode_free(pChild);
-                return false;
-            }
-
-        // write the bump map, if exists
-        if (!pLevelItem->m_Resource.m_Files.m_BumpMap.empty())
-            if (!WriteFile(pChild, M_CSR_Xml_Tag_File, pLevelItem->m_Resource.m_Files.m_BumpMap))
-            {
-                XMLNode_free(pChild);
-                return false;
-            }
-
-        // write the model matrices
-        if (pSceneItem->m_pMatrixArray)
-            for (std::size_t i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
-                if (!WriteMatrix(pChild,
-                                 M_CSR_Xml_Tag_Model_Mat,
-                                 (CSR_Matrix4*)(pSceneItem->m_pMatrixArray[i]).m_pItem->m_pData))
-                {
-                    XMLNode_free(pChild);
-                    return false;
-                }
-    }
-    catch (...)
-    {
-        XMLNode_free(pChild);
-        throw;
-    }
-
-    return true;
-    */
-
-
-    /*
     // iterate through node children
     for (int i = 0; i < pNode->n_children; ++i)
     {
@@ -408,54 +360,278 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         // found an useful tag?
         if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Shape_Type) == 0)
             // found the shape type to build
-            shapeType = std::atoi(pChild->text);
+            item.m_Type = CSR_Level::IEItemType(std::atoi(pChild->text));
         else
-        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Shape_Type) == 0)
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Collision_Type) == 0)
             // found the collision type to apply
-            collisionType = std::atoi(pChild->text);
+            collisionType = CSR_ECollisionType(std::atoi(pChild->text));
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Repeat_Texture_On_Each_Face) == 0)
+            // found if texture should be repeated on each face
+            item.m_Resources.m_RepeatTextureOnEachFace = bool(std::atoi(pChild->text));
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Slices) == 0)
+            // found the slice count
+            item.m_Resources.m_Slices = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Stacks) == 0)
+            // found the stack count
+            item.m_Resources.m_Stacks = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Faces) == 0)
+            // found the face count
+            item.m_Resources.m_Faces = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Radius) == 0)
+            // found the radius
+            item.m_Resources.m_Radius = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Delta_Min) == 0)
+            // found the delta min value
+            item.m_Resources.m_DeltaMin = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Delta_Max) == 0)
+            // found the delta max value
+            item.m_Resources.m_DeltaMax = std::atoi(pChild->text);
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Delta_Z) == 0)
+            // found the delta z value
+            item.m_Resources.m_DeltaZ = std::atoi(pChild->text);
         else
         if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Landscape_Map_File) == 0)
         {
-            // found the landscape map
-            if (!ReadFile(pChild, files.m_LandscapeMap))
+            // found the landscape map file name
+            if (!ReadFile(pChild, item.m_Resources.m_Files.m_LandscapeMap))
                 return false;
         }
         else
         if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Model_File) == 0)
         {
-            if (!ReadFile(pChild, files.m_Model))
+            // found the model file name
+            if (!ReadFile(pChild, item.m_Resources.m_Files.m_Model))
                 return false;
         }
         else
         if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Texture_File) == 0)
         {
-            if (!ReadFile(pChild, files.m_Texture))
+            // found the texture file name
+            if (!ReadFile(pChild, item.m_Resources.m_Files.m_Texture))
                 return false;
         }
         else
         if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Bumpmap_File) == 0)
-            if (!ReadFile(pChild, files.m_BumpMap))
+        {
+            // found the bumpmap file name
+            if (!ReadFile(pChild, item.m_Resources.m_Files.m_BumpMap))
                 return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Model_Mat) == 0)
+        {
+            // create a new matrix
+            std::auto_ptr<CSR_Matrix4> pMatrix(new CSR_Matrix4());
+
+            // read his content
+            if (!ReadMatrix(pChild, pMatrix.get()))
+                return false;
+
+            // add it to the item
+            item.m_Matrices.push_back(pMatrix.get());
+            pMatrix.release();
+        }
     }
 
-    // if the shape type is a model, write his resources
-    switch (shapeType)
+    // item should at least contain one matrix
+    if (!item.m_Matrices.size())
+        return false;
+
+    void* pKey = NULL;
+
+    // search for model type to build
+    switch (item.m_Type)
     {
-        case CSR_LevelManager::IE_S_Landscape:
-        {
-        }
+        case CSR_Level::IE_IT_Surface:
+            // add the surface
+            pKey = level.AddSurface(*item.m_Matrices[0],
+                                     item.m_Resources.m_Files.m_Texture,
+                                     collisionType,
+                                     m_fOnLoadTexture,
+                                     m_fOnSelectModel);
 
-        case CSR_LevelManager::IE_S_WaveFront:
-        {
-            break;
-        }
+            if (!pKey)
+                return false;
 
-        case CSR_LevelManager::IE_S_MDL:
-        {
             break;
-        }
+
+        case CSR_Level::IE_IT_Box:
+            // add the box
+            pKey = level.AddBox(*item.m_Matrices[0],
+                                 item.m_Resources.m_Files.m_Texture,
+                                 item.m_Resources.m_RepeatTextureOnEachFace,
+                                 collisionType,
+                                 m_fOnLoadTexture,
+                                 m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Sphere:
+            // add the sphere
+            pKey = level.AddSphere(*item.m_Matrices[0],
+                                    item.m_Resources.m_Files.m_Texture,
+                                    item.m_Resources.m_Slices,
+                                    item.m_Resources.m_Stacks,
+                                    collisionType,
+                                    m_fOnLoadTexture,
+                                    m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Cylinder:
+            // add the cylinder
+            pKey = level.AddCylinder(*item.m_Matrices[0],
+                                      item.m_Resources.m_Files.m_Texture,
+                                      item.m_Resources.m_Faces,
+                                      collisionType,
+                                      m_fOnLoadTexture,
+                                      m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Disk:
+            // add the disk
+            pKey = level.AddDisk(*item.m_Matrices[0],
+                                  item.m_Resources.m_Files.m_Texture,
+                                  item.m_Resources.m_Slices,
+                                  collisionType,
+                                  m_fOnLoadTexture,
+                                  m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Ring:
+            // add the ring
+            pKey = level.AddRing(*item.m_Matrices[0],
+                                  item.m_Resources.m_Files.m_Texture,
+                                  item.m_Resources.m_Slices,
+                                  item.m_Resources.m_Radius,
+                                  collisionType,
+                                  m_fOnLoadTexture,
+                                  m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Spiral:
+            // add the spiral
+            pKey = level.AddSpiral(*item.m_Matrices[0],
+                                    item.m_Resources.m_Files.m_Texture,
+                                    item.m_Resources.m_Radius,
+                                    item.m_Resources.m_DeltaMin,
+                                    item.m_Resources.m_DeltaMax,
+                                    item.m_Resources.m_DeltaZ,
+                                    item.m_Resources.m_Slices,
+                                    item.m_Resources.m_Stacks,
+                                    collisionType,
+                                    m_fOnLoadTexture,
+                                    m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_Landscape:
+            // add the landscape
+            if (!item.m_Resources.m_Files.m_LandscapeMap.empty())
+                pKey = level.AddLandscapeFromBitmap(item.m_Resources.m_Files.m_LandscapeMap,
+                                                    item.m_Resources.m_Files.m_Texture,
+                                                    GetFile(item.m_Resources.m_Files.m_LandscapeMap),
+                                                    m_fOnUpdateDesigner);
+            else
+            if (!item.m_Resources.m_Files.m_Model.empty())
+                pKey = level.AddLandscape(item.m_Resources.m_Files.m_Model,
+                                          item.m_Resources.m_Files.m_Texture,
+                                          GetFile(item.m_Resources.m_Files.m_LandscapeMap),
+                                          m_fOnUpdateDesigner);
+
+            if (!pKey)
+                return false;
+
+            // can load the texture?
+            if (!item.m_Resources.m_Files.m_Texture.empty() && m_fOnLoadTexture)
+            {
+                // get back the landscape model from the key
+                const CSR_Model* pModel = static_cast<CSR_Model*>(pKey);
+
+                // found it?
+                if (!pModel || !pModel->m_MeshCount)
+                    return false;
+
+                // load the texture
+                pModel->m_pMesh[0].m_Shader.m_TextureID =
+                        m_fOnLoadTexture(item.m_Resources.m_Files.m_Texture);
+
+                // failed?
+                if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+                    return false;
+            }
+
+            break;
+
+
+        case CSR_Level::IE_IT_WaveFront:
+            // add the WaveFront model
+            pKey = level.AddWaveFront(*item.m_Matrices[0],
+                                       item.m_Resources.m_Files.m_Model,
+                                       item.m_Resources.m_Files.m_Texture,
+                                       GetFile(item.m_Resources.m_Files.m_Model),
+                                       collisionType,
+                                       m_fOnLoadTexture,
+                                       m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        case CSR_Level::IE_IT_MDL:
+            // add the Quake I model
+            pKey = level.AddMDL(*item.m_Matrices[0],
+                                 item.m_Resources.m_Files.m_Model,
+                                 GetFile(item.m_Resources.m_Files.m_Model),
+                                 collisionType,
+                                 m_fOnSelectModel);
+
+            if (!pKey)
+                return false;
+
+            break;
+
+        default:
+            // unknown model
+            return false;
     }
-    */
+
+    // read the matrices
+    for (std::size_t i = 0; i < item.m_Matrices.size(); ++i)
+        if (level.AddDuplicate(pKey, *item.m_Matrices[i], m_fOnSelectModel) == -1)
+            return false;
+
+    return true;
 }
 //---------------------------------------------------------------------------
 bool CSR_LevelFile_XML::ReadSkybox(const XMLNode* pNode, CSR_Level& level)
@@ -519,6 +695,18 @@ bool CSR_LevelFile_XML::ReadSkybox(const XMLNode* pNode, CSR_Level& level)
         }
     }
 
+    CSR_Level::IFileNames fileNames;
+    fileNames.push_back(level.m_Skybox.m_Right);
+    fileNames.push_back(level.m_Skybox.m_Left);
+    fileNames.push_back(level.m_Skybox.m_Top);
+    fileNames.push_back(level.m_Skybox.m_Bottom);
+    fileNames.push_back(level.m_Skybox.m_Front);
+    fileNames.push_back(level.m_Skybox.m_Back);
+
+    // add the skybox
+    if (!level.AddSkybox(fileNames, m_fOnLoadCubemap))
+        return false;
+
     return true;
 }
 //---------------------------------------------------------------------------
@@ -539,6 +727,10 @@ bool CSR_LevelFile_XML::ReadSound(const XMLNode* pNode, CSR_Level& level)
             if (!ReadFile(pChild, level.m_Sound.m_FileName))
                 return false;
     }
+
+    // open the ambient sound
+    if (!level.OpenSound(level.m_Sound.m_FileName, GetFile(level.m_Sound.m_FileName)))
+        return false;
 
     return true;
 }
@@ -963,15 +1155,140 @@ bool CSR_LevelFile_XML::WriteSceneItem(      XMLNode*          pNode,
         }
 
         // write the collision type
-        if (!AddTag(pChild, M_CSR_Xml_Tag_Collision_Type, pSceneItem->m_CollisionType))
-        {
-            XMLNode_free(pChild);
-            return false;
-        }
+        if (pSceneItem->m_CollisionType != CSR_CO_None)
+            if (!AddTag(pChild, M_CSR_Xml_Tag_Collision_Type, pSceneItem->m_CollisionType))
+            {
+                XMLNode_free(pChild);
+                return false;
+            }
 
-        // if the shape type is a model, write his resources
+        // search for the model type to write
         switch (pLevelItem->m_Type)
         {
+            case CSR_Level::IE_IT_Box:
+                // write if the texture should be repeated on each face
+                if (pLevelItem->m_Resources.m_RepeatTextureOnEachFace)
+                    if (!AddTag(pChild,
+                                M_CSR_Xml_Tag_Repeat_Texture_On_Each_Face,
+                                pLevelItem->m_Resources.m_RepeatTextureOnEachFace))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
+            case CSR_Level::IE_IT_Sphere:
+                // write the slice count
+                if (pLevelItem->m_Resources.m_Slices)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Slices, pLevelItem->m_Resources.m_Slices))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the stack count
+                if (pLevelItem->m_Resources.m_Stacks)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Stacks, pLevelItem->m_Resources.m_Stacks))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
+            case CSR_Level::IE_IT_Cylinder:
+                // write the face count
+                if (pLevelItem->m_Resources.m_Faces)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Faces, pLevelItem->m_Resources.m_Faces))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
+            case CSR_Level::IE_IT_Disk:
+                // write the slice count
+                if (pLevelItem->m_Resources.m_Slices)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Slices, pLevelItem->m_Resources.m_Slices))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
+            case CSR_Level::IE_IT_Ring:
+                // write the slice count
+                if (pLevelItem->m_Resources.m_Slices)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Slices, pLevelItem->m_Resources.m_Slices))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the radius
+                if (pLevelItem->m_Resources.m_Radius)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Radius, pLevelItem->m_Resources.m_Radius))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
+            case CSR_Level::IE_IT_Spiral:
+                // write the radius
+                if (pLevelItem->m_Resources.m_Radius)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Radius, pLevelItem->m_Resources.m_Radius))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the delta min value
+                if (pLevelItem->m_Resources.m_DeltaMin)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Delta_Min, pLevelItem->m_Resources.m_DeltaMin))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the delta max value
+                if (pLevelItem->m_Resources.m_DeltaMax)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Delta_Max, pLevelItem->m_Resources.m_DeltaMax))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the delta z value
+                if (pLevelItem->m_Resources.m_DeltaZ)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Delta_Z, pLevelItem->m_Resources.m_DeltaZ))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the slice count
+                if (pLevelItem->m_Resources.m_Slices)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Slices, pLevelItem->m_Resources.m_Slices))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                // write the stack count
+                if (pLevelItem->m_Resources.m_Stacks)
+                    if (!AddTag(pChild, M_CSR_Xml_Tag_Stacks, pLevelItem->m_Resources.m_Stacks))
+                    {
+                        XMLNode_free(pChild);
+                        return false;
+                    }
+
+                break;
+
             case CSR_Level::IE_IT_Landscape:
                 // write the landscape map, if exists
                 if (!pLevelItem->m_Resources.m_Files.m_LandscapeMap.empty())
