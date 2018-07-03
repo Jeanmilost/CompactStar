@@ -759,7 +759,7 @@ CSR_SceneItem* csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transpare
         ++pScene->m_ItemCount;
     }
 
-    return pItem;
+    return &pItem[index];
 }
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transparent, int aabb)
@@ -894,7 +894,7 @@ CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transp
         ++pScene->m_ItemCount;
     }
 
-    return pItem;
+    return &pItem[index];
 }
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent, int aabb)
@@ -1030,7 +1030,7 @@ CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent,
         ++pScene->m_ItemCount;
     }
 
-    return pItem;
+    return &pItem[index];
 }
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix)

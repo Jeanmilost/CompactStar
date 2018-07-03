@@ -39,11 +39,9 @@ class CSR_LevelFile_XML
     public:
         /**
         * Constructor
-        *@param sceneDir - path to the scene dir, if empty the full name of each file will be used
-        *@note The sceneDir should be terminated by a valid file separator, according to the target
-        *      OS file system
+        *@param levelDir - path to the level dir
         */
-        CSR_LevelFile_XML(const std::string& sceneDir);
+        CSR_LevelFile_XML(const std::string& levelDir);
 
         virtual ~CSR_LevelFile_XML();
 
@@ -97,7 +95,7 @@ class CSR_LevelFile_XML
     private:
         typedef std::map<std::string, CSR_Buffer*> IFiles;
 
-        std::string                    m_SceneDir;
+        std::string                    m_LevelDir;
         IFiles                         m_Files;
         bool                           m_SaveContent;
         CSR_Level::ITfLoadCubemap      m_fOnLoadCubemap;
@@ -110,8 +108,34 @@ class CSR_LevelFile_XML
         */
         void Clear();
 
+        /**
+        * Converts a relative file name to absolute
+        *@param fileName - relative file name to convert
+        *@return absolute file name
+        */
+        std::string RelativeToAbsolute(const std::string& fileName) const;
+
+        /**
+        * Converts an absolute file name to relative
+        *@param fileName - absolute file name to convert
+        *@return relative file name
+        */
+        std::string AbsoluteToRelative(const std::string& fileName) const;
+
+        /**
+        * Reads a level
+        *@param pNode - xml node containing the scene to read
+        *@param[in, out] level - level to populate with the read values
+        *@return true on success, otherwise false
+        */
         bool Read(const XMLNode* pNode, CSR_Level& level);
 
+        /**
+        * Reads a scene
+        *@param pNode - xml node containing the scene to read
+        *@param[in, out] level - level in which the scene should be added
+        *@return true on success, otherwise false
+        */
         bool ReadScene(const XMLNode* pNode, CSR_Level& level);
 
         /**

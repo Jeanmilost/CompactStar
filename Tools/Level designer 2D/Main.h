@@ -270,8 +270,9 @@ class TMainForm : public TForm
 
         /**
         * Initializes the viewpoint
+        *@param pMatrix - matrix from which the viewpoint should be initialized
         */
-        void InitializeViewPoint();
+        void InitializeViewPoint(const CSR_Matrix4* pMatrix);
 
         /**
         * Creates a default scene

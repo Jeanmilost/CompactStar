@@ -25,6 +25,10 @@
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
+#define M_CSR_OS_Separator '\\'
+//---------------------------------------------------------------------------
+// XML tags
+//---------------------------------------------------------------------------
 #define M_CSR_Xml_Header                          "xml version=\"1.0\" encoding=\"UTF-8\""
 #define M_CSR_Xml_Tag_Level                       "level"
 #define M_CSR_Xml_Tag_Scene                       "scene"
@@ -85,8 +89,8 @@
 //---------------------------------------------------------------------------
 // CSR_LevelFile_XML
 //---------------------------------------------------------------------------
-CSR_LevelFile_XML::CSR_LevelFile_XML(const std::string& sceneDir) :
-    m_SceneDir(sceneDir),
+CSR_LevelFile_XML::CSR_LevelFile_XML(const std::string& levelDir) :
+    m_LevelDir(levelDir),
     m_SaveContent(false),
     m_fOnLoadCubemap(NULL),
     m_fOnLoadTexture(NULL),
@@ -119,24 +123,32 @@ bool CSR_LevelFile_XML::Load(const std::string& fileName, CSR_Level& level)
 
         // found it?
         if (!pNode)
+        {
+            XMLDoc_free(&doc);
             return false;
+        }
 
         // is the correct node?
         if (std::strcmp(pNode->tag, M_CSR_Xml_Tag_Level) != 0)
+        {
+            XMLDoc_free(&doc);
             return false;
+        }
 
         // was document created correctly?
         if (!Read(pNode, level))
+        {
+            XMLDoc_free(&doc);
             return false;
+        }
     }
     catch (...)
     {
         XMLDoc_free(&doc);
-        return NULL;
+        return false;
     }
 
     XMLDoc_free(&doc);
-
     return true;
 }
 //---------------------------------------------------------------------------
@@ -186,8 +198,10 @@ bool CSR_LevelFile_XML::Save(const std::string& fileName, const CSR_Level& level
 //---------------------------------------------------------------------------
 const CSR_Buffer* CSR_LevelFile_XML::GetFile(const std::string& fileName)
 {
+    const std::string absoluteFileName = RelativeToAbsolute(fileName);
+
     // get the buffer matching with file name
-    IFiles::iterator it = m_Files.find(fileName);
+    IFiles::iterator it = m_Files.find(absoluteFileName);
 
     // found it?
     if (it != m_Files.end())
@@ -196,7 +210,7 @@ const CSR_Buffer* CSR_LevelFile_XML::GetFile(const std::string& fileName)
         if (!it->second)
         {
             // open the file
-            std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen((m_SceneDir + fileName).c_str()));
+            std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen(absoluteFileName.c_str()));
 
             // succeeded?
             if (!pBuffer.get())
@@ -211,14 +225,14 @@ const CSR_Buffer* CSR_LevelFile_XML::GetFile(const std::string& fileName)
     }
 
     // open the file
-    std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen((m_SceneDir + fileName).c_str()));
+    std::auto_ptr<CSR_Buffer> pBuffer(csrFileOpen(absoluteFileName.c_str()));
 
     // succeeded?
     if (!pBuffer.get())
         return NULL;
 
     // add to the file list
-    m_Files[fileName] = pBuffer.get();
+    m_Files[absoluteFileName] = pBuffer.get();
 
     return pBuffer.release();
 }
@@ -247,9 +261,50 @@ void CSR_LevelFile_XML::Clear()
 {
     // delete all the read files
     for (IFiles::iterator it = m_Files.begin(); it != m_Files.end(); ++it)
-        delete it->second;
+        csrBufferRelease(it->second);
 
     m_Files.clear();
+}
+//---------------------------------------------------------------------------
+std::string CSR_LevelFile_XML::RelativeToAbsolute(const std::string& fileName) const
+{
+    std::string absolute = fileName;
+
+    // remove the first separator, if any
+    if (!absolute.empty() && absolute[0] == M_CSR_OS_Separator)
+        absolute = absolute.substr(1, absolute.length() - 1);
+
+    // no path to the level dir?
+    if (m_LevelDir.empty())
+        return absolute;
+
+    // level dir begins with a separator?
+    if (m_LevelDir[m_LevelDir.length() - 1] == M_CSR_OS_Separator)
+        return m_LevelDir + absolute;
+
+    return m_LevelDir + M_CSR_OS_Separator + absolute;
+}
+//---------------------------------------------------------------------------
+std::string CSR_LevelFile_XML::AbsoluteToRelative(const std::string& fileName) const
+{
+    std::string relative;
+
+    // remove the level dir
+    if (m_LevelDir.empty())
+        relative = fileName;
+    else
+    if (fileName.find(m_LevelDir) == 0)
+        relative = fileName.substr(m_LevelDir.length(), fileName.length() - m_LevelDir.length());
+
+    // no remaining file name?
+    if (relative.empty())
+        return "";
+
+    // remove the first separator, if any
+    if (relative[0] == M_CSR_OS_Separator)
+        relative = relative.substr(1, relative.length() - 1);
+
+    return relative;
 }
 //---------------------------------------------------------------------------
 bool CSR_LevelFile_XML::Read(const XMLNode* pNode, CSR_Level& level)
@@ -441,8 +496,8 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         }
     }
 
-    // item should at least contain one matrix
-    if (!item.m_Matrices.size())
+    // item should at least contain one matrix (except for the landscapes)
+    if (item.m_Type != CSR_Level::IE_IT_Landscape && !item.m_Matrices.size())
         return false;
 
     void* pKey = NULL;
@@ -453,7 +508,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Surface:
             // add the surface
             pKey = level.AddSurface(*item.m_Matrices[0],
-                                     item.m_Resources.m_Files.m_Texture,
+                                     RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                      collisionType,
                                      m_fOnLoadTexture,
                                      m_fOnSelectModel);
@@ -466,7 +521,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Box:
             // add the box
             pKey = level.AddBox(*item.m_Matrices[0],
-                                 item.m_Resources.m_Files.m_Texture,
+                                 RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                  item.m_Resources.m_RepeatTextureOnEachFace,
                                  collisionType,
                                  m_fOnLoadTexture,
@@ -480,7 +535,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Sphere:
             // add the sphere
             pKey = level.AddSphere(*item.m_Matrices[0],
-                                    item.m_Resources.m_Files.m_Texture,
+                                    RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                     item.m_Resources.m_Slices,
                                     item.m_Resources.m_Stacks,
                                     collisionType,
@@ -495,7 +550,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Cylinder:
             // add the cylinder
             pKey = level.AddCylinder(*item.m_Matrices[0],
-                                      item.m_Resources.m_Files.m_Texture,
+                                      RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                       item.m_Resources.m_Faces,
                                       collisionType,
                                       m_fOnLoadTexture,
@@ -509,7 +564,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Disk:
             // add the disk
             pKey = level.AddDisk(*item.m_Matrices[0],
-                                  item.m_Resources.m_Files.m_Texture,
+                                  RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                   item.m_Resources.m_Slices,
                                   collisionType,
                                   m_fOnLoadTexture,
@@ -523,7 +578,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Ring:
             // add the ring
             pKey = level.AddRing(*item.m_Matrices[0],
-                                  item.m_Resources.m_Files.m_Texture,
+                                  RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                   item.m_Resources.m_Slices,
                                   item.m_Resources.m_Radius,
                                   collisionType,
@@ -538,7 +593,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Spiral:
             // add the spiral
             pKey = level.AddSpiral(*item.m_Matrices[0],
-                                    item.m_Resources.m_Files.m_Texture,
+                                    RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                     item.m_Resources.m_Radius,
                                     item.m_Resources.m_DeltaMin,
                                     item.m_Resources.m_DeltaMax,
@@ -557,14 +612,14 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_Landscape:
             // add the landscape
             if (!item.m_Resources.m_Files.m_LandscapeMap.empty())
-                pKey = level.AddLandscapeFromBitmap(item.m_Resources.m_Files.m_LandscapeMap,
-                                                    item.m_Resources.m_Files.m_Texture,
+                pKey = level.AddLandscapeFromBitmap(RelativeToAbsolute(item.m_Resources.m_Files.m_LandscapeMap),
+                                                    RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                                     GetFile(item.m_Resources.m_Files.m_LandscapeMap),
                                                     m_fOnUpdateDesigner);
             else
             if (!item.m_Resources.m_Files.m_Model.empty())
-                pKey = level.AddLandscape(item.m_Resources.m_Files.m_Model,
-                                          item.m_Resources.m_Files.m_Texture,
+                pKey = level.AddLandscape(RelativeToAbsolute(item.m_Resources.m_Files.m_Model),
+                                          RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                           GetFile(item.m_Resources.m_Files.m_LandscapeMap),
                                           m_fOnUpdateDesigner);
 
@@ -583,7 +638,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
 
                 // load the texture
                 pModel->m_pMesh[0].m_Shader.m_TextureID =
-                        m_fOnLoadTexture(item.m_Resources.m_Files.m_Texture);
+                        m_fOnLoadTexture(RelativeToAbsolute(item.m_Resources.m_Files.m_Texture));
 
                 // failed?
                 if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
@@ -596,8 +651,8 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_WaveFront:
             // add the WaveFront model
             pKey = level.AddWaveFront(*item.m_Matrices[0],
-                                       item.m_Resources.m_Files.m_Model,
-                                       item.m_Resources.m_Files.m_Texture,
+                                       RelativeToAbsolute(item.m_Resources.m_Files.m_Model),
+                                       RelativeToAbsolute(item.m_Resources.m_Files.m_Texture),
                                        GetFile(item.m_Resources.m_Files.m_Model),
                                        collisionType,
                                        m_fOnLoadTexture,
@@ -611,7 +666,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
         case CSR_Level::IE_IT_MDL:
             // add the Quake I model
             pKey = level.AddMDL(*item.m_Matrices[0],
-                                 item.m_Resources.m_Files.m_Model,
+                                 RelativeToAbsolute(item.m_Resources.m_Files.m_Model),
                                  GetFile(item.m_Resources.m_Files.m_Model),
                                  collisionType,
                                  m_fOnSelectModel);
@@ -627,7 +682,7 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
     }
 
     // read the matrices
-    for (std::size_t i = 0; i < item.m_Matrices.size(); ++i)
+    for (std::size_t i = 1; i < item.m_Matrices.size(); ++i)
         if (level.AddDuplicate(pKey, *item.m_Matrices[i], m_fOnSelectModel) == -1)
             return false;
 
@@ -649,59 +704,55 @@ bool CSR_LevelFile_XML::ReadSkybox(const XMLNode* pNode, CSR_Level& level)
             continue;
 
         // found a skybox file?
-        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_File) == 0)
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Left_File) == 0)
         {
-            // load it
-            switch (index)
-            {
-                case 0:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Left))
-                        return false;
-
-                    break;
-
-                case 1:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Top))
-                        return false;
-
-                    break;
-
-                case 2:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Right))
-                        return false;
-
-                    break;
-
-                case 3:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Bottom))
-                        return false;
-
-                    break;
-
-                case 4:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Front))
-                        return false;
-
-                    break;
-
-                case 5:
-                    if (!ReadFile(pChild, level.m_Skybox.m_Back))
-                        return false;
-
-                    break;
-            }
-
-            ++index;
+            if (!ReadFile(pChild, level.m_Skybox.m_Left))
+                return false;
         }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Top_File) == 0)
+        {
+            if (!ReadFile(pChild, level.m_Skybox.m_Top))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Right_File) == 0)
+        {
+            if (!ReadFile(pChild, level.m_Skybox.m_Right))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Bottom_File) == 0)
+        {
+            if (!ReadFile(pChild, level.m_Skybox.m_Bottom))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Front_File) == 0)
+        {
+            if (!ReadFile(pChild, level.m_Skybox.m_Front))
+                return false;
+        }
+        else
+        if (std::strcmp(pChild->tag, M_CSR_Xml_Tag_Back_File) == 0)
+            if (!ReadFile(pChild, level.m_Skybox.m_Back))
+                return false;
     }
 
+    // if a skybox file is missing, the skybox cannot be loaded
+    if (level.m_Skybox.m_Right.empty() || level.m_Skybox.m_Left.empty()   ||
+        level.m_Skybox.m_Top.empty()   || level.m_Skybox.m_Bottom.empty() ||
+        level.m_Skybox.m_Front.empty() || level.m_Skybox.m_Back.empty())
+        return true;
+
+    // build the cubemap textures to load
     CSR_Level::IFileNames fileNames;
-    fileNames.push_back(level.m_Skybox.m_Right);
-    fileNames.push_back(level.m_Skybox.m_Left);
-    fileNames.push_back(level.m_Skybox.m_Top);
-    fileNames.push_back(level.m_Skybox.m_Bottom);
-    fileNames.push_back(level.m_Skybox.m_Front);
-    fileNames.push_back(level.m_Skybox.m_Back);
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Right));
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Left));
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Top));
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Bottom));
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Front));
+    fileNames.push_back(RelativeToAbsolute(level.m_Skybox.m_Back));
 
     // add the skybox
     if (!level.AddSkybox(fileNames, m_fOnLoadCubemap))
@@ -729,7 +780,7 @@ bool CSR_LevelFile_XML::ReadSound(const XMLNode* pNode, CSR_Level& level)
     }
 
     // open the ambient sound
-    if (!level.OpenSound(level.m_Sound.m_FileName, GetFile(level.m_Sound.m_FileName)))
+    if (!level.OpenSound(RelativeToAbsolute(level.m_Sound.m_FileName), GetFile(level.m_Sound.m_FileName)))
         return false;
 
     return true;
@@ -1483,20 +1534,8 @@ bool CSR_LevelFile_XML::WriteFile(XMLNode* pNode, const std::string& name, const
         if (!pChild)
             return false;
 
-        std::string nameToWrite;
-
-        // do use relative paths?
-        if (!m_SceneDir.empty() && fileName.find(m_SceneDir) == 0)
-        {
-            // remove the scene dir (later the root path will be the path of the xml itself)
-            nameToWrite = fileName.substr(m_SceneDir.length(), fileName.length() - m_SceneDir.length());
-
-            // remove the first separator, if any
-            if (!nameToWrite.empty() && nameToWrite[0] == '\\')
-                nameToWrite = nameToWrite.substr(1, nameToWrite.length() - 1);
-        }
-        else
-            nameToWrite = fileName;
+        // convert the absolute file name to relative
+        const std::string nameToWrite = AbsoluteToRelative(fileName);
 
         // no remaining file name?
         if (nameToWrite.empty())

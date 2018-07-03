@@ -166,6 +166,7 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
 {
+    // close the previously opened document
     CloseDocument();
 
     CSR_LevelFile_XML levelFile(m_SceneDir);
@@ -175,7 +176,18 @@ void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
     levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
     if (!levelFile.Load("test.xml", *m_pLevel.get()))
-    {}
+    {
+        CloseDocument();
+        return;
+    }
+
+    CSR_Scene* pScene = m_pLevel->GetScene();
+
+    // link the scene to the designer view
+    m_pDesignerView->SetScene(pScene);
+
+    // initialize the viewpoint
+    InitializeViewPoint(&pScene->m_ViewMatrix);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
@@ -794,7 +806,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
 void __fastcall TMainForm::miLandscapeResetViewportClick(TObject* pSender)
 {
     // reset the viewpoint bounding sphere to his default position
-    InitializeViewPoint();
+    InitializeViewPoint(NULL);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miSkyboxAddClick(TObject* pSender)
@@ -1451,19 +1463,23 @@ GLuint TMainForm::LoadCubemap(const CSR_Level::IFileNames fileNames) const
                     // iterate through pixels to copy
                     for (int x = 0; x < pTexture->Width; ++x)
                     {
-                        // copy to pixel array and take the opportunity to swap the pixel RGB values
+                        // copy to pixel array
                         if (pixelSize == 3)
                         {
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3)]     = pLineRGB[x].rgbtRed;
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 1] = pLineRGB[x].rgbtGreen;
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 3) + 2] = pLineRGB[x].rgbtBlue;
+                            const std::size_t offset = yPos + (((pTexture->Width - 1) - x) * 3);
+
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset]     = pLineRGB[x].rgbtRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 1] = pLineRGB[x].rgbtGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 2] = pLineRGB[x].rgbtBlue;
                         }
                         else
                         {
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4)]     = pLineRGBA[x].rgbRed;
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 1] = pLineRGBA[x].rgbGreen;
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
-                            ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
+                            const std::size_t offset = yPos + (((pTexture->Width - 1) - x) * 4);
+
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset]     = pLineRGBA[x].rgbRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 1] = pLineRGBA[x].rgbGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 2] = pLineRGBA[x].rgbBlue;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 3] = pLineRGBA[x].rgbReserved;
                         }
                     }
                 }
@@ -1487,9 +1503,9 @@ GLuint TMainForm::LoadCubemap(const CSR_Level::IFileNames fileNames) const
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,     GL_CLAMP_TO_EDGE);
 
         return textureID;
     }
@@ -1676,8 +1692,25 @@ void TMainForm::RefreshProperties()
     }
 }
 //------------------------------------------------------------------------------
-void TMainForm::InitializeViewPoint()
+void TMainForm::InitializeViewPoint(const CSR_Matrix4* pMatrix)
 {
+    // do initialize the viewpoint from an existing matrix?
+    if (pMatrix)
+    {
+        CSR_Vector3 translation;
+
+        // extract the translation from the matrix
+        csrMat4TranslationFrom(pMatrix, &translation.m_X, &translation.m_Y, &translation.m_Z);
+
+        // set the viewpoint bounding sphere position
+        m_ViewSphere.m_Center.m_X = -translation.m_X;
+        m_ViewSphere.m_Center.m_Y =  translation.m_Y;
+        m_ViewSphere.m_Center.m_Z = -translation.m_Z;
+        m_ViewSphere.m_Radius     = 0.1f;
+
+        return;
+    }
+
     // reset the viewpoint bounding sphere to his default position
     m_ViewSphere.m_Center.m_X = 0.0f;
     m_ViewSphere.m_Center.m_Y = 0.0f;
@@ -1700,7 +1733,7 @@ void TMainForm::CreateScene()
     m_pDesignerView->SetScene(pScene);
 
     // initialize the viewpoint
-    InitializeViewPoint();
+    InitializeViewPoint(NULL);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
