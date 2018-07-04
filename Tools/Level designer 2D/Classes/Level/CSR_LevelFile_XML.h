@@ -40,8 +40,9 @@ class CSR_LevelFile_XML
         /**
         * Constructor
         *@param levelDir - path to the level dir
+        *@param saveContent - if true, the file content will also be saved
         */
-        CSR_LevelFile_XML(const std::string& levelDir);
+        CSR_LevelFile_XML(const std::string& levelDir, bool saveContent);
 
         virtual ~CSR_LevelFile_XML();
 

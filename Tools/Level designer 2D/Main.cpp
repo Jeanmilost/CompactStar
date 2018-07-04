@@ -40,6 +40,7 @@
 #include "TShapeSelection.h"
 #include "TModelSelection.h"
 #include "TSoundSelection.h"
+#include "TLevelSelection.h"
 
 #pragma package(smart_init)
 #ifdef __llvm__
@@ -92,6 +93,9 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
                   sceneDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(sceneDir));
                   sceneDir = ::ExcludeTrailingPathDelimiter(sceneDir) + L"\\Scenes";
                 m_SceneDir =   AnsiString(sceneDir).c_str();
+
+    // set the open level dialog box initial dir
+    odLevelOpen->InitialDir = sceneDir;
 
     // enable OpenGL
     CSR_OpenGLHelper::EnableOpenGL(paEngineView->Handle, &m_hDC, &m_hRC);
@@ -166,21 +170,33 @@ void __fastcall TMainForm::miFileNewClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
 {
+    // prompt the user about the level file to open
+    if (!odLevelOpen->Execute())
+        return;
+
     // close the previously opened document
     CloseDocument();
 
-    CSR_LevelFile_XML levelFile(m_SceneDir);
+    CSR_LevelFile_XML levelFile(m_SceneDir, false);
     levelFile.Set_OnLoadCubemap(OnLoadCubemap);
     levelFile.Set_OnLoadTexture(OnLoadTexture);
     levelFile.Set_OnSelectModel(OnSelectModel);
     levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
-    if (!levelFile.Load("test.xml", *m_pLevel.get()))
+    // load the level
+    if (!levelFile.Load(AnsiString(odLevelOpen->FileName).c_str(), *m_pLevel.get()))
     {
+        // show the error message to the user
+        ::MessageDlg(L"An error occurred while the level was loaded.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
+
         CloseDocument();
         return;
     }
 
+    // get the scene
     CSR_Scene* pScene = m_pLevel->GetScene();
 
     // link the scene to the designer view
@@ -192,15 +208,27 @@ void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
 {
-    CSR_LevelFile_XML levelFile(m_SceneDir);
+    // create a level selection dialog box
+    std::auto_ptr<TLevelSelection> pDialog(new TLevelSelection(this, CSR_VCLHelper::StrToWStr(m_SceneDir)));
+
+    // show the dialog box to the user and check if action was canceled
+    if (pDialog->ShowModal() != mrOk)
+        return;
+
+    // create and configure the level xml serializer
+    CSR_LevelFile_XML levelFile(m_SceneDir, pDialog->ckSaveFileContent->Checked);
     levelFile.Set_OnLoadCubemap(OnLoadCubemap);
     levelFile.Set_OnLoadTexture(OnLoadTexture);
     levelFile.Set_OnSelectModel(OnSelectModel);
     levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
-    if (!levelFile.Save("test.xml", *m_pLevel.get()))
-    {
-    }
+    // save the level
+    if (!levelFile.Save(AnsiString(pDialog->edFileName->Text).c_str(), *m_pLevel.get()))
+        // show the error message to the user
+        ::MessageDlg(L"An error occurred while the level was saved.",
+                     mtError,
+                     TMsgDlgButtons() << mbOK,
+                     0);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileExitClick(TObject* pSender)

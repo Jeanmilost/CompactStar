@@ -89,9 +89,9 @@
 //---------------------------------------------------------------------------
 // CSR_LevelFile_XML
 //---------------------------------------------------------------------------
-CSR_LevelFile_XML::CSR_LevelFile_XML(const std::string& levelDir) :
+CSR_LevelFile_XML::CSR_LevelFile_XML(const std::string& levelDir, bool saveContent) :
     m_LevelDir(levelDir),
-    m_SaveContent(false),
+    m_SaveContent(saveContent),
     m_fOnLoadCubemap(NULL),
     m_fOnLoadTexture(NULL),
     m_fOnSelectModel(NULL),
@@ -691,8 +691,6 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
 //---------------------------------------------------------------------------
 bool CSR_LevelFile_XML::ReadSkybox(const XMLNode* pNode, CSR_Level& level)
 {
-    std::size_t index = 0;
-
     // iterate through node children
     for (int i = 0; i < pNode->n_children; ++i)
     {

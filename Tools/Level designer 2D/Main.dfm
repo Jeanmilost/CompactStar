@@ -229,4 +229,10 @@ object MainForm: TMainForm
       end
     end
   end
+  object odLevelOpen: TOpenDialog
+    Filter = 'All level files|*.xml|XML file|*.xml'
+    Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Left = 80
+    Top = 8
+  end
 end

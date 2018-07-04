@@ -2,6 +2,7 @@ object ModelSelection: TModelSelection
   Left = 0
   Top = 0
   AutoSize = True
+  BorderStyle = bsDialog
   Caption = 'Add a model'
   ClientHeight = 466
   ClientWidth = 315
@@ -31,7 +32,6 @@ object ModelSelection: TModelSelection
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ExplicitTop = 78
     ExplicitWidth = 96
   end
   object laPosition: TLabel
@@ -42,7 +42,6 @@ object ModelSelection: TModelSelection
     Height = 13
     Align = alTop
     Caption = 'Position'
-    ExplicitTop = 109
     ExplicitWidth = 37
   end
   object laRotation: TLabel
@@ -53,7 +52,6 @@ object ModelSelection: TModelSelection
     Height = 13
     Align = alTop
     Caption = 'Rotation'
-    ExplicitTop = 172
     ExplicitWidth = 41
   end
   object laScaling: TLabel
@@ -64,7 +62,6 @@ object ModelSelection: TModelSelection
     Height = 13
     Align = alTop
     Caption = 'Scaling'
-    ExplicitTop = 235
     ExplicitWidth = 33
   end
   object blBottomLine: TBevel
@@ -132,7 +129,7 @@ object ModelSelection: TModelSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 0
-    ExplicitTop = 125
+    ExplicitTop = 128
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -156,7 +153,7 @@ object ModelSelection: TModelSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 1
-    ExplicitTop = 188
+    ExplicitTop = 191
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -180,7 +177,7 @@ object ModelSelection: TModelSelection
     Padding.Bottom = 3
     ParentDoubleBuffered = False
     TabOrder = 2
-    ExplicitTop = 251
+    ExplicitTop = 254
     ExplicitWidth = 315
     inherited paLabels: TPanel
       Width = 309
@@ -200,7 +197,6 @@ object ModelSelection: TModelSelection
     AutoSize = True
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 302
     object laTexture: TLabel
       AlignWithMargins = True
       Left = 3
@@ -383,7 +379,6 @@ object ModelSelection: TModelSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 4
-    ExplicitTop = 435
     object btOk: TButton
       Left = 234
       Top = 0

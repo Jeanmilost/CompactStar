@@ -25,6 +25,7 @@
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.AppEvnts.hpp>
 #include <Vcl.Menus.hpp>
+#include <Vcl.Dialogs.hpp>
 
 // std
 #include <string>
@@ -87,6 +88,7 @@ class TMainForm : public TForm
         TMenuItem *miFileSave;
         TMenuItem *miFileSeparator;
         TMenuItem *miFileExit;
+        TOpenDialog *odLevelOpen;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);

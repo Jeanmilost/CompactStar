@@ -13,7 +13,8 @@ object SkyboxSelection: TSkyboxSelection
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poOwnerFormCenter
+  Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
   object paButtons: TPanel
@@ -25,9 +26,6 @@ object SkyboxSelection: TSkyboxSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 435
-    ExplicitWidth = 629
     object btOk: TButton
       Left = 334
       Top = 0
@@ -38,7 +36,6 @@ object SkyboxSelection: TSkyboxSelection
       Enabled = False
       TabOrder = 1
       OnClick = btOkClick
-      ExplicitLeft = 319
     end
     object btCancel: TButton
       Left = 0
@@ -61,9 +58,6 @@ object SkyboxSelection: TSkyboxSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitLeft = 0
-    ExplicitTop = 31
-    ExplicitWidth = 635
     object imTop: TImage
       AlignWithMargins = True
       Left = 103
@@ -152,9 +146,6 @@ object SkyboxSelection: TSkyboxSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitLeft = 0
-    ExplicitTop = 39
-    ExplicitWidth = 635
     object imLeft: TImage
       AlignWithMargins = True
       Left = 0
@@ -479,9 +470,6 @@ object SkyboxSelection: TSkyboxSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitLeft = -8
-    ExplicitTop = 403
-    ExplicitWidth = 635
     object imBottom: TImage
       AlignWithMargins = True
       Left = 103
