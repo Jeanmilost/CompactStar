@@ -17,6 +17,7 @@ object MainForm: TMainForm
   PrintScale = poNone
   Scaled = False
   OnResize = FormResize
+  OnShortCut = FormShortCut
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

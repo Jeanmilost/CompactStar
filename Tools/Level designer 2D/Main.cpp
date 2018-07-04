@@ -51,6 +51,24 @@
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
+// TMainForm::ICommand
+//---------------------------------------------------------------------------
+TMainForm::ICommand::ICommand() :
+    m_Command(IE_C_None),
+    m_pKey(NULL),
+    m_Index(-1)
+{}
+//---------------------------------------------------------------------------
+TMainForm::ICommand::~ICommand()
+{}
+//---------------------------------------------------------------------------
+void TMainForm::ICommand::Clear()
+{
+    m_Command =  IE_C_None;
+    m_pKey    =  NULL;
+    m_Index   = -1;
+}
+//---------------------------------------------------------------------------
 // TMainForm::IDesignerProperties
 //---------------------------------------------------------------------------
 TMainForm::IDesignerProperties::IDesignerProperties() :
@@ -159,6 +177,106 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
 
     // update the viewport
     m_pLevel->CreateViewport(paEngineView->ClientWidth, paEngineView->ClientHeight);
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FormShortCut(TWMKey& msg, bool& handled)
+{
+    const TShiftState shiftState = ::KeyDataToShiftState(msg.KeyData);
+
+    // search for pressed key
+    switch (msg.CharCode)
+    {
+        case 'x':
+        case 'X':
+        {
+            // ignore any edit event
+            if (Application->MainForm->ActiveControl &&
+                Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
+                return;
+
+            // found a Ctrl+X shortcut?
+            if (!shiftState.Contains(ssCtrl))
+                return;
+
+            // get the current selection
+            const CSR_DesignerView::ISelection* pSelection = m_pDesignerView->GetSelection();
+
+            // found it?
+            if (!pSelection)
+                return;
+
+            // get the landscape model
+            const CSR_SceneItem* pLandscape = m_pLevel->GetLandscape();
+
+            // landscape model cannot be cut
+            if (pSelection->m_pKey == pLandscape->m_pModel)
+                return;
+
+            // build the command to process
+            ICommand command;
+            command.m_Command = IE_C_Cut;
+            command.m_pKey    = pSelection->m_pKey;
+            command.m_Index   = pSelection->m_MatrixIndex;
+
+            // process the command
+            handled = ProcessCommand(command);
+            return;
+        }
+
+        case 'c':
+        case 'C':
+        {
+            // ignore any edit event
+            if (Application->MainForm->ActiveControl &&
+                Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
+                return;
+
+            // get the current selection
+            const CSR_DesignerView::ISelection* pSelection = m_pDesignerView->GetSelection();
+
+            // found it?
+            if (!pSelection)
+                return;
+
+            // get the landscape model
+            const CSR_SceneItem* pLandscape = m_pLevel->GetLandscape();
+
+            // landscape model cannot be copied
+            if (pSelection->m_pKey == pLandscape->m_pModel)
+                return;
+
+            // build the command to process
+            ICommand command;
+            command.m_Command = IE_C_Copy;
+            command.m_pKey    = pSelection->m_pKey;
+            command.m_Index   = pSelection->m_MatrixIndex;
+
+            // process the command
+            handled = ProcessCommand(command);
+            return;
+        }
+
+        case 'v':
+        case 'V':
+        {
+            // ignore any edit event
+            if (Application->MainForm->ActiveControl &&
+                Application->MainForm->ActiveControl->InheritsFrom(__classid(TEdit)))
+                return;
+
+            // found a Ctrl+V shortcut?
+            if (!shiftState.Contains(ssCtrl))
+                return;
+
+            // build the command to process
+            ICommand command;
+            command.m_Command = IE_C_Paste;
+
+            // process the command
+            handled = ProcessCommand(command);
+            return;
+        }
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miFileNewClick(TObject* pSender)
@@ -1334,6 +1452,99 @@ void TMainForm::CloseDocument()
     m_pLevel->Clear();
 }
 //---------------------------------------------------------------------------
+bool TMainForm::ProcessCommand(const ICommand& command)
+{
+    switch (command.m_Command)
+    {
+        case IE_C_Cut:
+        case IE_C_Copy:
+            m_ProcessingCommand = command;
+            return true;
+
+        case IE_C_Paste:
+        {
+            // get the current scene
+            CSR_Scene* pScene = m_pLevel->GetScene();
+
+            // found it?
+            if (!pScene)
+                return false;
+
+            // get the scene item on which the command should be processed
+            CSR_SceneItem* pSceneItem = csrSceneGetItem(pScene, m_ProcessingCommand.m_pKey);
+
+            // found it?
+            if (!pSceneItem)
+                return false;
+
+            // search for command to execute
+            switch (m_ProcessingCommand.m_Command)
+            {
+                case IE_C_Cut:
+                {
+                    // get the level item
+                    CSR_Level::IItem* pItem = m_pLevel->Get(m_ProcessingCommand.m_pKey);
+
+                    // succeeded?
+                    if (!pItem || !pItem->m_Matrices.size())
+                        return false;
+
+                    // check if the command index is out of bounds
+                    if (m_ProcessingCommand.m_Index >= int(pItem->m_Matrices.size()))
+                        return false;
+
+                    // configure the new model matrix
+                    *pItem->m_Matrices[m_ProcessingCommand.m_Index]                = *pItem->m_Matrices[m_ProcessingCommand.m_Index];
+                     pItem->m_Matrices[m_ProcessingCommand.m_Index]->m_Table[3][0] = -pScene->m_ViewMatrix.m_Table[3][0];
+
+                    // select the newly added model
+                    OnSelectModel(m_ProcessingCommand.m_pKey, m_ProcessingCommand.m_Index);
+
+                    // clear the processed command to avoid to cut repeatly
+                    m_ProcessingCommand.Clear();
+                    break;
+                }
+
+                case IE_C_Copy:
+                {
+                    // add a new matrix in the level item
+                    CSR_Level::IItem* pItem = m_pLevel->Add(m_ProcessingCommand.m_pKey);
+
+                    // succeeded?
+                    if (!pItem || !pItem->m_Matrices.size())
+                        return false;
+
+                    // check if the command index is out of bounds
+                    if (m_ProcessingCommand.m_Index >= int(pItem->m_Matrices.size()))
+                        return false;
+
+                    // get the newly added matrix index
+                    const std::size_t matrixIndex = pItem->m_Matrices.size() - 1;
+
+                    // configure the new model matrix
+                    *pItem->m_Matrices[matrixIndex]                = *pItem->m_Matrices[m_ProcessingCommand.m_Index];
+                     pItem->m_Matrices[matrixIndex]->m_Table[3][0] = -pScene->m_ViewMatrix.m_Table[3][0];
+
+                    // link the newly added matrix with the scene
+                    csrSceneAddModelMatrix(pScene, m_ProcessingCommand.m_pKey, pItem->m_Matrices[matrixIndex]);
+
+                    // select the newly added model
+                    OnSelectModel(m_ProcessingCommand.m_pKey, matrixIndex);
+                    break;
+                }
+
+                default:
+                    return false;
+            }
+
+            return true;
+        }
+
+        default:
+            return false;
+    }
+}
+//---------------------------------------------------------------------------
 GLuint TMainForm::LoadTexture(const std::string& fileName) const
 {
     try
@@ -1594,14 +1805,23 @@ void TMainForm::RefreshProperties()
         if (!pCategory)
             return;
 
+        // get the selection
+        const CSR_DesignerView::ISelection* pSelection = m_pDesignerView->GetSelection();
+
+        // found it?
+        if (!pSelection)
+            return;
+
         // get the selected scene item
-        const CSR_SceneItem* pItem = m_pLevel->GetSceneItem(m_pDesignerView->GetSelection()->m_pKey);
+        const CSR_SceneItem* pItem = m_pLevel->GetSceneItem(pSelection->m_pKey);
 
         // not found?
         if (!pItem || !pItem->m_pMatrixArray->m_Count)
             return;
 
-        CSR_Matrix4 matrix = *static_cast<CSR_Matrix4*>(pItem->m_pMatrixArray->m_pItem[0].m_pData);
+        CSR_Matrix4 matrix =
+                *static_cast<CSR_Matrix4*>
+                        (pItem->m_pMatrixArray->m_pItem[pSelection->m_MatrixIndex].m_pData);
 
         std::auto_ptr<TLabel>        pLabel;
         std::auto_ptr<TVector3Frame> pVector3Frame;
@@ -1908,8 +2128,15 @@ void TMainForm::UpdateScene(float elapsedTime)
 //---------------------------------------------------------------------------
 void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, float z)
 {
+    // get the selection
+    const CSR_DesignerView::ISelection* pSelection = m_pDesignerView->GetSelection();
+
+    // found it?
+    if (!pSelection)
+        return;
+
     // get the selected scene item
-    const CSR_SceneItem* pItem = m_pLevel->GetSceneItem(m_pDesignerView->GetSelection()->m_pKey);
+    const CSR_SceneItem* pItem = m_pLevel->GetSceneItem(pSelection->m_pKey);
 
     // not found?
     if (!pItem || !pItem->m_pMatrixArray->m_Count)
@@ -1940,7 +2167,7 @@ void TMainForm::OnPropertiesValueChanged(TObject* pSender, float x, float y, flo
     CSR_OpenGLHelper::BuildMatrix(&t,
                                   &r,
                                   &factor,
-                                   static_cast<CSR_Matrix4*>(pItem->m_pMatrixArray->m_pItem[0].m_pData));
+                                   static_cast<CSR_Matrix4*>(pItem->m_pMatrixArray->m_pItem[pSelection->m_MatrixIndex].m_pData));
 
     // update the designer view
     paDesignerView->Invalidate();

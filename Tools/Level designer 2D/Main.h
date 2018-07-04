@@ -92,6 +92,7 @@ class TMainForm : public TForm
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
+        void __fastcall FormShortCut(TWMKey& msg, bool& handled);
         void __fastcall miFileNewClick(TObject* pSender);
         void __fastcall miFileLoadClick(TObject* pSender);
         void __fastcall miFileSaveClick(TObject* pSender);
@@ -193,6 +194,35 @@ class TMainForm : public TForm
 
     private:
         /**
+        * User interface available commands
+        */
+        enum IECommand
+        {
+            IE_C_None,
+            IE_C_Cut,
+            IE_C_Copy,
+            IE_C_Paste
+        };
+
+        /**
+        * User interface command like copy, cut or paste
+        */
+        struct ICommand
+        {
+            IECommand m_Command;
+            void*     m_pKey;
+            int       m_Index;
+
+            ICommand();
+            ~ICommand();
+
+            /**
+            * Clears the command
+            */
+            void Clear();
+        };
+
+        /**
         * Dynamically created designer properties
         */
         struct IDesignerProperties
@@ -218,6 +248,7 @@ class TMainForm : public TForm
         HGLRC                             m_hRC;
         CSR_Sphere                        m_ViewSphere;
         std::string                       m_SceneDir;
+        ICommand                          m_ProcessingCommand;
         std::size_t                       m_FrameCount;
         int                               m_PrevOrigin;
         float                             m_Angle;
@@ -237,6 +268,13 @@ class TMainForm : public TForm
         * Closes a landscape document
         */
         void CloseDocument();
+
+        /**
+        * Processes a user interface command
+        *@param command - command to process
+        *@return true on success, otherwise false
+        */
+        bool ProcessCommand(const ICommand& command);
 
         /**
         * Loads a texture
