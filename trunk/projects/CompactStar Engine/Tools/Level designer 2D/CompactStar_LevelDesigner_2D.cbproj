@@ -262,6 +262,12 @@
             <DependentOn>TLandscapeSelection.h</DependentOn>
             <BuildOrder>25</BuildOrder>
         </CppCompile>
+        <CppCompile Include="TLevelSelection.cpp">
+            <Form>LevelSelection</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>TLevelSelection.h</DependentOn>
+            <BuildOrder>46</BuildOrder>
+        </CppCompile>
         <CppCompile Include="TModelSelection.cpp">
             <Form>ModelSelection</Form>
             <FormType>dfm</FormType>
@@ -300,6 +306,7 @@
         <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
         <FormResources Include="Main.dfm"/>
+        <FormResources Include="TLevelSelection.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

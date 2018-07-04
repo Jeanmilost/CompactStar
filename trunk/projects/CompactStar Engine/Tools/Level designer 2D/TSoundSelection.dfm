@@ -13,7 +13,7 @@ object SoundSelection: TSoundSelection
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poOwnerFormCenter
   PrintScale = poNone
   Scaled = False
   PixelsPerInch = 96
