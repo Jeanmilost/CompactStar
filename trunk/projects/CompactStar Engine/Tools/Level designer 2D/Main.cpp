@@ -1095,8 +1095,12 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
     switch (msg.message)
     {
         case WM_KEYDOWN:
+        {
+            // get the scene
+            CSR_Scene* pScene = m_pLevel->GetScene();
+
             // no scene?
-            if (!m_pLevel->GetScene())
+            if (!pScene)
                 break;
 
             // ignore any edit event
@@ -1159,19 +1163,55 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                         break;
 
                     // get the model key to delete from scene
-                    const void* pKeyToDel = pSelection->m_pKey;
+                          void* pKeyToDel   = pSelection->m_pKey;
+                    const int   matrixIndex = pSelection->m_MatrixIndex;
 
-                    // select the next model
-                    m_pDesignerView->SelectNext();
+                    // get the scene item to modify
+                    CSR_SceneItem* pSceneItem = csrSceneGetItem(pScene, pKeyToDel);
 
-                    // delete the currently selected model
-                    csrSceneDeleteFrom(m_pLevel->GetScene(), pKeyToDel);
+                    // scene item contains less than 2 matrices?
+                    if (pSceneItem->m_pMatrixArray->m_Count < 2)
+                    {
+                        // select the next model
+                        m_pDesignerView->SelectNext();
+
+                        // delete the currently selected model
+                        csrSceneDeleteFrom(pScene, pKeyToDel);
+
+                        // delete the matching level item
+                        m_pLevel->Delete(pKeyToDel);
+                    }
+                    else
+                    {
+                        // delete the matrix in the currently selected model
+                        csrSceneDeleteFrom(pScene,
+                                           pSceneItem->m_pMatrixArray->m_pItem[matrixIndex].m_pData);
+
+                        // delete the matrix in the matching level item
+                        m_pLevel->Delete(pKeyToDel, matrixIndex);
+
+                        // select the next model
+                        if (pSelection->m_MatrixIndex >= pSceneItem->m_pMatrixArray->m_Count)
+                        {
+                            CSR_DesignerView::ISelection selection;
+                            selection.m_pKey        = pKeyToDel;
+                            selection.m_MatrixIndex = pSceneItem->m_pMatrixArray->m_Count - 1;
+                            m_pDesignerView->SetSelection(selection);
+                        }
+                    }
+
+                    // invalidate the designer
+                    paDesignerView->Invalidate();
+
+                    // refresh the selected model properties
+                    RefreshProperties();
 
                     break;
                 }
             }
 
             return;
+        }
     }
 }
 //---------------------------------------------------------------------------

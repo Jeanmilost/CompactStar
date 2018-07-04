@@ -1435,6 +1435,21 @@ void CSR_Level::Delete(void* pKey, std::size_t index)
     }
 }
 //---------------------------------------------------------------------------
+void CSR_Level::Delete(void* pKey)
+{
+    // search for the item matching with key
+    IItems::iterator it = m_Items.find(pKey);
+
+    // found it?
+    if (it == m_Items.end())
+        // nothing to do
+        return;
+
+    // delete the level item and remove it from the manager
+    delete it->second;
+    m_Items.erase(it);
+}
+//---------------------------------------------------------------------------
 CSR_Level::IItem* CSR_Level::Get(void* pKey) const
 {
     // search for the item matching with key
