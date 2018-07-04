@@ -1140,7 +1140,7 @@ void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey)
         // check also if the key is a known matrix
         if (pScene->m_pItem[i].m_pMatrixArray)
             for (j = 0; j < pScene->m_pItem[i].m_pMatrixArray->m_Count; ++j)
-                if (&pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData == pKey)
+                if (pScene->m_pItem[i].m_pMatrixArray->m_pItem[j].m_pData == pKey)
                 {
                     // delete the matrix
                     csrArrayDeleteAt(j, pScene->m_pItem[i].m_pMatrixArray);
@@ -1170,7 +1170,7 @@ void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey)
         // check also if the key is a known matrix
         if (pScene->m_pTransparentItem[i].m_pMatrixArray)
             for (j = 0; j < pScene->m_pTransparentItem[i].m_pMatrixArray->m_Count; ++j)
-                if (&pScene->m_pTransparentItem[i].m_pMatrixArray->m_pItem[j].m_pData == pKey)
+                if (pScene->m_pTransparentItem[i].m_pMatrixArray->m_pItem[j].m_pData == pKey)
                 {
                     // delete the matrix
                     csrArrayDeleteAt(j, pScene->m_pItem[i].m_pMatrixArray);

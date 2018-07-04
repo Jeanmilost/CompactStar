@@ -505,6 +505,12 @@ class CSR_Level
         virtual void Delete(void* pKey, std::size_t index);
 
         /**
+        * Deletes an item from the level manager
+        *@param pKey - key for which the item should be deleted
+        */
+        virtual void Delete(void* pKey);
+
+        /**
         * Gets the item in the level manager matching with a key
         *@param pKey - key for which the item should be get
         *@return the item matching with the key, NULL if not found or on error
