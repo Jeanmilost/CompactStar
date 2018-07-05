@@ -393,8 +393,8 @@ void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-m_pLevel->GetScene()->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-m_pLevel->GetScene()->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -459,8 +459,8 @@ void __fastcall TMainForm::miAddCylinderClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -528,8 +528,8 @@ void __fastcall TMainForm::miAddDiskClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -596,8 +596,8 @@ void __fastcall TMainForm::miAddRingClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -663,8 +663,8 @@ void __fastcall TMainForm::miAddSphereClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -728,8 +728,8 @@ void __fastcall TMainForm::miAddSpiralClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -802,8 +802,8 @@ void __fastcall TMainForm::miAddSurfaceClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pShapeSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pShapeSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pShapeSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pShapeSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pShapeSelection->vfScaling->edX->Text = L"1.0";
@@ -858,8 +858,8 @@ void __fastcall TMainForm::miAddWaveFrontClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pModelSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pModelSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pModelSelection->vfScaling->edX->Text = L"1.0";
@@ -923,8 +923,8 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
     csrSceneDetectCollision(pScene, &collisionInput, &collisionOutput, 0);
 
     // show the default position
-    pModelSelection->vfPosition->edX->Text = ::FloatToStr(-pScene->m_ViewMatrix.m_Table[3][0]);
-    pModelSelection->vfPosition->edY->Text = ::FloatToStr(collisionOutput.m_GroundPos);
+    pModelSelection->vfPosition->edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(-pScene->m_ViewMatrix.m_Table[3][0]).c_str());
+    pModelSelection->vfPosition->edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(collisionOutput.m_GroundPos).c_str());
 
     // show the default scaling
     pModelSelection->vfScaling->edX->Text = L"1.0";

@@ -20,6 +20,9 @@
 // std
 #include <limits>
 
+// classes
+#include "CSR_VCLHelper.h"
+
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 
@@ -127,7 +130,7 @@ float TVector3Frame::GetX() const
     try
     {
         // try to convert the text to float
-        result = ::StrToFloat(edX->Text);
+        result = CSR_VCLHelper::StrToFloat(edX->Text.c_str());
     }
     catch (...)
     {
@@ -139,7 +142,7 @@ float TVector3Frame::GetX() const
 //---------------------------------------------------------------------------
 void TVector3Frame::SetX(float value)
 {
-    edX->Text = ::FloatToStr(value);
+    edX->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(value).c_str());
 }
 //---------------------------------------------------------------------------
 float TVector3Frame::GetY() const
@@ -149,7 +152,7 @@ float TVector3Frame::GetY() const
     try
     {
         // try to convert the text to float
-        result = ::StrToFloat(edY->Text);
+        result = CSR_VCLHelper::StrToFloat(edY->Text.c_str());
     }
     catch (...)
     {
@@ -161,7 +164,7 @@ float TVector3Frame::GetY() const
 //---------------------------------------------------------------------------
 void TVector3Frame::SetY(float value)
 {
-    edY->Text = ::FloatToStr(value);
+    edY->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(value).c_str());
 }
 //---------------------------------------------------------------------------
 float TVector3Frame::GetZ() const
@@ -171,7 +174,7 @@ float TVector3Frame::GetZ() const
     try
     {
         // try to convert the text to float
-        result = ::StrToFloat(edZ->Text);
+        result = CSR_VCLHelper::StrToFloat(edZ->Text.c_str());
     }
     catch (...)
     {
@@ -183,7 +186,7 @@ float TVector3Frame::GetZ() const
 //---------------------------------------------------------------------------
 void TVector3Frame::SetZ(float value)
 {
-    edZ->Text = ::FloatToStr(value);
+    edZ->Text = UnicodeString(CSR_VCLHelper::FloatToWStr(value).c_str());
 }
 //---------------------------------------------------------------------------
 void TVector3Frame::Set_OnValueChanged(ITfOnValueChanged fHandler)
@@ -213,7 +216,7 @@ void TVector3Frame::OnValueChange(TObject* pSender)
     try
     {
         // try to convert the text to float
-        ::StrToFloat(pEdit->Text);
+        CSR_VCLHelper::StrToFloat(pEdit->Text.c_str());
     }
     catch (...)
     {

@@ -214,7 +214,8 @@
             <BuildOrder>30</BuildOrder>
         </CppCompile>
         <CppCompile Include="Classes\Helpers\CSR_ShaderHelper.cpp">
-            <BuildOrder>32</BuildOrder>
+            <DependentOn>Classes\Helpers\CSR_ShaderHelper.h</DependentOn>
+            <BuildOrder>46</BuildOrder>
         </CppCompile>
         <CppCompile Include="Classes\Helpers\CSR_VCLHelper.cpp">
             <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
@@ -299,14 +300,14 @@
             <DependentOn>TVector3Frame.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
+        <FormResources Include="Main.dfm"/>
         <FormResources Include="TShapeSelection.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
         <FormResources Include="TSkyboxSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
-        <FormResources Include="TLandscapeSelection.dfm"/>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="TLevelSelection.dfm"/>
+        <FormResources Include="TLandscapeSelection.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

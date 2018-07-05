@@ -161,6 +161,28 @@ class CSR_VCLHelper
         *@return converted string
         */
         static std::string WStrToStr(const std::wstring& str);
+
+        /**
+        * Converts a string to a floating point value
+        *@param str - string to convert
+        *@return floating point value
+        */
+        static float StrToFloat(const std::string&  str);
+        static float StrToFloat(const std::wstring& str);
+
+        /**
+        * Converts a floating point value to an Ansi string
+        *@param value - floating point value to convert
+        *@return value as string
+        */
+        static std::string FloatToStr(float value);
+
+        /**
+        * Converts a floating point value to an Unicode string
+        *@param value - floating point value to convert
+        *@return value as string
+        */
+        static std::wstring FloatToWStr(float value);
 };
 
 #endif

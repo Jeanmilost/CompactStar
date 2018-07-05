@@ -20,6 +20,9 @@
 #include <Vcl.Imaging.PngImage.hpp>
 #include <Vcl.ComCtrls.hpp>
 
+// std
+#include <sstream>
+
 //---------------------------------------------------------------------------
 // CSR_VCLControlHook
 //---------------------------------------------------------------------------
@@ -253,5 +256,55 @@ std::wstring CSR_VCLHelper::StrToWStr(const std::string& str)
 std::string CSR_VCLHelper::WStrToStr(const std::wstring& str)
 {
     return AnsiString(UnicodeString(str.c_str())).c_str();
+}
+//---------------------------------------------------------------------------
+float CSR_VCLHelper::StrToFloat(const std::string& str)
+{
+    // consider empty string as 0
+    if (str.empty())
+        return 0.0f;
+
+    float result;
+    std::istringstream sstr(str.c_str());
+    sstr >> result;
+
+    // the conversion succeeded only if the whole value was converted
+    if (sstr.rdstate() == std::ios_base::eofbit)
+        return result;
+
+    throw std::overflow_error("Failed to convert the value - " + str);
+}
+//---------------------------------------------------------------------------
+float CSR_VCLHelper::StrToFloat(const std::wstring& str)
+{
+    // consider empty string as 0
+    if (str.empty())
+        return 0.0f;
+
+    float result;
+    std::wistringstream sstr(str.c_str());
+    sstr >> result;
+
+    // full string must be converted for success
+    if (sstr.rdstate() == std::ios_base::eofbit)
+        return result;
+
+    throw std::overflow_error("Failed to convert the value - " + WStrToStr(str));
+}
+//---------------------------------------------------------------------------
+std::string CSR_VCLHelper::FloatToStr(float value)
+{
+    std::ostringstream sstr;
+    sstr << value;
+
+    return sstr.str();
+}
+//---------------------------------------------------------------------------
+std::wstring CSR_VCLHelper::FloatToWStr(float value)
+{
+    std::wostringstream sstr;
+    sstr << value;
+
+    return sstr.str();
 }
 //---------------------------------------------------------------------------
