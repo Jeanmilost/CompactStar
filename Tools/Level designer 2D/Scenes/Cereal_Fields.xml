@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<level>
+	<scene>
+		<bg_color r="0.45" g="0.8" b="1" a="1"/>
+		<proj_mat _11="1.57792" _12="0" _13="0" _14="0" _21="0" _22="2.41421" _23="0" _24="0" _31="0" _32="0" _33="-1" _34="-0.002" _41="0" _42="0" _43="-1" _44="0"/>
+		<view_mat _11="1" _12="0" _13="0" _14="1.986" _21="0" _22="1" _23="0" _24="-0.1" _31="0" _32="0" _33="1" _34="-3.08" _41="0" _42="0" _43="0" _44="1"/>
+		<ground_dir x="0" y="-1" z="0"/>
+		<scene_item>
+			<shape_type>8</shape_type>
+			<collision_type>9</collision_type>
+			<landscape_map_file>
+				<name>Bitmaps\playfield.bmp</name>
+			</landscape_map_file>
+			<texture_file>
+				<name>Textures\mountain2.jpg</name>
+			</texture_file>
+		</scene_item>
+		<scene_item>
+			<shape_type>2</shape_type>
+			<texture_file>
+				<name>Textures\cereal_field.png</name>
+			</texture_file>
+			<model_mat _11="1" _12="0" _13="0" _14="-1.719" _21="0" _22="0.1" _23="0" _24="0.05" _31="0" _32="0" _33="1" _34="2" _41="0" _42="0" _43="0" _44="1"/>
+		</scene_item>
+	</scene>
+	<skybox>
+		<left_file>
+			<name>Skyboxes\Before the storm\left.bmp</name>
+		</left_file>
+		<top_file>
+			<name>Skyboxes\Before the storm\top.bmp</name>
+		</top_file>
+		<right_file>
+			<name>Skyboxes\Before the storm\right.bmp</name>
+		</right_file>
+		<bottom_file>
+			<name>Skyboxes\Before the storm\bottom.bmp</name>
+		</bottom_file>
+		<front_file>
+			<name>Skyboxes\Before the storm\front.bmp</name>
+		</front_file>
+		<back_file>
+			<name>Skyboxes\Before the storm\back.bmp</name>
+		</back_file>
+	</skybox>
+	<sound>
+		<file>
+			<name>Sounds\landscape_ambient_sound.wav</name>
+		</file>
+	</sound>
+</level>
