@@ -16,6 +16,7 @@ It's the reason why this engine exists.
 - Landscape generation
 - Transparency
 - Bump mapping
+- Full-scene antialiasing and post-processing effects
 - Collision detection (partially, ground and mouse collision)
 - A small 2D level editor I used to create a game (can be compiled with Embarcadero RAD Studio, available here: https://www.embarcadero.com/products/cbuilder/starter/free-download)
 - A draft for a 3d level editror
