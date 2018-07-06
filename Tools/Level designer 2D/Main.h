@@ -40,9 +40,6 @@
 #include "TSkyboxSelection.h"
 #include "TVector3Frame.h"
 
-// FIXME empty edit text
-// FIXME floating point symbol on different systems
-
 /**
 * Ground collision tool main form
 *@author Jean-Milost Reymond

@@ -647,7 +647,6 @@ bool CSR_LevelFile_XML::ReadSceneItem(const XMLNode* pNode, CSR_Level& level)
 
             break;
 
-
         case CSR_Level::IE_IT_WaveFront:
             // add the WaveFront model
             pKey = level.AddWaveFront(*item.m_Matrices[0],
@@ -1391,7 +1390,7 @@ bool CSR_LevelFile_XML::WriteSceneItem(      XMLNode*          pNode,
             for (std::size_t i = 0; i < pSceneItem->m_pMatrixArray->m_Count; ++i)
                 if (!WriteMatrix(pChild,
                                  M_CSR_Xml_Tag_Model_Mat,
-                                 (CSR_Matrix4*)(pSceneItem->m_pMatrixArray[i]).m_pItem->m_pData))
+                                 (CSR_Matrix4*)(pSceneItem->m_pMatrixArray->m_pItem[i].m_pData)))
                 {
                     XMLNode_free(pChild);
                     return false;

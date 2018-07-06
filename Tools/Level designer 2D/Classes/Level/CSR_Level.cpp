@@ -1299,6 +1299,9 @@ int CSR_Level::AddDuplicate(void* pKey, const CSR_Matrix4& matrix, ITfSelectMode
     // get the matrix index
     const int index = pItem->m_Matrices.size() - 1;
 
+    // set the matrix content
+    *pItem->m_Matrices[index] = matrix;
+
     // add the duplicate matrix in the scene item
     if (!csrSceneAddModelMatrix(m_pScene, pKey, pItem->m_Matrices[index]))
         return -1;
