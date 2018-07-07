@@ -20,14 +20,14 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
+USEFORM("Main.cpp", MainForm);
 USEFORM("TShapeSelection.cpp", ShapeSelection);
 USEFORM("TModelSelection.cpp", ModelSelection);
 USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
 USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
-USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
-USEFORM("Main.cpp", MainForm);
 USEFORM("TLevelSelection.cpp", LevelSelection);
+USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
