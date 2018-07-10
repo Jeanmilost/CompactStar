@@ -9,6 +9,8 @@ However I had several reasons to do that:
 
 It's the reason why this engine exists.
 
+![Screenshot](Common/Images/Screenshots/CompactStar%20Engine%202D%20Editor.png?raw=true "Screenshot")
+
 <b>Here are the actual supported features</b>
 - Simple shapes creation (surface, box, sphere, cylinder, disk, ring and spiral)
 - Quake I (.mdl) and WaveFront (.obj, partially) loader
