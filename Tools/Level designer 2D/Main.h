@@ -86,6 +86,15 @@ class TMainForm : public TForm
         TMenuItem *miFileSeparator;
         TMenuItem *miFileExit;
         TOpenDialog *odLevelOpen;
+        TMenuItem *miDesigner;
+        TMenuItem *miDesignerPlayMode;
+        TMenuItem *miDesignerRefresh;
+        TMenuItem *miDesignerRefreshImmediately;
+        TMenuItem *miDesignerRefreshEvery500ms;
+        TMenuItem *miDesignerRefreshEvery1s;
+        TMenuItem *miDesignerRefreshEvery2s;
+        TMenuItem *miDesignerRefreshEvery5s;
+        TMenuItem *miDesignerRefreshEvery10s;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
@@ -94,6 +103,7 @@ class TMainForm : public TForm
         void __fastcall miFileLoadClick(TObject* pSender);
         void __fastcall miFileSaveClick(TObject* pSender);
         void __fastcall miFileExitClick(TObject* pSender);
+        void __fastcall miDesignerPlayModeClick(TObject* pSender);
         void __fastcall miAddBoxClick(TObject* pSender);
         void __fastcall miAddCylinderClick(TObject* pSender);
         void __fastcall miAddDiskClick(TObject* pSender);
@@ -254,6 +264,7 @@ class TMainForm : public TForm
         double                            m_FPS;
         unsigned __int64                  m_StartTime;
         unsigned __int64                  m_PreviousTime;
+        unsigned __int64                  m_PrevDesignerTime;
         bool                              m_Initialized;
 
         /**

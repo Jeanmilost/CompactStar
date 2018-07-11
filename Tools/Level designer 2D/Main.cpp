@@ -103,6 +103,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_FPS(0.0),
     m_StartTime(0),
     m_PreviousTime(0),
+    m_PrevDesignerTime(0),
     m_Initialized(false)
 {
     // build the model dir from the application exe
@@ -163,8 +164,9 @@ void __fastcall TMainForm::FormShow(TObject* pSender)
     m_pEngineViewHook.reset (new CSR_VCLControlHook(paEngineView, OnEngineViewMessage));
 
     // initialize the timer
-    m_StartTime    = ::GetTickCount();
-    m_PreviousTime = ::GetTickCount();
+    m_StartTime        = ::GetTickCount();
+    m_PreviousTime     = ::GetTickCount();
+    m_PrevDesignerTime = ::GetTickCount();
 
     // listen the application idle
     Application->OnIdle = OnIdle;
@@ -352,6 +354,25 @@ void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
 void __fastcall TMainForm::miFileExitClick(TObject* pSender)
 {
     Close();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::miDesignerPlayModeClick(TObject* pSender)
+{
+    paDesignerView->Visible = !miDesignerPlayMode->Checked;
+    paProperties->Visible   = !miDesignerPlayMode->Checked;
+    spViews->Visible        = !miDesignerPlayMode->Checked;
+    spMainView->Visible     = !miDesignerPlayMode->Checked;
+
+    // realign the designer splitter
+    if (paDesignerView->Visible)
+        spViews->Top = paDesignerView->Top + paDesignerView->Height;
+
+    // realign the properties splitter
+    if (paProperties->Visible)
+        spMainView->Top = paProperties->Top + paProperties->Height;
+
+    // update the viewport
+    m_pLevel->CreateViewport(paEngineView->ClientWidth, paEngineView->ClientHeight);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::miAddBoxClick(TObject* pSender)
@@ -1124,6 +1145,9 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                 case VK_TAB:
                 {
                     if (!m_pDesignerView.get())
+                        return;
+
+                    if (miDesignerPlayMode->Checked)
                         return;
 
                     // get pressed key and shift state
@@ -2054,7 +2078,7 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // get a default texture file name
-    const std::string textureFile = m_SceneDir + "\\Textures\\mountain2.jpg";
+    const std::string textureFile = m_SceneDir + "\\Textures\\mountain.jpg";
 
     // load the landscape model from a grayscale bitmap file
     if (!m_pLevel->AddLandscapeFromBitmap(m_SceneDir + "\\Bitmaps\\playfield.bmp",
@@ -2264,11 +2288,38 @@ void TMainForm::OnDrawScene(bool resize)
 
     ::SwapBuffers(m_hDC);
 
-    // also invalidate the designer view, if required
-    if (m_pDesignerView->GetOrigin() != m_PrevOrigin)
+    // is in play mode?
+    if (!miDesignerPlayMode->Checked)
     {
-        m_PrevOrigin = m_pDesignerView->GetOrigin();
-        paDesignerView->Invalidate();
+        bool allowed = false;
+
+        // check if designer should be refreshed
+        if (miDesignerRefreshImmediately->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin;
+        else
+        if (miDesignerRefreshEvery500ms->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin && (now - m_PrevDesignerTime) > 500.0;
+        else
+        if (miDesignerRefreshEvery1s->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin && (now - m_PrevDesignerTime) > 1000.0;
+        else
+        if (miDesignerRefreshEvery2s->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin && (now - m_PrevDesignerTime) > 2000.0;
+        else
+        if (miDesignerRefreshEvery5s->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin && (now - m_PrevDesignerTime) > 5000.0;
+        else
+        if (miDesignerRefreshEvery10s->Checked)
+            allowed = m_pDesignerView->GetOrigin() != m_PrevOrigin && (now - m_PrevDesignerTime) > 10000.0;
+
+        // invalidate the designer view, if required
+        if (allowed)
+        {
+            m_PrevOrigin       = m_pDesignerView->GetOrigin();
+            m_PrevDesignerTime = now;
+
+            paDesignerView->Invalidate();
+        }
     }
 }
 //---------------------------------------------------------------------------

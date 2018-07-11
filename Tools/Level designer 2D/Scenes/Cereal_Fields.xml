@@ -12,7 +12,7 @@
 				<name>Bitmaps\playfield.bmp</name>
 			</landscape_map_file>
 			<texture_file>
-				<name>Textures\mountain2.jpg</name>
+				<name>Textures\mountain.jpg</name>
 			</texture_file>
 		</scene_item>
 		<scene_item>

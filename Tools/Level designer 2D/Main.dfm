@@ -136,6 +136,48 @@ object MainForm: TMainForm
         OnClick = miFileExitClick
       end
     end
+    object miDesigner: TMenuItem
+      Caption = 'Designer'
+      object miDesignerPlayMode: TMenuItem
+        AutoCheck = True
+        Caption = 'Play mode'
+        OnClick = miDesignerPlayModeClick
+      end
+      object miDesignerRefresh: TMenuItem
+        Caption = 'Refresh'
+        object miDesignerRefreshImmediately: TMenuItem
+          AutoCheck = True
+          Caption = 'Immediately'
+          Checked = True
+          RadioItem = True
+        end
+        object miDesignerRefreshEvery500ms: TMenuItem
+          AutoCheck = True
+          Caption = 'Every 500ms'
+          RadioItem = True
+        end
+        object miDesignerRefreshEvery1s: TMenuItem
+          AutoCheck = True
+          Caption = 'Every 1s'
+          RadioItem = True
+        end
+        object miDesignerRefreshEvery2s: TMenuItem
+          AutoCheck = True
+          Caption = 'Every 2s'
+          RadioItem = True
+        end
+        object miDesignerRefreshEvery5s: TMenuItem
+          AutoCheck = True
+          Caption = 'Every 5s'
+          RadioItem = True
+        end
+        object miDesignerRefreshEvery10s: TMenuItem
+          AutoCheck = True
+          Caption = 'Every 10s'
+          RadioItem = True
+        end
+      end
+    end
     object miLandscape: TMenuItem
       Caption = 'Landscape'
       object miAdd: TMenuItem
