@@ -269,6 +269,7 @@ class TMainForm : public TForm
 
         /**
         * Opens a new landscape document
+        *@return true on success, otherwise false
         */
         bool OpenDocument();
 
