@@ -39,8 +39,9 @@ class CSR_LevelFile_XML
     public:
         /**
         * Constructor
-        *@param levelDir - path to the level dir
+        *@param levelDir - path to the level dir, if empty, the file names will be relative
         *@param saveContent - if true, the file content will also be saved
+        *@note The file names should be relative only if the file contents were saved
         */
         CSR_LevelFile_XML(const std::string& levelDir, bool saveContent);
 

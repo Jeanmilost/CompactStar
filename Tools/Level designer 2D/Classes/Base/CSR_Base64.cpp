@@ -124,11 +124,11 @@ void CSR_Base64::Decode(const std::string& str, unsigned char*& pData, std::size
     std::size_t padding = 0;
 
     // check if last char is padding
-    if (str[length - 1] == '=')
+    if (str[str.length() - 1] == '=')
         ++padding;
 
     // check if before last char is padding
-    if (str[length - 2] == '=')
+    if (str[str.length() - 2] == '=')
         ++padding;
 
     // calculate data length and allocate memory for data
