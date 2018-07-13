@@ -149,6 +149,11 @@ bool CSR_LevelFile_XML::Load(const std::string& fileName, CSR_Level& level)
     }
 
     XMLDoc_free(&doc);
+
+    // re-enable the default level shader, as the skybox shader could be enabled, and this may cause
+    // the level to not be rendered in this case
+    level.EnableShader();
+
     return true;
 }
 //---------------------------------------------------------------------------

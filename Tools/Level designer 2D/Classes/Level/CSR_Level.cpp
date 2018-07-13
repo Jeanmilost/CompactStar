@@ -275,6 +275,9 @@ bool CSR_Level::AddSkybox(const IFileNames& fileNames, ITfLoadCubemap fLoadCubem
         m_pSkyboxShader->m_VertexSlot  = glGetAttribLocation (m_pSkyboxShader->m_ProgramID, "csr_aVertices");
         m_pSkyboxShader->m_CubemapSlot = glGetUniformLocation(m_pSkyboxShader->m_ProgramID, "csr_sCubemap");
     }
+    else
+        // enable the shader program
+        csrShaderEnable(m_pSkyboxShader);
 
     // do delete the previous skybox?
     if (m_pScene->m_pSkybox)
