@@ -190,7 +190,7 @@ typedef void (*CSR_fOnSceneEnd)(const CSR_Scene* pScene, const CSR_SceneContext*
 
 /**
 * Called when a shader should be get for a model
-*@param pModel - model for which the shader shoudl be get
+*@param pModel - model for which the shader should be get
 *@param type - model type
 *@return shader to use to draw the model, 0 if no shader
 *@note The model will not be drawn if no shader is returned
@@ -466,6 +466,10 @@ struct CSR_SceneContext
         /**
         * Deletes a model or a matrix from the scene
         *@param pKey - key to delete, may be any model kind or a matrix
+        *@note The deleted item content will be freed internally. For that reason the caller should
+        *      not take care to delete the item resources externally (e.g. model, textures, ...),
+        *      all the pointers having a relationship with the key should be set to NULL, and the
+        *      key may no longer be used after that function was executed
         */
         void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey);
 

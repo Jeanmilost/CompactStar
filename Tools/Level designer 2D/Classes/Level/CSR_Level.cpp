@@ -957,6 +957,10 @@ void* CSR_Level::AddWaveFront(const CSR_Matrix4&       matrix,
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
 
+    CSR_VertexCulling vc;
+    vc.m_Type = CSR_CT_None;
+    vc.m_Face = CSR_CF_CW;
+
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
@@ -966,9 +970,9 @@ void* CSR_Level::AddWaveFront(const CSR_Matrix4&       matrix,
 
     // load the Wavefront model
     if (pBuffer)
-        pModel = csrWaveFrontCreate(pBuffer, &vf, 0, &material, 0, 0);
+        pModel = csrWaveFrontCreate(pBuffer, &vf, &vc, &material, 0, 0);
     else
-        pModel = csrWaveFrontOpen(fileName.c_str(), &vf, 0, &material, 0, 0);
+        pModel = csrWaveFrontOpen(fileName.c_str(), &vf, &vc, &material, 0, 0);
 
     // succeeded?
     if (!pModel)
