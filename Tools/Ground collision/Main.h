@@ -171,7 +171,6 @@ class TMainForm : public TForm
         void*                                 m_pSphereKey;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
         CSR_MSAA*                             m_pMSAA;
-        CSR_Matrix4                           m_ProjectionMatrix;
         CSR_Matrix4                           m_LandscapeMatrix;
         CSR_Matrix4                           m_SphereMatrix;
         CSR_Sphere                            m_ViewSphere;

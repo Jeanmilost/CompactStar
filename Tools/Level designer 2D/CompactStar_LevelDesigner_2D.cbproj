@@ -46,9 +46,9 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <Icon_MainIcon>..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <BCC_MonitorThis>true</BCC_MonitorThis>
         <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
-        <BCC_Defines>madExcept;LeakChecking;$(BCC_Defines)</BCC_Defines>
         <BCC_MonitorInlinePtrAccess>true</BCC_MonitorInlinePtrAccess>
         <ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
         <BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_LevelDesigner_2D</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Base\;Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
+        <IncludePath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Scene\;Classes\Serializer\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;Third-party\sxml\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -189,6 +189,18 @@
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>22</BuildOrder>
         </None>
+        <CppCompile Include="..\..\Third-party\sxml\sxmlc.c">
+            <BuildOrder>43</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\sxmlc.h">
+            <BuildOrder>44</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\Third-party\sxml\sxmlsearch.c">
+            <BuildOrder>45</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\sxmlsearch.h">
+            <BuildOrder>46</BuildOrder>
+        </None>
         <CppCompile Include="Classes\Base\CSR_Base64.cpp">
             <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
             <BuildOrder>44</BuildOrder>
@@ -245,18 +257,6 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Third-party\sxml\sxmlc.c">
-            <BuildOrder>38</BuildOrder>
-        </CppCompile>
-        <None Include="Third-party\sxml\sxmlc.h">
-            <BuildOrder>39</BuildOrder>
-        </None>
-        <CppCompile Include="Third-party\sxml\sxmlsearch.c">
-            <BuildOrder>40</BuildOrder>
-        </CppCompile>
-        <None Include="Third-party\sxml\sxmlsearch.h">
-            <BuildOrder>41</BuildOrder>
-        </None>
         <CppCompile Include="TLandscapeSelection.cpp">
             <Form>LandscapeSelection</Form>
             <FormType>dfm</FormType>
@@ -300,7 +300,6 @@
             <DependentOn>TVector3Frame.h</DependentOn>
             <BuildOrder>34</BuildOrder>
         </CppCompile>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="TShapeSelection.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
         <FormResources Include="TSkyboxSelection.dfm"/>
@@ -308,6 +307,7 @@
         <FormResources Include="TSoundSelection.dfm"/>
         <FormResources Include="TLevelSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -357,12 +357,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Third-party\sxml\sxmlc.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
@@ -379,12 +373,6 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Third-party\sxml\sxmlsearch.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
