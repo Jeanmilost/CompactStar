@@ -39,6 +39,7 @@
 */
 typedef enum
 {
+    CSR_MT_Line,
     CSR_MT_Mesh,
     CSR_MT_Model,
     CSR_MT_MDL
@@ -243,12 +244,12 @@ typedef int (*CSR_fOnCustomDetectCollision)(const CSR_Scene*           pScene,
 */
 struct CSR_SceneContext
 {
-    size_t                 m_Handle;
-    CSR_fOnSceneBegin      m_fOnSceneBegin;
-    CSR_fOnSceneEnd        m_fOnSceneEnd;
-    CSR_fOnGetShader       m_fOnGetShader;
-    CSR_fOnGetModelIndex   m_fOnGetModelIndex;
-    CSR_fOnGetMDLIndex     m_fOnGetMDLIndex;
+    size_t               m_Handle;
+    CSR_fOnSceneBegin    m_fOnSceneBegin;
+    CSR_fOnSceneEnd      m_fOnSceneEnd;
+    CSR_fOnGetShader     m_fOnGetShader;
+    CSR_fOnGetModelIndex m_fOnGetModelIndex;
+    CSR_fOnGetMDLIndex   m_fOnGetMDLIndex;
 };
 
 #ifdef __cplusplus
@@ -408,6 +409,17 @@ struct CSR_SceneContext
         void csrSceneInit(CSR_Scene* pScene);
 
         /**
+        * Adds a line to a scene
+        *@param pScene - scene in which the line will be added
+        *@param pLine - line to add
+        *@param transparent - if 1, the line is transparent, if 0 the line is opaque
+        *@return the scene item containing the line on success, otherwise 0
+        *@note Once successfully added, the line will be owned by the scene and should no longer be
+        *      released from outside
+        */
+        CSR_SceneItem* csrSceneAddLine(CSR_Scene* pScene, CSR_Line* pLine, int transparent);
+
+        /**
         * Adds a mesh to a scene
         *@param pScene - scene in which the mesh will be added
         *@param pMesh - mesh to add
@@ -466,10 +478,9 @@ struct CSR_SceneContext
         /**
         * Deletes a model or a matrix from the scene
         *@param pKey - key to delete, may be any model kind or a matrix
-        *@note The deleted item content will be freed internally. For that reason the caller should
-        *      not take care to delete the item resources externally (e.g. model, textures, ...),
-        *      all the pointers having a relationship with the key should be set to NULL, and the
-        *      key may no longer be used after that function was executed
+        *@note The item and all his associated resources will be freed internally. For that reason
+        *      the caller should not take care of deleting them. Be aware that the key will no longer
+        *      be valid and should no longer be used after the function will be executed
         */
         void csrSceneDeleteFrom(CSR_Scene* pScene, const void* pKey);
 
