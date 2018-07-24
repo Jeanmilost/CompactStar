@@ -4,7 +4,7 @@
         <ProjectVersion>16.0</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <AppType>Application</AppType>
-        <MainSource>2D Level Player.cpp</MainSource>
+        <MainSource>CompactStar_Weather.cpp</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -58,12 +58,12 @@
         <VerInfo_Locale>4108</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <SanitizedProjectName>2D_Level_Player</SanitizedProjectName>
+        <SanitizedProjectName>CompactStar_Weather</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
+        <IncludePath>Classes\Weather\;Classes\Base\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>Classes\Weather\;Classes\Base\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -75,6 +75,7 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\release\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <ILINK_LibraryPath>N:\Jeanmilost\Devel\Projects\CompactStar Engine\trunk\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
@@ -122,16 +123,6 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="2D Level Player.cpp">
-            <BuildOrder>0</BuildOrder>
-        </CppCompile>
-        <None Include="2D_Level_Player_PCH.h">
-            <BuildOrder>22</BuildOrder>
-        </None>
-        <CppCompile Include="Classes\Base\CSR_Base64.cpp">
-            <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
-        </CppCompile>
         <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect.cpp">
             <DependentOn>Classes\Effects\CSR_PostProcessingEffect.h</DependentOn>
             <BuildOrder>27</BuildOrder>
@@ -152,18 +143,24 @@
             <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
             <BuildOrder>31</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_Level.cpp">
-            <DependentOn>Classes\Level\CSR_Level.h</DependentOn>
-            <BuildOrder>43</BuildOrder>
+        <CppCompile Include="Classes\Weather\CSR_Weather.cpp">
+            <DependentOn>Classes\Weather\CSR_Weather.h</DependentOn>
+            <BuildOrder>31</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile.h</DependentOn>
-            <BuildOrder>45</BuildOrder>
+        <CppCompile Include="Classes\Weather\CSR_Weather_Rain.cpp">
+            <DependentOn>Classes\Weather\CSR_Weather_Rain.h</DependentOn>
+            <BuildOrder>32</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile_XML.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile_XML.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
+        <CppCompile Include="Classes\Weather\CSR_Weather_Snow.cpp">
+            <DependentOn>Classes\Weather\CSR_Weather_Snow.h</DependentOn>
+            <BuildOrder>35</BuildOrder>
         </CppCompile>
+        <CppCompile Include="CompactStar_Weather.cpp">
+            <BuildOrder>0</BuildOrder>
+        </CppCompile>
+        <None Include="CompactStar_Weather_PCH.h">
+            <BuildOrder>22</BuildOrder>
+        </None>
         <CppCompile Include="Main.cpp">
             <Form>MainForm</Form>
             <FormType>dfm</FormType>
@@ -171,58 +168,70 @@
             <BuildOrder>2</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
-            <BuildOrder>16</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Collision.h">
-            <BuildOrder>17</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Common.c">
-            <BuildOrder>18</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Common.h">
-            <BuildOrder>19</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Geometry.c">
-            <BuildOrder>20</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Geometry.h">
-            <BuildOrder>21</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Lighting.c">
             <BuildOrder>36</BuildOrder>
         </CppCompile>
-        <None Include="..\..\SDK\CSR_Lighting.h">
+        <None Include="..\..\SDK\CSR_Collision.h">
             <BuildOrder>37</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Common.c">
+            <BuildOrder>12</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Common.h">
+            <BuildOrder>13</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Geometry.c">
+            <BuildOrder>14</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Geometry.h">
+            <BuildOrder>15</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Lighting.c">
+            <BuildOrder>34</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Lighting.h">
+            <BuildOrder>35</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Model.c">
-            <BuildOrder>22</BuildOrder>
+            <BuildOrder>16</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Model.h">
-            <BuildOrder>23</BuildOrder>
+            <BuildOrder>17</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Particles.c">
+            <BuildOrder>18</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Particles.h">
+            <BuildOrder>19</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Physics.c">
+            <BuildOrder>20</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Physics.h">
+            <BuildOrder>21</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Renderer.c">
-            <BuildOrder>24</BuildOrder>
+            <BuildOrder>22</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Renderer.h">
-            <BuildOrder>25</BuildOrder>
+            <BuildOrder>23</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Scene.c">
-            <BuildOrder>26</BuildOrder>
+            <BuildOrder>24</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Scene.h">
-            <BuildOrder>27</BuildOrder>
+            <BuildOrder>25</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>28</BuildOrder>
+            <BuildOrder>26</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>29</BuildOrder>
+            <BuildOrder>27</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
-            <BuildOrder>30</BuildOrder>
+            <BuildOrder>28</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Sound.h">
-            <BuildOrder>31</BuildOrder>
+            <BuildOrder>29</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Texture.c">
             <BuildOrder>32</BuildOrder>
@@ -231,22 +240,10 @@
             <BuildOrder>33</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Vertex.c">
-            <BuildOrder>34</BuildOrder>
+            <BuildOrder>30</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Vertex.h">
-            <BuildOrder>35</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\Third-party\sxml\sxmlc.c">
-            <BuildOrder>34</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\Third-party\sxml\sxmlc.h">
-            <BuildOrder>35</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\Third-party\sxml\sxmlsearch.c">
-            <BuildOrder>36</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\Third-party\sxml\sxmlsearch.h">
-            <BuildOrder>37</BuildOrder>
+            <BuildOrder>31</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
@@ -273,15 +270,22 @@
                     <ProjectProperties Name="IndexFiles">False</ProjectProperties>
                 </ProjectProperties>
                 <Source>
-                    <Source Name="MainSource">2D Level Player.cpp</Source>
+                    <Source Name="MainSource">CompactStar_Weather.cpp</Source>
                 </Source>
             </CPlusPlusBuilder.Personality>
             <Deployment>
+                <DeployFile LocalName="..\..\SDK\CSR_Collision.c" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Weather.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -292,30 +296,19 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Rain&amp;Snow.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner_2D.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\Game.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName=".\Win32\Debug\2D Level Player.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>2D_Level_Player.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\2D_Level_Player.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>2D_Level_Player.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win32">
-                        <RemoteName>2D_Level_Player.tds</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_Weather.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_Weather.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -326,13 +319,21 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\Characters.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Main_Character.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin\cc32160.dll" Class="DependencyModule">
                     <Platform Name="Win32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_Weather.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_Weather.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
