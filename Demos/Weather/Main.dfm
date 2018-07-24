@@ -1,7 +1,9 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Rain & Snow'
+  Caption = 
+    'Weather effects - press 1 for rain, 2 for snow and 3 for both ra' +
+    'in and snow'
   ClientHeight = 623
   ClientWidth = 800
   Color = clBtnFace
