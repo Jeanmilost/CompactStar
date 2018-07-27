@@ -1244,7 +1244,7 @@ int TMainForm::OnCustomDetectCollision(const CSR_Scene*           pScene,
 
     float posY;
 
-    // calculate the y position where to place the point of view
+    // calculate the y position where to place the sphere
     if (csrGroundPosY(&nextPosSphere,
                       &pSceneItem->m_pAABBTree[pSceneItem->m_AABBTreeIndex],
                       &pScene->m_GroundDir,
