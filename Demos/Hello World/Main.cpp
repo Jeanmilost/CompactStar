@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> Main ----------------------------------------------------------------*
  ****************************************************************************
- * Description : Ground collision tool main form                            *
+ * Description : Hello world demo main form                                 *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -54,6 +54,8 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_hRC(NULL),
     m_pOpenALDevice(NULL),
     m_pOpenALContext(NULL),
+    m_pScene(NULL),
+    m_pShader(NULL),
     m_FrameCount(0),
     m_PrevOrigin(0),
     m_Angle(M_PI / 2),
@@ -284,14 +286,14 @@ void TMainForm::InitScene(int w, int h)
     csrMat4Identity(&m_pScene->m_ViewMatrix);
     csrMat4Identity(&m_ModelMatrix);
 
-    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Color);
-    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Color);
+    const std::string vsColored = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Color);
+    const std::string fsColored = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Color);
 
     // load the shader
-    m_pShader = csrShaderLoadFromStr(vsTextured.c_str(),
-                                     vsTextured.length(),
-                                     fsTextured.c_str(),
-                                     fsTextured.length(),
+    m_pShader = csrShaderLoadFromStr(vsColored.c_str(),
+                                     vsColored.length(),
+                                     fsColored.c_str(),
+                                     fsColored.length(),
                                      0,
                                      0);
 
@@ -334,7 +336,7 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // add it to the scene
-    CSR_SceneItem* pItem = csrSceneAddModel(m_pScene, pModel, 0, 0);
+    csrSceneAddModel(m_pScene, pModel, 0, 0);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_ModelMatrix);
 
     // place the model in the 3d world (update the matrix directly)

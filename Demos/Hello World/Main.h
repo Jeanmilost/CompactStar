@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> Main ----------------------------------------------------------------*
  ****************************************************************************
- * Description : Ground collision tool main form                            *
+ * Description : Hello world demo main form                                 *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -41,7 +41,7 @@
 #include "CSR_VCLHelper.h"
 
 /**
-* Ground collision tool main form
+* Hello world demo main form
 *@author Jean-Milost Reymond
 */
 class TMainForm : public TForm
