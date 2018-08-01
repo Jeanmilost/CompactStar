@@ -36,8 +36,8 @@
 */
 typedef struct
 {
-    CSR_Vector3 m_InitialForce; // initial (or previous) force applied to the particle
-    float       m_Mass;         // particle mass
+    CSR_Vector3 m_Velocity; // velocity (in m/s)
+    float       m_Mass;     // mass (in Kilograms)
 } CSR_Body;
 
 #ifdef __cplusplus
@@ -72,12 +72,39 @@ typedef struct
         //-------------------------------------------------------------------
 
         /**
-        * Applies the gravitation force to a body
-        *@param pBody - body to which the gravitation force should be applied
-        *@param gravitation - the gravitation force in Newtons
-        *@param[out] pR - resulting force in Newtons
+        * Converts the weight of a body to a mass
+        *@param weight - body weight, in Newtons
+        *@param[out] pMass - body mass, in kilograms
         */
-        void csrPhysicsApplyGravitation(const CSR_Body* pBody, float gravitation, CSR_Vector3* pR);
+        void csrPhysicsWeightToMass(float weight, float* pMass);
+
+        /**
+        * Converts the mass of a body to a weight
+        *@param mass - body mass, in kilograms
+        *@param[out] pWeight - body weight, in Newtons
+        */
+        void csrPhysicsMassToWeight(float mass, float* pWeight);
+
+        /**
+        * Calculates the gravity force applied on an object
+        *@param mass - object mass for which the gravitation force should be calculated in kilograms
+        *@param[out] pF - resulting force in Newtons
+        */
+        void csrPhysicsGravity(float mass, float* pF);
+
+        /**
+        * Calculates the new velocity of a body rolling against a slope
+        *@param pSlopeDir - slope direction (or slope normal)
+        *@param mass - body mass
+        *@param friction - friction factor to apply to the body
+        *@param elapsedTime - elapsed time since last calculation in milliseconds
+        *@param[in, out] pVelocity - last known velocity, new velocity on function ends
+        */
+        void csrPhysicsRoll(const CSR_Vector3* pSlopeDir,
+                                  float        mass,
+                                  float        friction,
+                                  float        elapsedTime,
+                                  CSR_Vector3* pVelocity);
 
 #ifdef __cplusplus
     }

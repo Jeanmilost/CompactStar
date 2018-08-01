@@ -73,7 +73,7 @@ CSR_Weather_Snow::CSR_Weather_Snow(      CSR_Scene*   pScene,
         for (std::size_t i = 0; i < count; ++i)
         {
             // add a new particle and set his mass (+/- 4mg for a snowflake)
-            CSR_Particle* pParticle  = csrParticlesAdd(m_pParticles);
+            CSR_Particle* pParticle    = csrParticlesAdd(m_pParticles);
             pParticle->m_pBody->m_Mass = 0.004f;
 
             // calculate the particle start position
@@ -82,9 +82,9 @@ CSR_Weather_Snow::CSR_Weather_Snow(      CSR_Scene*   pScene,
             const float z = m_SnowBox.m_Min.m_Z + (float(std::rand() % int(std::fabs(depth)))  * (invZ ? -0.001 : 0.001));
 
             // calculate the particle initial force
-            pParticle->m_pBody->m_InitialForce.m_X = -10.0f *  windForce.m_X * float(std::rand() % 20);
-            pParticle->m_pBody->m_InitialForce.m_Y =  12.0f + (windForce.m_Y * ((m_CloudHeight - (y - (m_SnowBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
-            pParticle->m_pBody->m_InitialForce.m_Z = -10.0f *  windForce.m_Z * float(std::rand() % 20);
+            pParticle->m_pBody->m_Velocity.m_X = -10.0f *  windForce.m_X * float(std::rand() % 20);
+            pParticle->m_pBody->m_Velocity.m_Y =  12.0f + (windForce.m_Y * ((m_CloudHeight - (y - (m_SnowBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
+            pParticle->m_pBody->m_Velocity.m_Z = -10.0f *  windForce.m_Z * float(std::rand() % 20);
 
             // configure the particle matrix (was set to identity while the particle was created)
             pParticle->m_pMatrix->m_Table[3][0] = x;
@@ -113,19 +113,10 @@ void CSR_Weather_Snow::OnCalculateMotion(const CSR_Particles* pParticles,
     if (!pParticle)
         return;
 
-    // calculate the force to apply to the particle
-    csrPhysicsApplyGravitation(pParticle->m_pBody, M_CSR_Gravitation, &pParticle->m_pBody->m_InitialForce);
-
-    // calculate the particle velocity
-    CSR_Vector3 velocity;
-    velocity.m_X =  pParticle->m_pBody->m_InitialForce.m_X                               * (elapsedTime * 0.001);
-    velocity.m_Y = (pParticle->m_pBody->m_InitialForce.m_Y / pParticle->m_pBody->m_Mass) * (elapsedTime * 0.00025);
-    velocity.m_Z =  pParticle->m_pBody->m_InitialForce.m_Z                               * (elapsedTime * 0.001);
-
     // calculate the new particle position
-    pParticle->m_pMatrix->m_Table[3][0] += velocity.m_X;
-    pParticle->m_pMatrix->m_Table[3][1] -= velocity.m_Y;
-    pParticle->m_pMatrix->m_Table[3][2] += velocity.m_Z;
+    pParticle->m_pMatrix->m_Table[3][0] += pParticle->m_pBody->m_Velocity.m_X * (elapsedTime * 0.001f);
+    pParticle->m_pMatrix->m_Table[3][1] -= M_CSR_Gravitation                  * (elapsedTime * 0.1f);
+    pParticle->m_pMatrix->m_Table[3][2] += pParticle->m_pBody->m_Velocity.m_Z * (elapsedTime * 0.001f);
 
     // was the particle gone out of the snow box bottom?
     if (pParticle->m_pMatrix->m_Table[3][1] < m_SnowBox.m_Max.m_Y)
@@ -136,8 +127,9 @@ void CSR_Weather_Snow::OnCalculateMotion(const CSR_Particles* pParticles,
         const float y      =  m_SnowBox.m_Min.m_Y + (float(std::rand() % int(std::fabs(height))) * (invY ? -0.001 : 0.001));
 
         // reset the particle
-        pParticle->m_pBody->m_InitialForce.m_Y = 12.0f + (m_WindForce.m_Y * ((m_CloudHeight - (y - (m_SnowBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
-        pParticle->m_pMatrix->m_Table[3][1]    = y;
+        pParticle->m_pBody->m_Velocity.m_Y =
+                12.0f + (m_WindForce.m_Y * ((m_CloudHeight - (y - (m_SnowBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
+        pParticle->m_pMatrix->m_Table[3][1]        = y;
     }
 
     // was the particle gone out of the rain box left or right?

@@ -56,7 +56,7 @@ CSR_Weather_Rain::CSR_Weather_Rain(      CSR_Scene*   pScene,
         for (std::size_t i = 0; i < count; ++i)
         {
             // add a new particle and set his mass (+/- 4mg for a rain drop)
-            CSR_Particle* pParticle = csrParticlesAdd(m_pParticles);
+            CSR_Particle* pParticle    = csrParticlesAdd(m_pParticles);
             pParticle->m_pBody->m_Mass = 0.004f;
 
             // create a line which will represent the rain drop
@@ -78,9 +78,9 @@ CSR_Weather_Rain::CSR_Weather_Rain(      CSR_Scene*   pScene,
             pLine->m_Width     = 1.0f;
 
             // calculate the particle initial force
-            pParticle->m_pBody->m_InitialForce.m_X = -10.0f * float(std::rand() % 20)       * windForce.m_X;
-            pParticle->m_pBody->m_InitialForce.m_Y =  8.0f  + (((2.0f - (y - 1.0f)) * 2.0f) * windForce.m_Y);
-            pParticle->m_pBody->m_InitialForce.m_Z = -10.0f * float(std::rand() % 20)       * windForce.m_Z;
+            pParticle->m_pBody->m_Velocity.m_X = -10.0f * float(std::rand() % 20)       * windForce.m_X;
+            pParticle->m_pBody->m_Velocity.m_Y =  8.0f  + (((2.0f - (y - 1.0f)) * 2.0f) * windForce.m_Y);
+            pParticle->m_pBody->m_Velocity.m_Z = -10.0f * float(std::rand() % 20)       * windForce.m_Z;
 
             // add the line to the scene
             CSR_SceneItem* pItem = csrSceneAddLine(m_pScene, pLine.get(), 0);
@@ -110,14 +110,12 @@ void CSR_Weather_Rain::OnCalculateMotion(const CSR_Particles* pParticles,
     if (!pLine)
         return;
 
-    // calculate the force to apply to the particle
-    csrPhysicsApplyGravitation(pParticle->m_pBody, M_CSR_Gravitation, &pParticle->m_pBody->m_InitialForce);
+    CSR_Vector3 velocity;
 
     // calculate the particle velocity
-    CSR_Vector3 velocity;
-    velocity.m_X = (pParticle->m_pBody->m_InitialForce.m_X / pParticle->m_pBody->m_Mass) * (elapsedTime * 0.001);
-    velocity.m_Y = (pParticle->m_pBody->m_InitialForce.m_Y / pParticle->m_pBody->m_Mass) * (elapsedTime * 0.001);
-    velocity.m_Z = (pParticle->m_pBody->m_InitialForce.m_Z / pParticle->m_pBody->m_Mass) * (elapsedTime * 0.001);
+    velocity.m_X = pParticle->m_pBody->m_Velocity.m_X * (elapsedTime * 0.001f);
+    velocity.m_Y = M_CSR_Gravitation                  * (elapsedTime * 0.3f);
+    velocity.m_Z = pParticle->m_pBody->m_Velocity.m_Z * (elapsedTime * 0.001f);
 
     // calculate the new particle position
     pLine->m_Start.m_X -= velocity.m_X;
@@ -136,9 +134,9 @@ void CSR_Weather_Rain::OnCalculateMotion(const CSR_Particles* pParticles,
         const float y      =  m_RainBox.m_Min.m_Y + (float(std::rand() % int(std::fabs(height))) * (invY ? -0.001 : 0.001));
 
         // reset the particle
-        pParticle->m_pBody->m_InitialForce.m_Y = 8.0f + (m_WindForce.m_Y * ((m_CloudHeight - (y - (m_RainBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
-        pLine->m_Start.m_Y                     = y;
-        pLine->m_End.m_Y                       = y - m_DropLength;
+        pParticle->m_pBody->m_Velocity.m_Y = 8.0f + (m_WindForce.m_Y * ((m_CloudHeight - (y - (m_RainBox.m_Min.m_Y - m_CloudHeight))) * 2.0f));
+        pLine->m_Start.m_Y                 = y;
+        pLine->m_End.m_Y                   = y - m_DropLength;
     }
 
     // was the particle gone out of the rain box left or right?

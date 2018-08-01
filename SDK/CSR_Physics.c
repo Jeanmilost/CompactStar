@@ -17,6 +17,7 @@
 
 // std
 #include <stdlib.h>
+#include <math.h>
 
 //---------------------------------------------------------------------------
 // Body functions
@@ -53,19 +54,84 @@ void csrBodyInit(CSR_Body* pBody)
         return;
 
     // initialize the body
-    pBody->m_InitialForce.m_X = 0.0f;
-    pBody->m_InitialForce.m_Y = 0.0f;
-    pBody->m_InitialForce.m_Z = 0.0f;
-    pBody->m_Mass             = 0.0f;
+    pBody->m_Velocity.m_X = 0.0f;
+    pBody->m_Velocity.m_Y = 0.0f;
+    pBody->m_Velocity.m_Z = 0.0f;
+    pBody->m_Mass         = 0.0f;
 }
 //---------------------------------------------------------------------------
 // Physics functions
 //---------------------------------------------------------------------------
-void csrPhysicsApplyGravitation(const CSR_Body* pBody, float gravitation, CSR_Vector3* pR)
+void csrPhysicsWeightToMass(float weight, float* pMass)
+{
+    *pMass = weight / M_CSR_Gravitation;
+}
+//---------------------------------------------------------------------------
+void csrPhysicsMassToWeight(float mass, float* pWeight)
+{
+    *pWeight = mass * M_CSR_Gravitation;
+}
+//---------------------------------------------------------------------------
+void csrPhysicsGravity(float mass, float* pF)
 {
     // the formula for the gravitation is F = m * g
-    pR->m_X = pBody->m_InitialForce.m_X;
-    pR->m_Y = pBody->m_InitialForce.m_Y + (pBody->m_Mass * gravitation);
-    pR->m_Z = pBody->m_InitialForce.m_Z;
+    *pF = mass * M_CSR_Gravitation;
+}
+//---------------------------------------------------------------------------
+void csrPhysicsRoll(const CSR_Vector3* pSlopeDir,
+                          float        mass,
+                          float        friction,
+                          float        elapsedTime,
+                          CSR_Vector3* pVelocity)
+{
+    float       gravity;
+    float       thetaX;
+    float       thetaZ;
+    float       ffx;
+    float       ffz;
+    CSR_Vector3 xDir;
+    CSR_Vector3 zDir;
+    CSR_Vector3 acceleration;
+
+    // calculate the gravity force to apply to the body
+    csrPhysicsGravity(mass, &gravity);
+
+    xDir.m_X = 1.0f;
+    xDir.m_Y = 0.0f;
+    xDir.m_Z = 0.0f;
+
+    // calculate the slope angle on the x axis
+    csrVec3Dot(&xDir, pSlopeDir, &thetaX);
+
+    zDir.m_X = 0.0f;
+    zDir.m_Y = 0.0f;
+    zDir.m_Z = 1.0f;
+
+    // calculate the slope angle on the z axis
+    csrVec3Dot(&zDir, pSlopeDir, &thetaZ);
+
+    // the angles should always be positive
+    thetaX = fabs(thetaX);
+    thetaZ = fabs(thetaZ);
+
+    // calculate the friction force to apply to the body (using the formula a = dv / dt)
+    if (elapsedTime)
+    {
+        ffx = (pVelocity->m_X / (elapsedTime * 1.0f)) * friction;
+        ffz = (pVelocity->m_Z / (elapsedTime * 1.0f)) * friction;
+    }
+    else
+    {
+        ffx = 0.0f;
+        ffz = 0.0f;
+    }
+
+    // calculate the body acceleration (using the formula a = ((m * g * sin(theta)) - Ff) / m)
+    acceleration.m_X = ((gravity * thetaX) - ffx) / mass;
+    acceleration.m_Z = ((gravity * thetaZ) - ffz) / mass;
+
+    // calculate the final body velocity (using the formula v = v + (a * dt))
+    pVelocity->m_X += (acceleration.m_X * elapsedTime);
+    pVelocity->m_Z += (acceleration.m_Z * elapsedTime);
 }
 //---------------------------------------------------------------------------
