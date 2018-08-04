@@ -43,44 +43,22 @@
 #pragma link "openAL32E.lib"
 #pragma resource "*.dfm"
 
-#define LANDSCAPE_TEXTURE_FILE "\\grass.bmp"
-#define BALL_TEXTURE_FILE      "\\soccer_ball.bmp"
+// resource files to load
+#define LANDSCAPE_TEXTURE_FILE "\\football_ground.png"
+#define BALL_TEXTURE_FILE      "\\soccer_ball.png"
 #define LANDSCAPE_DATA_FILE    "\\level.bmp"
-#define SKYBOX_LEFT            "\\left.bmp"
-#define SKYBOX_TOP             "\\top.bmp"
-#define SKYBOX_RIGHT           "\\right.bmp"
-#define SKYBOX_BOTTOM          "\\bottom.bmp"
-#define SKYBOX_FRONT           "\\front.bmp"
-#define SKYBOX_BACK            "\\back.bmp"
-#define PLAYER_STEP_SOUND_FILE "\\human_walk_grass_step.wav"
+#define SKYBOX_LEFT            "\\left.png"
+#define SKYBOX_TOP             "\\top.png"
+#define SKYBOX_RIGHT           "\\right.png"
+#define SKYBOX_BOTTOM          "\\bottom.png"
+#define SKYBOX_FRONT           "\\front.png"
+#define SKYBOX_BACK            "\\back.png"
+#define PLAYER_STEP_SOUND_FILE "\\running_sound.wav"
 
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
 #define M_ShootEnergyFactor 23.5f // energy factor for the shoot
-//----------------------------------------------------------------------------
-// Global variables
-//------------------------------------------------------------------------------
-const char g_VSSkybox[] =
-    "precision mediump float;"
-    "attribute vec3 csr_aVertices;"
-    "uniform   mat4 csr_uProjection;"
-    "uniform   mat4 csr_uView;"
-    "varying   vec3 csr_vTexCoord;"
-    "void main()"
-    "{"
-    "    csr_vTexCoord = csr_aVertices;"
-    "    gl_Position   = csr_uProjection * csr_uView * vec4(csr_aVertices, 1.0);"
-    "}";
-//------------------------------------------------------------------------------
-const char g_FSSkybox[] =
-    "precision mediump float;"
-    "uniform samplerCube csr_sCubemap;"
-    "varying vec3        csr_vTexCoord;"
-    "void main()"
-    "{"
-    "    gl_FragColor = textureCube(csr_sCubemap, csr_vTexCoord);"
-    "}";
 //---------------------------------------------------------------------------
 // TMainForm
 //---------------------------------------------------------------------------
@@ -367,6 +345,125 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
         return M_CSR_Error_Code;
     }
 }
+//---------------------------------------------------------------------------
+GLuint TMainForm::LoadCubemap(const IFileNames fileNames) const
+{
+    try
+    {
+        GLuint textureID = M_CSR_Error_Code;
+
+        // create new OpenGL texture
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        const std::size_t fileNameCount = fileNames.size();
+
+        // iterate through the cubemap texture files to load
+        for (std::size_t i = 0; i < fileNameCount; i++)
+        {
+            // load texture in a picture
+            std::auto_ptr<TPicture> pPicture(new TPicture());
+            pPicture->LoadFromFile(fileNames[i].c_str());
+
+            // convert it to a bitmap
+            std::auto_ptr<TBitmap> pTexture(new TBitmap());
+            pTexture->Assign(pPicture->Graphic);
+
+            int pixelSize;
+
+            // search for bitmap pixel format
+            switch (pTexture->PixelFormat)
+            {
+                case pf24bit: pixelSize = 3; break;
+                case pf32bit: pixelSize = 4; break;
+                default:                     return M_CSR_Error_Code;
+            }
+
+            CSR_PixelBuffer* pPixelBuffer = csrPixelBufferCreate();
+
+            try
+            {
+                // configure the pixel buffer
+                pPixelBuffer->m_PixelType    = CSR_PT_BGR;
+                pPixelBuffer->m_ImageType    = CSR_IT_Raw;
+                pPixelBuffer->m_Width        = pTexture->Width;
+                pPixelBuffer->m_Height       = pTexture->Height;
+                pPixelBuffer->m_BytePerPixel = pixelSize;
+                pPixelBuffer->m_DataLength   = pTexture->Width * pTexture->Height * pixelSize;
+
+                // reserve memory for the pixel array. NOTE use malloc and not new here to be conform
+                // with the c standards (otherwise CodeGuard will not be happy)
+                pPixelBuffer->m_pData = malloc(pPixelBuffer->m_DataLength);
+
+                TRGBTriple* pLineRGB;
+                TRGBQuad*   pLineRGBA;
+
+                // iterate through lines to copy
+                for (int y = 0; y < pTexture->Height; ++y)
+                {
+                    // get the next pixel line from bitmap
+                    if (pixelSize == 3)
+                        pLineRGB  = static_cast<TRGBTriple*>(pTexture->ScanLine[y]);
+                    else
+                        pLineRGBA = static_cast<TRGBQuad*>(pTexture->ScanLine[y]);
+
+                    // calculate the start y position
+                    const int yPos = y * pTexture->Width * pixelSize;
+
+                    // iterate through pixels to copy
+                    for (int x = 0; x < pTexture->Width; ++x)
+                    {
+                        // copy to pixel array
+                        if (pixelSize == 3)
+                        {
+                            const std::size_t offset = yPos + (((pTexture->Width - 1) - x) * 3);
+
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset]     = pLineRGB[x].rgbtRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 1] = pLineRGB[x].rgbtGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 2] = pLineRGB[x].rgbtBlue;
+                        }
+                        else
+                        {
+                            const std::size_t offset = yPos + (((pTexture->Width - 1) - x) * 4);
+
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset]     = pLineRGBA[x].rgbRed;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 1] = pLineRGBA[x].rgbGreen;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 2] = pLineRGBA[x].rgbBlue;
+                            ((unsigned char*)pPixelBuffer->m_pData)[offset + 3] = pLineRGBA[x].rgbReserved;
+                        }
+                    }
+                }
+
+                // load the texture on the GPU
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                             0,
+                             GL_RGB,
+                             pPixelBuffer->m_Width,
+                             pPixelBuffer->m_Height,
+                             0,
+                             GL_RGB,
+                             GL_UNSIGNED_BYTE,
+                             pPixelBuffer->m_pData);
+            }
+            __finally
+            {
+                csrPixelBufferRelease(pPixelBuffer);
+            }
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,     GL_CLAMP_TO_EDGE);
+
+        return textureID;
+    }
+    catch (...)
+    {
+        return M_CSR_Error_Code;
+    }
+}
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
@@ -444,8 +541,7 @@ void TMainForm::InitScene(int w, int h)
     // load the landscape
     if (!LoadLandscapeFromBitmap((m_SceneDir + LANDSCAPE_DATA_FILE).c_str()))
     {
-        // show the error message to the user
-        printf("The landscape could not be loaded.\n");
+        Close();
         return;
     }
 
@@ -455,17 +551,12 @@ void TMainForm::InitScene(int w, int h)
     // found it?
     if (!pItem)
     {
-        // show the error message to the user
-        printf("The landscape was not found in the scene.\n");
+        Close();
         return;
     }
 
     // load landscape texture
-    CSR_PixelBuffer* pPixelBuffer                                    = csrPixelBufferFromBitmapFile((m_SceneDir + LANDSCAPE_TEXTURE_FILE).c_str());
-    ((CSR_Model*)(pItem->m_pModel))->m_pMesh[0].m_Shader.m_TextureID = csrTextureFromPixelBuffer(pPixelBuffer);
-
-    // landscape texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
+    ((CSR_Model*)(pItem->m_pModel))->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(m_SceneDir + LANDSCAPE_TEXTURE_FILE);
 
     CSR_VertexFormat vertexFormat;
     vertexFormat.m_HasNormal         = 0;
@@ -487,11 +578,7 @@ void TMainForm::InitScene(int w, int h)
                                            0);
 
     // load ball texture
-    pPixelBuffer                = csrPixelBufferFromBitmapFile((m_SceneDir + BALL_TEXTURE_FILE).c_str());
-    pMesh->m_Shader.m_TextureID = csrTextureFromPixelBuffer(pPixelBuffer);
-
-    // ball texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
+    pMesh->m_Shader.m_TextureID = LoadTexture(m_SceneDir + BALL_TEXTURE_FILE);
 
     // add the mesh to the scene
     CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
@@ -501,19 +588,21 @@ void TMainForm::InitScene(int w, int h)
     m_Ball.m_pKey        = pSceneItem->m_pModel;
     m_Ball.m_Body.m_Mass = 0.3f;
 
+    const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Skybox);
+    const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
+
     // load the skybox shader
-    m_pSkyboxShader = csrShaderLoadFromStr(&g_VSSkybox[0],
-                                            sizeof(g_VSSkybox),
-                                           &g_FSSkybox[0],
-                                            sizeof(g_FSSkybox),
-                                            0,
-                                            0);
+    m_pSkyboxShader = csrShaderLoadFromStr(vsSkybox.c_str(),
+                                           vsSkybox.length(),
+                                           fsSkybox.c_str(),
+                                           fsSkybox.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!m_pSkyboxShader)
     {
-        // show the error message to the user
-        printf("Failed to load the skybox shader.\n");
+        Close();
         return;
     }
 
@@ -530,30 +619,20 @@ void TMainForm::InitScene(int w, int h)
     // succeeded?
     if (!m_pScene->m_pSkybox)
     {
-        // show the error message to the user
-        printf("Failed to create the skybox.\n");
+        Close();
         return;
     }
 
-    const std::string skyboxRight  = m_SceneDir + SKYBOX_RIGHT;
-    const std::string skyboxLeft   = m_SceneDir + SKYBOX_LEFT;
-    const std::string skyboxTop    = m_SceneDir + SKYBOX_TOP;
-    const std::string skyboxBottom = m_SceneDir + SKYBOX_BOTTOM;
-    const std::string skyboxFront  = m_SceneDir + SKYBOX_FRONT;
-    const std::string skyboxBack   = m_SceneDir + SKYBOX_BACK;
-
-    const char* pCubemapFileNames[6] =
-    {
-        skyboxRight.c_str(),
-        skyboxLeft.c_str(),
-        skyboxTop.c_str(),
-        skyboxBottom.c_str(),
-        skyboxFront.c_str(),
-        skyboxBack.c_str()
-    };
+    IFileNames cubemapFileNames;
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_RIGHT);
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_LEFT);
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_TOP);
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_BOTTOM);
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_FRONT);
+    cubemapFileNames.push_back(m_SceneDir + SKYBOX_BACK);
 
     // load the cubemap texture
-    m_pScene->m_pSkybox->m_Shader.m_CubeMapID = csrCubemapLoad(pCubemapFileNames);
+    m_pScene->m_pSkybox->m_Shader.m_CubeMapID = LoadCubemap(cubemapFileNames);
 
     // load step sound file
     m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + PLAYER_STEP_SOUND_FILE).c_str());

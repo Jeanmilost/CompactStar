@@ -90,6 +90,9 @@ class TMainForm : public TForm
         static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
     private:
+        /**
+        * Structure representing a physical ball
+        */
         struct CSR_Ball
         {
             void*       m_pKey;
@@ -97,6 +100,8 @@ class TMainForm : public TForm
             CSR_Sphere  m_Geometry;
             CSR_Body    m_Body;
         };
+
+        typedef std::vector<std::string> IFileNames;
 
         HDC              m_hDC;
         HGLRC            m_hRC;
@@ -128,36 +133,19 @@ class TMainForm : public TForm
         unsigned __int64 m_PreviousTime;
         bool             m_Initialized;
 
-        /*REM
-        CSR_Shader*      g_pShader       = 0;
-        void*            g_pLandscapeKey = 0;
-        float            g_MapHeight     = 3.0f;
-        float            g_MapScale      = 0.2f;
-        float            g_Angle         = M_PI / -4.0f;
-        float            g_RotationSpeed = 0.02f;
-        float            g_StepTime      = 0.0f;
-        float            g_StepInterval  = 350.0f;
-        const float      g_PosVelocity   = 10.0f;
-        const float      g_DirVelocity   = 30.0f;
-        const float      g_ControlRadius = 40.0f;
-        CSR_Ball         g_Ball;
-        CSR_Sphere       g_ViewSphere;
-        CSR_Matrix4      g_LandscapeMatrix;
-        CSR_Vector2      g_TouchOrigin;
-        CSR_Vector2      g_TouchPosition;
-        CSR_Vector3      g_FrictionForce;
-        CSR_Color        g_Color;
-        ALCdevice*       g_pOpenALDevice  = 0;
-        ALCcontext*      g_pOpenALContext = 0;
-        CSR_Sound*       g_pSound         = 0;
-        */
-
         /**
         * Loads a texture
         *@param fileName - texture file name to load
         *@return texture identifier on the GPU, M_CSR_Error_Code on error
         */
         GLuint LoadTexture(const std::string& fileName) const;
+
+        /**
+        * Loads a cubemap texture
+        *@param fileNames - textures file names to load
+        *@return texture identifier on the GPU, M_CSR_Error_Code on error
+        */
+        GLuint LoadCubemap(const IFileNames fileNames) const;
 
         /**
         * Initializes the scene
