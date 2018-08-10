@@ -768,16 +768,16 @@ typedef void (*CSR_fOnTextureRead)(size_t index, const CSR_PixelBuffer* pPixelBu
         /**
         * Converts a read value to float and adds it in an array
         *@param pBuffer - buffer containing the value to convert
-        *@param pArray[in, out] - float array in which the value should be added
-        *@param pCount[in, out] - array count
+        *@param[in, out] pArray - float array in which the value should be added
+        *@param[in, out] pCount - array count
         */
         void csrWaveFrontConvertFloat(const char* pBuffer, float** pArray, size_t* pCount);
 
         /**
         * Converts a read value to int and adds it in an array
         *@param pBuffer - buffer containing the value to convert
-        *@param pArray[in, out] - int array in which the value should be added
-        *@param pCount[in, out] - array count
+        *@param[in, out] pArray - int array in which the value should be added
+        *@param[in, out] pCount - array count
         */
         void csrWaveFrontConvertInt(const char* pBuffer, int** pArray, size_t* pCount);
 

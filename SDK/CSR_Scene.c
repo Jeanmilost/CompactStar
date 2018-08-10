@@ -18,6 +18,7 @@
 // std
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 //---------------------------------------------------------------------------
 // Hit model functions
@@ -710,7 +711,7 @@ CSR_SceneItem* csrSceneAddLine(CSR_Scene* pScene, CSR_Line* pLine, int transpare
             return 0;
 
         // get the item index to update
-        index = pScene->m_TransparentItemCount;
+        index = (int)pScene->m_TransparentItemCount;
     }
     else
     {
@@ -724,7 +725,7 @@ CSR_SceneItem* csrSceneAddLine(CSR_Scene* pScene, CSR_Line* pLine, int transpare
             return 0;
 
         // get the scene item index to update
-        index = pScene->m_ItemCount;
+        index = (int)pScene->m_ItemCount;
     }
 
     // initialize the newly created item with the default values
@@ -780,7 +781,7 @@ CSR_SceneItem* csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transpare
             return 0;
 
         // get the item index to update
-        index = pScene->m_TransparentItemCount;
+        index = (int)pScene->m_TransparentItemCount;
     }
     else
     {
@@ -794,7 +795,7 @@ CSR_SceneItem* csrSceneAddMesh(CSR_Scene* pScene, CSR_Mesh* pMesh, int transpare
             return 0;
 
         // get the scene item index to update
-        index = pScene->m_ItemCount;
+        index = (int)pScene->m_ItemCount;
     }
 
     // initialize the newly created item with the default values
@@ -874,7 +875,7 @@ CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transp
             return 0;
 
         // get the item index to update
-        index = pScene->m_TransparentItemCount;
+        index = (int)pScene->m_TransparentItemCount;
     }
     else
     {
@@ -888,7 +889,7 @@ CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transp
             return 0;
 
         // get the scene item index to update
-        index = pScene->m_ItemCount;
+        index = (int)pScene->m_ItemCount;
     }
 
     // initialize the newly created item with the default values
@@ -1009,7 +1010,7 @@ CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent,
             return 0;
 
         // get the item index to update
-        index = pScene->m_TransparentItemCount;
+        index = (int)pScene->m_TransparentItemCount;
     }
     else
     {
@@ -1023,7 +1024,7 @@ CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent,
             return 0;
 
         // get the scene item index to update
-        index = pScene->m_ItemCount;
+        index = (int)pScene->m_ItemCount;
     }
 
     // initialize the newly created item with the default values
@@ -1118,7 +1119,6 @@ CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent,
 //---------------------------------------------------------------------------
 CSR_SceneItem* csrSceneAddModelMatrix(CSR_Scene* pScene, const void* pModel, CSR_Matrix4* pMatrix)
 {
-    size_t         i;
     CSR_SceneItem* pSceneItem;
 
     // validate inputs

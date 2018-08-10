@@ -208,9 +208,9 @@ typedef void (*CSR_fOnGetModelIndex)(const CSR_Model* pModel, size_t* pIndex);
 /**
 * Called when the MDL model indexes should be get
 *@param pMDL - MDL model for which the indexes should be get
-*@param[in, out] textureIndex - texture index
-*@param[in, out] modelIndex - model index
-*@param[in, out] meshIndex - mesh index
+*@param[in, out] pTextureIndex - texture index
+*@param[in, out] pModelIndex - model index
+*@param[in, out] pMeshIndex - mesh index
 */
 typedef void (*CSR_fOnGetMDLIndex)(const CSR_MDL* pMDL,
                                          size_t*  pTextureIndex,
@@ -256,7 +256,6 @@ struct CSR_SceneContext
     extern "C"
     {
 #endif
-
         //-------------------------------------------------------------------
         // Hit model functions
         //-------------------------------------------------------------------
@@ -372,10 +371,9 @@ struct CSR_SceneContext
 
         /**
         * Detects the collisions happening against a scene item
+        *@param pScene - scene containing the item to check
         *@param pSceneItem - scene item against which the collision should be detected
-        *@param pGroundDir - the scene ground direction
         *@param pCollisionInput - collision input
-        *@param pCollisionItemInput - collision item input
         *@param[in, out] pCollisionOutput - collision output containing the result
         *@param fOnCustomDetectCollision - custom collision detection callback
         */
@@ -434,7 +432,7 @@ struct CSR_SceneContext
         /**
         * Adds a model to a scene
         *@param pScene - scene in which the model will be added
-        *@param pModel- model to add
+        *@param pModel - model to add
         *@param transparent - if 1, the model is transparent, if 0 the model is opaque
         *@param aabb - if 1, the AABB tree will be generated for the mesh
         *@return the scene item containing the model on success, otherwise 0
@@ -477,6 +475,7 @@ struct CSR_SceneContext
 
         /**
         * Deletes a model or a matrix from the scene
+        *@param pScene - scene from which the item should be deleted
         *@param pKey - key to delete, may be any model kind or a matrix
         *@note The item and all his associated resources will be freed internally. For that reason
         *      the caller should not take care of deleting them. Be aware that the key will no longer

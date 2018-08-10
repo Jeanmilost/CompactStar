@@ -18,6 +18,7 @@
 // std
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 // this code is EXPERIMENTAL and should be STRONGLY TESTED on big endian machines before be activated
 #define CONVERT_ENDIANNESS
@@ -410,7 +411,6 @@ CSR_Mesh* csrShapeCreateBox(float                 width,
                       const CSR_Material*         pMaterial,
                       const CSR_fOnGetVertexColor fOnGetVertexColor)
 {
-    unsigned    color;
     size_t      i;
     CSR_Vector3 vertices[8];
     CSR_Vector3 normals[6];
@@ -637,7 +637,6 @@ CSR_Mesh* csrShapeCreateSphere(float                 radius,
     float             x;
     float             y;
     size_t            index;
-    size_t            vbLength;
     CSR_Mesh*         pMesh;
     CSR_VertexBuffer* pVB;
     CSR_Vector3       vertex;
@@ -980,6 +979,8 @@ CSR_Mesh* csrShapeCreateDisk(float                 centerX,
     // iterate through disk slices to create
     for (i = 0; i <= slices + 1; ++i)
     {
+        angle = 0.0f;
+
         // is the first point to calculate?
         if (!i)
         {
@@ -1491,14 +1492,12 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
     CSR_MDLFrameGroup*   pFrameGroup;
     CSR_MDL*             pMDL;
     CSR_PixelBuffer*     pPixelBuffer;
-    CSR_ModelTexture*    pTexture;
     CSR_ModelAnimation*  pAnimation;
-    unsigned char        skinName[16];
-    unsigned char        prevSkinName[16];
+    char                 skinName[16];
+    char                 prevSkinName[16];
     unsigned             animationStartIndex;
     unsigned             skinNameIndex;
     const unsigned       skinNameLength = sizeof(skinName);
-    GLuint               textureID;
     size_t               i;
     size_t               j;
     size_t               offset        = 0;
@@ -1750,7 +1749,7 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
             for (j = 0; j < skinNameLength; ++j)
             {
                 // calculate the skin name index
-                skinNameIndex = (skinNameLength - 1) - j;
+                skinNameIndex = (unsigned)((skinNameLength - 1) - j);
 
                 // is char empty or is a number?
                 if (skinName[skinNameIndex] == 0x0 ||
@@ -1813,7 +1812,7 @@ CSR_MDL* csrMDLCreate(const CSR_Buffer*           pBuffer,
                 }
 
                 // prepare the values for the next animation
-                animationStartIndex = i;
+                animationStartIndex = (unsigned)i;
                 memset(prevSkinName, 0x0, skinNameLength);
             }
         }
@@ -2457,10 +2456,10 @@ CSR_PixelBuffer* csrMDLUncompressTexture(const CSR_MDLSkin* pSkin,
     // populate the pixel buffer and calculate the start offset
     pPB->m_ImageType    = CSR_IT_Raw;
     pPB->m_PixelType    = CSR_PT_RGB;
-    pPB->m_Width        = width;
-    pPB->m_Height       = height;
+    pPB->m_Width        = (unsigned)width;
+    pPB->m_Height       = (unsigned)height;
     pPB->m_BytePerPixel = bpp;
-    pPB->m_Stride       = width * pPB->m_BytePerPixel;
+    pPB->m_Stride       = (unsigned)(width * pPB->m_BytePerPixel);
     pPB->m_DataLength   = sizeof(unsigned char) * pSkin->m_TexLen * 3;
     offset              = pSkin->m_TexLen * index;
 
@@ -2696,7 +2695,6 @@ CSR_Model* csrWaveFrontCreate(const CSR_Buffer*           pBuffer,
     int                    objectChanging;
     int                    groupChanging;
     char                   ch;
-    char                   buffer[256];
     CSR_WavefrontVertex*   pVertex;
     CSR_WavefrontNormal*   pNormal;
     CSR_WavefrontTexCoord* pUV;
@@ -3335,7 +3333,6 @@ void csrWaveFrontBuildVertexBuffer(const CSR_WavefrontVertex*   pVertex,
     size_t faceStride;
     size_t normalOffset;
     size_t uvOffset;
-    size_t dataIndex;
     int    baseVertexIndex;
     int    baseNormalIndex;
     int    baseUVIndex;
@@ -3357,6 +3354,8 @@ void csrWaveFrontBuildVertexBuffer(const CSR_WavefrontVertex*   pVertex,
         baseUVIndex = (pFace->m_pData[uvOffset] - 1) * 2;
         ++faceStride;
     }
+    else
+        baseUVIndex = 0;
 
     // get the first normal
     if (pNormal->m_Count)
@@ -3364,6 +3363,8 @@ void csrWaveFrontBuildVertexBuffer(const CSR_WavefrontVertex*   pVertex,
         baseNormalIndex = (pFace->m_pData[normalOffset] - 1) * 3;
         ++faceStride;
     }
+    else
+        baseNormalIndex = 0;
 
     // iterate through remaining indices
     for (i = 1; i <= (pFace->m_Count / faceStride) - 2; ++i)
