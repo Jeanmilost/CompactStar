@@ -77,13 +77,28 @@ class TMainForm : public TForm
         static GLuint OnLoadTexture(const std::string& fileName);
 
         /**
+        * Called when a skin should be applied to a model
+        *@param index - skin index (in case the model contains several skins)
+        *@param pSkin - skin
+        *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
+        */
+        static void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
+
+        /**
         * Called when a shader should be get for a model
         *@param pModel - model for which the shader shoudl be get
         *@param type - model type
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        static CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+        static void* OnGetShader(const void* pModel, CSR_EModelType type);
+
+        /**
+        * Called when a resource identifier should be get from a key
+        *@param pKey - key for which the resource identifier should be get
+        *@return identifier, 0 on error or if not found
+        */
+        static void* OnGetID(const void* pKey);
 
         /**
         * Called when scene begins
@@ -98,6 +113,12 @@ class TMainForm : public TForm
         *@param pContext - scene context
         */
         static void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when a texture should be deleted
+        *@param pTexture - texture to delete
+        */
+        static void OnDeleteTexture(const CSR_Texture* pTexture);
 
     private:
         std::auto_ptr<CSR_Level>         m_pLevel;

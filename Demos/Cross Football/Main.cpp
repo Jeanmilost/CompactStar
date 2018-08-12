@@ -28,7 +28,7 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
-#include "CSR_Scene.h"
+#include "CSR_Texture.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
@@ -120,6 +120,9 @@ __fastcall TMainForm::~TMainForm()
 {
     // delete the scene completely
     DeleteScene();
+
+    // delete the scene textures
+    CSR_OpenGLHelper::ClearResources(m_OpenGLResources);
 
     // shutdown OpenGL
     CSR_OpenGLHelper::DisableOpenGL(Handle, m_hDC, m_hRC);
@@ -226,7 +229,7 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
     }
 }
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -254,6 +257,26 @@ void TMainForm::OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneConte
         return;
 
     pMainForm->OnSceneEnd(pScene, pContext);
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetIDCallback(const void* pKey)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return NULL;
+
+    return pMainForm->OnGetID(pKey);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnDeleteTextureCallback(const CSR_Texture* pTexture)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnDeleteTexture(pTexture);
 }
 //---------------------------------------------------------------------------
 GLuint TMainForm::LoadTexture(const std::string& fileName) const
@@ -331,7 +354,7 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
             }
 
             // load the texture on the GPU
-            textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+            textureID = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
         }
         __finally
         {
@@ -475,6 +498,7 @@ void TMainForm::InitScene(int w, int h)
     m_SceneContext.m_fOnSceneBegin = OnSceneBeginCallback;
     m_SceneContext.m_fOnSceneEnd   = OnSceneEndCallback;
     m_SceneContext.m_fOnGetShader  = OnGetShaderCallback;
+    m_SceneContext.m_fOnGetID      = OnGetIDCallback;
 
     // configure the scene background color
     m_pScene->m_Color.m_R = 0.45f;
@@ -512,12 +536,12 @@ void TMainForm::InitScene(int w, int h)
     const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
 
     // load the shader
-    m_pShader = csrShaderLoadFromStr(vsTextured.c_str(),
-                                     vsTextured.length(),
-                                     fsTextured.c_str(),
-                                     fsTextured.length(),
-                                     0,
-                                     0);
+    m_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
+                                           vsTextured.length(),
+                                           fsTextured.c_str(),
+                                           fsTextured.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!m_pShader)
@@ -556,7 +580,9 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // load landscape texture
-    ((CSR_Model*)(pItem->m_pModel))->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(m_SceneDir + LANDSCAPE_TEXTURE_FILE);
+    CSR_OpenGLHelper::AddTexture(&((CSR_Model*)(pItem->m_pModel))->m_pMesh[0].m_Skin.m_Texture,
+                                  LoadTexture(m_SceneDir + LANDSCAPE_TEXTURE_FILE),
+                                  m_OpenGLResources);
 
     CSR_VertexFormat vertexFormat;
     vertexFormat.m_HasNormal         = 0;
@@ -578,7 +604,9 @@ void TMainForm::InitScene(int w, int h)
                                            0);
 
     // load ball texture
-    pMesh->m_Shader.m_TextureID = LoadTexture(m_SceneDir + BALL_TEXTURE_FILE);
+    CSR_OpenGLHelper::AddTexture(&pMesh->m_Skin.m_Texture,
+                                  LoadTexture(m_SceneDir + BALL_TEXTURE_FILE),
+                                  m_OpenGLResources);
 
     // add the mesh to the scene
     CSR_SceneItem* pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
@@ -592,12 +620,12 @@ void TMainForm::InitScene(int w, int h)
     const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
 
     // load the skybox shader
-    m_pSkyboxShader = csrShaderLoadFromStr(vsSkybox.c_str(),
-                                           vsSkybox.length(),
-                                           fsSkybox.c_str(),
-                                           fsSkybox.length(),
-                                           0,
-                                           0);
+    m_pSkyboxShader = csrOpenGLShaderLoadFromStr(vsSkybox.c_str(),
+                                                 vsSkybox.length(),
+                                                 fsSkybox.c_str(),
+                                                 fsSkybox.length(),
+                                                 0,
+                                                 0);
 
     // succeeded?
     if (!m_pSkyboxShader)
@@ -632,7 +660,9 @@ void TMainForm::InitScene(int w, int h)
     cubemapFileNames.push_back(m_SceneDir + SKYBOX_BACK);
 
     // load the cubemap texture
-    m_pScene->m_pSkybox->m_Shader.m_CubeMapID = LoadCubemap(cubemapFileNames);
+    CSR_OpenGLHelper::AddTexture(&m_pScene->m_pSkybox->m_Skin.m_CubeMap,
+                                  LoadCubemap(cubemapFileNames),
+                                  m_OpenGLResources);
 
     // load step sound file
     m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + PLAYER_STEP_SOUND_FILE).c_str());
@@ -645,11 +675,11 @@ void TMainForm::DeleteScene()
     m_Initialized = false;
 
     // release the shaders
-    csrShaderRelease(m_pShader);
-    csrShaderRelease(m_pSkyboxShader);
+    csrOpenGLShaderRelease(m_pShader);
+    csrOpenGLShaderRelease(m_pSkyboxShader);
 
     // release the scene
-    csrSceneRelease(m_pScene);
+    csrSceneRelease(m_pScene, OnDeleteTextureCallback);
 
     // stop running step sound, if needed
     csrSoundStop(m_pSound);
@@ -773,7 +803,7 @@ int TMainForm::LoadLandscapeFromBitmap(const char* fileName)
     // succeeded?
     if (!pBitmap)
     {
-        csrModelRelease(pModel);
+        csrModelRelease(pModel, OnDeleteTextureCallback);
         return 0;
     }
 
@@ -1014,7 +1044,7 @@ void TMainForm::OnDrawScene(bool resize)
     ::SwapBuffers(m_hDC);
 }
 //---------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     if (pModel == m_pScene->m_pSkybox)
         return m_pSkyboxShader;
@@ -1030,6 +1060,16 @@ void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pC
 void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
     csrDrawEnd();
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetID(const void* pKey)
+{
+    return CSR_OpenGLHelper::GetTextureID(pKey, m_OpenGLResources);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
+{
+    return CSR_OpenGLHelper::DeleteTexture(pTexture, m_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

@@ -177,14 +177,12 @@ class TMainForm : public TForm
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
 
         /**
-        * Called from rasterizer engine when a texture is read
-        *@param index - model texture index
-        *@param pPixelBuffer - pixel buffer containing the texture
-        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
+        * Called when a skin should be applied to a model
+        *@param index - skin index (in case the model contains several skins)
+        *@param pSkin - skin
+        *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
         */
-        static void OnTextureReadCallback(      std::size_t      index,
-                                          const CSR_PixelBuffer* pPixelBuffer,
-                                                int*             pNoGPU);
+        static void OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
 
         /**
         * Called from rasterizer engine when the fragment shader should be applied
@@ -203,12 +201,12 @@ class TMainForm : public TForm
                                                         CSR_Color*    pColor);
 
         /**
-        * Called when a texture is read
-        *@param index - model texture index
-        *@param pPixelBuffer - pixel buffer containing the texture
-        *@param[in, out] pNoGPU - if 1, the texture will not be loaded on the GPU while model is loading
+        * Called when a skin should be applied to a model
+        *@param index - skin index (in case the model contains several skins)
+        *@param pSkin - skin
+        *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
         */
-        void OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU);
+        void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
 
         /**
         * Called when the fragment shader should be applied

@@ -300,6 +300,7 @@ void __fastcall TMainForm::miFileLoadClick(TObject* pSender)
     CSR_LevelFile_XML levelFile(m_SceneDir, false);
     levelFile.Set_OnLoadCubemap(OnLoadCubemap);
     levelFile.Set_OnLoadTexture(OnLoadTexture);
+    levelFile.Set_OnApplySkin(OnApplySkin);
     levelFile.Set_OnSelectModel(OnSelectModel);
     levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
@@ -339,6 +340,7 @@ void __fastcall TMainForm::miFileSaveClick(TObject* pSender)
     CSR_LevelFile_XML levelFile(m_SceneDir, pDialog->ckSaveFileContent->Checked);
     levelFile.Set_OnLoadCubemap(OnLoadCubemap);
     levelFile.Set_OnLoadTexture(OnLoadTexture);
+    levelFile.Set_OnApplySkin(OnApplySkin);
     levelFile.Set_OnSelectModel(OnSelectModel);
     levelFile.Set_OnUpdateDesigner(OnUpdateDesigner);
 
@@ -965,6 +967,7 @@ void __fastcall TMainForm::miAddMDLModelClick(TObject* pSender)
                           AnsiString(pModelSelection->edModelFileName->Text).c_str(),
                           NULL,
                           CSR_CO_None,
+                          OnApplySkin,
                           OnSelectModel))
         // show the error message to the user
         ::MessageDlg(L"Failed to add the Quake I model.", mtError, TMsgDlgButtons() << mbOK, 0);
@@ -1200,7 +1203,7 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                         m_pDesignerView->SelectNext();
 
                         // delete the currently selected model
-                        csrSceneDeleteFrom(pScene, pKeyToDel);
+                        csrSceneDeleteFrom(pScene, pKeyToDel, OnDeleteTexture);
 
                         // delete the matching level item
                         m_pLevel->Delete(pKeyToDel);
@@ -1209,13 +1212,14 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                     {
                         // delete the matrix in the currently selected model
                         csrSceneDeleteFrom(pScene,
-                                           pSceneItem->m_pMatrixArray->m_pItem[matrixIndex].m_pData);
+                                           pSceneItem->m_pMatrixArray->m_pItem[matrixIndex].m_pData,
+                                           OnDeleteTexture);
 
                         // delete the matrix in the matching level item
                         m_pLevel->Delete(pKeyToDel, matrixIndex);
 
                         // select the next model
-                        if (pSelection->m_MatrixIndex >= pSceneItem->m_pMatrixArray->m_Count)
+                        if (pSelection->m_MatrixIndex >= int(pSceneItem->m_pMatrixArray->m_Count))
                         {
                             CSR_DesignerView::ISelection selection;
                             selection.m_pKey        = pKeyToDel;
@@ -1310,8 +1314,18 @@ void TMainForm::OnUpdateDesigner(void* pKey, int index, const CSR_Vector3& model
     // refresh the selected model properties
     pMainForm->RefreshProperties();
 }
+//---------------------------------------------------------------------------
+void TMainForm::OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    return pMainForm->m_pLevel->OnApplySkin(index, pSkin, pCanRelease);
+}
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -1319,6 +1333,16 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
         return 0;
 
     return pMainForm->m_pLevel->OnGetShader(pModel, type);
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetID(const void* pKey)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->m_pLevel->OnGetID(pKey);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -1339,6 +1363,16 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
         return;
 
     pMainForm->m_pLevel->OnSceneEnd(pScene, pContext);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->m_pLevel->OnDeleteTexture(pTexture);
 }
 //---------------------------------------------------------------------------
 bool TMainForm::OnEngineViewMessage(TControl* pControl, TMessage& message, TWndMethod fCtrlOriginalProc)
@@ -1481,13 +1515,13 @@ bool TMainForm::OpenDocument()
         }
 
         // release the previous texture
-        glDeleteTextures(1, &pModel->m_pMesh[0].m_Shader.m_TextureID);
+        m_pLevel->DeleteTexture(&pModel->m_pMesh[0].m_Skin.m_Texture);
 
         // load the new one
-        pModel->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFileName);
+        const GLuint textureID = LoadTexture(textureFileName);
 
         // failed?
-        if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+        if (textureID == M_CSR_Error_Code)
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the texture.",
@@ -1496,6 +1530,9 @@ bool TMainForm::OpenDocument()
                          0);
             return false;
         }
+
+        // add the new texture to the OpenGL resources
+        m_pLevel->AddTexture(&pModel->m_pMesh[0].m_Skin.m_Texture, textureID);
     }
 
     paDesignerView->Invalidate();
@@ -1684,7 +1721,7 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
             }
 
             // load the texture on the GPU
-            textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+            textureID = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
         }
         __finally
         {
@@ -2054,9 +2091,11 @@ void TMainForm::InitScene(int w, int h)
     CreateScene();
 
     // configure the scene context
-    m_pLevel->m_SceneContext.m_fOnGetShader  = OnGetShader;
-    m_pLevel->m_SceneContext.m_fOnSceneBegin = OnSceneBegin;
-    m_pLevel->m_SceneContext.m_fOnSceneEnd   = OnSceneEnd;
+    m_pLevel->m_SceneContext.m_fOnSceneBegin    = OnSceneBegin;
+    m_pLevel->m_SceneContext.m_fOnSceneEnd      = OnSceneEnd;
+    m_pLevel->m_SceneContext.m_fOnGetShader     = OnGetShader;
+    m_pLevel->m_SceneContext.m_fOnGetID         = OnGetID;
+    m_pLevel->m_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
 
     // set the viewpoint bounding sphere default position
     m_ViewSphere.m_Center.m_X = 0.0f;
@@ -2113,10 +2152,10 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // load the texture
-    static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile);
+    const GLuint textureID = LoadTexture(textureFile);
 
     // failed?
-    if (static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+    if (textureID == M_CSR_Error_Code)
     {
         // show the error message to the user
         ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
@@ -2127,6 +2166,9 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
+
+    // add the texture to the OpenGL resources
+    m_pLevel->AddTexture(&static_cast<CSR_Model*>(pItem->m_pModel)->m_pMesh[0].m_Skin.m_Texture, textureID);
 
     // open the level ambient sound
     m_pLevel->OpenSound(m_SceneDir + "\\Sounds\\landscape_ambient_sound.wav", NULL);

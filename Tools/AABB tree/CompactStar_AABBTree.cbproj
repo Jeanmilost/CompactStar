@@ -41,8 +41,8 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\..\SDK\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;..\..\Engine\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-        <IncludePath>..\..\SDK\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;..\..\Engine\;$(IncludePath)</IncludePath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IncludePath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_AABBTree</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -104,6 +104,10 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_OpenGLHelper.h</DependentOn>
+            <BuildOrder>24</BuildOrder>
+        </CppCompile>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>4</BuildOrder>
         </CppCompile>
@@ -140,11 +144,11 @@
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>15</BuildOrder>
         </None>
-        <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>16</BuildOrder>
+        <CppCompile Include="..\..\SDK\CSR_Renderer_OpenGL.c">
+            <BuildOrder>22</BuildOrder>
         </CppCompile>
-        <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>17</BuildOrder>
+        <None Include="..\..\SDK\CSR_Renderer_OpenGL.h">
+            <BuildOrder>23</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
             <BuildOrder>18</BuildOrder>
@@ -210,9 +214,7 @@
                 <Source>
                     <Source Name="MainSource">CompactStar_AABBTree.cpp</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\GLScene_DesignTime.bpl not found</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </CPlusPlusBuilder.Personality>
             <Deployment>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">

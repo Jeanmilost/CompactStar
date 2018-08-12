@@ -113,7 +113,7 @@ __fastcall TMainForm::~TMainForm()
         delete m_pEffect;
 
     // release the multisampling antialiasing
-    csrMSAARelease(m_pMSAA);
+    csrOpenGLMSAARelease(m_pMSAA);
 
     // shutdown OpenGL
     CSR_OpenGLHelper::DisableOpenGL(Handle, m_hDC, m_hRC);
@@ -151,10 +151,10 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
         // create the multisampling antialiasing
-        m_pMSAA = csrMSAACreate(ClientWidth, ClientHeight, 4);
+        m_pMSAA = csrOpenGLMSAACreate(ClientWidth, ClientHeight, 4);
     else
         // change his size
-        csrMSAAChangeSize(ClientWidth, ClientHeight, m_pMSAA);
+        csrOpenGLMSAAChangeSize(ClientWidth, ClientHeight, m_pMSAA);
 
     // oil painting post processing effect was already created?
     if (!m_pEffect)
@@ -212,7 +212,7 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
     }
 }
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -281,7 +281,7 @@ void TMainForm::CreateWeather(bool rain, bool snow)
     // previous scene exists?
     if (m_pScene)
         // recreate it from scratch
-        csrSceneRelease(m_pScene);
+        csrSceneRelease(m_pScene, 0);
 
     // create a new scene
     m_pScene = csrSceneCreate();
@@ -365,12 +365,12 @@ void TMainForm::InitScene(int w, int h)
     const std::string fsColored = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Color);
 
     // load the shader to use to draw the colored cord
-    m_pShader = csrShaderLoadFromStr(vsColored.c_str(),
-                                     vsColored.length(),
-                                     fsColored.c_str(),
-                                     fsColored.length(),
-                                     0,
-                                     0);
+    m_pShader = csrOpenGLShaderLoadFromStr(vsColored.c_str(),
+                                           vsColored.length(),
+                                           fsColored.c_str(),
+                                           fsColored.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!m_pShader)
@@ -405,10 +405,10 @@ void TMainForm::DeleteScene()
         delete m_pRain;
 
     // release the scene
-    csrSceneRelease(m_pScene);
+    csrSceneRelease(m_pScene, 0);
 
     // release the shader
-    csrShaderRelease(m_pShader);
+    csrOpenGLShaderRelease(m_pShader);
 
     // release the sounds
     csrSoundRelease(m_pRainSound);
@@ -495,7 +495,7 @@ void TMainForm::OnDrawScene(bool resize)
     ::SwapBuffers(m_hDC);
 }
 //---------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return m_pShader;
 }
@@ -506,9 +506,9 @@ void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pC
         m_pEffect->DrawBegin(&pScene->m_Color);
     else
     if (m_UseMSAA)
-        csrMSAADrawBegin(&pScene->m_Color, m_pMSAA);
+        csrOpenGLMSAADrawBegin(&pScene->m_Color, m_pMSAA);
     else
-        csrDrawBegin(&pScene->m_Color);
+        csrOpenGLDrawBegin(&pScene->m_Color);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -517,9 +517,9 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
         m_pEffect->DrawEnd();
     else
     if (m_UseMSAA)
-        csrMSAADrawEnd(m_pMSAA);
+        csrOpenGLMSAADrawEnd(m_pMSAA);
     else
-        csrDrawEnd();
+        csrOpenGLDrawEnd();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

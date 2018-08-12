@@ -31,8 +31,10 @@
 // compactStar engine
 #include "CSR_Model.h"
 #include "CSR_Collision.h"
-#include "CSR_Shader.h"
-#include "CSR_Renderer.h"
+#include "CSR_Renderer_OpenGL.h"
+
+// classes
+#include "CSR_OpenGLHelper.h"
 
 /**
 * AABB Tree tool main form
@@ -95,6 +97,27 @@ class TMainForm : public TForm
         */
         virtual __fastcall ~TMainForm();
 
+        /**
+        * Called when a skin should be applied to a model
+        *@param index - skin index (in case the model contains several skins)
+        *@param pSkin - skin
+        *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
+        */
+        static void OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
+
+        /**
+        * Called when a resource identifier should be get from a key
+        *@param pKey - key for which the resource identifier should be get
+        *@return identifier, 0 on error or if not found
+        */
+        static void* OnGetIDCallback(const void* pKey);
+
+        /**
+        * Called when a texture should be deleted
+        *@param pTexture - texture to delete
+        */
+        static void OnDeleteTextureCallback(const CSR_Texture* pTexture);
+
     protected:
         /**
         * View panel main procedure
@@ -125,38 +148,39 @@ class TMainForm : public TForm
 
         typedef std::vector<CSR_AABBNode*> IAABBTrees;
 
-        HDC              m_hDC;
-        HGLRC            m_hRC;
-        ITreeStats       m_Stats;
-        CSR_Color        m_Background;
-        CSR_Shader*      m_pShader_ColoredMesh;
-        CSR_Shader*      m_pShader_TexturedMesh;
-        CSR_MSAA*        m_pMSAA;
-        CSR_Mesh*        m_pBoxMesh;
-        CSR_Mesh*        m_pMesh;
-        CSR_MDL*         m_pMDL;
-        IAABBTrees       m_AABBTrees;
-        CSR_Matrix4      m_ProjectionMatrix;
-        CSR_Matrix4      m_ViewMatrix;
-        CSR_Matrix4      m_ModelMatrix;
-        CSR_Ray3         m_Ray;
-        std::wstring     m_LastSelectedFile;
-        int              m_LastSelectedModel;
-        float            m_PosY;
-        float            m_AngleX;
-        float            m_AngleY;
-        float            m_PolygonArray[21];
-        double           m_pTextureLastTime;
-        double           m_pModelLastTime;
-        double           m_pMeshLastTime;
-        std::size_t      m_TextureIndex;
-        std::size_t      m_ModelIndex;
-        std::size_t      m_MeshIndex;
-        std::size_t      m_FrameCount;
-        unsigned __int64 m_StartTime;
-        unsigned __int64 m_PreviousTime;
-        bool             m_Initialized;
-        TWndMethod       m_fViewWndProc_Backup;
+        HDC                          m_hDC;
+        HGLRC                        m_hRC;
+        ITreeStats                   m_Stats;
+        CSR_Color                    m_Background;
+        CSR_OpenGLHelper::IResources m_OpenGLResources;
+        CSR_OpenGLShader*            m_pShader_ColoredMesh;
+        CSR_OpenGLShader*            m_pShader_TexturedMesh;
+        CSR_OpenGLMSAA*              m_pMSAA;
+        CSR_Mesh*                    m_pBoxMesh;
+        CSR_Mesh*                    m_pMesh;
+        CSR_MDL*                     m_pMDL;
+        IAABBTrees                   m_AABBTrees;
+        CSR_Matrix4                  m_ProjectionMatrix;
+        CSR_Matrix4                  m_ViewMatrix;
+        CSR_Matrix4                  m_ModelMatrix;
+        CSR_Ray3                     m_Ray;
+        std::wstring                 m_LastSelectedFile;
+        int                          m_LastSelectedModel;
+        float                        m_PosY;
+        float                        m_AngleX;
+        float                        m_AngleY;
+        float                        m_PolygonArray[21];
+        double                       m_pTextureLastTime;
+        double                       m_pModelLastTime;
+        double                       m_pMeshLastTime;
+        std::size_t                  m_TextureIndex;
+        std::size_t                  m_ModelIndex;
+        std::size_t                  m_MeshIndex;
+        std::size_t                  m_FrameCount;
+        unsigned __int64             m_StartTime;
+        unsigned __int64             m_PreviousTime;
+        bool                         m_Initialized;
+        TWndMethod                   m_fViewWndProc_Backup;
 
         /**
         * Enables OpenGL
@@ -251,6 +275,27 @@ class TMainForm : public TForm
         *@return the y position
         */
         float CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const;
+
+        /**
+        * Called when a skin should be applied to a model
+        *@param index - skin index (in case the model contains several skins)
+        *@param pSkin - skin
+        *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
+        */
+        void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
+
+        /**
+        * Called when a resource identifier should be get from a key
+        *@param pKey - key for which the resource identifier should be get
+        *@return identifier, 0 on error or if not found
+        */
+        void* OnGetID(const void* pKey);
+
+        /**
+        * Called when a texture should be deleted
+        *@param pTexture - texture to delete
+        */
+        void OnDeleteTexture(const CSR_Texture* pTexture);
 
         /**
         * Called when the scene should be drawn

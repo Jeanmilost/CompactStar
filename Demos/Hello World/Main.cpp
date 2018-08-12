@@ -146,7 +146,7 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
     }
 }
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -251,7 +251,7 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
             }
 
             // load the texture on the GPU
-            textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+            textureID = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
         }
         __finally
         {
@@ -290,12 +290,12 @@ void TMainForm::InitScene(int w, int h)
     const std::string fsColored = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Color);
 
     // load the shader
-    m_pShader = csrShaderLoadFromStr(vsColored.c_str(),
-                                     vsColored.length(),
-                                     fsColored.c_str(),
-                                     fsColored.length(),
-                                     0,
-                                     0);
+    m_pShader = csrOpenGLShaderLoadFromStr(vsColored.c_str(),
+                                           vsColored.length(),
+                                           fsColored.c_str(),
+                                           fsColored.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!m_pShader)
@@ -326,6 +326,7 @@ void TMainForm::InitScene(int w, int h)
                                          &vc,
                                          0,
                                          0,
+                                         0,
                                          0);
 
     // succeeded?
@@ -350,11 +351,11 @@ void TMainForm::DeleteScene()
 {
     m_Initialized = false;
 
-    // release the shader
-    csrShaderRelease(m_pShader);
-
     // release the scene
-    csrSceneRelease(m_pScene);
+    csrSceneRelease(m_pScene, 0);
+
+    // release the shader
+    csrOpenGLShaderRelease(m_pShader);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
@@ -420,7 +421,7 @@ void TMainForm::OnDrawScene(bool resize)
     ::SwapBuffers(m_hDC);
 }
 //---------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return m_pShader;
 }

@@ -256,134 +256,61 @@ CSR_PixelBuffer* csrPixelBufferFromBitmapBuffer(const CSR_Buffer* pBuffer)
 //---------------------------------------------------------------------------
 // Texture functions
 //---------------------------------------------------------------------------
-GLuint csrTextureFromPixelBuffer(const CSR_PixelBuffer* pPixelBuffer)
+CSR_Texture* csrTextureCreate(void)
 {
-    unsigned char* pPixels;
-    unsigned       x;
-    unsigned       y;
-    unsigned char  c;
-    GLint          pixelType;
-    GLuint         index;
-
-    // validate the input
-    if (!pPixelBuffer || !pPixelBuffer->m_Width || !pPixelBuffer->m_Height)
-        return M_CSR_Error_Code;
-
-    // select the correct pixel type to use
-    switch (pPixelBuffer->m_BytePerPixel)
-    {
-        case 3:
-            pixelType = GL_RGB;
-            break;
-
-        case 4:
-            // actually the bitmaps are limited to 24 bit RGB (due to below calculation). For that
-            // reason trying to create a texture from a RGBA bitmap is prohibited
-            if (pPixelBuffer->m_ImageType == CSR_IT_Bitmap)
-                return M_CSR_Error_Code;
-
-            pixelType = GL_RGBA;
-            break;
-
-        default:
-            return M_CSR_Error_Code;
-    }
-
-    // reorder the pixels if image is a bitmap
-    if (pPixelBuffer->m_ImageType == CSR_IT_Bitmap)
-    {
-        pPixels = (unsigned char*)malloc(sizeof(unsigned char)  *
-                                         pPixelBuffer->m_Width  *
-                                         pPixelBuffer->m_Height *
-                                         3);
-
-        // get bitmap data into right format
-        for (y = 0; y < pPixelBuffer->m_Height; ++y)
-            for (x = 0; x < pPixelBuffer->m_Width; ++x)
-                for (c = 0; c < 3; ++c)
-                    pPixels[3 * (pPixelBuffer->m_Width * y + x) + c] =
-                            ((unsigned char*)pPixelBuffer->m_pData)
-                                    [pPixelBuffer->m_Stride * y + 3 * (pPixelBuffer->m_Width - x - 1) + (2 - c)];
-    }
-    else
-        pPixels = (unsigned char*)pPixelBuffer->m_pData;
-
-    // create new OpenGL texture
-    glGenTextures(1, &index);
-    glBindTexture(GL_TEXTURE_2D, index);
-
-    // set texture filtering
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // set texture wrapping mode
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // generate texture from bitmap data
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 pixelType,
-                 pPixelBuffer->m_Width,
-                 pPixelBuffer->m_Height,
-                 0,
-                 pixelType,
-                 GL_UNSIGNED_BYTE,
-                 pPixels);
-
-    // delete local pixel buffer
-    if (pPixelBuffer->m_ImageType == CSR_IT_Bitmap)
-        free(pPixels);
-
-    return index;
-}
-//---------------------------------------------------------------------------
-// Texture item functions
-//---------------------------------------------------------------------------
-CSR_TextureItem* csrTextureItemCreate(void)
-{
-    // create a new texture item
-    CSR_TextureItem* pTI = (CSR_TextureItem*)malloc(sizeof(CSR_TextureItem));
+    // create a new texture
+    CSR_Texture* pTexture = (CSR_Texture*)malloc(sizeof(CSR_Texture));
 
     // succeeded?
-    if (!pTI)
+    if (!pTexture)
         return 0;
 
-    // initialize the texture item content
-    csrTextureItemInit(pTI);
+    // initialize the texture content
+    csrTextureInit(pTexture);
 
-    return pTI;
+    return pTexture;
 }
 //---------------------------------------------------------------------------
-void csrTextureItemContentRelease(CSR_TextureItem* pTI)
+void csrTextureRelease(CSR_Texture* pTexture, const CSR_fOnDeleteTexture fOnDeleteTexture)
 {
-    // no texture item to release?
-    if (!pTI)
+    // no texture to release?
+    if (!pTexture)
         return;
 
-    // do release the texture buffer?
-    if (pTI->m_pBuffer)
-        csrPixelBufferRelease(pTI->m_pBuffer);
+    // notify the GPU side about the texture deletion
+    if (fOnDeleteTexture)
+        fOnDeleteTexture(pTexture);
 
-    // do release the file name?
-    if (pTI->m_pFileName)
-        free(pTI->m_pFileName);
+    // release the texture content
+    csrTextureContentRelease(pTexture);
 
-    // do release the texture loaded on the GPU?
-    if (pTI->m_ID != M_CSR_Error_Code)
-        glDeleteTextures(1, &pTI->m_ID);
+    // release the texture itself
+    free(pTexture);
 }
 //---------------------------------------------------------------------------
-void csrTextureItemInit(CSR_TextureItem* pTI)
+void csrTextureContentRelease(CSR_Texture* pTexture)
 {
-    // no texture item to initialize?
-    if (!pTI)
+    // no texture to release?
+    if (!pTexture)
         return;
 
-    // initialize the texture item content
-    pTI->m_pBuffer   = 0;
-    pTI->m_pFileName = 0;
-    pTI->m_ID        = M_CSR_Error_Code;
+    // release the texture pixel buffer
+    csrPixelBufferRelease(pTexture->m_pBuffer);
+
+    // release the file name
+    if (pTexture->m_pFileName)
+        free(pTexture->m_pFileName);
+}
+//---------------------------------------------------------------------------
+void csrTextureInit(CSR_Texture* pTexture)
+{
+    // no texture to initialize?
+    if (!pTexture)
+        return;
+
+    // initialize the texture content
+    pTexture->m_pBuffer   = 0;
+    pTexture->m_pFileName = 0;
 }
 //---------------------------------------------------------------------------
 // Texture array functions
@@ -403,7 +330,7 @@ CSR_TextureArray* csrTextureArrayCreate(void)
     return pTA;
 }
 //---------------------------------------------------------------------------
-void csrTextureArrayRelease(CSR_TextureArray* pTA)
+void csrTextureArrayRelease(CSR_TextureArray* pTA, const CSR_fOnDeleteTexture fOnDeleteTexture)
 {
     size_t i;
 
@@ -416,7 +343,13 @@ void csrTextureArrayRelease(CSR_TextureArray* pTA)
     {
         // iterate through texture items and release their content
         for (i = 0; i < pTA->m_Count; ++i)
-            csrTextureItemContentRelease(&pTA->m_pItem[i]);
+        {
+            // notify the GPU side about the texture deletion
+            if (fOnDeleteTexture)
+                fOnDeleteTexture(&pTA->m_pItem[i]);
+
+            csrTextureContentRelease(&pTA->m_pItem[i]);
+        }
 
         // free the texture items
         free(pTA->m_pItem);
@@ -437,92 +370,71 @@ void csrTextureArrayInit(CSR_TextureArray* pTA)
     pTA->m_Count = 0;
 }
 //---------------------------------------------------------------------------
-// Texture shader functions
+// Skin functions
 //---------------------------------------------------------------------------
-void csrTextureShaderInit(CSR_TextureShader* pTextureShader)
+CSR_Skin* csrSkinCreate(void)
 {
-    // no texture shader to initialize?
-    if (!pTextureShader)
-        return;
+    // create a new skin
+    CSR_Skin* pSkin = (CSR_Skin*)malloc(sizeof(CSR_Skin));
 
-    // initialize the texture shader content
-    pTextureShader->m_TextureID = M_CSR_Error_Code;
-    pTextureShader->m_BumpMapID = M_CSR_Error_Code;
-    pTextureShader->m_CubeMapID = M_CSR_Error_Code;
+    // succeeded?
+    if (!pSkin)
+        return 0;
+
+    // initialize the skin content
+    csrSkinInit(pSkin);
+
+    return pSkin;
 }
 //---------------------------------------------------------------------------
-// Cubemap functions
-//------------------------------------------------------------------------------
-GLuint csrCubemapLoad(const char** pFileNames)
+void csrSkinRelease(CSR_Skin* pSkin, const CSR_fOnDeleteTexture fOnDeleteTexture)
 {
-    size_t i;
+    // no skin to release?
+    if (!pSkin)
+        return;
 
-    // create a cubemap texture
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+    // release the skin content
+    csrSkinContentRelease(pSkin, fOnDeleteTexture);
 
-    // iterate through cubemap faces to load
-    for (i = 0; i < 6; ++i)
+    // release the skin itself
+    free(pSkin);
+}
+//---------------------------------------------------------------------------
+void csrSkinContentRelease(CSR_Skin* pSkin, const CSR_fOnDeleteTexture fOnDeleteTexture)
+{
+    // no skin to release?
+    if (!pSkin)
+        return;
+
+    // notify the GPU side about the skin deletion
+    if (fOnDeleteTexture)
     {
-        unsigned char* pPixels;
-        int            doReleasePixels = 0;
-
-        // load the texture content from file
-        CSR_PixelBuffer* pPixelBuffer = csrPixelBufferFromBitmapFile(pFileNames[i]);
-
-        // failed?
-        if (!pPixelBuffer)
-            continue;
-
-        // reorder the pixels if image is a bitmap
-        if (pPixelBuffer->m_ImageType == CSR_IT_Bitmap)
-        {
-            size_t x;
-            size_t y;
-            size_t c;
-
-            doReleasePixels = 1;
-
-            pPixels = (unsigned char*)malloc(sizeof(unsigned char)  *
-                                             pPixelBuffer->m_Width  *
-                                             pPixelBuffer->m_Height *
-                                             3);
-
-            // get bitmap data into right format
-            for (y = 0; y < pPixelBuffer->m_Height; ++y)
-                for (x = 0; x < pPixelBuffer->m_Width; ++x)
-                    for (c = 0; c < 3; ++c)
-                        pPixels[3 * (pPixelBuffer->m_Width * y + x) + c] =
-                                ((unsigned char*)pPixelBuffer->m_pData)
-                                        [pPixelBuffer->m_Stride * y + 3 * (pPixelBuffer->m_Width - x - 1) + (2 - c)];
-        }
-        else
-            pPixels = (unsigned char*)pPixelBuffer->m_pData;
-
-        // load the texture on the GPU
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                     0,
-                     GL_RGB,
-                     pPixelBuffer->m_Width,
-                     pPixelBuffer->m_Height,
-                     0,
-                     GL_RGB,
-                     GL_UNSIGNED_BYTE,
-                     pPixels);
-
-        if (doReleasePixels)
-            free(pPixels);
-
-        // release the previously loaded bitmap
-        csrPixelBufferRelease(pPixelBuffer);
+        fOnDeleteTexture(&pSkin->m_Texture);
+        fOnDeleteTexture(&pSkin->m_BumpMap);
+        fOnDeleteTexture(&pSkin->m_CubeMap);
     }
 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+    // release the texture content
+    csrTextureContentRelease(&pSkin->m_Texture);
 
-    return textureID;
+    // release the bumpmap content
+    csrTextureContentRelease(&pSkin->m_BumpMap);
+
+    // release the cubemap content
+    csrTextureContentRelease(&pSkin->m_CubeMap);
+}
+//---------------------------------------------------------------------------
+void csrSkinInit(CSR_Skin* pSkin)
+{
+    // no skin to initialize?
+    if (!pSkin)
+        return;
+
+    // initialize the skin content
+    csrTextureInit(&pSkin->m_Texture);
+    csrTextureInit(&pSkin->m_BumpMap);
+    csrTextureInit(&pSkin->m_CubeMap);
+
+    pSkin->m_Time = 0.0;
 }
 //---------------------------------------------------------------------------

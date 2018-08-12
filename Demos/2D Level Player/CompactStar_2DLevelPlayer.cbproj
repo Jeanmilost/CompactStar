@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_2DLevelPlayer</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -122,41 +122,41 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="Classes\Base\CSR_Base64.cpp">
-            <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Base\CSR_Base64.cpp">
+            <DependentOn>..\..\Common\C++\Base\CSR_Base64.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect.h</DependentOn>
-            <BuildOrder>27</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Effects\CSR_PostProcessingEffect.cpp">
+            <DependentOn>..\..\Common\C++\Effects\CSR_PostProcessingEffect.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect_OilPainting.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
-            <BuildOrder>28</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Effects\CSR_PostProcessingEffect_OilPainting.cpp">
+            <DependentOn>..\..\Common\C++\Effects\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
+            <BuildOrder>39</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_OpenGLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_OpenGLHelper.h</DependentOn>
-            <BuildOrder>30</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_OpenGLHelper.h</DependentOn>
+            <BuildOrder>38</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_ShaderHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_ShaderHelper.h</DependentOn>
-            <BuildOrder>46</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_ShaderHelper.h</DependentOn>
+            <BuildOrder>39</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_VCLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
-            <BuildOrder>31</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_VCLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_VCLHelper.h</DependentOn>
+            <BuildOrder>40</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_Level.cpp">
-            <DependentOn>Classes\Level\CSR_Level.h</DependentOn>
-            <BuildOrder>43</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_Level.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_Level.h</DependentOn>
+            <BuildOrder>35</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile.h</DependentOn>
-            <BuildOrder>45</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_LevelFile.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_LevelFile.h</DependentOn>
+            <BuildOrder>36</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile_XML.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile_XML.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_LevelFile_XML.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_LevelFile_XML.h</DependentOn>
+            <BuildOrder>37</BuildOrder>
         </CppCompile>
         <CppCompile Include="CompactStar_2DLevelPlayer.cpp">
             <BuildOrder>0</BuildOrder>
@@ -206,17 +206,17 @@
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>25</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Renderer_OpenGL.c">
+            <BuildOrder>36</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Renderer_OpenGL.h">
+            <BuildOrder>37</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Scene.c">
             <BuildOrder>26</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Scene.h">
             <BuildOrder>27</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>28</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>29</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
             <BuildOrder>30</BuildOrder>
@@ -277,12 +277,6 @@
                 </Source>
             </CPlusPlusBuilder.Personality>
             <Deployment>
-                <DeployFile LocalName="..\..\SDK\CSR_Collision.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
@@ -302,32 +296,20 @@
                 <DeployFile LocalName=".\Win32\Debug\Game.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>CompactStar_2DLevelPlayer.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>CompactStar_2DLevelPlayer.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_2dLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_2DLevelPlayer.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_2dLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgstl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
@@ -337,6 +319,12 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_2DLevelPlayer.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

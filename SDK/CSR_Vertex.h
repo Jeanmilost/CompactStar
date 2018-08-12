@@ -114,7 +114,7 @@ typedef struct
 */
 typedef struct
 {
-    CSR_TextureShader m_Shader;
+    CSR_Skin          m_Skin;
     CSR_VertexBuffer* m_pVB;
     size_t            m_Count;
     double            m_Time;
@@ -249,8 +249,9 @@ typedef unsigned (*CSR_fOnGetVertexColor)(const CSR_VertexBuffer* pVB,
         /**
         * Releases a mesh
         *@param[in, out] pMesh - mesh to release
+        *@param fOnDeleteTexture - callback function to notify the GPU that a texture should be deleted
         */
-        void csrMeshRelease(CSR_Mesh* pMesh);
+        void csrMeshRelease(CSR_Mesh* pMesh, const CSR_fOnDeleteTexture fOnDeleteTexture);
 
         /**
         * Initializes a mesh structure

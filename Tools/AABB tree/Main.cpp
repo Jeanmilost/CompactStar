@@ -510,7 +510,8 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                                              0,
                                             &material,
                                              0,
-                                             0);
+                                             OnApplySkinCallback,
+                                             OnDeleteTextureCallback);
 
                 // succeeded?
                 if (!pMDL)
@@ -575,12 +576,42 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             }
             __finally
             {
-                csrMDLRelease(pMDL);
+                csrMDLRelease(pMDL, OnDeleteTextureCallback);
             }
 
             return;
         }
     }
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    return pMainForm->OnApplySkin(index, pSkin, pCanRelease);
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetIDCallback(const void* pKey)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetID(pKey);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnDeleteTextureCallback(const CSR_Texture* pTexture)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnDeleteTexture(pTexture);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewWndProc(TMessage& message)
@@ -655,6 +686,9 @@ void TMainForm::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
 //------------------------------------------------------------------------------
 void TMainForm::ClearModelsAndMeshes()
 {
+    // delete the scene textures
+    CSR_OpenGLHelper::ClearResources(m_OpenGLResources);
+
     // release the AABB trees
     for (std::size_t i = 0; i < m_AABBTrees.size(); ++i)
         csrAABBTreeNodeRelease(m_AABBTrees[i]);
@@ -662,8 +696,8 @@ void TMainForm::ClearModelsAndMeshes()
     m_AABBTrees.clear();
 
     // release the scene objects
-    csrMDLRelease(m_pMDL);
-    csrMeshRelease(m_pMesh);
+    csrMDLRelease(m_pMDL, OnDeleteTextureCallback);
+    csrMeshRelease(m_pMesh, OnDeleteTextureCallback);
 
     // reset the values
     m_pMDL             =  0;
@@ -722,10 +756,10 @@ void TMainForm::CreateViewport(float w, float h)
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
         // create the multisampling antialiasing
-        m_pMSAA = csrMSAACreate(w, h, 4);
+        m_pMSAA = csrOpenGLMSAACreate(w, h, 4);
     else
         // change his size
-        csrMSAAChangeSize(w, h, m_pMSAA);
+        csrOpenGLMSAAChangeSize(w, h, m_pMSAA);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
@@ -737,18 +771,18 @@ void TMainForm::InitScene(int w, int h)
     m_Background.m_A = 1.0f;
 
     // load the shaders
-    m_pShader_ColoredMesh  = csrShaderLoadFromStr(g_VertexProgram_ColoredMesh,
-                                                  sizeof(g_VertexProgram_ColoredMesh),
-                                                  g_FragmentProgram_ColoredMesh,
-                                                  sizeof(g_FragmentProgram_ColoredMesh),
-                                                  0,
-                                                  0);
-    m_pShader_TexturedMesh = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
-                                                  sizeof(g_VertexProgram_TexturedMesh),
-                                                  g_FragmentProgram_TexturedMesh,
-                                                  sizeof(g_FragmentProgram_TexturedMesh),
-                                                  0,
-                                                  0);
+    m_pShader_ColoredMesh  = csrOpenGLShaderLoadFromStr(g_VertexProgram_ColoredMesh,
+                                                        sizeof(g_VertexProgram_ColoredMesh),
+                                                        g_FragmentProgram_ColoredMesh,
+                                                        sizeof(g_FragmentProgram_ColoredMesh),
+                                                        0,
+                                                        0);
+    m_pShader_TexturedMesh = csrOpenGLShaderLoadFromStr(g_VertexProgram_TexturedMesh,
+                                                        sizeof(g_VertexProgram_TexturedMesh),
+                                                        g_FragmentProgram_TexturedMesh,
+                                                        sizeof(g_FragmentProgram_TexturedMesh),
+                                                        0,
+                                                        0);
 
     // succeeded?
     if (!m_pShader_ColoredMesh || !m_pShader_TexturedMesh)
@@ -823,14 +857,14 @@ void TMainForm::DeleteScene()
     ClearModelsAndMeshes();
 
     // release the box model
-    csrMeshRelease(m_pBoxMesh);
+    csrMeshRelease(m_pBoxMesh, OnDeleteTextureCallback);
 
     // release the shaders
-    csrShaderRelease(m_pShader_TexturedMesh);
-    csrShaderRelease(m_pShader_ColoredMesh);
+    csrOpenGLShaderRelease(m_pShader_TexturedMesh);
+    csrOpenGLShaderRelease(m_pShader_ColoredMesh);
 
     // release the multisampling antialiasing
-    csrMSAARelease(m_pMSAA);
+    csrOpenGLMSAARelease(m_pMSAA);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
@@ -915,11 +949,11 @@ void TMainForm::DrawScene()
     try
     {
         // begin the drawing
-        csrMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
+        csrOpenGLMSAADrawBegin(&m_Background, ckAntialiasing->Checked ? m_pMSAA : NULL);
 
         if (m_pMesh)
             // draw the mesh
-            csrDrawMesh(m_pMesh, m_pShader_ColoredMesh, 0);
+            csrDrawMesh(m_pMesh, m_pShader_ColoredMesh, 0, OnGetIDCallback);
         else
         if (m_pMDL)
             // draw the MDL model
@@ -928,7 +962,8 @@ void TMainForm::DrawScene()
                        0,
                        m_TextureIndex,
                        m_ModelIndex,
-                       m_MeshIndex);
+                       m_MeshIndex,
+                       OnGetIDCallback);
         else
             return;
 
@@ -951,7 +986,7 @@ void TMainForm::DrawScene()
     __finally
     {
         // end the drawing
-        csrMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
+        csrOpenGLMSAADrawEnd(ckAntialiasing->Checked ? m_pMSAA : NULL);
     }
 }
 //---------------------------------------------------------------------------
@@ -1026,9 +1061,8 @@ void TMainForm::ResolveTreeAndDrawPolygons()
         CSR_Mesh mesh;
 
         // create and configure a mesh for the polygons
+        csrSkinInit(&mesh.m_Skin);
         mesh.m_Count                             =  1;
-        mesh.m_Shader.m_TextureID                =  M_CSR_Error_Code;
-        mesh.m_Shader.m_BumpMapID                =  M_CSR_Error_Code;
         mesh.m_pVB                               = (CSR_VertexBuffer*)csrMemoryAlloc(0, sizeof(CSR_VertexBuffer), 1);
         mesh.m_pVB->m_Format.m_Type              =  CSR_VT_Triangles;
         mesh.m_pVB->m_Format.m_HasNormal         =  0;
@@ -1076,7 +1110,7 @@ void TMainForm::ResolveTreeAndDrawPolygons()
             m_PolygonArray[20] = 1.0f;
 
             // draw the polygon
-            csrDrawMesh(&mesh, m_pShader_ColoredMesh, 0);
+            csrDrawMesh(&mesh, m_pShader_ColoredMesh, 0, OnGetIDCallback);
         }
 
         free(mesh.m_pVB);
@@ -1181,7 +1215,7 @@ void TMainForm::DrawTreeBoxes(const CSR_AABBNode* pTree)
         }
 
         // draw the AABB box
-        csrDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0);
+        csrDrawMesh(m_pBoxMesh, m_pShader_ColoredMesh, 0, OnGetIDCallback);
     }
 }
 //---------------------------------------------------------------------------
@@ -1329,6 +1363,33 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
 
     // calculate the y position from the z axis
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    // load the texture from the received pixel buffer
+    const GLuint textureID = csrOpenGLTextureFromPixelBuffer(pSkin->m_Texture.m_pBuffer);
+
+    // suceeded?
+    if (textureID == M_CSR_Error_Code)
+        return;
+
+    // add the texture to the OpenGL resources
+    CSR_OpenGLHelper::AddTexture(&pSkin->m_Texture, textureID, m_OpenGLResources);
+
+    // from now the texture resource on the model side may be released (will no longer be used)
+    if (pCanRelease)
+        *pCanRelease = 1;
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetID(const void* pKey)
+{
+    return CSR_OpenGLHelper::GetTextureID(pKey, m_OpenGLResources);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
+{
+    CSR_OpenGLHelper::DeleteTexture(pTexture, m_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)

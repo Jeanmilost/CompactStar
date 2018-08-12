@@ -183,8 +183,18 @@ GLuint TMainForm::OnLoadTexture(const std::string& fileName)
 
     return pMainForm->LoadTexture(fileName);
 }
+//---------------------------------------------------------------------------
+void TMainForm::OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    return pMainForm->m_pLevel->OnApplySkin(index, pSkin, pCanRelease);
+}
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -192,6 +202,16 @@ CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
         return 0;
 
     return pMainForm->m_pLevel->OnGetShader(pModel, type);
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetID(const void* pKey)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->m_pLevel->OnGetID(pKey);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -214,6 +234,16 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
     pMainForm->m_pLevel->OnSceneEnd(pScene, pContext);
 }
 //------------------------------------------------------------------------------
+void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->m_pLevel->OnDeleteTexture(pTexture);
+}
+//------------------------------------------------------------------------------
 bool TMainForm::OpenLevel(const std::string& fileName)
 {
     // close any previously opened level
@@ -228,6 +258,7 @@ bool TMainForm::OpenLevel(const std::string& fileName)
         m_pLevelFile.reset(new CSR_LevelFile_XML("", false));
         m_pLevelFile->Set_OnLoadCubemap(OnLoadCubemap);
         m_pLevelFile->Set_OnLoadTexture(OnLoadTexture);
+        m_pLevelFile->Set_OnApplySkin(OnApplySkin);
 
         // load the level
         if (!m_pLevelFile->Load(fileName.c_str(), *m_pLevel.get()))
@@ -382,7 +413,7 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
             }
 
             // load the texture on the GPU
-            textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+            textureID = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
         }
         __finally
         {
@@ -608,9 +639,11 @@ void TMainForm::InitScene(int w, int h)
     CreateScene();
 
     // configure the scene context
-    m_pLevel->m_SceneContext.m_fOnGetShader  = OnGetShader;
-    m_pLevel->m_SceneContext.m_fOnSceneBegin = OnSceneBegin;
-    m_pLevel->m_SceneContext.m_fOnSceneEnd   = OnSceneEnd;
+    m_pLevel->m_SceneContext.m_fOnSceneBegin    = OnSceneBegin;
+    m_pLevel->m_SceneContext.m_fOnSceneEnd      = OnSceneEnd;
+    m_pLevel->m_SceneContext.m_fOnGetShader     = OnGetShader;
+    m_pLevel->m_SceneContext.m_fOnGetID         = OnGetID;
+    m_pLevel->m_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
 
     // set the viewpoint bounding sphere default position
     m_ViewSphere.m_Center.m_X = 0.0f;

@@ -275,7 +275,7 @@ CSR_Mesh* csrMeshCreate(void)
     return pMesh;
 }
 //---------------------------------------------------------------------------
-void csrMeshRelease(CSR_Mesh* pMesh)
+void csrMeshRelease(CSR_Mesh* pMesh, const CSR_fOnDeleteTexture fOnDeleteTexture)
 {
     size_t i;
 
@@ -283,17 +283,8 @@ void csrMeshRelease(CSR_Mesh* pMesh)
     if (!pMesh)
         return;
 
-    // delete the texture
-    if (pMesh->m_Shader.m_TextureID != M_CSR_Error_Code)
-        glDeleteTextures(1, &pMesh->m_Shader.m_TextureID);
-
-    // delete the bumpmap
-    if (pMesh->m_Shader.m_BumpMapID != M_CSR_Error_Code)
-        glDeleteTextures(1, &pMesh->m_Shader.m_BumpMapID);
-
-    // delete the cubemap
-    if (pMesh->m_Shader.m_CubeMapID != M_CSR_Error_Code)
-        glDeleteTextures(1, &pMesh->m_Shader.m_CubeMapID);
+    // release the skin
+    csrSkinContentRelease(&pMesh->m_Skin, fOnDeleteTexture);
 
     // free the static mesh content
     if (pMesh->m_pVB)
@@ -317,8 +308,8 @@ void csrMeshInit(CSR_Mesh* pMesh)
     if (!pMesh)
         return;
 
-    // initialize the texture shader content
-    csrTextureShaderInit(&pMesh->m_Shader);
+    // initialize the skin
+    csrSkinInit(&pMesh->m_Skin);
 
     // initialize the mesh content
     pMesh->m_pVB   = 0;

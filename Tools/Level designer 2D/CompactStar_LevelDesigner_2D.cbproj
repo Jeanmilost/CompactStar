@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_LevelDesigner_2D</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Base\;Classes\Level\;Classes\Helpers\;Classes\Effects\;Classes\Designer\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -123,6 +123,50 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\..\Common\C++\Base\CSR_Base64.cpp">
+            <DependentOn>..\..\Common\C++\Base\CSR_Base64.h</DependentOn>
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Designer\CSR_DesignerView.cpp">
+            <DependentOn>..\..\Common\C++\Designer\CSR_DesignerView.h</DependentOn>
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Designer\CSR_View.cpp">
+            <DependentOn>..\..\Common\C++\Designer\CSR_View.h</DependentOn>
+            <BuildOrder>48</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Effects\CSR_PostProcessingEffect.cpp">
+            <DependentOn>..\..\Common\C++\Effects\CSR_PostProcessingEffect.h</DependentOn>
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Effects\CSR_PostProcessingEffect_OilPainting.cpp">
+            <DependentOn>..\..\Common\C++\Effects\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
+            <BuildOrder>48</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_OpenGLHelper.h</DependentOn>
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_ShaderHelper.h</DependentOn>
+            <BuildOrder>48</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_VCLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_VCLHelper.h</DependentOn>
+            <BuildOrder>49</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_Level.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_Level.h</DependentOn>
+            <BuildOrder>47</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_LevelFile.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_LevelFile.h</DependentOn>
+            <BuildOrder>48</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\..\Common\C++\Level\CSR_LevelFile_XML.cpp">
+            <DependentOn>..\..\Common\C++\Level\CSR_LevelFile_XML.h</DependentOn>
+            <BuildOrder>49</BuildOrder>
+        </CppCompile>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
@@ -159,17 +203,17 @@
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>14</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Renderer_OpenGL.c">
+            <BuildOrder>46</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Renderer_OpenGL.h">
+            <BuildOrder>47</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Scene.c">
             <BuildOrder>15</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Scene.h">
             <BuildOrder>16</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>17</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>18</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
             <BuildOrder>23</BuildOrder>
@@ -201,50 +245,6 @@
         <None Include="..\..\Third-party\sxml\sxmlsearch.h">
             <BuildOrder>46</BuildOrder>
         </None>
-        <CppCompile Include="Classes\Base\CSR_Base64.cpp">
-            <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Designer\CSR_DesignerView.cpp">
-            <DependentOn>Classes\Designer\CSR_DesignerView.h</DependentOn>
-            <BuildOrder>26</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Designer\CSR_View.cpp">
-            <DependentOn>Classes\Designer\CSR_View.h</DependentOn>
-            <BuildOrder>32</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect.h</DependentOn>
-            <BuildOrder>27</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect_OilPainting.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
-            <BuildOrder>28</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_OpenGLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_OpenGLHelper.h</DependentOn>
-            <BuildOrder>30</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_ShaderHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_ShaderHelper.h</DependentOn>
-            <BuildOrder>46</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_VCLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
-            <BuildOrder>31</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_Level.cpp">
-            <DependentOn>Classes\Level\CSR_Level.h</DependentOn>
-            <BuildOrder>43</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile.h</DependentOn>
-            <BuildOrder>45</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Level\CSR_LevelFile_XML.cpp">
-            <DependentOn>Classes\Level\CSR_LevelFile_XML.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
-        </CppCompile>
         <CppCompile Include="CompactStar_LevelDesigner_2D.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
@@ -302,10 +302,10 @@
         </CppCompile>
         <FormResources Include="TShapeSelection.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
-        <FormResources Include="TSkyboxSelection.dfm"/>
+        <FormResources Include="TLevelSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
-        <FormResources Include="TLevelSelection.dfm"/>
+        <FormResources Include="TSkyboxSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">

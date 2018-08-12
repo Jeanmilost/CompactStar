@@ -33,7 +33,7 @@
 #include <map>
 
 // compactStar engine
-#include "CSR_Shader.h"
+#include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 #include "CSR_Sound.h"
 
@@ -75,7 +75,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+        static void* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
@@ -112,9 +112,9 @@ class TMainForm : public TForm
         CSR_Weather_Snow*                     m_pSnow;
         CSR_Sound*                            m_pRainSound;
         CSR_Sound*                            m_pWindSound;
-        CSR_Shader*                           m_pShader;
+        CSR_OpenGLShader*                     m_pShader;
         CSR_PostProcessingEffect_OilPainting* m_pEffect;
-        CSR_MSAA*                             m_pMSAA;
+        CSR_OpenGLMSAA*                       m_pMSAA;
         std::string                           m_SceneDir;
         std::size_t                           m_FrameCount;
         int                                   m_PrevOrigin;
@@ -171,7 +171,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+        void* OnGetShader(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins

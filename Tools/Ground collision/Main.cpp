@@ -153,6 +153,10 @@ __fastcall TMainForm::~TMainForm()
         paView->WindowProc = m_fViewWndProc_Backup;
 
     DeleteScene();
+
+    // delete the scene textures
+    CSR_OpenGLHelper::ClearResources(m_OpenGLResources);
+
     DisableOpenGL(paView->Handle, m_hDC, m_hRC);
 }
 //---------------------------------------------------------------------------
@@ -258,14 +262,13 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
             return;
 
         // release the previous texture
-        glDeleteTextures(1, &pModel->m_pMesh[0].m_Shader.m_TextureID);
+        CSR_OpenGLHelper::DeleteTexture(&pModel->m_pMesh[0].m_Skin.m_Texture, m_OpenGLResources);
 
         // load the new one
-        pModel->m_pMesh[0].m_Shader.m_TextureID =
-                LoadTexture(pLandscapeSelection->edTextureFileName->Text.c_str());
+        const GLuint textureID = LoadTexture(pLandscapeSelection->edTextureFileName->Text.c_str());
 
         // failed?
-        if (pModel->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+        if (textureID == M_CSR_Error_Code)
         {
             // show the error message to the user
             ::MessageDlg(L"Failed to load the texture.",
@@ -274,6 +277,9 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
                          0);
             return;
         }
+
+        // add the texture to the OpenGL resources
+        CSR_OpenGLHelper::AddTexture(&pModel->m_pMesh[0].m_Skin.m_Texture, textureID, m_OpenGLResources);
     }
 
     // do change the walk sound?
@@ -311,7 +317,7 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
     }
 }
 //------------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -319,6 +325,16 @@ CSR_Shader* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType ty
         return 0;
 
     return pMainForm->OnGetShader(pModel, type);
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetIDCallback(const void* pKey)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return 0;
+
+    return pMainForm->OnGetID(pKey);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBeginCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -339,6 +355,16 @@ void TMainForm::OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneConte
         return;
 
     pMainForm->OnSceneEnd(pScene, pContext);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnDeleteTextureCallback(const CSR_Texture* pTexture)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+
+    if (!pMainForm)
+        return;
+
+    pMainForm->OnDeleteTexture(pTexture);
 }
 //---------------------------------------------------------------------------
 int TMainForm::OnCustomDetectCollisionCallback(const CSR_Scene*           pScene,
@@ -458,10 +484,10 @@ void TMainForm::CreateViewport(float w, float h)
     // multisampling antialiasing was already created?
     if (!m_pMSAA)
         // create the multisampling antialiasing
-        m_pMSAA = csrMSAACreate(w, h, 4);
+        m_pMSAA = csrOpenGLMSAACreate(w, h, 4);
     else
         // change his size
-        csrMSAAChangeSize(w, h, m_pMSAA);
+        csrOpenGLMSAAChangeSize(w, h, m_pMSAA);
 
     // oil painting post processing effect was already created?
     if (!m_pEffect)
@@ -505,17 +531,19 @@ void TMainForm::InitScene(int w, int h)
 
     // configure the scene context
     csrSceneContextInit(&m_SceneContext);
-    m_SceneContext.m_fOnGetShader  = OnGetShaderCallback;
-    m_SceneContext.m_fOnSceneBegin = OnSceneBeginCallback;
-    m_SceneContext.m_fOnSceneEnd   = OnSceneEndCallback;
+    m_SceneContext.m_fOnSceneBegin    = OnSceneBeginCallback;
+    m_SceneContext.m_fOnSceneEnd      = OnSceneEndCallback;
+    m_SceneContext.m_fOnGetShader     = OnGetShaderCallback;
+    m_SceneContext.m_fOnGetID         = OnGetIDCallback;
+    m_SceneContext.m_fOnDeleteTexture = OnDeleteTextureCallback;
 
     // load the shader
-    m_pShader  = csrShaderLoadFromStr(g_VertexProgram_TexturedMesh,
-                                      sizeof(g_VertexProgram_TexturedMesh),
-                                      g_FragmentProgram_TexturedMesh,
-                                      sizeof(g_FragmentProgram_TexturedMesh),
-                                      0,
-                                      0);
+    m_pShader  = csrOpenGLShaderLoadFromStr(g_VertexProgram_TexturedMesh,
+                                            sizeof(g_VertexProgram_TexturedMesh),
+                                            g_FragmentProgram_TexturedMesh,
+                                            sizeof(g_FragmentProgram_TexturedMesh),
+                                            0,
+                                            0);
 
     // succeeded?
     if (!m_pShader)
@@ -573,10 +601,10 @@ void TMainForm::InitScene(int w, int h)
     }
 
     // load the texture
-    ((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID = LoadTexture(textureFile.c_str());
+    const GLuint textureID = LoadTexture(textureFile.c_str());
 
     // failed?
-    if (((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Shader.m_TextureID == M_CSR_Error_Code)
+    if (textureID == M_CSR_Error_Code)
     {
         // show the error message to the user
         ::MessageDlg(L"Unknown texture format.\r\n\r\nThe application will quit.",
@@ -587,6 +615,11 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
+
+    // add the texture to the OpenGL resources
+    CSR_OpenGLHelper::AddTexture(&((CSR_Model*)pItem->m_pModel)->m_pMesh[0].m_Skin.m_Texture,
+                                 textureID,
+                                 m_OpenGLResources);
 
     // initialize OpenAL
     csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
@@ -603,17 +636,17 @@ void TMainForm::InitScene(int w, int h)
 void TMainForm::DeleteScene()
 {
     // release the scene
-    csrSceneRelease(m_pScene);
+    csrSceneRelease(m_pScene, OnDeleteTextureCallback);
 
     // release the shader
-    csrShaderRelease(m_pShader);
+    csrOpenGLShaderRelease(m_pShader);
 
     // release the oil painting post processing effect
     if (m_pEffect)
         delete m_pEffect;
 
     // release the multisampling antialiasing
-    csrMSAARelease(m_pMSAA);
+    csrOpenGLMSAARelease(m_pMSAA);
 
     // release OpenAL interface
     csrSoundRelease(m_pSound);
@@ -713,7 +746,7 @@ void TMainForm::DrawScene()
 bool TMainForm::AddSphere()
 {
     // release the previous model, if exists
-    csrSceneDeleteFrom(m_pScene, m_pSphereKey);
+    csrSceneDeleteFrom(m_pScene, m_pSphereKey, OnDeleteTextureCallback);
 
     // set the model bounding sphere to his default position
     m_ModelSphere.m_Center.m_X =  0.0f;
@@ -739,8 +772,18 @@ bool TMainForm::AddSphere()
         return false;
 
     // load a texture for the ball
-    pMesh->m_Shader.m_TextureID =
+    const GLuint textureID =
             LoadTexture(UnicodeString(AnsiString(m_SceneDir.c_str()) + L"\\Textures\\ball.png").c_str());
+
+    // failed?
+    if (textureID == M_CSR_Error_Code)
+    {
+        csrMeshRelease(pMesh, OnDeleteTextureCallback);
+        return false;
+    }
+
+    // add the texture to the OpenGL resources
+    CSR_OpenGLHelper::AddTexture(&pMesh->m_Skin.m_Texture, textureID, m_OpenGLResources);
 
     // initialize the sphere model matrix
     csrMat4Translate(&m_ModelSphere.m_Center, &m_SphereMatrix);
@@ -758,7 +801,7 @@ bool TMainForm::AddSphere()
 bool TMainForm::LoadModel(const std::string& fileName)
 {
     // release the previous model, if exists
-    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
+    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey, OnDeleteTextureCallback);
 
     CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
@@ -775,7 +818,13 @@ bool TMainForm::LoadModel(const std::string& fileName)
     vf.m_HasPerVertexColor = 1;
 
     // load the model
-    CSR_Model* pModel = csrWaveFrontOpen(fileName.c_str(), &vf, &vc, &material, 0, 0);
+    CSR_Model* pModel = csrWaveFrontOpen(fileName.c_str(),
+                                        &vf,
+                                        &vc,
+                                        &material,
+                                         0,
+                                         0,
+                                         OnDeleteTextureCallback);
 
     // succeeded?
     if (!pModel)
@@ -813,7 +862,7 @@ bool TMainForm::LoadModel(const std::string& fileName)
 bool TMainForm::LoadModelFromBitmap(const std::string& fileName)
 {
     // release the previous model, if exists
-    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey);
+    csrSceneDeleteFrom(m_pScene, m_pLandscapeKey, OnDeleteTextureCallback);
 
     CSR_Model*       pModel  = NULL;
     CSR_PixelBuffer* pBitmap = NULL;
@@ -948,7 +997,7 @@ GLuint TMainForm::LoadTexture(const std::wstring& fileName)
         }
 
         // load the texture on the GPU
-        textureID = csrTextureFromPixelBuffer(pPixelBuffer);
+        textureID = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
     }
     __finally
     {
@@ -1177,9 +1226,14 @@ void TMainForm::OnDrawScene(bool resize)
     ++m_Stats.m_RefreshCounter;
 }
 //---------------------------------------------------------------------------
-CSR_Shader* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
+void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return m_pShader;
+}
+//---------------------------------------------------------------------------
+void* TMainForm::OnGetID(const void* pKey)
+{
+    return CSR_OpenGLHelper::GetTextureID(pKey, m_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -1188,9 +1242,9 @@ void TMainForm::OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pC
         m_pEffect->DrawBegin(&pScene->m_Color);
     else
     if (ckAntialiasing->Checked)
-        csrMSAADrawBegin(&pScene->m_Color, m_pMSAA);
+        csrOpenGLMSAADrawBegin(&pScene->m_Color, m_pMSAA);
     else
-        csrDrawBegin(&pScene->m_Color);
+        csrOpenGLDrawBegin(&pScene->m_Color);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -1199,9 +1253,14 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
         m_pEffect->DrawEnd();
     else
     if (ckAntialiasing->Checked)
-        csrMSAADrawEnd(m_pMSAA);
+        csrOpenGLMSAADrawEnd(m_pMSAA);
     else
-        csrDrawEnd();
+        csrOpenGLDrawEnd();
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
+{
+    CSR_OpenGLHelper::DeleteTexture(pTexture, m_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 int TMainForm::OnCustomDetectCollision(const CSR_Scene*           pScene,

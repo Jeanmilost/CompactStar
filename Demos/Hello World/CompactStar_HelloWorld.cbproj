@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_HelloWorld</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>Classes\Base\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\include\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>Classes\Base\;Classes\Helpers\;Classes\Effects\;..\..\SDK\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\glew\;..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -122,29 +122,13 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="Classes\Base\CSR_Base64.cpp">
-            <DependentOn>Classes\Base\CSR_Base64.h</DependentOn>
-            <BuildOrder>44</BuildOrder>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_OpenGLHelper.h</DependentOn>
+            <BuildOrder>26</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect.h</DependentOn>
+        <CppCompile Include="..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp">
+            <DependentOn>..\..\Common\C++\Helpers\CSR_ShaderHelper.h</DependentOn>
             <BuildOrder>27</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Effects\CSR_PostProcessingEffect_OilPainting.cpp">
-            <DependentOn>Classes\Effects\CSR_PostProcessingEffect_OilPainting.h</DependentOn>
-            <BuildOrder>28</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_OpenGLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_OpenGLHelper.h</DependentOn>
-            <BuildOrder>30</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_ShaderHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_ShaderHelper.h</DependentOn>
-            <BuildOrder>46</BuildOrder>
-        </CppCompile>
-        <CppCompile Include="Classes\Helpers\CSR_VCLHelper.cpp">
-            <DependentOn>Classes\Helpers\CSR_VCLHelper.h</DependentOn>
-            <BuildOrder>31</BuildOrder>
         </CppCompile>
         <CppCompile Include="CompactStar_HelloWorld.cpp">
             <BuildOrder>0</BuildOrder>
@@ -194,17 +178,17 @@
         <None Include="..\..\SDK\CSR_Renderer.h">
             <BuildOrder>18</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Renderer_OpenGL.c">
+            <BuildOrder>28</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Renderer_OpenGL.h">
+            <BuildOrder>29</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Scene.c">
             <BuildOrder>19</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Scene.h">
             <BuildOrder>20</BuildOrder>
-        </None>
-        <CppCompile Include="..\..\SDK\CSR_Shader.c">
-            <BuildOrder>21</BuildOrder>
-        </CppCompile>
-        <None Include="..\..\SDK\CSR_Shader.h">
-            <BuildOrder>22</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Sound.c">
             <BuildOrder>23</BuildOrder>
@@ -268,19 +252,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\Main_Character.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner_2D.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\Game.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_HelloWorld.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>CompactStar_HelloWorld.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -293,6 +270,13 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_LevelDesigner.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Main_Character.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_HelloWorld.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>CompactStar_HelloWorld.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

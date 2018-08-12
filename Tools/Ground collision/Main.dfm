@@ -67,7 +67,7 @@ object MainForm: TMainForm
       AlignWithMargins = True
       Left = 3
       Top = 545
-      Width = 37
+      Width = 179
       Height = 19
       Margins.Top = 10
       Align = alBottom
@@ -78,6 +78,7 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitWidth = 37
     end
     object blStatsSeparator: TBevel
       Left = 0
@@ -93,7 +94,7 @@ object MainForm: TMainForm
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 75
+      Width = 179
       Height = 19
       Align = alTop
       Caption = 'Statistics'
@@ -103,30 +104,34 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitWidth = 75
     end
     object laAltitude: TLabel
       Left = 0
       Top = 66
-      Width = 41
+      Width = 185
       Height = 13
       Align = alTop
       Caption = 'Altitude:'
+      ExplicitWidth = 41
     end
     object laFPS: TLabel
       Left = 0
       Top = 79
-      Width = 22
+      Width = 185
       Height = 13
       Align = alTop
       Caption = 'FPS:'
+      ExplicitWidth = 22
     end
     object laPolygonCount: TLabel
       Left = 0
       Top = 27
-      Width = 74
+      Width = 185
       Height = 13
       Align = alTop
       Caption = 'Polygon Count:'
+      ExplicitWidth = 74
     end
     object blOptions: TBevel
       Left = 0
@@ -141,7 +146,7 @@ object MainForm: TMainForm
       AlignWithMargins = True
       Left = 3
       Top = 112
-      Width = 62
+      Width = 179
       Height = 19
       Margins.Top = 20
       Align = alTop
@@ -152,22 +157,25 @@ object MainForm: TMainForm
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitWidth = 62
     end
     object laX: TLabel
       Left = 0
       Top = 40
-      Width = 10
+      Width = 185
       Height = 13
       Align = alTop
       Caption = 'X:'
+      ExplicitWidth = 10
     end
     object laZ: TLabel
       Left = 0
       Top = 53
-      Width = 10
+      Width = 185
       Height = 13
       Align = alTop
       Caption = 'Z:'
+      ExplicitWidth = 10
     end
     object btLoadModel: TButton
       AlignWithMargins = True

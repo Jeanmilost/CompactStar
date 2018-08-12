@@ -19,30 +19,6 @@
 // std
 #include <stddef.h>
 
-// openGL
-#if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include <gles2.h>
-    #include <gles2ext.h>
-
-    // the Mobile C Compiler cannot use the OpenGL 3.0 and higher functionalities required by
-    // several functions. For that reason, his usage is limited to OpenGL 2.0
-    #define CSR_OPENGL_2_ONLY
-#elif defined(__APPLE__)
-    #include <OpenGLES/ES2/gl.h>
-    #include <OpenGLES/ES2/glext.h>
-#elif defined(__CODEGEARC__) || defined(__GNUC__)
-    #define WIN32_LEAN_AND_MEAN
-    #include <Windows.h>
-    #define GLEW_STATIC
-    #include <gl/glew.h>
-    #include <gl/gl.h>
-
-    // missing in RAD studio OpenGL header
-    #define GL_CLAMP_TO_EDGE 0x812F
-#else
-    #error "The target system isn't supported for now"
-#endif
-
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------

@@ -148,7 +148,7 @@ bool TMainForm::LoadModel(const std::string& fileName)
 {
     // release the previous model
     if (m_pModel)
-        csrMDLRelease(m_pModel);
+        csrMDLRelease(m_pModel, 0);
 
     // configure the MDL model vertex format
     CSR_VertexFormat vf;
@@ -167,7 +167,8 @@ bool TMainForm::LoadModel(const std::string& fileName)
                           &vc,
                           0,
                           0,
-                          OnTextureReadCallback);
+                          OnApplySkinCallback,
+                          0);
 
     if (!m_pModel)
         return false;
@@ -253,7 +254,7 @@ void TMainForm::DeleteScene()
 
     // release the model
     if (m_pModel)
-        csrMDLRelease(m_pModel);
+        csrMDLRelease(m_pModel, 0);
 
     // release the depth buffer
     if (m_pDepthBuffer)
@@ -453,12 +454,10 @@ float TMainForm::CalculateYPos(const CSR_AABBNode* pTree, bool rotated) const
     return (pTree->m_pBox->m_Max.m_Y + pTree->m_pBox->m_Min.m_Y) / 2.0f;
 }
 //------------------------------------------------------------------------------
-void TMainForm::OnTextureReadCallback(      std::size_t      index,
-                                      const CSR_PixelBuffer* pPixelBuffer,
-                                            int*             pNoGPU)
+void TMainForm::OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
 {
     // redirect the callback to the main form
-    static_cast<TMainForm*>(Application->MainForm)->OnTextureRead(index, pPixelBuffer, pNoGPU);
+    static_cast<TMainForm*>(Application->MainForm)->OnApplySkin(index, pSkin, pCanRelease);
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
@@ -470,11 +469,66 @@ void TMainForm::OnApplyFragmentShaderCallback(const CSR_Matrix4*  pMatrix,
 {
     // redirect the callback to the main form
     static_cast<TMainForm*>(Application->MainForm)->OnApplyFragmentShader(pMatrix,
-                                                                        pPolygon,
-                                                                        pST,
-                                                                        pSampler,
-                                                                        z,
-                                                                        pColor);
+                                                                          pPolygon,
+                                                                          pST,
+                                                                          pSampler,
+                                                                          z,
+                                                                          pColor);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    // as the texture is copied, it can be released on the model side (no longer used)
+    if (pCanRelease)
+        *pCanRelease = 1;
+
+    // no skin or pixel buffer?
+    if (!pSkin || !pSkin->m_Texture.m_pBuffer)
+        return;
+
+    // release the previously existing texture, if any
+    if (m_pModelTexture)
+        csrPixelBufferRelease(m_pModelTexture);
+
+    // copy the pixel buffer content (the source buffer will be released sooner)
+    m_pModelTexture = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
+    memcpy(m_pModelTexture, pSkin->m_Texture.m_pBuffer, sizeof(CSR_PixelBuffer));
+
+    // copy the texture pixel data
+    m_pModelTexture->m_pData = (unsigned char*)malloc(pSkin->m_Texture.m_pBuffer->m_DataLength);
+    memcpy(m_pModelTexture->m_pData, pSkin->m_Texture.m_pBuffer->m_pData, pSkin->m_Texture.m_pBuffer->m_DataLength);
+}
+//---------------------------------------------------------------------------
+void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
+                                      const CSR_Polygon3* pPolygon,
+                                      const CSR_Vector2*  pST,
+                                      const CSR_Vector3*  pSampler,
+                                            float         z,
+                                            CSR_Color*    pColor)
+{
+    float  stX;
+    float  stY;
+    size_t x;
+    size_t y;
+    size_t line;
+
+    // limit the texture coordinate between 0 and 1 (equivalent to OpenGL clamp mode)
+    csrMathClamp(pST->m_X, 0.0f, 1.0f, &stX);
+    csrMathClamp(pST->m_Y, 0.0f, 1.0f, &stY);
+
+    // calculate the x and y coordinate to pick in the texture, and the line length in pixels
+    x    = stX * m_pModelTexture->m_Width;
+    y    = stY * m_pModelTexture->m_Height;
+    line = m_pModelTexture->m_Width * m_pModelTexture->m_BytePerPixel;
+
+    // calculate the pixel index to get
+    const size_t index = (y * line) + (x * m_pModelTexture->m_BytePerPixel);
+
+    // get the pixel color from texture
+    pColor->m_R = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index])     / 255.0f;
+    pColor->m_G = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index + 1]) / 255.0f;
+    pColor->m_B = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index + 2]) / 255.0f;
+    pColor->m_A = 1.0f;
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
@@ -522,61 +576,6 @@ void TMainForm::OnDrawScene(bool resize)
 
     // show the stats
     ShowStats();
-}
-//------------------------------------------------------------------------------
-void TMainForm::OnTextureRead(std::size_t index, const CSR_PixelBuffer* pPixelBuffer, int* pNoGPU)
-{
-    // don't generate the texture on the GPU side (OpenGL isn't used here)
-    if (pNoGPU)
-        *pNoGPU = 1;
-
-    // no pixel buffer?
-    if (!pPixelBuffer)
-        return;
-
-    // release the previously existing texture, if any
-    if (m_pModelTexture)
-        csrPixelBufferRelease(m_pModelTexture);
-
-    // copy the pixel buffer content (the source buffer will be released sooner)
-    m_pModelTexture = (CSR_PixelBuffer*)malloc(sizeof(CSR_PixelBuffer));
-    memcpy(m_pModelTexture, pPixelBuffer, sizeof(CSR_PixelBuffer));
-
-    // copy the texture pixel data
-    m_pModelTexture->m_pData = (unsigned char*)malloc(pPixelBuffer->m_DataLength);
-    memcpy(m_pModelTexture->m_pData, pPixelBuffer->m_pData, pPixelBuffer->m_DataLength);
-}
-//---------------------------------------------------------------------------
-void TMainForm::OnApplyFragmentShader(const CSR_Matrix4*  pMatrix,
-                                      const CSR_Polygon3* pPolygon,
-                                      const CSR_Vector2*  pST,
-                                      const CSR_Vector3*  pSampler,
-                                            float         z,
-                                            CSR_Color*    pColor)
-{
-    float  stX;
-    float  stY;
-    size_t x;
-    size_t y;
-    size_t line;
-
-    // limit the texture coordinate between 0 and 1 (equivalent to OpenGL clamp mode)
-    csrMathClamp(pST->m_X, 0.0f, 1.0f, &stX);
-    csrMathClamp(pST->m_Y, 0.0f, 1.0f, &stY);
-
-    // calculate the x and y coordinate to pick in the texture, and the line length in pixels
-    x    = stX * m_pModelTexture->m_Width;
-    y    = stY * m_pModelTexture->m_Height;
-    line = m_pModelTexture->m_Width * m_pModelTexture->m_BytePerPixel;
-
-    // calculate the pixel index to get
-    const size_t index = (y * line) + (x * m_pModelTexture->m_BytePerPixel);
-
-    // get the pixel color from texture
-    pColor->m_R = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index])     / 255.0f;
-    pColor->m_G = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index + 1]) / 255.0f;
-    pColor->m_B = (float)(((unsigned char*)(m_pModelTexture->m_pData))[index + 2]) / 255.0f;
-    pColor->m_A = 1.0f;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)

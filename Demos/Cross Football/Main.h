@@ -33,12 +33,13 @@
 #include <map>
 
 // compactStar engine
-#include "CSR_Shader.h"
+#include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 #include "CSR_Physics.h"
 #include "CSR_Sound.h"
 
 // classes
+#include "CSR_OpenGLHelper.h"
 #include "CSR_VCLHelper.h"
 
 /**
@@ -73,7 +74,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+        static void* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
@@ -89,6 +90,19 @@ class TMainForm : public TForm
         */
         static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
+        /**
+        * Called when a resource identifier should be get from a key
+        *@param pKey - key for which the resource identifier should be get
+        *@return identifier, 0 on error or if not found
+        */
+        static void* OnGetIDCallback(const void* pKey);
+
+        /**
+        * Called when a texture should be deleted
+        *@param pTexture - texture to delete
+        */
+        static void OnDeleteTextureCallback(const CSR_Texture* pTexture);
+
     private:
         /**
         * Structure representing a physical ball
@@ -103,35 +117,36 @@ class TMainForm : public TForm
 
         typedef std::vector<std::string> IFileNames;
 
-        HDC              m_hDC;
-        HGLRC            m_hRC;
-        ALCdevice*       m_pOpenALDevice;
-        ALCcontext*      m_pOpenALContext;
-        CSR_Scene*       m_pScene;
-        CSR_SceneContext m_SceneContext;
-        CSR_Shader*      m_pShader;
-        CSR_Shader*      m_pSkyboxShader;
-        CSR_Sphere       m_ViewSphere;
-        CSR_Ball         m_Ball;
-        CSR_Vector3      m_FrictionForce;
-        CSR_Matrix4      m_LandscapeMatrix;
-        CSR_Sound*       m_pSound;
-        void*            m_pLandscapeKey;
-        std::string      m_SceneDir;
-        std::size_t      m_FrameCount;
-        int              m_PrevOrigin;
-        float            m_Angle;
-        float            m_RollAngle;
-        float            m_BallDirAngle;
-        float            m_BallOffset;
-        float            m_PosVelocity;
-        float            m_DirVelocity;
-        float            m_StepTime;
-        float            m_StepInterval;
-        double           m_FPS;
-        unsigned __int64 m_StartTime;
-        unsigned __int64 m_PreviousTime;
-        bool             m_Initialized;
+        HDC                          m_hDC;
+        HGLRC                        m_hRC;
+        ALCdevice*                   m_pOpenALDevice;
+        ALCcontext*                  m_pOpenALContext;
+        CSR_Scene*                   m_pScene;
+        CSR_SceneContext             m_SceneContext;
+        CSR_OpenGLShader*            m_pShader;
+        CSR_OpenGLShader*            m_pSkyboxShader;
+        CSR_OpenGLHelper::IResources m_OpenGLResources;
+        CSR_Sphere                   m_ViewSphere;
+        CSR_Ball                     m_Ball;
+        CSR_Vector3                  m_FrictionForce;
+        CSR_Matrix4                  m_LandscapeMatrix;
+        CSR_Sound*                   m_pSound;
+        void*                        m_pLandscapeKey;
+        std::string                  m_SceneDir;
+        std::size_t                  m_FrameCount;
+        int                          m_PrevOrigin;
+        float                        m_Angle;
+        float                        m_RollAngle;
+        float                        m_BallDirAngle;
+        float                        m_BallOffset;
+        float                        m_PosVelocity;
+        float                        m_DirVelocity;
+        float                        m_StepTime;
+        float                        m_StepInterval;
+        double                       m_FPS;
+        unsigned __int64             m_StartTime;
+        unsigned __int64             m_PreviousTime;
+        bool                         m_Initialized;
 
         /**
         * Loads a texture
@@ -170,13 +185,30 @@ class TMainForm : public TForm
         */
         void DrawScene();
 
+        /**
+        * Loads a landscape from a bitmap image
+        *@param fileName - bitmap file name
+        *@return 1 on success, otherwise 0
+        */
         int LoadLandscapeFromBitmap(const char* fileName);
 
+        /**
+        * Calculates the ground collision point
+        *@param pBoundingSphere - bounding sphere for which the ground collision point should be found
+        *@param dir - direction angle in radian
+        *@param pMatrix - matrix of the model surrounded by the bounding sphere
+        *@param[out] pGroundPlane - ground plane
+        *@return 1 if a collision was found, otherwise 0
+        */
         int ApplyGroundCollision(const CSR_Sphere*  pBoundingSphere,
                                        float        dir,
                                        CSR_Matrix4* pMatrix,
                                        CSR_Plane*   pGroundPlane) const;
 
+        /**
+        * Applies the physics laws on the scene moving models
+        *@param elapsedTime - elapsed time since the last calculation in milliseconds
+        */
         void ApplyPhysics(float elapsedTime);
 
         /**
@@ -192,7 +224,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+        void* OnGetShader(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
@@ -207,6 +239,19 @@ class TMainForm : public TForm
         *@param pContext - scene context
         */
         void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
+
+        /**
+        * Called when a resource identifier should be get from a key
+        *@param pKey - key for which the resource identifier should be get
+        *@return identifier, 0 on error or if not found
+        */
+        void* OnGetID(const void* pKey);
+
+        /**
+        * Called when a texture should be deleted
+        *@param pTexture - texture to delete
+        */
+        void OnDeleteTexture(const CSR_Texture* pTexture);
 
         /**
         * Called while application is idle

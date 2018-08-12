@@ -33,7 +33,7 @@
 #include <map>
 
 // compactStar engine
-#include "CSR_Shader.h"
+#include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 #include "CSR_Sound.h"
 
@@ -72,7 +72,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        static CSR_Shader* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
+        static void* OnGetShaderCallback(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
@@ -89,24 +89,24 @@ class TMainForm : public TForm
         static void OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneContext* pContext);
 
     private:
-        HDC              m_hDC;
-        HGLRC            m_hRC;
-        ALCdevice*       m_pOpenALDevice;
-        ALCcontext*      m_pOpenALContext;
-        CSR_Scene*       m_pScene;
-        CSR_SceneContext m_SceneContext;
-        CSR_Shader*      m_pShader;
-        CSR_Matrix4      m_ModelMatrix;
-        std::string      m_SceneDir;
-        std::size_t      m_FrameCount;
-        int              m_PrevOrigin;
-        float            m_Angle;
-        float            m_PosVelocity;
-        float            m_DirVelocity;
-        double           m_FPS;
-        unsigned __int64 m_StartTime;
-        unsigned __int64 m_PreviousTime;
-        bool             m_Initialized;
+        HDC               m_hDC;
+        HGLRC             m_hRC;
+        ALCdevice*        m_pOpenALDevice;
+        ALCcontext*       m_pOpenALContext;
+        CSR_Scene*        m_pScene;
+        CSR_SceneContext  m_SceneContext;
+        CSR_OpenGLShader* m_pShader;
+        CSR_Matrix4       m_ModelMatrix;
+        std::string       m_SceneDir;
+        std::size_t       m_FrameCount;
+        int               m_PrevOrigin;
+        float             m_Angle;
+        float             m_PosVelocity;
+        float             m_DirVelocity;
+        double            m_FPS;
+        unsigned __int64  m_StartTime;
+        unsigned __int64  m_PreviousTime;
+        bool              m_Initialized;
 
         /**
         * Loads a texture
@@ -151,7 +151,7 @@ class TMainForm : public TForm
         *@return shader to use to draw the model, 0 if no shader
         *@note The model will not be drawn if no shader is returned
         */
-        CSR_Shader* OnGetShader(const void* pModel, CSR_EModelType type);
+        void* OnGetShader(const void* pModel, CSR_EModelType type);
 
         /**
         * Called when scene begins
