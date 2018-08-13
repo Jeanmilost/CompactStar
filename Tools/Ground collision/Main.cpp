@@ -462,24 +462,8 @@ void TMainForm::CreateViewport(float w, float h)
     if (!m_pShader)
         return;
 
-    // calculate matrix items
-    const float zNear  = 0.001f;
-    const float zFar   = 1000.0f;
-    const float fov    = 45.0f;
-    const float aspect = w / h;
-
-    // create the OpenGL viewport
-    glViewport(0, 0, w, h);
-
-    // create a perspective projection matrix
-    csrMat4Perspective(fov, aspect, zNear, zFar, &m_pScene->m_ProjectionMatrix);
-
-    // enable the shader program
-    csrShaderEnable(m_pShader);
-
-    // connect projection matrix to shader
-    GLint projectionSlot = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionSlot, 1, 0, &m_pScene->m_ProjectionMatrix.m_Table[0][0]);
+    // create the viewport
+    CSR_OpenGLHelper::CreateViewport(w, h, 0.001f, 1000.0f, m_pShader, m_pScene->m_ProjectionMatrix);
 
     // multisampling antialiasing was already created?
     if (!m_pMSAA)

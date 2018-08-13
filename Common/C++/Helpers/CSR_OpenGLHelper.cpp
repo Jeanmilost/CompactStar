@@ -60,7 +60,7 @@ void CSR_OpenGLHelper::DisableOpenGL(HWND hwnd, HDC hDC, HGLRC hRC)
 {
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(hRC);
-    ReleaseDC(hwnd, hDC);
+    ::ReleaseDC(hwnd, hDC);
 }
 //---------------------------------------------------------------------------
 void CSR_OpenGLHelper::CreateViewport(float             w,
@@ -72,6 +72,8 @@ void CSR_OpenGLHelper::CreateViewport(float             w,
 {
     if (!pShader)
         return;
+
+    csrShaderEnable(pShader);
 
     // prevent the width to reach 0
     if (!w)
@@ -289,13 +291,14 @@ void CSR_OpenGLHelper::DeleteTexture(const void* pKey, IResources& resources)
     if (it->second->m_UseCount)
         return;
 
-    // was used?
+    // texture was used?
     if (it->second->m_ID != GLint(M_CSR_Error_Code))
-    {
         // release it
         glDeleteTextures(1, (GLuint*)(&it->second->m_ID));
-        it->second->m_ID = M_CSR_Error_Code;
-    }
+
+    // erase the resource (no longer used)
+    delete it->second;
+    resources.erase(it);
 }
 //---------------------------------------------------------------------------
 void* CSR_OpenGLHelper::GetTextureID(const void* pKey, IResources& resources)

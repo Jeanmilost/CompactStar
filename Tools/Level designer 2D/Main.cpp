@@ -2043,6 +2043,9 @@ void TMainForm::RefreshProperties()
 //------------------------------------------------------------------------------
 void TMainForm::InitializeViewPoint(const CSR_Matrix4* pMatrix)
 {
+    // set the viewpoint radius
+    m_ViewSphere.m_Radius = 0.1f;
+
     // do initialize the viewpoint from an existing matrix?
     if (pMatrix)
     {
@@ -2055,7 +2058,6 @@ void TMainForm::InitializeViewPoint(const CSR_Matrix4* pMatrix)
         m_ViewSphere.m_Center.m_X = -translation.m_X;
         m_ViewSphere.m_Center.m_Y =  translation.m_Y;
         m_ViewSphere.m_Center.m_Z = -translation.m_Z;
-        m_ViewSphere.m_Radius     = 0.1f;
 
         return;
     }
@@ -2064,7 +2066,6 @@ void TMainForm::InitializeViewPoint(const CSR_Matrix4* pMatrix)
     m_ViewSphere.m_Center.m_X = 0.0f;
     m_ViewSphere.m_Center.m_Y = 0.0f;
     m_ViewSphere.m_Center.m_Z = 3.08f;
-    m_ViewSphere.m_Radius     = 0.1f;
 }
 //------------------------------------------------------------------------------
 void TMainForm::CreateScene()
@@ -2083,25 +2084,19 @@ void TMainForm::CreateScene()
 
     // initialize the viewpoint
     InitializeViewPoint(NULL);
+
+    // rebuild the viewport
+    m_pLevel->CreateViewport(paEngineView->ClientWidth, paEngineView->ClientHeight);
 }
 //------------------------------------------------------------------------------
 void TMainForm::InitScene(int w, int h)
 {
-    // create the default scene
-    CreateScene();
-
     // configure the scene context
     m_pLevel->m_SceneContext.m_fOnSceneBegin    = OnSceneBegin;
     m_pLevel->m_SceneContext.m_fOnSceneEnd      = OnSceneEnd;
     m_pLevel->m_SceneContext.m_fOnGetShader     = OnGetShader;
     m_pLevel->m_SceneContext.m_fOnGetID         = OnGetID;
     m_pLevel->m_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
-
-    // set the viewpoint bounding sphere default position
-    m_ViewSphere.m_Center.m_X = 0.0f;
-    m_ViewSphere.m_Center.m_Y = 0.0f;
-    m_ViewSphere.m_Center.m_Z = 3.08f;
-    m_ViewSphere.m_Radius     = 0.1f;
 
     // build the main scene shader
     if (!m_pLevel->BuildSceneShader())
@@ -2115,6 +2110,9 @@ void TMainForm::InitScene(int w, int h)
         Application->Terminate();
         return;
     }
+
+    // create the default scene (IMPORTANT should be done AFTER the shader is built)
+    CreateScene();
 
     // get a default texture file name
     const std::string textureFile = m_SceneDir + "\\Textures\\mountain.jpg";

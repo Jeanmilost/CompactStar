@@ -141,6 +141,9 @@ CSR_Level::~CSR_Level()
     // release the scene
     ClearScene();
 
+    // delete the scene textures
+    CSR_OpenGLHelper::ClearResources(m_OpenGLResources);
+
     // release the shaders
     csrOpenGLShaderRelease(m_pSkyboxShader);
     csrOpenGLShaderRelease(m_pShader);
@@ -1646,9 +1649,6 @@ void CSR_Level::ClearScene()
 {
     // release the scene
     csrSceneRelease(m_pScene, m_SceneContext.m_fOnDeleteTexture);
-
-    // delete the scene textures
-    CSR_OpenGLHelper::ClearResources(m_OpenGLResources);
 
     // clear the values
     m_pScene        = NULL;
