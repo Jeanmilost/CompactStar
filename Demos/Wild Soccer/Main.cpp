@@ -686,10 +686,10 @@ void TMainForm::InitScene(int w, int h)
     m_Goal.m_Bounds.m_Max.m_X = std::max(goalBox.m_Min.m_X, goalBox.m_Max.m_X);
     m_Goal.m_Bounds.m_Max.m_Y = std::max(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z);
 
-    // create the You Won message
+    // create the You Won surface
     pMesh = csrShapeCreateSurface(0.6f, 0.2f, &vertexFormat, 0, &material, 0);
 
-    // load ball texture
+    // load the You Won texture
     CSR_OpenGLHelper::AddTexture(&pMesh->m_Skin.m_Texture,
                                   LoadTexture(m_SceneDir + YOU_WON_TEXTURE_FILE),
                                   m_OpenGLResources);
@@ -698,6 +698,7 @@ void TMainForm::InitScene(int w, int h)
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pMesh, &m_YouWonMatrix);
 
+    // initialize the You Won matrix
     csrMat4Identity(&m_YouWonMatrix);
     m_YouWonMatrix.m_Table[3][0] =  0.0f;
     m_YouWonMatrix.m_Table[3][1] =  99999.0f;
