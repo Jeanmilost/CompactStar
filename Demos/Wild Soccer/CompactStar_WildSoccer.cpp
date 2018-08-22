@@ -1,5 +1,5 @@
 /****************************************************************************
- * ==> Level deesigner for 2D games ----------------------------------------*
+ * ==> Wild soccer game demo -----------------------------------------------*
  ****************************************************************************
  * Description : Main entry point                                           *
  * Developer   : Jean-Milost Reymond                                        *
@@ -29,7 +29,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
         Application->Initialize();
         Application->MainFormOnTaskBar = true;
         Application->CreateForm(__classid(TMainForm), &MainForm);
-         Application->Run();
+        Application->Run();
     }
     catch (Exception &exception)
     {

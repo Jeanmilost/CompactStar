@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Cross football game demo'
+  Caption = 'Wild soccer game'
   ClientHeight = 623
   ClientWidth = 800
   Color = clBtnFace

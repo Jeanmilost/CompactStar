@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> Main ----------------------------------------------------------------*
  ****************************************************************************
- * Description : Cross football game main form                              *
+ * Description : Wild soccer game main form                                 *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -44,8 +44,11 @@
 #pragma resource "*.dfm"
 
 // resource files to load
-#define LANDSCAPE_TEXTURE_FILE "\\football_ground.png"
+#define YOU_WON_TEXTURE_FILE   "\\you_won.png"
+#define LANDSCAPE_TEXTURE_FILE "\\soccer_grass.png"
 #define BALL_TEXTURE_FILE      "\\soccer_ball.png"
+#define GOAL_TEXTURE_FILE      "\\soccer_goal.png"
+#define SOCCER_GOAL_MODEL      "\\soccer_goal.obj"
 #define LANDSCAPE_DATA_FILE    "\\level.bmp"
 #define SKYBOX_LEFT            "\\left.png"
 #define SKYBOX_TOP             "\\top.png"
@@ -616,6 +619,90 @@ void TMainForm::InitScene(int w, int h)
     m_Ball.m_pKey        = pSceneItem->m_pModel;
     m_Ball.m_Body.m_Mass = 0.3f;
 
+    // create the goal
+    CSR_Model* pModel = csrWaveFrontOpen((m_SceneDir + SOCCER_GOAL_MODEL).c_str(),
+                                         &vertexFormat,
+                                          0,
+                                         &material,
+                                          0,
+                                          0,
+                                          0);
+
+    CSR_Vector3 translation;
+    translation.m_X =  0.0f;
+    translation.m_Y =  1.375f;
+    translation.m_Z = -1.75f;
+
+    CSR_Matrix4 translationMatrix;
+
+    // apply translation to goal
+    csrMat4Translate(&translation, &translationMatrix);
+
+    CSR_Vector3 axis;
+    axis.m_X = 0.0f;
+    axis.m_Y = 1.0f;
+    axis.m_Z = 0.0f;
+
+    CSR_Matrix4 ryMatrix;
+
+    // apply rotation on y axis to goal
+    csrMat4Rotate(M_PI, &axis, &ryMatrix);
+
+    CSR_Vector3 factor;
+    factor.m_X = 0.0025f;
+    factor.m_Y = 0.0025f;
+    factor.m_Z = 0.0025f;
+
+    CSR_Matrix4 scaleMatrix;
+
+    // apply scaling to goal
+    csrMat4Scale(&factor, &scaleMatrix);
+
+    CSR_Matrix4 buildMatrix;
+
+    // build the goal model matrix
+    csrMat4Multiply(&ryMatrix, &scaleMatrix, &buildMatrix);
+    csrMat4Multiply(&buildMatrix, &translationMatrix, &m_Goal.m_Matrix);
+
+    // add the model to the scene
+    pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
+    csrSceneAddModelMatrix(m_pScene, pModel, &m_Goal.m_Matrix);
+
+    // load goal texture
+    CSR_OpenGLHelper::AddTexture(&pModel->m_pMesh->m_Skin.m_Texture,
+                                  LoadTexture(m_SceneDir + GOAL_TEXTURE_FILE),
+                                  m_OpenGLResources);
+
+    CSR_Box goalBox;
+
+    // transform the goal bounding box in his local system coordinates
+    csrMat4ApplyToVector(&m_Goal.m_Matrix, &pSceneItem->m_pAABBTree[0].m_pBox->m_Min, &goalBox.m_Min);
+    csrMat4ApplyToVector(&m_Goal.m_Matrix, &pSceneItem->m_pAABBTree[0].m_pBox->m_Max, &goalBox.m_Max);
+
+    // configure the goal
+    m_Goal.m_pKey             = pSceneItem->m_pModel;
+    m_Goal.m_Bounds.m_Min.m_X = std::min(goalBox.m_Min.m_X, goalBox.m_Max.m_X);
+    m_Goal.m_Bounds.m_Min.m_Y = std::min(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z);
+    m_Goal.m_Bounds.m_Max.m_X = std::max(goalBox.m_Min.m_X, goalBox.m_Max.m_X);
+    m_Goal.m_Bounds.m_Max.m_Y = std::max(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z);
+
+    // create the You Won message
+    pMesh = csrShapeCreateSurface(0.6f, 0.2f, &vertexFormat, 0, &material, 0);
+
+    // load ball texture
+    CSR_OpenGLHelper::AddTexture(&pMesh->m_Skin.m_Texture,
+                                  LoadTexture(m_SceneDir + YOU_WON_TEXTURE_FILE),
+                                  m_OpenGLResources);
+
+    // add the mesh to the scene
+    pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
+    csrSceneAddModelMatrix(m_pScene, pMesh, &m_YouWonMatrix);
+
+    csrMat4Identity(&m_YouWonMatrix);
+    m_YouWonMatrix.m_Table[3][0] =  0.0f;
+    m_YouWonMatrix.m_Table[3][1] =  99999.0f;
+    m_YouWonMatrix.m_Table[3][2] = -1.65f;
+
     const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Skybox);
     const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
 
@@ -762,6 +849,114 @@ void TMainForm::UpdateScene(float elapsedTime)
         // previous position is always considered as valid)
         ApplyGroundCollision(&m_ViewSphere, m_Angle, &m_pScene->m_ViewMatrix, &groundPlane);
     }
+    else
+    if (m_ViewSphere.m_Center.m_X >= m_Goal.m_Bounds.m_Min.m_X && m_ViewSphere.m_Center.m_X <= m_Goal.m_Bounds.m_Max.m_X &&
+        m_ViewSphere.m_Center.m_Z >= m_Goal.m_Bounds.m_Min.m_Y && m_ViewSphere.m_Center.m_Z <= m_Goal.m_Bounds.m_Max.m_Y)
+    {
+        // player hit the goal
+        // a       b
+        // |-------|
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |-------|
+        // d       c
+        CSR_Segment3 ab;
+        CSR_Segment3 bc;
+        CSR_Segment3 cd;
+        CSR_Segment3 da;
+
+        // build the ab segment
+        ab.m_Start.m_X = m_Goal.m_Bounds.m_Min.m_X;
+        ab.m_Start.m_Y = 0.0f;
+        ab.m_Start.m_Z = m_Goal.m_Bounds.m_Min.m_Y;
+        ab.m_End.m_X   = m_Goal.m_Bounds.m_Max.m_X;
+        ab.m_End.m_Y   = 0.0f;
+        ab.m_End.m_Z   = m_Goal.m_Bounds.m_Min.m_Y;
+
+        // build the bc segment
+        bc.m_Start.m_X = m_Goal.m_Bounds.m_Max.m_X;
+        bc.m_Start.m_Y = 0.0f;
+        bc.m_Start.m_Z = m_Goal.m_Bounds.m_Min.m_Y;
+        bc.m_End.m_X   = m_Goal.m_Bounds.m_Max.m_X;
+        bc.m_End.m_Y   = 0.0f;
+        bc.m_End.m_Z   = m_Goal.m_Bounds.m_Max.m_Y;
+
+        // build the cd segment
+        cd.m_Start.m_X = m_Goal.m_Bounds.m_Max.m_X;
+        cd.m_Start.m_Y = 0.0f;
+        cd.m_Start.m_Z = m_Goal.m_Bounds.m_Max.m_Y;
+        cd.m_End.m_X   = m_Goal.m_Bounds.m_Min.m_X;
+        cd.m_End.m_Y   = 0.0f;
+        cd.m_End.m_Z   = m_Goal.m_Bounds.m_Max.m_Y;
+
+        // build the da segment
+        da.m_Start.m_X = m_Goal.m_Bounds.m_Min.m_X;
+        da.m_Start.m_Y = 0.0f;
+        da.m_Start.m_Z = m_Goal.m_Bounds.m_Max.m_Y;
+        da.m_End.m_X   = m_Goal.m_Bounds.m_Min.m_X;
+        da.m_End.m_Y   = 0.0f;
+        da.m_End.m_Z   = m_Goal.m_Bounds.m_Min.m_Y;
+
+        CSR_Vector3 ptAB;
+        CSR_Vector3 ptBC;
+        CSR_Vector3 ptCD;
+        CSR_Vector3 ptDA;
+
+        // calculate the closest point from previous position to each of the segments
+        csrSeg3ClosestPoint(&ab, &oldPos, &ptAB);
+        csrSeg3ClosestPoint(&bc, &oldPos, &ptBC);
+        csrSeg3ClosestPoint(&cd, &oldPos, &ptCD);
+        csrSeg3ClosestPoint(&da, &oldPos, &ptDA);
+
+        CSR_Vector3 PPtAB;
+        CSR_Vector3 PPtBC;
+        CSR_Vector3 PPtCD;
+        CSR_Vector3 PPtDA;
+
+        // calculate each distances between the previous point and each points found on segments
+        csrVec3Sub(&ptAB, &oldPos, &PPtAB);
+        csrVec3Sub(&ptBC, &oldPos, &PPtBC);
+        csrVec3Sub(&ptCD, &oldPos, &PPtCD);
+        csrVec3Sub(&ptDA, &oldPos, &PPtDA);
+
+        float lab;
+        float lbc;
+        float lcd;
+        float lda;
+
+        // calculate each lengths between the previous point and each points found on segments
+        csrVec3Length(&PPtAB, &lab);
+        csrVec3Length(&PPtBC, &lbc);
+        csrVec3Length(&PPtCD, &lcd);
+        csrVec3Length(&PPtDA, &lda);
+
+        // find on which side the player is hitting the goal
+        if (lab < lbc && lab < lcd && lab < lda)
+            m_ViewSphere.m_Center.m_Z = oldPos.m_Z;
+        else
+        if (lbc < lab && lbc < lcd && lbc < lda)
+            m_ViewSphere.m_Center.m_X = oldPos.m_X;
+        else
+        if (lcd < lab && lcd < lbc && lcd < lda)
+            m_ViewSphere.m_Center.m_Z = oldPos.m_Z;
+        else
+        if (lda < lab && lda < lbc && lda < lcd)
+            m_ViewSphere.m_Center.m_X = oldPos.m_X;
+        else
+        {
+            m_ViewSphere.m_Center.m_X = oldPos.m_X;
+            m_ViewSphere.m_Center.m_Z = oldPos.m_Z;
+        }
+
+        // recalculate the ground value (this time the collision result isn't tested, because the
+        // previous position is always considered as valid)
+        ApplyGroundCollision(&m_ViewSphere, m_Angle, &m_pScene->m_ViewMatrix, &groundPlane);
+    }
 }
 //------------------------------------------------------------------------------
 void TMainForm::DrawScene()
@@ -903,6 +1098,8 @@ void TMainForm::ApplyPhysics(float elapsedTime)
     CSR_Vector3 planeNormal;
     CSR_Vector3 acceleration;
     CSR_Vector3 prevCenter;
+    CSR_Vector3 ballDir;
+    CSR_Vector3 ballDirN;
 
     // apply the ground collision on the current position and get the ground polygon
     ApplyGroundCollision(&m_Ball.m_Geometry, 0.0f, &m_Ball.m_Matrix, &groundPlane);
@@ -998,6 +1195,135 @@ void TMainForm::ApplyPhysics(float elapsedTime)
 
         m_Ball.m_Matrix = ballMatrix;
     }
+
+    // calculate the ball direction
+    csrVec3Sub(&m_Ball.m_Geometry.m_Center, &prevCenter, &ballDir);
+    csrVec3Normalize(&ballDir, &ballDirN);
+
+    // check if the goal was hit
+    if (CheckForGoal(&m_Ball, &prevCenter, &ballDirN))
+        m_YouWonMatrix.m_Table[3][1] = 1.375f;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::CheckForGoal(CSR_Ball* pBall, const CSR_Vector3* pOldPos, const CSR_Vector3* pDir) const
+{
+    if (!pBall || !pDir)
+        return false;
+
+    if (!pDir->m_X && !pDir->m_Y && !pDir->m_Z)
+        return false;
+
+    // is ball hitting the goal?
+    if (pBall->m_Geometry.m_Center.m_X >= m_Goal.m_Bounds.m_Min.m_X &&
+        pBall->m_Geometry.m_Center.m_X <= m_Goal.m_Bounds.m_Max.m_X &&
+        pBall->m_Geometry.m_Center.m_Z >= m_Goal.m_Bounds.m_Min.m_Y &&
+        pBall->m_Geometry.m_Center.m_Z <= m_Goal.m_Bounds.m_Max.m_Y)
+    {
+        // player hit the goal
+        // a       b
+        // |-------|
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |       |
+        // |-------|
+        // d       c
+        CSR_Segment3 ab;
+        CSR_Segment3 bc;
+        CSR_Segment3 cd;
+        CSR_Segment3 da;
+
+        // build the ab segment
+        ab.m_Start.m_X = m_Goal.m_Bounds.m_Min.m_X;
+        ab.m_Start.m_Y = 0.0f;
+        ab.m_Start.m_Z = m_Goal.m_Bounds.m_Min.m_Y;
+        ab.m_End.m_X   = m_Goal.m_Bounds.m_Max.m_X;
+        ab.m_End.m_Y   = 0.0f;
+        ab.m_End.m_Z   = m_Goal.m_Bounds.m_Min.m_Y;
+
+        // build the bc segment
+        bc.m_Start.m_X = m_Goal.m_Bounds.m_Max.m_X;
+        bc.m_Start.m_Y = 0.0f;
+        bc.m_Start.m_Z = m_Goal.m_Bounds.m_Min.m_Y;
+        bc.m_End.m_X   = m_Goal.m_Bounds.m_Max.m_X;
+        bc.m_End.m_Y   = 0.0f;
+        bc.m_End.m_Z   = m_Goal.m_Bounds.m_Max.m_Y;
+
+        // build the cd segment
+        cd.m_Start.m_X = m_Goal.m_Bounds.m_Max.m_X;
+        cd.m_Start.m_Y = 0.0f;
+        cd.m_Start.m_Z = m_Goal.m_Bounds.m_Max.m_Y;
+        cd.m_End.m_X   = m_Goal.m_Bounds.m_Min.m_X;
+        cd.m_End.m_Y   = 0.0f;
+        cd.m_End.m_Z   = m_Goal.m_Bounds.m_Max.m_Y;
+
+        // build the da segment
+        da.m_Start.m_X = m_Goal.m_Bounds.m_Min.m_X;
+        da.m_Start.m_Y = 0.0f;
+        da.m_Start.m_Z = m_Goal.m_Bounds.m_Max.m_Y;
+        da.m_End.m_X   = m_Goal.m_Bounds.m_Min.m_X;
+        da.m_End.m_Y   = 0.0f;
+        da.m_End.m_Z   = m_Goal.m_Bounds.m_Min.m_Y;
+
+        CSR_Vector3 ptAB;
+        CSR_Vector3 ptBC;
+        CSR_Vector3 ptCD;
+        CSR_Vector3 ptDA;
+
+        // calculate the closest point from previous position to each of the segments
+        csrSeg3ClosestPoint(&ab, pOldPos, &ptAB);
+        csrSeg3ClosestPoint(&bc, pOldPos, &ptBC);
+        csrSeg3ClosestPoint(&cd, pOldPos, &ptCD);
+        csrSeg3ClosestPoint(&da, pOldPos, &ptDA);
+
+        CSR_Vector3 PPtAB;
+        CSR_Vector3 PPtBC;
+        CSR_Vector3 PPtCD;
+        CSR_Vector3 PPtDA;
+
+        // calculate each distances between the previous point and each points found on segments
+        csrVec3Sub(&ptAB, pOldPos, &PPtAB);
+        csrVec3Sub(&ptBC, pOldPos, &PPtBC);
+        csrVec3Sub(&ptCD, pOldPos, &PPtCD);
+        csrVec3Sub(&ptDA, pOldPos, &PPtDA);
+
+        float lab;
+        float lbc;
+        float lcd;
+        float lda;
+
+        // calculate each lengths between the previous point and each points found on segments
+        csrVec3Length(&PPtAB, &lab);
+        csrVec3Length(&PPtBC, &lbc);
+        csrVec3Length(&PPtCD, &lcd);
+        csrVec3Length(&PPtDA, &lda);
+
+        // find on which side the player is hitting the goal
+        if (lab < lbc && lab < lcd && lab < lda)
+            pBall->m_Body.m_Velocity.m_Z = -pBall->m_Body.m_Velocity.m_Z;
+        else
+        if (lbc < lab && lbc < lcd && lbc < lda)
+            pBall->m_Body.m_Velocity.m_X = -pBall->m_Body.m_Velocity.m_X;
+        else
+        if (lcd < lab && lcd < lbc && lcd < lda)
+        {
+            pBall->m_Body.m_Velocity.m_Z = -pBall->m_Body.m_Velocity.m_Z;
+            return true;
+        }
+        else
+        if (lda < lab && lda < lbc && lda < lcd)
+            pBall->m_Body.m_Velocity.m_X = -pBall->m_Body.m_Velocity.m_X;
+        else
+        {
+            pBall->m_Body.m_Velocity.m_X = -pBall->m_Body.m_Velocity.m_X;
+            pBall->m_Body.m_Velocity.m_Z = -pBall->m_Body.m_Velocity.m_Z;
+        }
+    }
+
+    return false;
 }
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)

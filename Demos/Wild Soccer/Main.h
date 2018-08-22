@@ -1,7 +1,7 @@
 /****************************************************************************
  * ==> Main ----------------------------------------------------------------*
  ****************************************************************************
- * Description : Cross football game main form                              *
+ * Description : Wild soccer game main form                                 *
  * Developer   : Jean-Milost Reymond                                        *
  * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
@@ -115,6 +115,16 @@ class TMainForm : public TForm
             CSR_Body    m_Body;
         };
 
+        /**
+        * Structure representing the goal
+        */
+        struct CSR_Goal
+        {
+            void*       m_pKey;
+            CSR_Matrix4 m_Matrix;
+            CSR_Rect    m_Bounds;
+        };
+
         typedef std::vector<std::string> IFileNames;
 
         HDC                          m_hDC;
@@ -128,8 +138,10 @@ class TMainForm : public TForm
         CSR_OpenGLHelper::IResources m_OpenGLResources;
         CSR_Sphere                   m_ViewSphere;
         CSR_Ball                     m_Ball;
+        CSR_Goal                     m_Goal;
         CSR_Vector3                  m_FrictionForce;
         CSR_Matrix4                  m_LandscapeMatrix;
+        CSR_Matrix4                  m_YouWonMatrix;
         CSR_Sound*                   m_pSound;
         void*                        m_pLandscapeKey;
         std::string                  m_SceneDir;
@@ -210,6 +222,15 @@ class TMainForm : public TForm
         *@param elapsedTime - elapsed time since the last calculation in milliseconds
         */
         void ApplyPhysics(float elapsedTime);
+
+        /**
+        * Checks if the goal was hit
+        *@param pBall - ball to check against the goal
+        *@param pOldPos - previous ball position
+        *@param pDir - ball direction
+        *@return true if a goal was hit, otherwise false
+        */
+        bool CheckForGoal(CSR_Ball* pBall, const CSR_Vector3* pOldPos, const CSR_Vector3* pDir) const;
 
         /**
         * Called when the scene should be drawn
