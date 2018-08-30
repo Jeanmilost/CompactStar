@@ -1155,7 +1155,7 @@ void TMainForm::ApplyPhysics(float elapsedTime)
         // calculate the rolling angle (depends on the distance the ball moved)
         csrVec3Sub(&m_Ball.m_Geometry.m_Center, &prevCenter, &rollDistance);
         csrVec3Length(&rollDistance, &distance);
-        m_RollAngle = std::fmod(m_RollAngle + (distance * 10.0f), M_PI * 2.0f);
+        m_RollAngle = std::fmod(float(m_RollAngle + (distance * 10.0f)), float(M_PI * 2.0f));
 
         axis.m_X = 1.0f;
         axis.m_Y = 0.0f;

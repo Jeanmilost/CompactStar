@@ -16,10 +16,6 @@
 #ifndef CSR_ShaderHelperH
 #define CSR_ShaderHelperH
 
-// vcl
-#include <System.Classes.hpp>
-#include <Vcl.Forms.hpp>
-
 // std
 #include <string>
 #include <vector>

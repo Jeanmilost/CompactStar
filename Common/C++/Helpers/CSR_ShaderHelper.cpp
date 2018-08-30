@@ -57,7 +57,8 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "}";
 
         case IE_ST_Skybox:
-            return "attribute vec3 csr_aVertices;"
+            return "precision mediump float;"
+                   "attribute vec3 csr_aVertices;"
                    "uniform   mat4 csr_uProjection;"
                    "uniform   mat4 csr_uView;"
                    "varying   vec3 csr_vTexCoord;"
@@ -94,12 +95,23 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                    "}";
 
         case IE_ST_Skybox:
-            return "uniform samplerCube csr_sCubemap;"
-                   "varying vec3        csr_vTexCoord;"
-                   "void main()"
-                   "{"
-                   "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
-                   "}";
+            #ifdef __APPLE__
+                return "precision mediump float;"
+                       "uniform samplerCube csr_sCubemap;"
+                       "varying vec3        csr_vTexCoord;"
+                       "void main()"
+                       "{"
+                       "    gl_FragColor = textureCube(csr_sCubemap, csr_vTexCoord);"
+                       "}";
+            #else
+                return "precision mediump float;"
+                       "uniform samplerCube csr_sCubemap;"
+                       "varying vec3        csr_vTexCoord;"
+                       "void main()"
+                       "{"
+                       "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
+                       "}";
+            #endif
     }
 
     return "";
