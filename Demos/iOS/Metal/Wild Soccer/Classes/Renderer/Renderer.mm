@@ -1,41 +1,29 @@
-/*****************************************************************************
- * ==> Wild soccer game demo ------------------------------------------------*
- *****************************************************************************
- * Description : Wild soccer game demo view controller                       *
- * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
- *               free to copy or redistribute this file, modify it, or use   *
- *               it for your own projects, commercial or not. This file is   *
- *               provided "as is", without ANY WARRANTY OF ANY KIND          *
- *****************************************************************************/
+/****************************************************************************
+ * ==> Renderer ------------------------------------------------------------*
+ ****************************************************************************
+ * Description : This module provides a Metal renderer                      *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
 
-#import "GameViewController.h"
+#import "Renderer.h"
 
 // std
-#include <memory>
+#include <string>
 
-// openGL
-#import <OpenGLES/ES2/glext.h>
-
-// compactStar engine
-#include "CSR_Common.h"
-#include "CSR_Geometry.h"
-#include "CSR_Collision.h"
-#include "CSR_Vertex.h"
-#include "CSR_Model.h"
-#include "CSR_Renderer.h"
-#include "CSR_Renderer_OpenGL.h"
-#include "CSR_Physics.h"
+// metal
+#import <ModelIO/ModelIO.h>
+#import "CSR_Renderer_Metal_Types.h"
 
 // classes
-#import "CSR_ShaderHelper.h"
 #import "CSR_ObjectiveCHelper.h"
-#import "GameLogic.h"
-
-// the compactStar engine should be compiled with an OpenGL renderer to run this demo
-#ifndef CSR_USE_OPENGL
-    #warning "OpenGL isn't the currently enabled library. Please enable the CSR_USE_OPENGL conditional define in CSR_Renderer.h, and use CSR_Renderer_OpenGL as renderer."
-#endif
 
 //----------------------------------------------------------------------------
 // CSR_CallbackController
@@ -45,11 +33,11 @@ void* CSR_CallbackController::m_pOwner = NULL;
 CSR_CallbackController::CSR_CallbackController()
 {}
 //----------------------------------------------------------------------------
-CSR_CallbackController::CSR_CallbackController(void* pOwner)
+CSR_CallbackController::CSR_CallbackController(void* _Nonnull pOwner)
 {
     // set the global static owner to share between all the functions
     m_pOwner = pOwner;
-
+    
     // configure the scene context
     csrSceneContextInit(&m_SceneContext);
     m_SceneContext.m_fOnGetShader     = OnGetShader;
@@ -60,286 +48,202 @@ CSR_CallbackController::CSR_CallbackController(void* pOwner)
 CSR_CallbackController::~CSR_CallbackController()
 {}
 //----------------------------------------------------------------------------
-void CSR_CallbackController::ReleaseModel(CSR_Model* pModel) const
+void CSR_CallbackController::ReleaseModel(CSR_Model* _Nullable pModel) const
 {
     csrModelRelease(pModel, OnDeleteTexture);
 }
 //----------------------------------------------------------------------------
-void CSR_CallbackController::ReleaseScene(CSR_Scene* pScene) const
+void CSR_CallbackController::ReleaseScene(CSR_Scene* _Nullable pScene) const
 {
     csrSceneRelease(pScene, OnDeleteTexture);
 }
 //----------------------------------------------------------------------------
-void CSR_CallbackController::DrawScene(CSR_Scene* pScene) const
+void CSR_CallbackController::DrawScene(CSR_Scene* _Nullable pScene) const
 {
     // draw the scene
     csrSceneDraw(pScene, &m_SceneContext);
 }
 //----------------------------------------------------------------------------
-void* CSR_CallbackController::OnGetShader(const void* pModel, CSR_EModelType type)
+void* _Nullable CSR_CallbackController::OnGetShader(const void* _Nullable pModel, CSR_EModelType type)
 {
     return [(__bridge id)m_pOwner OnGetShader :pModel :type];
 }
 //----------------------------------------------------------------------------
-void* CSR_CallbackController::OnGetID(const void* pKey)
+void* _Nullable CSR_CallbackController::OnGetID(const void* _Nullable pKey)
 {
     return [(__bridge id)m_pOwner OnGetID :pKey];
 }
 //----------------------------------------------------------------------------
-void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
+void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTexture)
 {
     [(__bridge id)m_pOwner OnDeleteTexture :pTexture];
 }
-//----------------------------------------------------------------------------
-// GameViewController
-//----------------------------------------------------------------------------
-@interface GameViewController()
+//---------------------------------------------------------------------------
+// CSR_MetalRenderer
+//---------------------------------------------------------------------------
+@implementation CSR_MetalRenderer
 {
-    CSR_GameLogic*          m_pGameLogic;
-    CSR_CallbackController* m_pCallbackController;
-    CSR_Scene*              m_pScene;
-    CSR_OpenGLShader*       m_pShader;
-    CSR_OpenGLShader*       m_pSkyboxShader;
-    void*                   m_pLandscapeKey;
-    float                   m_Angle;
-    float                   m_StepTime;
-    float                   m_StepInterval;
-    float                   m_PosVelocity;
-    float                   m_DirVelocity;
-    float                   m_ControlRadius;
-    CSR_Matrix4             m_LandscapeMatrix;
-    CSR_OpenGLID            m_ID[5];
-    CFTimeInterval          m_PreviousTime;
+    CSR_CallbackController*    m_pCallbackController;
+    CSR_GameLogic*             m_pGameLogic;
+    id<MTLCommandQueue>        m_pCommandQueue;
+    CSR_MetalShader*           m_pShader;
+    CSR_MetalShader*           m_pSkyboxShader;
+    void*                      m_pLandscapeKey;
+    float                      m_Angle;
+    float                      m_Rotation;
+    float                      m_StepTime;
+    float                      m_StepInterval;
+    float                      m_PosVelocity;
+    float                      m_DirVelocity;
+    float                      m_ControlRadius;
+    CSR_Matrix4                m_LandscapeMatrix;
+    CFTimeInterval             m_PreviousTime;
 }
-
-@property (strong, nonatomic) EAGLContext* pContext;
-
-/**
-* Enables OpenGL
-*/
-- (void) EnableOpenGL;
-
-/**
-* Disables OpenGL
-*/
-- (void) DisableOpenGL;
-
-/**
-* Loads a landscape from a bitmap file
-*@param pFileName - bitmap file name
-*@return true on success, optherwise false
-*/
-- (bool) LoadLandscapeFromBitmap :(const char*)pFileName;
-
-/**
-* Creates the viewport
-*@param w - viewport width
-*@param h - viewport height
-*/
-- (void) CreateViewport :(float)w  :(float)h;
-
-/**
-* Initializes the scene
-*/
-- (void) InitScene;
-
-/**
-* Deletes the scene
-*/
-- (void) DeleteScene;
-
-/**
-* Updates the scene
-*@param elapsedTime - elapsed time since last update, in milliseconds
-*/
-- (void) UpdateScene :(float)elapsedTime;
-
-/**
-* Draws the scene
-*/
-- (void) DrawScene;
-
-/**
-* Called when screen is long pressed
-*@param pSender - recognizer that raised the event
-*/
-- (void) OnLongPress :(UIGestureRecognizer*)pSender;
-
-@end
-//----------------------------------------------------------------------------
-@implementation GameViewController
-//----------------------------------------------------------------------------
-- (void) viewDidLoad
+//---------------------------------------------------------------------------
+@synthesize m_pScene;
+//---------------------------------------------------------------------------
+- (nonnull instancetype) initWithMetalKitView :(nonnull MTKView*)pView
+                                              :(nonnull CSR_GameLogic*)pGameLogic;
 {
-    [super viewDidLoad];
+    self = [super initWithMetalKitView :pView];
 
-    m_pGameLogic          =  [[CSR_GameLogic alloc]init];
-    m_pCallbackController =  new CSR_CallbackController((__bridge void*)self);
-    m_pScene              =  nil;
-    m_pShader             =  nil;
-    m_pSkyboxShader       =  nil;
-    m_pLandscapeKey       =  nil;
-    m_Angle               =  M_PI / -4.0f;
-    m_StepTime            =  0.0f;
-    m_StepInterval        =  300.0f;
-    m_PosVelocity         = -10.0f;
-    m_DirVelocity         =  15.0f;
-    m_ControlRadius       =  40.0f;
-    m_PreviousTime        =  CACurrentMediaTime();
+    if (self)
+    {
+        // build and configure the basic game values
+        m_pScene              =  nil;
+        m_pCallbackController =  new CSR_CallbackController((__bridge void*)self);
+        m_pGameLogic          =  pGameLogic;
+        m_pCommandQueue       =  nil;
+        m_pShader             =  nil;
+        m_pSkyboxShader       =  nil;
+        m_pLandscapeKey       =  nil;
+        m_Angle               =  M_PI / -4.0f;
+        m_Rotation            =  0.0f;
+        m_StepTime            =  0.0f;
+        m_StepInterval        =  300.0f;
+        m_PosVelocity         = -10.0f;
+        m_DirVelocity         =  15.0f;
+        m_ControlRadius       =  40.0f;
+        m_PreviousTime        =  CACurrentMediaTime();
 
-    // add a long press gesture to the view
-    UILongPressGestureRecognizer* pGestureRecognizer =
-    [[UILongPressGestureRecognizer alloc]initWithTarget:self
-                                                 action:@selector(OnLongPress:)];
+        [self InitScene :pView];
+    }
     
-    pGestureRecognizer.minimumPressDuration = 0;
-    
-    // add gesture recognizer to view
-    [self.view addGestureRecognizer: pGestureRecognizer];
-
-    [self EnableOpenGL];
-    [self InitScene];
+    return self;
 }
 //----------------------------------------------------------------------------
 - (void) dealloc
 {
     [self DeleteScene];
-    [self DisableOpenGL];
     
     if (m_pCallbackController)
         delete m_pCallbackController;
 
-    if ([EAGLContext currentContext] == self.pContext)
-        [EAGLContext setCurrentContext:nil];
+    // useless because using ARC
+    //[super dealloc];
 }
-//----------------------------------------------------------------------------
-- (void) didReceiveMemoryWarning
+//---------------------------------------------------------------------------
+- (void) drawInMTKView :(nonnull MTKView*)pView
 {
-    [super didReceiveMemoryWarning];
+    dispatch_semaphore_wait(m_Semaphore, DISPATCH_TIME_FOREVER);
     
-    if ([self isViewLoaded] && ([[self view]window] == nil))
-    {
-        self.view = nil;
-        
-        [self DeleteScene];
-        [self DisableOpenGL];
-        
-        if ([EAGLContext currentContext] == self.pContext)
-            [EAGLContext setCurrentContext:nil];
-        
-        self.pContext = nil;
-    }
-}
-//----------------------------------------------------------------------------
-- (BOOL) prefersStatusBarHidden
-{
-    return YES;
-}
-//----------------------------------------------------------------------------
-- (void)glkView :(GLKView*)view drawInRect:(CGRect)rect
-{
+    m_UniformBufferIndex = (m_UniformBufferIndex + 1) % g_ParallelBufferCount;
+    
+    id <MTLCommandBuffer> pCommandBuffer = [m_pCommandQueue commandBuffer];
+    pCommandBuffer.label                 = @"CSR_DrawCommand";
+
+    __block dispatch_semaphore_t block_sema = m_Semaphore;
+    
+    [pCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
+     {
+         dispatch_semaphore_signal(block_sema);
+     }];
+    
     // calculate time interval
     const CFTimeInterval now            =  CACurrentMediaTime();
     const double         elapsedTime    = (now - m_PreviousTime);
                          m_PreviousTime =  now;
-    
+
+    // update the scene content
     [self UpdateScene :elapsedTime];
-    [self DrawScene];
+
+    MTLRenderPassDescriptor* pRenderPassDescriptor = pView.currentRenderPassDescriptor;
+    
+    if (pRenderPassDescriptor != nil)
+    {
+        m_pRenderEncoder       = [pCommandBuffer renderCommandEncoderWithDescriptor:pRenderPassDescriptor];
+        m_pRenderEncoder.label = @"CSR_RenderEncoder";
+
+        [self DrawScene];
+        
+        [m_pRenderEncoder endEncoding];
+        [pCommandBuffer presentDrawable:pView.currentDrawable];
+        
+        m_pRenderEncoder = nil;
+    }
+    
+    [pCommandBuffer commit];
 }
-//----------------------------------------------------------------------------
-- (void) EnableOpenGL
+//---------------------------------------------------------------------------
+- (void) mtkView :(nonnull MTKView*)pView drawableSizeWillChange:(CGSize)size
 {
-    self.pContext = [[EAGLContext alloc]initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    
-    if (!self.pContext)
-        NSLog(@"Failed to create ES context");
-    
-    GLKView* pView            = (GLKView*)self.view;
-    pView.context             = self.pContext;
-    pView.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    
-    [EAGLContext setCurrentContext:self.pContext];
+    // drawable size or orientation changed, rebuild the viewport
+    [self CreateViewport :size.width :size.height];
 }
-//----------------------------------------------------------------------------
-- (void) DisableOpenGL
+//---------------------------------------------------------------------------
+- (void) csrMetalShaderEnable :(const void* _Nullable)pShader
 {
-    [EAGLContext setCurrentContext:self.pContext];
+    // set the render pipeline state to use
+    if (pShader == (__bridge const void * _Nullable)(m_pSkyboxShader))
+    {
+        [m_pRenderEncoder setRenderPipelineState:[self GetRenderPipeline:@"skybox"]];
+        return;
+    }
+
+    [m_pRenderEncoder setRenderPipelineState:[self GetRenderPipeline:@"default"]];
 }
 //----------------------------------------------------------------------------
-- (void*) OnGetShader :(const void*)pModel :(CSR_EModelType)type
+- (void* _Nullable) OnGetShader :(const void* _Nullable)pModel :(CSR_EModelType)type
 {
     if (pModel == m_pScene->m_pSkybox)
-        return m_pSkyboxShader;
+        return (__bridge void*)m_pSkyboxShader;
     
-    return m_pShader;
+    return (__bridge void*)m_pShader;
 }
 //----------------------------------------------------------------------------
-- (void*) OnGetID :(const void*)pKey
+- (void* _Nullable) OnGetID :(const void* _Nullable)pKey
 {
-    // iterate through resource ids
-    for (std::size_t i = 0; i < 5; ++i)
-        // found the texture to get?
-        if (pKey == m_ID[i].m_pKey)
-            return &m_ID[i];
-
-    return 0;
+    return (__bridge void*)[self GetTexture :pKey];
 }
 //----------------------------------------------------------------------------
-- (void) OnDeleteTexture :(const CSR_Texture*)pTexture
-{
-    // iterate through resource ids
-    for (std::size_t i = 0; i < 3; ++i)
-        // found the texture to delete?
-        if (pTexture == m_ID[i].m_pKey)
-        {
-            // unuse the texture
-            if (m_ID[i].m_UseCount)
-                --m_ID[i].m_UseCount;
-            
-            // is texture no longer used?
-            if (m_ID[i].m_UseCount)
-                return;
-            
-            // delete the texture from the GPU
-            if (m_ID[i].m_ID != M_CSR_Error_Code)
-            {
-                glDeleteTextures(1, (GLuint*)(&m_ID[i].m_ID));
-                m_ID[i].m_ID = M_CSR_Error_Code;
-            }
-            
-            return;
-        }
-}
+- (void) OnDeleteTexture :(const CSR_Texture* _Nullable)pTexture
+{}
 //----------------------------------------------------------------------------
-- (bool) LoadLandscapeFromBitmap :(const char*)pFileName
+- (bool) LoadLandscapeFromBitmap :(const char* _Nullable)pFileName
 {
-    CSR_Material      material;
-    CSR_VertexCulling vc;
-    CSR_VertexFormat  vf;
-    CSR_Model*        pModel;
-    CSR_PixelBuffer*  pBitmap;
-    CSR_SceneItem*    pSceneItem;
-    
+    CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
     
+    CSR_VertexCulling vc;
     vc.m_Type = CSR_CT_None;
     vc.m_Face = CSR_CF_CW;
     
+    CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
     
     // create a model to contain the landscape
-    pModel = csrModelCreate();
+    CSR_Model* pModel = csrModelCreate();
     
     // succeeded?
     if (!pModel)
         return false;
     
     // load a default grayscale bitmap from which a landscape will be generated
-    pBitmap = csrPixelBufferFromBitmapFile(pFileName);
+    CSR_PixelBuffer* pBitmap = csrPixelBufferFromBitmapFile(pFileName);
     
     // succeeded?
     if (!pBitmap)
@@ -352,13 +256,19 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
     pModel->m_MeshCount = 1;
     
+    [self CreateBufferFromModel :pModel];
+
     csrPixelBufferRelease(pBitmap);
     
     csrMat4Identity(&m_LandscapeMatrix);
     
     // add the model to the scene
-    pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
+    CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
+    
+    // create an uniform for this scene item
+    if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
+        [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
     
     // succeeded?
     if (pSceneItem)
@@ -379,22 +289,34 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     const float aspect = w / h;
     
     csrMat4Perspective(fov, aspect, zNear, zFar, &m_pScene->m_ProjectionMatrix);
-    
-    csrShaderEnable(m_pShader);
-    
-    // connect projection matrix to shader
-    GLint projectionUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
-    glUniformMatrix4fv(projectionUniform, 1, 0, &m_pScene->m_ProjectionMatrix.m_Table[0][0]);
 }
 //----------------------------------------------------------------------------
-- (void) InitScene
+- (void) InitScene :(nonnull MTKView*)pView
 {
-    CSR_VertexFormat vertexFormat;
-    CSR_Material     material;
-    CSR_PixelBuffer* pPixelBuffer = 0;
-    CSR_Mesh*        pMesh;
-    CSR_SceneItem*   pSceneItem;
-    
+    // configure the view
+    pView.depthStencilPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+    pView.colorPixelFormat        = MTLPixelFormatBGRA8Unorm_sRGB;
+    pView.sampleCount             = 1;
+
+    // get the Metal library
+    id<MTLLibrary> pLibrary = [m_pDevice newDefaultLibrary];
+
+    // create the Metal main threaded command queue and the thread semaphore to use
+    m_pCommandQueue = [m_pDevice newCommandQueue];
+
+    // create, build and link the game shader
+    m_pShader   = [[CSR_MetalShader alloc]init :pLibrary
+                                               :@"csrVertexShader"
+                                               :@"csrFragmentShader"];
+
+    m_pSkyboxShader = [[CSR_MetalShader alloc]init :pLibrary
+                                                   :@"csrSkyboxVertexShader"
+                                                   :@"csrSkyboxFragmentShader"];
+
+    // create the render pipelines
+    [self CreateRenderPipeline :pView :@"default" :m_pShader];
+    [self CreateRenderPipeline :pView :@"skybox"  :m_pSkyboxShader];
+
     // initialize the scene
     m_pScene = csrSceneCreate();
     
@@ -411,82 +333,46 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     
     // configure the scene view matrix
     csrMat4Identity(&m_pScene->m_ViewMatrix);
-
-    std::string vertexShader   = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Texture);
-    std::string fragmentShader = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
-    
-    // compile, link and use shader
-    m_pShader = csrOpenGLShaderLoadFromStr(vertexShader.c_str(),
-                                           vertexShader.length(),
-                                           fragmentShader.c_str(),
-                                           fragmentShader.length(),
-                                           0,
-                                           0);
-
-    // succeeded?
-    if (!m_pShader)
-        @throw @"Failed to load the scene shader";
-    
-    csrShaderEnable(m_pShader);
-    
-    // get shader attributes
-    m_pShader->m_VertexSlot   = glGetAttribLocation(m_pShader->m_ProgramID, "csr_aVertices");
-    m_pShader->m_ColorSlot    = glGetAttribLocation(m_pShader->m_ProgramID, "csr_aColor");
-    m_pShader->m_TexCoordSlot = glGetAttribLocation(m_pShader->m_ProgramID, "csr_aTexCoord");
-    m_pShader->m_TextureSlot  = glGetAttribLocation(m_pShader->m_ProgramID, "csr_sColorMap");
-    
-    // get the screen rect
-    CGRect screenRect = [[UIScreen mainScreen]bounds];
-    
-    // create the viewport
-    [self CreateViewport :screenRect.size.width :screenRect.size.height];
-
-    // configure OpenGL depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDepthRangef(0.0f, 1.0f);
     
     char* pFileName = 0;
-
+    
     // get the resource file path
     [CSR_ObjectiveCHelper ResourceToFileName :@"level" :@"bmp" :&pFileName];
-
+    
     // load the landscape
     if (![self LoadLandscapeFromBitmap :pFileName])
         @throw @"The landscape could not be loaded";
     
     free(pFileName);
-
+    
     // get back the scene item containing the model
-    pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+    CSR_SceneItem* pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
     
     // found it?
     if (!pSceneItem)
         @throw @"The landscape was not found in the scene";
     
-    // get the resource file path
-    [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_grass" :@"bmp" :&pFileName];
-
-    // load landscape texture
-    pPixelBuffer       = csrPixelBufferFromBitmapFile(pFileName);
-    m_ID[0].m_pKey     = &((CSR_Model*)(pSceneItem->m_pModel))->m_pMesh[0].m_Skin.m_Texture;
-    m_ID[0].m_ID       = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
-    m_ID[0].m_UseCount = 1;
+    NSURL* pUrl;
     
-    free(pFileName);
-
-    // landscape texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
+    // get the resources texture path
+    pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_grass" withExtension:@"bmp"];
     
+    // load the landscape model texture
+    if (![self CreateTexture :&((CSR_Model*)(pSceneItem->m_pModel))->m_pMesh[0].m_Skin.m_Texture :pUrl])
+        @throw @"The landscape texture could not be loaded";
+    
+    CSR_VertexFormat vertexFormat;
     vertexFormat.m_HasNormal         = 0;
-    vertexFormat.m_HasPerVertexColor = 1;
     vertexFormat.m_HasTexCoords      = 1;
-    
+    vertexFormat.m_HasPerVertexColor = 1;
+
+    CSR_Material material;
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
     
+    CSR_Mesh* pMesh;
+
     // create the ball
     pMesh = csrShapeCreateSphere(m_pGameLogic.m_pBall->m_Geometry.m_Radius,
                                  20,
@@ -495,40 +381,39 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
                                  0,
                                  &material,
                                  0);
-    
-    // get the resource file path
-    [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_ball" :@"bmp" :&pFileName];
 
-    // load ball texture
-    pPixelBuffer       = csrPixelBufferFromBitmapFile(pFileName);
-    m_ID[1].m_pKey     = &pMesh->m_Skin.m_Texture;
-    m_ID[1].m_ID       = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
-    m_ID[1].m_UseCount = 1;
-    
-    free(pFileName);
+    [self CreateBufferFromMesh :pMesh];
 
-    // ball texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
+    // get the resource texture path
+    pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_ball" withExtension:@"bmp"];
     
+    // load the ball model texture
+    if (![self CreateTexture :&pMesh->m_Skin.m_Texture :pUrl])
+        @throw @"The ball texture could not be loaded";
+ 
     // add the mesh to the scene
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pMesh, &m_pGameLogic.m_pBall->m_Matrix);
     
-    // configure the ball particle
+    // create an uniform for this scene item
+    if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
+        [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
+
+    // configure the ball body
     m_pGameLogic.m_pBall->m_pKey        = pSceneItem->m_pModel;
     m_pGameLogic.m_pBall->m_Body.m_Mass = 0.3f;
     
     vertexFormat.m_HasNormal         = 0;
-    vertexFormat.m_HasPerVertexColor = 1;
     vertexFormat.m_HasTexCoords      = 1;
-    
+    vertexFormat.m_HasPerVertexColor = 1;
+
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
     
     // get the resource file path
     [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_goal" :@"obj" :&pFileName];
-
+    
     // create the goal
     CSR_Model* pModel = csrWaveFrontOpen(pFileName,
                                          &vertexFormat,
@@ -539,6 +424,8 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
                                          0);
     
     free(pFileName);
+    
+    [self CreateBufferFromModel :pModel];
 
     CSR_Vector3 translation;
     translation.m_X =  0.0f;
@@ -579,21 +466,16 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // add the model to the scene
     pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_pGameLogic.m_pGoal->m_Matrix);
-    
-    // get the resource file path
-    [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_goal" :@"bmp" :&pFileName];
 
-    // load goal texture
-    pPixelBuffer       = csrPixelBufferFromBitmapFile(pFileName);
-    m_ID[2].m_pKey     = &pMesh->m_Skin.m_Texture;
-    m_ID[2].m_ID       = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
-    m_ID[2].m_UseCount = 1;
-    
-    free(pFileName);
+    // create an uniform for this scene item
+    if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
+        [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
 
-    // goal texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
+    pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_goal" withExtension:@"bmp"];
     
+    if (![self CreateTexture :&pModel->m_pMesh->m_Skin.m_Texture :pUrl])
+        @throw @"The goal texture could not be loaded";
+
     CSR_Box goalBox;
     
     // transform the goal bounding box in his local system coordinates
@@ -605,8 +487,8 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     csrMathMin(goalBox.m_Min.m_X, goalBox.m_Max.m_X, &m_pGameLogic.m_pGoal->m_Bounds.m_Min.m_X);
     csrMathMin(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z, &m_pGameLogic.m_pGoal->m_Bounds.m_Min.m_Y);
     csrMathMax(goalBox.m_Min.m_X, goalBox.m_Max.m_X, &m_pGameLogic.m_pGoal->m_Bounds.m_Max.m_X);
-    csrMathMax(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z, &m_pGameLogic.m_pGoal->m_Bounds.m_Max.m_Y);
-    
+    csrMathMax(goalBox.m_Min.m_Z, goalBox.m_Max.m_Z, &m_pGameLogic.m_pGoal->m_Bounds.m_Max.m_Y );
+
     vertexFormat.m_HasNormal         = 0;
     vertexFormat.m_HasPerVertexColor = 1;
     vertexFormat.m_HasTexCoords      = 1;
@@ -618,78 +500,47 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // create the You Won surface
     pMesh = csrShapeCreateSurface(0.6f, 0.2f, &vertexFormat, 0, &material, 0);
     
-    // get the resource file path
-    [CSR_ObjectiveCHelper ResourceToFileName :@"you_won" :@"bmp" :&pFileName];
-
-    // load the You Won texture
-    pPixelBuffer       = csrPixelBufferFromBitmapFile(pFileName);
-    m_ID[3].m_pKey     = &pMesh->m_Skin.m_Texture;
-    m_ID[3].m_ID       = csrOpenGLTextureFromPixelBuffer(pPixelBuffer);
-    m_ID[3].m_UseCount = 1;
+    [self CreateBufferFromMesh :pMesh];
     
-    free(pFileName);
-
-    // goal texture will no longer be used
-    csrPixelBufferRelease(pPixelBuffer);
-        
     // add the mesh to the scene
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pMesh, m_pGameLogic.m_pYouWonMatrix);
     
-    vertexShader   = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Skybox);
-    fragmentShader = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
-    
-    // load the skybox shader
-    m_pSkyboxShader = csrOpenGLShaderLoadFromStr(vertexShader.c_str(),
-                                                 vertexShader.length(),
-                                                 fragmentShader.c_str(),
-                                                 fragmentShader.length(),
-                                                 0,
-                                                 0);
+    // create an uniform for this scene item
+    if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
+        [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
 
-    // succeeded?
-    if (!m_pSkyboxShader)
-        @throw @"Failed to load the skybox shader";
+    // get the resource texture path
+    pUrl = [[NSBundle mainBundle]URLForResource: @"you_won" withExtension:@"bmp"];
     
-    // enable the shader program
-    csrShaderEnable(m_pSkyboxShader);
-    
-    // get shader attributes
-    m_pSkyboxShader->m_VertexSlot  = glGetAttribLocation (m_pSkyboxShader->m_ProgramID, "csr_aVertices");
-    m_pSkyboxShader->m_CubemapSlot = glGetUniformLocation(m_pSkyboxShader->m_ProgramID, "csr_sCubemap");
+    // load the you won model texture
+    if (![self CreateTexture :&pMesh->m_Skin.m_Texture :pUrl])
+        @throw @"The you won texture could not be loaded";
     
     // create the skybox
     m_pScene->m_pSkybox = csrSkyboxCreate(1.0f, 1.0f, 1.0f);
     
     // succeeded?
     if (!m_pScene->m_pSkybox)
-    {
-        // show the error message to the user
-        printf("Failed to create the skybox.\n");
-        return;
-    }
+        @throw @"Failed to create the skybox";
     
-    char* pCubemapFileNames[6];
+    [self CreateBufferFromMesh :m_pScene->m_pSkybox];
 
-    // get the resource file path
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_right_small"  :@"bmp" :&pCubemapFileNames[0]];
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_left_small"   :@"bmp" :&pCubemapFileNames[1]];
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_top_small"    :@"bmp" :&pCubemapFileNames[2]];
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_bottom_small" :@"bmp" :&pCubemapFileNames[3]];
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_front_small"  :@"bmp" :&pCubemapFileNames[4]];
-    [CSR_ObjectiveCHelper ResourceToFileName :@"skybox_back_small"   :@"bmp" :&pCubemapFileNames[5]];
+    // create an uniform for the skybox
+    [self CreateSkyboxUniform];
+
+    // get the resource texture path
+    NSArray* pImageNames =
+    @[[[NSBundle mainBundle]pathForResource:@"skybox_right_small"  ofType:@"bmp"],
+      [[NSBundle mainBundle]pathForResource:@"skybox_left_small"   ofType:@"bmp"],
+      [[NSBundle mainBundle]pathForResource:@"skybox_top_small"    ofType:@"bmp"],
+      [[NSBundle mainBundle]pathForResource:@"skybox_bottom_small" ofType:@"bmp"],
+      [[NSBundle mainBundle]pathForResource:@"skybox_front_small"  ofType:@"bmp"],
+      [[NSBundle mainBundle]pathForResource:@"skybox_back_small"   ofType:@"bmp"]];
 
     // load the cubemap texture
-    m_ID[4].m_pKey     = &m_pScene->m_pSkybox->m_Skin.m_CubeMap;
-    m_ID[4].m_ID       = csrOpenGLCubemapLoad((const char**)pCubemapFileNames);
-    m_ID[4].m_UseCount = 1;
-    
-    free(pCubemapFileNames[0]);
-    free(pCubemapFileNames[1]);
-    free(pCubemapFileNames[2]);
-    free(pCubemapFileNames[3]);
-    free(pCubemapFileNames[4]);
-    free(pCubemapFileNames[5]);
+    if (![self CreateCubemapTexture :&m_pScene->m_pSkybox->m_Skin.m_CubeMap :pImageNames])
+        @throw @"The skybox texture could not be loaded";
 }
 //----------------------------------------------------------------------------
 - (void) DeleteScene
@@ -697,14 +548,6 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // delete the scene
     m_pCallbackController->ReleaseScene(m_pScene);
     m_pScene = nil;
-    
-    // delete scene shader
-    csrOpenGLShaderRelease(m_pShader);
-    m_pShader = nil;
-    
-    // delete skybox shader
-    csrOpenGLShaderRelease(m_pSkyboxShader);
-    m_pSkyboxShader = nil;
 }
 //----------------------------------------------------------------------------
 - (void) UpdateScene :(float)elapsedTime
@@ -738,19 +581,19 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     if (m_pGameLogic.m_pTouchPosition->m_X > maxX)
         m_pGameLogic.m_pTouchPosition->m_X = maxX;
     else
-    if (m_pGameLogic.m_pTouchPosition->m_X < minX)
-        m_pGameLogic.m_pTouchPosition->m_X = minX;
-
+        if (m_pGameLogic.m_pTouchPosition->m_X < minX)
+            m_pGameLogic.m_pTouchPosition->m_X = minX;
+    
     if (m_pGameLogic.m_pTouchPosition->m_Y > maxY)
         m_pGameLogic.m_pTouchPosition->m_Y = maxY;
     else
-    if (m_pGameLogic.m_pTouchPosition->m_Y < minY)
-        m_pGameLogic.m_pTouchPosition->m_Y = minY;
-
+        if (m_pGameLogic.m_pTouchPosition->m_Y < minY)
+            m_pGameLogic.m_pTouchPosition->m_Y = minY;
+    
     // calculate the final pos and dir velocity
     const float posVelocity = (m_PosVelocity * ((m_pGameLogic.m_pTouchPosition->m_Y - m_pGameLogic.m_pTouchOrigin->m_Y) / m_pGameLogic.m_pTouchOrigin->m_Y));
     const float dirVelocity = (m_DirVelocity * ((m_pGameLogic.m_pTouchPosition->m_X - m_pGameLogic.m_pTouchOrigin->m_X) / m_pGameLogic.m_pTouchOrigin->m_X));
-    
+
     // calculate the next player direction
     m_Angle += dirVelocity * elapsedTime;
     
@@ -821,16 +664,16 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
             {
                 case IE_E_Top:
                 case IE_E_Bottom: m_pGameLogic.m_pViewSphere->m_Center.m_Z = prevSphere.m_Center.m_Z; break;
-
+                    
                 case IE_E_Left:
                 case IE_E_Right:  m_pGameLogic.m_pViewSphere->m_Center.m_X = prevSphere.m_Center.m_X; break;
-
+                    
                 default:
                     m_pGameLogic.m_pViewSphere->m_Center.m_X = prevSphere.m_Center.m_X;
                     m_pGameLogic.m_pViewSphere->m_Center.m_Z = prevSphere.m_Center.m_Z;
                     break;
             }
-
+            
             // recalculate the ground value (this time the collision result isn't tested, because
             // the previous position is always considered as valid)
             [m_pGameLogic ApplyGroundCollision :m_pScene :m_pGameLogic.m_pViewSphere :m_Angle :&m_pScene->m_ViewMatrix :&groundPlane];
@@ -859,42 +702,6 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // draw the scene
     m_pCallbackController->DrawScene(m_pScene);
 }
-//----------------------------------------------------------------------------
-- (void)OnLongPress :(UIGestureRecognizer*)pSender
-{
-    const CGPoint touchPos = [pSender locationInView :nil];
-    
-    switch (pSender.state)
-    {
-        case UIGestureRecognizerStateBegan:
-            // initialize the position. NOTE inverted because the screen is in landscape mode
-            m_pGameLogic.m_pTouchOrigin->m_X   = touchPos.y;
-            m_pGameLogic.m_pTouchOrigin->m_Y   = touchPos.x;
-            m_pGameLogic.m_pTouchPosition->m_X = touchPos.y;
-            m_pGameLogic.m_pTouchPosition->m_Y = touchPos.x;
-            break;
-            
-        case UIGestureRecognizerStateChanged:
-            // get the next position. NOTE inverted because the screen is in landscape mode
-            m_pGameLogic.m_pTouchPosition->m_X = touchPos.y;
-            m_pGameLogic.m_pTouchPosition->m_Y = touchPos.x;
-            break;
-            
-        case UIGestureRecognizerStateEnded:
-            if (m_pGameLogic.m_pTouchPosition->m_X == m_pGameLogic.m_pTouchOrigin->m_X && m_pGameLogic.m_pTouchPosition->m_Y == m_pGameLogic.m_pTouchOrigin->m_Y)
-                [m_pGameLogic Shoot];
-
-            // reset the position
-            m_pGameLogic.m_pTouchOrigin->m_X   = 0;
-            m_pGameLogic.m_pTouchOrigin->m_Y   = 0;
-            m_pGameLogic.m_pTouchPosition->m_X = 0;
-            m_pGameLogic.m_pTouchPosition->m_Y = 0;
-            break;
-            
-        default:
-            break;
-    }
-}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @end
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------

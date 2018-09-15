@@ -50,13 +50,6 @@ class CSR_CallbackController
         */
         void DrawScene(CSR_Scene* pScene) const;
 
-        /**
-        * Constructor
-        *@param elapsedTime - elapsed time since last task was processed
-        *@param pItems - task items
-        */
-        //virtual void ExecuteTasks(float elapsedTime, MINI_BotItem* pItems);
-
     private:
         CSR_SceneContext m_SceneContext;
         static void*     m_pOwner;

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		841755C5213B474300F11208 /* GameLogic.mm in Sources */ = {isa = PBXBuildFile; fileRef = 841755C3213B474300F11208 /* GameLogic.mm */; };
 		842C51452137889700B7159A /* CSR_ObjectiveCHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 842C51442137889700B7159A /* CSR_ObjectiveCHelper.m */; };
 		846C90FA1F43EAC300BFAD74 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */; };
 		846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90F61F43EAC300BFAD74 /* GameViewController.mm */; };
@@ -48,6 +49,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		841755C3213B474300F11208 /* GameLogic.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GameLogic.mm; sourceTree = "<group>"; };
+		841755C4213B474300F11208 /* GameLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameLogic.h; sourceTree = "<group>"; };
 		842C51432137889700B7159A /* CSR_ObjectiveCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_ObjectiveCHelper.h; sourceTree = "<group>"; };
 		842C51442137889700B7159A /* CSR_ObjectiveCHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSR_ObjectiveCHelper.m; sourceTree = "<group>"; };
 		846C90EE1F43EAC300BFAD74 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -122,6 +125,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		841755C2213B474300F11208 /* Game Logic */ = {
+			isa = PBXGroup;
+			children = (
+				841755C3213B474300F11208 /* GameLogic.mm */,
+				841755C4213B474300F11208 /* GameLogic.h */,
+			);
+			path = "Game Logic";
+			sourceTree = "<group>";
+		};
 		842C51412137889700B7159A /* Objective-C */ = {
 			isa = PBXGroup;
 			children = (
@@ -143,6 +155,7 @@
 		846C90ED1F43EAC300BFAD74 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				841755C2213B474300F11208 /* Game Logic */,
 				846C90EE1F43EAC300BFAD74 /* AppDelegate.h */,
 				846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */,
 				846C90F51F43EAC300BFAD74 /* GameViewController.h */,
@@ -343,6 +356,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				841755C5213B474300F11208 /* GameLogic.mm in Sources */,
 				846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */,
 				84942790213734C500ADDCAC /* CSR_Texture.c in Sources */,
 				842C51452137889700B7159A /* CSR_ObjectiveCHelper.m in Sources */,
@@ -415,7 +429,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -428,6 +442,8 @@
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_MISSING_PARENTHESES = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
@@ -477,6 +493,8 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_MISSING_PARENTHESES = NO;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
