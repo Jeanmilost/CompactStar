@@ -21,6 +21,7 @@ It's the reason why this engine exists.
 - Full-scene antialiasing and post-processing effects
 - Collision detection (partially, ground and mouse collision)
 - Cross-platform SDK (Windows and Mac OS X, not tested on Linux) written in C
+- Objective-C Metal renderer for OSX/iOS (partial)
 - A small 2D level editor I'm using to create a game (can be compiled with Embarcadero RAD Studio, available here: https://www.embarcadero.com/products/cbuilder/starter/free-download)
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
