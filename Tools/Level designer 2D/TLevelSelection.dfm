@@ -15,6 +15,7 @@ object LevelSelection: TLevelSelection
   OldCreateOrder = False
   Position = poOwnerFormCenter
   PrintScale = poNone
+  Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
   object laFileName: TLabel
@@ -31,9 +32,7 @@ object LevelSelection: TLevelSelection
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ExplicitLeft = 83
-    ExplicitTop = -18
-    ExplicitWidth = 458
+    ExplicitWidth = 149
   end
   object blBottomLine: TBevel
     AlignWithMargins = True
@@ -85,9 +84,6 @@ object LevelSelection: TLevelSelection
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitLeft = -2
-    ExplicitTop = 155
-    ExplicitWidth = 458
     object btOk: TButton
       Left = 345
       Top = 0
@@ -97,7 +93,6 @@ object LevelSelection: TLevelSelection
       Caption = 'Ok'
       TabOrder = 1
       OnClick = btOkClick
-      ExplicitLeft = 234
     end
     object btCancel: TButton
       Left = 0
@@ -122,7 +117,6 @@ object LevelSelection: TLevelSelection
     AutoSize = True
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 458
     object laFileNameTitle: TLabel
       AlignWithMargins = True
       Left = 0
@@ -135,7 +129,6 @@ object LevelSelection: TLevelSelection
       Margins.Bottom = 0
       Align = alTop
       Caption = 'Select a file'
-      ExplicitLeft = 3
       ExplicitWidth = 55
     end
     object paFileName: TPanel
@@ -150,8 +143,6 @@ object LevelSelection: TLevelSelection
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitLeft = 3
-      ExplicitWidth = 289
       object edFileName: TEdit
         AlignWithMargins = True
         Left = 0
@@ -166,7 +157,6 @@ object LevelSelection: TLevelSelection
         Enabled = False
         ReadOnly = True
         TabOrder = 0
-        ExplicitWidth = 265
       end
       object btBrowse: TButton
         AlignWithMargins = True
@@ -182,7 +172,6 @@ object LevelSelection: TLevelSelection
         Caption = '...'
         TabOrder = 1
         OnClick = btBrowseClick
-        ExplicitLeft = 268
       end
     end
   end
@@ -194,9 +183,6 @@ object LevelSelection: TLevelSelection
     Align = alTop
     Caption = 'Save the file content'
     TabOrder = 2
-    ExplicitLeft = 64
-    ExplicitTop = 99
-    ExplicitWidth = 464
   end
   object sdSave: TSaveDialog
     DefaultExt = '.xml'

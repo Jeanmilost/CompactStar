@@ -14,6 +14,7 @@ object SkyboxSelection: TSkyboxSelection
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  PrintScale = poNone
   Scaled = False
   PixelsPerInch = 96
   TextHeight = 13
