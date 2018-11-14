@@ -67,7 +67,9 @@ typedef struct
     CSR_Matrix4* m_pYouWonMatrix;
     ALCdevice*   m_pOpenALDevice;
     ALCcontext*  m_pOpenALContext;
-    CSR_Sound*   m_pSound;
+    CSR_Sound*   m_pFootStepLeftSound;
+    CSR_Sound*   m_pFootStepRightSound;
+    CSR_Sound*   m_pBallKickSound;
 }
 
 @property (nonatomic, assign) CSR_Ball*    _Nullable m_pBall;
@@ -76,7 +78,9 @@ typedef struct
 @property (nonatomic, assign) CSR_Matrix4* _Nullable m_pYouWonMatrix;
 @property (nonatomic, assign) CSR_Vector2* _Nullable m_pTouchOrigin;
 @property (nonatomic, assign) CSR_Vector2* _Nullable m_pTouchPosition;
-@property (nonatomic, assign) CSR_Sound*   _Nullable m_pSound;
+@property (nonatomic, assign) CSR_Sound*   _Nullable m_pFootStepLeftSound;
+@property (nonatomic, assign) CSR_Sound*   _Nullable m_pFootStepRightSound;
+@property (nonatomic, assign) CSR_Sound*   _Nullable m_pBallKickSound;
 
 /**
 * Initializes the class

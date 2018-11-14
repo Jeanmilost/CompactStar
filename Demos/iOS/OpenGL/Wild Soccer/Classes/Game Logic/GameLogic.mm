@@ -22,7 +22,11 @@
 #import "CSR_ObjectiveCHelper.h"
 
 // energy factor for the shoot
-#define M_ShootEnergyFactor 23.0f
+#ifdef CSR_USE_METAL
+    #define M_ShootEnergyFactor 25.0f
+#else
+    #define M_ShootEnergyFactor 23.0f
+#endif
 
 //---------------------------------------------------------------------------
 // CSR_GameLogic
@@ -36,24 +40,28 @@
 @synthesize m_pYouWonMatrix;
 @synthesize m_pTouchOrigin;
 @synthesize m_pTouchPosition;
-@synthesize m_pSound;
+@synthesize m_pFootStepLeftSound;
+@synthesize m_pFootStepRightSound;
+@synthesize m_pBallKickSound;
 //----------------------------------------------------------------------------
 - (instancetype)init
 {
     if (self = [super init])
     {
-        m_RollAngle      = 0.0f;
-        m_BallDirAngle   = 0.0f;
-        m_BallOffset     = 0.0f;
-        m_pBall          = (CSR_Ball*)malloc(sizeof(CSR_Ball));
-        m_pGoal          = (CSR_Goal*)malloc(sizeof(CSR_Goal));
-        m_pViewSphere    = (CSR_Sphere*)malloc(sizeof(CSR_Sphere));
-        m_pYouWonMatrix  = (CSR_Matrix4*)malloc(sizeof(CSR_Matrix4));
-        m_pOpenALDevice  = nil;
-        m_pOpenALContext = nil;
-        m_pTouchOrigin   = (CSR_Vector2*)malloc(sizeof(CSR_Vector2));
-        m_pTouchPosition = (CSR_Vector2*)malloc(sizeof(CSR_Vector2));
-        m_pSound         = nil;
+        m_RollAngle           = 0.0f;
+        m_BallDirAngle        = 0.0f;
+        m_BallOffset          = 0.0f;
+        m_pBall               = (CSR_Ball*)malloc(sizeof(CSR_Ball));
+        m_pGoal               = (CSR_Goal*)malloc(sizeof(CSR_Goal));
+        m_pViewSphere         = (CSR_Sphere*)malloc(sizeof(CSR_Sphere));
+        m_pYouWonMatrix       = (CSR_Matrix4*)malloc(sizeof(CSR_Matrix4));
+        m_pOpenALDevice       = nil;
+        m_pOpenALContext      = nil;
+        m_pTouchOrigin        = (CSR_Vector2*)malloc(sizeof(CSR_Vector2));
+        m_pTouchPosition      = (CSR_Vector2*)malloc(sizeof(CSR_Vector2));
+        m_pFootStepLeftSound  = nil;
+        m_pFootStepRightSound = nil;
+        m_pBallKickSound      = nil;
 
         // set the viewpoint bounding sphere default position
         m_pViewSphere->m_Center.m_X = 3.08f;
@@ -78,13 +86,29 @@
         
         char* pFileName = 0;
 
-        // get the sound resource file path
-        [CSR_ObjectiveCHelper ResourceToFileName :@"human_walk_grass_step" :@"wav" :&pFileName];
+        // get the left footstep sound resource file path
+        [CSR_ObjectiveCHelper ResourceToFileName :@"footstep_left" :@"wav" :&pFileName];
         
-        // load sound file
-        m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, pFileName);
+        // load left footstep sound file
+        m_pFootStepLeftSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, pFileName);
+
+        // get the right footstep sound resource file path
+        [CSR_ObjectiveCHelper ResourceToFileName :@"footstep_right" :@"wav" :&pFileName];
+        
+        // load right footstep sound file
+        m_pFootStepRightSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, pFileName);
+
+        // get the ball kick sound resource file path
+        [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_ball_kick" :@"wav" :&pFileName];
+        
+        // load ball kick sound file
+        m_pBallKickSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, pFileName);
 
         free(pFileName);
+
+        // configure the footstep sounds volume
+        csrSoundChangeVolume(m_pFootStepLeftSound,  0.2f);
+        csrSoundChangeVolume(m_pFootStepRightSound, 0.2f);
     }
 
     return self;
@@ -111,10 +135,14 @@
         free(m_pTouchPosition);
 
     // stop running sound, if needed
-    csrSoundStop(m_pSound);
-    
+    csrSoundStop(m_pFootStepLeftSound);
+    csrSoundStop(m_pFootStepRightSound);
+    csrSoundStop(m_pBallKickSound);
+
     // release OpenAL interface
-    csrSoundRelease(m_pSound);
+    csrSoundRelease(m_pFootStepLeftSound);
+    csrSoundRelease(m_pFootStepRightSound);
+    csrSoundRelease(m_pBallKickSound);
     csrSoundReleaseOpenAL(m_pOpenALDevice, m_pOpenALContext);
 
     // useless because using ARC
@@ -207,7 +235,9 @@
     // calculate the next ball roll position
     csrPhysicsRoll(&planeNormal,
                     m_pBall->m_Body.m_Mass,
-                    #if TARGET_IPHONE_SIMULATOR
+                    #ifdef CSR_USE_METAL
+                        0.0035f,
+                    #elif TARGET_IPHONE_SIMULATOR
                         0.0075f,
                     #else
                         0.005f,
@@ -339,6 +369,10 @@
         m_pBall->m_Body.m_Velocity.m_X = M_ShootEnergyFactor * distance.m_X;
         m_pBall->m_Body.m_Velocity.m_Y = 0.0f;
         m_pBall->m_Body.m_Velocity.m_Z = M_ShootEnergyFactor * distance.m_Y;
+
+        // play the kick sound
+        csrSoundStop(m_pBallKickSound);
+        csrSoundPlay(m_pBallKickSound);
     }
 }
 //---------------------------------------------------------------------------

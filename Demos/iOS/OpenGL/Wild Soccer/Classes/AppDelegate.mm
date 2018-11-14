@@ -12,26 +12,29 @@
 #import "AppDelegate.h"
 
 //----------------------------------------------------------------------------
+@interface AppDelegate()
+@end
+//----------------------------------------------------------------------------
 @implementation AppDelegate
 //----------------------------------------------------------------------------
-- (BOOL)application:(UIApplication*)pApplication didFinishLaunchingWithOptions:(NSDictionary*)pLaunchOptions
+- (BOOL) application :(UIApplication*)pApplication didFinishLaunchingWithOptions:(NSDictionary*)pLaunchOptions
 {
     return YES;
 }
 //----------------------------------------------------------------------------
-- (void)applicationWillResignActive:(UIApplication*)pApplication
+- (void) applicationWillResignActive :(UIApplication*)pApplication
 {}
 //----------------------------------------------------------------------------
-- (void)applicationDidEnterBackground:(UIApplication*)pApplication
+- (void) applicationDidEnterBackground :(UIApplication*)pApplication
 {}
 //----------------------------------------------------------------------------
-- (void)applicationWillEnterForeground:(UIApplication*)pApplication
+- (void) applicationWillEnterForeground :(UIApplication*)pApplication
 {}
 //----------------------------------------------------------------------------
-- (void)applicationDidBecomeActive:(UIApplication*)pApplication
+- (void) applicationDidBecomeActive :(UIApplication*)pApplication
 {}
 //----------------------------------------------------------------------------
-- (void)applicationWillTerminate:(UIApplication*)pApplication
+- (void) applicationWillTerminate :(UIApplication*)pApplication
 {}
 //----------------------------------------------------------------------------
 @end

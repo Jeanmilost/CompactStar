@@ -124,7 +124,7 @@
         case UIGestureRecognizerStateEnded:
             if (m_pGameLogic.m_pTouchPosition->m_X == m_pGameLogic.m_pTouchOrigin->m_X && m_pGameLogic.m_pTouchPosition->m_Y == m_pGameLogic.m_pTouchOrigin->m_Y)
                 [m_pGameLogic Shoot];
-            
+
             // reset the position
             m_pGameLogic.m_pTouchOrigin->m_X   = 0;
             m_pGameLogic.m_pTouchOrigin->m_Y   = 0;

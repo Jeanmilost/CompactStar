@@ -139,14 +139,16 @@ class TMainForm : public TForm
         CSR_Sphere                   m_ViewSphere;
         CSR_Ball                     m_Ball;
         CSR_Goal                     m_Goal;
-        CSR_Vector3                  m_FrictionForce;
         CSR_Matrix4                  m_LandscapeMatrix;
         CSR_Matrix4                  m_YouWonMatrix;
-        CSR_Sound*                   m_pSound;
+        CSR_Sound*                   m_pFootStepLeftSound;
+        CSR_Sound*                   m_pFootStepRightSound;
+        CSR_Sound*                   m_pBallKickSound;
         void*                        m_pLandscapeKey;
         std::string                  m_SceneDir;
         std::size_t                  m_FrameCount;
         int                          m_PrevOrigin;
+        int                          m_AlternateStep;
         float                        m_Angle;
         float                        m_RollAngle;
         float                        m_BallDirAngle;

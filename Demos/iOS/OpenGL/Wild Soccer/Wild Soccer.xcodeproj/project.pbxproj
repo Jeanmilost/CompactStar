@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		841755C5213B474300F11208 /* GameLogic.mm in Sources */ = {isa = PBXBuildFile; fileRef = 841755C3213B474300F11208 /* GameLogic.mm */; };
 		842C51452137889700B7159A /* CSR_ObjectiveCHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 842C51442137889700B7159A /* CSR_ObjectiveCHelper.m */; };
+		844398B9219A5CCD002D652F /* footstep_left.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B6219A5CCC002D652F /* footstep_left.wav */; };
+		844398BA219A5CCD002D652F /* footstep_right.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B7219A5CCC002D652F /* footstep_right.wav */; };
+		844398BB219A5CCD002D652F /* soccer_ball_kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B8219A5CCD002D652F /* soccer_ball_kick.wav */; };
 		846C90FA1F43EAC300BFAD74 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */; };
 		846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90F61F43EAC300BFAD74 /* GameViewController.mm */; };
 		846C91001F43EAC300BFAD74 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90F81F43EAC300BFAD74 /* main.mm */; };
@@ -45,7 +48,6 @@
 		84CD1F001F8FBC5A00E5C77D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */; };
 		84CD1F021F8FBCBC00E5C77D /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1F011F8FBCBC00E5C77D /* GLKit.framework */; };
 		84CD1F041F8FBCFC00E5C77D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1F031F8FBCFC00E5C77D /* UIKit.framework */; };
-		84D87E082136F69600F929E3 /* human_walk_grass_step.wav in Resources */ = {isa = PBXBuildFile; fileRef = 84D87E072136F69600F929E3 /* human_walk_grass_step.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +55,9 @@
 		841755C4213B474300F11208 /* GameLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameLogic.h; sourceTree = "<group>"; };
 		842C51432137889700B7159A /* CSR_ObjectiveCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_ObjectiveCHelper.h; sourceTree = "<group>"; };
 		842C51442137889700B7159A /* CSR_ObjectiveCHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSR_ObjectiveCHelper.m; sourceTree = "<group>"; };
+		844398B6219A5CCC002D652F /* footstep_left.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = footstep_left.wav; sourceTree = "<group>"; };
+		844398B7219A5CCC002D652F /* footstep_right.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = footstep_right.wav; sourceTree = "<group>"; };
+		844398B8219A5CCD002D652F /* soccer_ball_kick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = soccer_ball_kick.wav; sourceTree = "<group>"; };
 		846C90EE1F43EAC300BFAD74 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		846C90F51F43EAC300BFAD74 /* GameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
@@ -105,7 +110,6 @@
 		84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		84CD1F011F8FBCBC00E5C77D /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		84CD1F031F8FBCFC00E5C77D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		84D87E072136F69600F929E3 /* human_walk_grass_step.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = human_walk_grass_step.wav; sourceTree = "<group>"; };
 		84E3E09B1F265ACB00DAF20A /* Wild Soccer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wild Soccer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -169,7 +173,8 @@
 			isa = PBXGroup;
 			children = (
 				846C91021F43EB6100BFAD74 /* Assets.xcassets */,
-				84D87E072136F69600F929E3 /* human_walk_grass_step.wav */,
+				844398B6219A5CCC002D652F /* footstep_left.wav */,
+				844398B7219A5CCC002D652F /* footstep_right.wav */,
 				846C91071F43EB6100BFAD74 /* Info.plist */,
 				846C91031F43EB6100BFAD74 /* LaunchScreen.storyboard */,
 				84B4441B2135E5D300EA6FAD /* level.bmp */,
@@ -180,6 +185,7 @@
 				84B444152135E5D300EA6FAD /* skybox_left_small.bmp */,
 				84B444162135E5D300EA6FAD /* skybox_right_small.bmp */,
 				84B444182135E5D300EA6FAD /* skybox_top_small.bmp */,
+				844398B8219A5CCD002D652F /* soccer_ball_kick.wav */,
 				84B4441D2135E5D300EA6FAD /* soccer_ball.bmp */,
 				84B4441E2135E5D400EA6FAD /* soccer_goal.bmp */,
 				84B4441F2135E5D400EA6FAD /* soccer_goal.obj */,
@@ -333,10 +339,10 @@
 				84B444282135E5D400EA6FAD /* you_won.bmp in Resources */,
 				846C910A1F43EB6100BFAD74 /* Main.storyboard in Resources */,
 				846C91081F43EB6100BFAD74 /* Assets.xcassets in Resources */,
+				844398BA219A5CCD002D652F /* footstep_right.wav in Resources */,
 				84B444262135E5D400EA6FAD /* skybox_back_small.bmp in Resources */,
 				846C91091F43EB6100BFAD74 /* LaunchScreen.storyboard in Resources */,
 				84B444252135E5D400EA6FAD /* soccer_grass.bmp in Resources */,
-				84D87E082136F69600F929E3 /* human_walk_grass_step.wav in Resources */,
 				84B444242135E5D400EA6FAD /* skybox_top_small.bmp in Resources */,
 				84B4442A2135E5D400EA6FAD /* soccer_goal.bmp in Resources */,
 				84B444272135E5D400EA6FAD /* level.bmp in Resources */,
@@ -346,6 +352,8 @@
 				84B4442B2135E5D400EA6FAD /* soccer_goal.obj in Resources */,
 				84B444212135E5D400EA6FAD /* skybox_left_small.bmp in Resources */,
 				84B444232135E5D400EA6FAD /* skybox_bottom_small.bmp in Resources */,
+				844398BB219A5CCD002D652F /* soccer_ball_kick.wav in Resources */,
+				844398B9219A5CCD002D652F /* footstep_left.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

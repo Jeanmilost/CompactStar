@@ -44,19 +44,21 @@
 #pragma resource "*.dfm"
 
 // resource files to load
-#define YOU_WON_TEXTURE_FILE   "\\you_won.png"
-#define LANDSCAPE_TEXTURE_FILE "\\soccer_grass.png"
-#define BALL_TEXTURE_FILE      "\\soccer_ball.png"
-#define GOAL_TEXTURE_FILE      "\\soccer_goal.png"
-#define SOCCER_GOAL_MODEL      "\\soccer_goal.obj"
-#define LANDSCAPE_DATA_FILE    "\\level.bmp"
-#define SKYBOX_LEFT            "\\left.png"
-#define SKYBOX_TOP             "\\top.png"
-#define SKYBOX_RIGHT           "\\right.png"
-#define SKYBOX_BOTTOM          "\\bottom.png"
-#define SKYBOX_FRONT           "\\front.png"
-#define SKYBOX_BACK            "\\back.png"
-#define PLAYER_STEP_SOUND_FILE "\\running_sound.wav"
+#define YOU_WON_TEXTURE_FILE       "\\you_won.png"
+#define LANDSCAPE_TEXTURE_FILE     "\\soccer_grass.png"
+#define BALL_TEXTURE_FILE          "\\soccer_ball.png"
+#define GOAL_TEXTURE_FILE          "\\soccer_goal.png"
+#define SOCCER_GOAL_MODEL          "\\soccer_goal.obj"
+#define LANDSCAPE_DATA_FILE        "\\level.bmp"
+#define SKYBOX_LEFT                "\\left.png"
+#define SKYBOX_TOP                 "\\top.png"
+#define SKYBOX_RIGHT               "\\right.png"
+#define SKYBOX_BOTTOM              "\\bottom.png"
+#define SKYBOX_FRONT               "\\front.png"
+#define SKYBOX_BACK                "\\back.png"
+#define FOOT_STEP_LEFT_SOUND_FILE  "\\footstep_left.wav"
+#define FOOT_STEP_RIGHT_SOUND_FILE "\\footstep_right.wav"
+#define BALL_KICK_SOUND_FILE       "\\soccer_ball_kick.wav"
 
 //---------------------------------------------------------------------------
 // Global defines
@@ -79,6 +81,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pLandscapeKey(NULL),
     m_FrameCount(0),
     m_PrevOrigin(0),
+    m_AlternateStep(0),
     m_Angle(M_PI / -4.0f),
     m_RollAngle(0.0f),
     m_BallDirAngle(0.0f),
@@ -209,6 +212,10 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
                         m_Ball.m_Body.m_Velocity.m_X = M_ShootEnergyFactor * distance.m_X;
                         m_Ball.m_Body.m_Velocity.m_Y = 0.0f;
                         m_Ball.m_Body.m_Velocity.m_Z = M_ShootEnergyFactor * distance.m_Y;
+
+                        // play the kick sound
+                        csrSoundStop(m_pBallKickSound);
+                        csrSoundPlay(m_pBallKickSound);
                     }
 
                     break;
@@ -530,11 +537,6 @@ void TMainForm::InitScene(int w, int h)
     m_Ball.m_Geometry.m_Radius     = 0.025f;
     csrBodyInit(&m_Ball.m_Body);
 
-    // configure the friction force
-    m_FrictionForce.m_X = 0.1f;
-    m_FrictionForce.m_Y = 0.1f;
-    m_FrictionForce.m_Z = 0.1f;
-
     const std::string vsTextured = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Texture);
     const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
 
@@ -752,8 +754,14 @@ void TMainForm::InitScene(int w, int h)
                                   LoadCubemap(cubemapFileNames),
                                   m_OpenGLResources);
 
-    // load step sound file
-    m_pSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + PLAYER_STEP_SOUND_FILE).c_str());
+    // load the sound files
+    m_pFootStepLeftSound  = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_LEFT_SOUND_FILE).c_str());
+    m_pFootStepRightSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_RIGHT_SOUND_FILE).c_str());
+    m_pBallKickSound      = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + BALL_KICK_SOUND_FILE).c_str());
+
+    // change the volume
+    csrSoundChangeVolume(m_pFootStepLeftSound,  0.2f);
+    csrSoundChangeVolume(m_pFootStepRightSound, 0.2f);
 
     m_Initialized = true;
 }
@@ -770,10 +778,14 @@ void TMainForm::DeleteScene()
     csrSceneRelease(m_pScene, OnDeleteTextureCallback);
 
     // stop running step sound, if needed
-    csrSoundStop(m_pSound);
+    csrSoundStop(m_pFootStepLeftSound);
+    csrSoundStop(m_pFootStepRightSound);
+    csrSoundStop(m_pBallKickSound);
 
     // release OpenAL interface
-    csrSoundRelease(m_pSound);
+    csrSoundRelease(m_pFootStepLeftSound);
+    csrSoundRelease(m_pFootStepRightSound);
+    csrSoundRelease(m_pBallKickSound);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
@@ -810,9 +822,22 @@ void TMainForm::UpdateScene(float elapsedTime)
         // do play the sound?
         if (m_StepTime > m_StepInterval)
         {
-            csrSoundStop(m_pSound);
-            csrSoundPlay(m_pSound);
+            // do play the left or right footstep sound?
+            if (!(m_AlternateStep % 2))
+            {
+                csrSoundStop(m_pFootStepLeftSound);
+                csrSoundPlay(m_pFootStepLeftSound);
+            }
+            else
+            {
+                csrSoundStop(m_pFootStepRightSound);
+                csrSoundPlay(m_pFootStepRightSound);
+            }
+
             m_StepTime = 0.0f;
+
+            // next time the other footstep sound will be played
+            m_AlternateStep = (m_AlternateStep + 1) & 1;
         }
     }
 

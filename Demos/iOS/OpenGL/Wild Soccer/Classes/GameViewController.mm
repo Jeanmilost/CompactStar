@@ -101,6 +101,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     CSR_OpenGLShader*       m_pShader;
     CSR_OpenGLShader*       m_pSkyboxShader;
     void*                   m_pLandscapeKey;
+    int                     m_AlternateStep;
     float                   m_Angle;
     float                   m_StepTime;
     float                   m_StepInterval;
@@ -179,6 +180,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     m_pShader             =  nil;
     m_pSkyboxShader       =  nil;
     m_pLandscapeKey       =  nil;
+    m_AlternateStep       =  0;
     m_Angle               =  M_PI / -4.0f;
     m_StepTime            =  0.0f;
     m_StepInterval        =  300.0f;
@@ -843,9 +845,22 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // count frames
     while (m_StepTime > m_StepInterval)
     {
-        csrSoundStop(m_pGameLogic.m_pSound);
-        csrSoundPlay(m_pGameLogic.m_pSound);
+        // do play the left or right footstep sound?
+        if (!(m_AlternateStep % 2))
+        {
+            csrSoundStop(m_pGameLogic.m_pFootStepLeftSound);
+            csrSoundPlay(m_pGameLogic.m_pFootStepLeftSound);
+        }
+        else
+        {
+            csrSoundStop(m_pGameLogic.m_pFootStepRightSound);
+            csrSoundPlay(m_pGameLogic.m_pFootStepRightSound);
+        }
+
         m_StepTime = 0.0f;
+        
+        // next time the other footstep sound will be played
+        m_AlternateStep = (m_AlternateStep + 1) & 1;
     }
 }
 //----------------------------------------------------------------------------

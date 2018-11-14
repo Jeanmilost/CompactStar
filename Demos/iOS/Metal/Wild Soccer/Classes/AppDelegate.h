@@ -16,6 +16,6 @@
 * during the window lifetime
 *@author Jean-Milost Reymond
 */
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@interface AppDelegate : UIResponder<UIApplicationDelegate>
     @property (strong, nonatomic) UIWindow* window;
 @end
