@@ -13,7 +13,7 @@ It's the reason why this engine exists.
 
 <b>Here are the actual supported features</b>
 - Simple shapes creation (surface, box, sphere, cylinder, disk, ring and spiral)
-- Quake I (.mdl) and WaveFront (.obj, partially) loader
+- Quake I (.mdl), DirectX (.x, partially) and WaveFront (.obj, partially) loader
 - Skybox
 - Landscape generation
 - Transparency
@@ -21,7 +21,7 @@ It's the reason why this engine exists.
 - Full-scene antialiasing and post-processing effects
 - Collision detection (partially, ground and mouse collision)
 - Cross-platform SDK (Windows and Mac OS X, not tested on Linux) written in C
-- Objective-C Metal renderer for OSX/iOS (partial)
+- Objective-C Metal renderer for OSX/iOS (experimental)
 - A small 2D level editor I'm using to create a game (can be compiled with Embarcadero RAD Studio, available here: https://www.embarcadero.com/products/cbuilder/starter/free-download)
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
