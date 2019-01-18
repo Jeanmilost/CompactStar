@@ -1,13 +1,18 @@
-/*****************************************************************************
- * ==> Wild soccer game demo ------------------------------------------------*
- *****************************************************************************
- * Description : Wild soccer game demo view controller                       *
- * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
- *               free to copy or redistribute this file, modify it, or use   *
- *               it for your own projects, commercial or not. This file is   *
- *               provided "as is", without ANY WARRANTY OF ANY KIND          *
- *****************************************************************************/
+/****************************************************************************
+ * ==> Wild soccer game demo -----------------------------------------------*
+ ****************************************************************************
+ * Description : A wild soccer game demo. Swipe up or down to walk, and     *
+ *               left or right to rotate. Tap to shoot the ball             *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
 
 #import "GameViewController.h"
 
@@ -27,9 +32,9 @@
 // metal
 #import "Renderer.h"
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // GameViewController
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @interface GameViewController()
 {
     MTKView*           m_pView;
@@ -44,9 +49,9 @@
 - (void) OnLongPress :(UIGestureRecognizer*)pSender;
 
 @end
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @implementation GameViewController
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) viewDidLoad
 {
     [super viewDidLoad];
@@ -82,10 +87,10 @@
     // add gesture recognizer to view
     [self.view addGestureRecognizer: pGestureRecognizer];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) dealloc
 {}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -95,12 +100,12 @@
     
     // todo: dispose here any resource that can be recreated
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (BOOL) prefersStatusBarHidden
 {
     return YES;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void)OnLongPress :(UIGestureRecognizer*)pSender
 {
     const CGPoint touchPos = [pSender locationInView :nil];
@@ -136,6 +141,6 @@
             break;
     }
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @end
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------

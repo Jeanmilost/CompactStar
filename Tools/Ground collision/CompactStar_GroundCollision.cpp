@@ -1,9 +1,9 @@
 /****************************************************************************
- * ==> CompactStar_GroundCollision -----------------------------------------*
+ * ==> Ground collision tool -----------------------------------------------*
  ****************************************************************************
- * Description : Ground collision tool main entry point                     *
+ * Description : Tool to test and show how ground collision is working      *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *

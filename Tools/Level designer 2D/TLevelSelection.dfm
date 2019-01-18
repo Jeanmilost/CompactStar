@@ -121,7 +121,7 @@ object LevelSelection: TLevelSelection
       AlignWithMargins = True
       Left = 0
       Top = 0
-      Width = 420
+      Width = 55
       Height = 13
       Margins.Left = 0
       Margins.Top = 0
@@ -129,7 +129,6 @@ object LevelSelection: TLevelSelection
       Margins.Bottom = 0
       Align = alTop
       Caption = 'Select a file'
-      ExplicitWidth = 55
     end
     object paFileName: TPanel
       AlignWithMargins = True

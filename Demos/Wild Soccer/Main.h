@@ -1,9 +1,9 @@
 /****************************************************************************
- * ==> Main ----------------------------------------------------------------*
+ * ==> Wild soccer ---------------------------------------------------------*
  ****************************************************************************
- * Description : Wild soccer game main form                                 *
+ * Description : Wild soccer game demo                                      *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -43,7 +43,7 @@
 #include "CSR_VCLHelper.h"
 
 /**
-* Ground collision tool main form
+* Wild soccer game main form
 *@author Jean-Milost Reymond
 */
 class TMainForm : public TForm

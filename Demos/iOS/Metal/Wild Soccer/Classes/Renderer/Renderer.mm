@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : This module provides a Metal renderer                      *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -258,7 +258,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
     pModel->m_MeshCount = 1;
     
-    [self CreateBufferFromModel :pModel];
+    [self CreateBufferFromModel :pModel :false];
 
     csrPixelBufferRelease(pBitmap);
     
@@ -384,7 +384,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
                                  &material,
                                  0);
 
-    [self CreateBufferFromMesh :pMesh];
+    [self CreateBufferFromMesh :pMesh :false];
 
     // get the resource texture path
     pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_ball" withExtension:@"bmp"];
@@ -427,7 +427,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     
     free(pFileName);
     
-    [self CreateBufferFromModel :pModel];
+    [self CreateBufferFromModel :pModel :false];
 
     CSR_Vector3 translation;
     translation.m_X =  0.0f;
@@ -502,7 +502,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     // create the You Won surface
     pMesh = csrShapeCreateSurface(0.6f, 0.2f, &vertexFormat, 0, &material, 0);
     
-    [self CreateBufferFromMesh :pMesh];
+    [self CreateBufferFromMesh :pMesh :false];
     
     // add the mesh to the scene
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
@@ -526,7 +526,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     if (!m_pScene->m_pSkybox)
         @throw @"Failed to create the skybox";
     
-    [self CreateBufferFromMesh :m_pScene->m_pSkybox];
+    [self CreateBufferFromMesh :m_pScene->m_pSkybox :false];
 
     // create an uniform for the skybox
     [self CreateSkyboxUniform];

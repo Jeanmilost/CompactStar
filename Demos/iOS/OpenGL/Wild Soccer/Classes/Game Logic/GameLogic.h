@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : This module provides the Wild Soccer game logic            *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -22,9 +22,9 @@
 #include "CSR_Scene.h"
 #include "CSR_Sound.h"
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Game structures
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 typedef enum
 {
     IE_E_None,
@@ -33,7 +33,7 @@ typedef enum
     IE_E_Right,
     IE_E_Bottom
 } CSR_EEdge;
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 typedef struct
 {
     void* _Nullable m_pKey;
@@ -41,14 +41,14 @@ typedef struct
     CSR_Sphere      m_Geometry;
     CSR_Body        m_Body;
 } CSR_Ball;
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 typedef struct
 {
     void* _Nullable m_pKey;
     CSR_Matrix4     m_Matrix;
     CSR_Rect        m_Bounds;
 } CSR_Goal;
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 /**
 * Wild soccer game logic

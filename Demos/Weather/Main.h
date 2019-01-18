@@ -1,9 +1,9 @@
 /****************************************************************************
- * ==> Main ----------------------------------------------------------------*
+ * ==> Weather demo --------------------------------------------------------*
  ****************************************************************************
- * Description : Ground collision tool main form                            *
+ * Description : Weather effects (rain and snow) demo                       *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -44,7 +44,7 @@
 #include "CSR_PostProcessingEffect_OilPainting.h"
 
 /**
-* Ground collision tool main form
+* Weather demo main form
 *@author Jean-Milost Reymond
 */
 class TMainForm : public TForm

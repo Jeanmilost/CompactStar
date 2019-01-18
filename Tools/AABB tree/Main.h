@@ -1,9 +1,10 @@
 /****************************************************************************
- * ==> AABB Tree tool main form --------------------------------------------*
+ * ==> AABB Tree tool ------------------------------------------------------*
  ****************************************************************************
- * Description : Aligned-Axis Bounding Box tool main form                   *
+ * Description : Tool to visualize the Aligned-Axis Bounding Box around     *
+ *               shapes or models                                           *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2018, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *

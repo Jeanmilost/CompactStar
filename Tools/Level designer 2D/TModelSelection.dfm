@@ -201,7 +201,7 @@ object ModelSelection: TModelSelection
       AlignWithMargins = True
       Left = 3
       Top = 0
-      Width = 309
+      Width = 69
       Height = 24
       Margins.Top = 0
       Align = alTop
@@ -212,7 +212,6 @@ object ModelSelection: TModelSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 69
     end
     object paTexture: TPanel
       AlignWithMargins = True
@@ -320,13 +319,12 @@ object ModelSelection: TModelSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 196
+          Width = 55
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
-          ExplicitWidth = 55
         end
         object paTextureScreenshot: TPanel
           AlignWithMargins = True
@@ -418,13 +416,12 @@ object ModelSelection: TModelSelection
       AlignWithMargins = True
       Left = 3
       Top = 0
-      Width = 289
+      Width = 55
       Height = 13
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alTop
       Caption = 'Select a file'
-      ExplicitWidth = 55
     end
     object paModelFileName: TPanel
       AlignWithMargins = True

@@ -1,13 +1,18 @@
-/*****************************************************************************
- * ==> Wild soccer game demo ------------------------------------------------*
- *****************************************************************************
- * Description : Wild soccer game demo view controller                       *
- * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2018, this file is part of the Minimal API. You are  *
- *               free to copy or redistribute this file, modify it, or use   *
- *               it for your own projects, commercial or not. This file is   *
- *               provided "as is", without ANY WARRANTY OF ANY KIND          *
- *****************************************************************************/
+/****************************************************************************
+ * ==> Wild soccer game demo -----------------------------------------------*
+ ****************************************************************************
+ * Description : A wild soccer game demo. Swipe up or down to walk, and     *
+ *               left or right to rotate. Tap to shoot the ball             *
+ * Developer   : Jean-Milost Reymond                                        *
+ * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
+ *               You are free to copy or redistribute this file, modify it, *
+ *               or use it for your own projects, commercial or not. This   *
+ *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
+ *               KIND. THE DEVELOPER IS NOT RESPONSIBLE FOR ANY DAMAGE OF   *
+ *               ANY KIND, ANY LOSS OF DATA, OR ANY LOSS OF PRODUCTIVITY    *
+ *               TIME THAT MAY RESULT FROM THE USAGE OF THIS SOURCE CODE,   *
+ *               DIRECTLY OR NOT.                                           *
+ ****************************************************************************/
 
 #import "GameViewController.h"
 
@@ -37,14 +42,14 @@
     #warning "OpenGL isn't the currently enabled library. Please enable the CSR_USE_OPENGL conditional define in CSR_Renderer.h, and use CSR_Renderer_OpenGL as renderer."
 #endif
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // CSR_CallbackController
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void* CSR_CallbackController::m_pOwner = NULL;
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 CSR_CallbackController::CSR_CallbackController()
 {}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 CSR_CallbackController::CSR_CallbackController(void* pOwner)
 {
     // set the global static owner to share between all the functions
@@ -56,43 +61,43 @@ CSR_CallbackController::CSR_CallbackController(void* pOwner)
     m_SceneContext.m_fOnGetID         = OnGetID;
     m_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 CSR_CallbackController::~CSR_CallbackController()
 {}
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_CallbackController::ReleaseModel(CSR_Model* pModel) const
 {
     csrModelRelease(pModel, OnDeleteTexture);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_CallbackController::ReleaseScene(CSR_Scene* pScene) const
 {
     csrSceneRelease(pScene, OnDeleteTexture);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_CallbackController::DrawScene(CSR_Scene* pScene) const
 {
     // draw the scene
     csrSceneDraw(pScene, &m_SceneContext);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void* CSR_CallbackController::OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return [(__bridge id)m_pOwner OnGetShader :pModel :type];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void* CSR_CallbackController::OnGetID(const void* pKey)
 {
     return [(__bridge id)m_pOwner OnGetID :pKey];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
 {
     [(__bridge id)m_pOwner OnDeleteTexture :pTexture];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // GameViewController
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @interface GameViewController()
 {
     CSR_GameLogic*          m_pGameLogic;
@@ -167,9 +172,9 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
 - (void) OnLongPress :(UIGestureRecognizer*)pSender;
 
 @end
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @implementation GameViewController
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) viewDidLoad
 {
     [super viewDidLoad];
@@ -202,7 +207,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     [self EnableOpenGL];
     [self InitScene];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) dealloc
 {
     [self DeleteScene];
@@ -214,7 +219,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     if ([EAGLContext currentContext] == self.pContext)
         [EAGLContext setCurrentContext:nil];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -232,12 +237,12 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
         self.pContext = nil;
     }
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (BOOL) prefersStatusBarHidden
 {
     return YES;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void)glkView :(GLKView*)view drawInRect:(CGRect)rect
 {
     // calculate time interval
@@ -248,7 +253,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     [self UpdateScene :elapsedTime];
     [self DrawScene];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) EnableOpenGL
 {
     self.pContext = [[EAGLContext alloc]initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -262,12 +267,12 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     
     [EAGLContext setCurrentContext:self.pContext];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) DisableOpenGL
 {
     [EAGLContext setCurrentContext:self.pContext];
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void*) OnGetShader :(const void*)pModel :(CSR_EModelType)type
 {
     if (pModel == m_pScene->m_pSkybox)
@@ -275,7 +280,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     
     return m_pShader;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void*) OnGetID :(const void*)pKey
 {
     // iterate through resource ids
@@ -286,7 +291,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
 
     return 0;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) OnDeleteTexture :(const CSR_Texture*)pTexture
 {
     // iterate through resource ids
@@ -312,7 +317,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
             return;
         }
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (bool) LoadLandscapeFromBitmap :(const char*)pFileName
 {
     CSR_Material      material;
@@ -371,7 +376,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     
     return true;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) CreateViewport :(float)w :(float)h
 {
     // calculate matrix items
@@ -388,7 +393,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     GLint projectionUniform = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uProjection");
     glUniformMatrix4fv(projectionUniform, 1, 0, &m_pScene->m_ProjectionMatrix.m_Table[0][0]);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) InitScene
 {
     CSR_VertexFormat vertexFormat;
@@ -693,7 +698,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     free(pCubemapFileNames[4]);
     free(pCubemapFileNames[5]);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) DeleteScene
 {
     // delete the scene
@@ -708,7 +713,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     csrOpenGLShaderRelease(m_pSkyboxShader);
     m_pSkyboxShader = nil;
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) UpdateScene :(float)elapsedTime
 {
     float      angle;
@@ -863,7 +868,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
         m_AlternateStep = (m_AlternateStep + 1) & 1;
     }
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void) DrawScene;
 {
     CSR_Plane groundPlane;
@@ -874,7 +879,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
     // draw the scene
     m_pCallbackController->DrawScene(m_pScene);
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 - (void)OnLongPress :(UIGestureRecognizer*)pSender
 {
     const CGPoint touchPos = [pSender locationInView :nil];
@@ -910,6 +915,6 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* pTexture)
             break;
     }
 }
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 @end
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------

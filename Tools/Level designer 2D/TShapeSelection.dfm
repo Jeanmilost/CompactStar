@@ -201,7 +201,7 @@ object ShapeSelection: TShapeSelection
       AlignWithMargins = True
       Left = 3
       Top = 0
-      Width = 309
+      Width = 69
       Height = 24
       Margins.Top = 0
       Align = alTop
@@ -212,7 +212,6 @@ object ShapeSelection: TShapeSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 69
     end
     object paTexture: TPanel
       AlignWithMargins = True
@@ -320,13 +319,12 @@ object ShapeSelection: TShapeSelection
           AlignWithMargins = True
           Left = 3
           Top = 53
-          Width = 196
+          Width = 55
           Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alBottom
           Caption = 'Select a file'
-          ExplicitWidth = 55
         end
         object paTextureScreenshot: TPanel
           AlignWithMargins = True
@@ -589,15 +587,13 @@ object ShapeSelection: TShapeSelection
       Left = 98
       Top = 0
       Width = 11
-      Height = 21
+      Height = 13
       Margins.Top = 0
       Margins.Right = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = '%'
       Layout = tlCenter
-      ExplicitLeft = 131
-      ExplicitHeight = 13
     end
     object edMinRadius: TEdit
       AlignWithMargins = True

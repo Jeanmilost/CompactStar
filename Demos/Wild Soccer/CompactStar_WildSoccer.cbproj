@@ -189,10 +189,10 @@
             <BuildOrder>22</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Renderer_OpenGL.c">
-            <BuildOrder>30</BuildOrder>
+            <BuildOrder>32</BuildOrder>
         </CppCompile>
         <None Include="..\..\SDK\CSR_Renderer_OpenGL.h">
-            <BuildOrder>31</BuildOrder>
+            <BuildOrder>33</BuildOrder>
         </None>
         <CppCompile Include="..\..\SDK\CSR_Scene.c">
             <BuildOrder>23</BuildOrder>
@@ -258,6 +258,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_CrossFootball.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName="..\..\SDK\CSR_Common.c" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -265,13 +272,6 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_CrossFootball.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName="..\..\SDK\CSR_Common.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

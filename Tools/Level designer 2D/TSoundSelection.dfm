@@ -41,7 +41,7 @@ object SoundSelection: TSoundSelection
       AlignWithMargins = True
       Left = 3
       Top = 3
-      Width = 394
+      Width = 220
       Height = 24
       Align = alTop
       Caption = 'Select an ambient sound'
@@ -51,7 +51,6 @@ object SoundSelection: TSoundSelection
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitWidth = 220
     end
     object paSoundFile: TPanel
       AlignWithMargins = True
@@ -67,13 +66,12 @@ object SoundSelection: TSoundSelection
         AlignWithMargins = True
         Left = 3
         Top = 0
-        Width = 388
+        Width = 55
         Height = 13
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Select a file'
-        ExplicitWidth = 55
       end
       object paSoundFileName: TPanel
         AlignWithMargins = True
