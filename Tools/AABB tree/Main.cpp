@@ -351,6 +351,7 @@ void __fastcall TMainForm::btLoadModelClick(TObject* pSender)
 
             // create the shape to show
             m_pMesh = csrShapeCreateCylinder(0.5f,
+                                             0.5f,
                                              1.0f,
                                            ::StrToInt(pModelSelection->edFaces->Text),
                                             &vf,

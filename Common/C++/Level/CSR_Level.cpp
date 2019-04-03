@@ -427,7 +427,7 @@ void* CSR_Level::AddCylinder(const CSR_Matrix4&       matrix,
     vf.m_HasPerVertexColor = 1;
 
     // create a default cylinder mesh
-    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f, 1.0f, faces, &vf, 0, &material, 0);
+    CSR_Mesh* pCylinder = csrShapeCreateCylinder(0.5f, 0.5f, 1.0f, faces, &vf, 0, &material, 0);
 
     // succeeded?
     if (!pCylinder)
