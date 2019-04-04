@@ -13,15 +13,21 @@ It's the reason why this engine exists.
 
 <b>Here are the actual supported features</b>
 - Simple shapes creation (surface, box, sphere, cylinder, disk, ring and spiral)
-- Quake I (.mdl), DirectX (.x, partially) and WaveFront (.obj, partially) loader
+- Quake I (.mdl), DirectX (.x, partially), and WaveFront (.obj, partially) models
+- Animations for Quake I (.mdl) and DirectX (.x) models
 - Skybox
 - Landscape generation
 - Transparency
 - Bump mapping
 - Full-scene antialiasing and post-processing effects
 - Collision detection (partially, ground and mouse collision)
-- Cross-platform SDK (Windows and Mac OS X, not tested on Linux) written in C
+- Particles system (early stage, see the Weather demo and Spaceship game demo)
+- Physics (early stage, see the Wild Soccer demo)
+- Cross-platform SDK (Windows and Mac OS X) written in C
 - Objective-C Metal renderer for OSX/iOS (experimental)
 - A small 2D level editor I'm using to create a game (can be compiled with Embarcadero RAD Studio, available here: https://www.embarcadero.com/products/cbuilder/starter/free-download)
+
+<b>Here are some screenshots of several project I realized with this engine (all are available as demos)</b>:
+![Screenshot](Common/Images/Screenshots/Demos.png?raw=true "Screenshot")
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
