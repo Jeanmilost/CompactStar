@@ -29,7 +29,7 @@ It's the reason why this engine exists.
 
 ![Screenshot](Common/Images/Screenshots/Demos.png?raw=true "Screenshot")
 
-<b>A small prototype of 2D level editor is also provided with the engine.</b>
+<b>A small prototype of 2D level editor is also provided with the engine</b>
 
 ![Screenshot](Common/Images/Screenshots/CompactStar%20Engine%202D%20Editor.png?raw=true "Screenshot")
 
