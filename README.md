@@ -4,8 +4,8 @@ The CompactStar engine is a tiny game engine I'm using for my own purposes. With
 
 However I had several reasons to do that:
 1. I wanted to learn something, and to confront myself to the difficulty to create a such engine.
-2. I wanted to dispose of a game engine as tiny as possible, with just the functionalities I needed.
-3. I wanted to be as independent as possible when creating several of my projects. 
+2. I wanted to have a game engine as tiny as possible, with just the functionalities I needed.
+3. I wanted to remain as independent as possible when creating several of my projects.
 
 It's the reason why this engine exists.
 
