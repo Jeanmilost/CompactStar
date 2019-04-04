@@ -29,8 +29,12 @@ It's the reason why this engine exists.
 
 ![Screenshot](Common/Images/Screenshots/Demos.png?raw=true "Screenshot")
 
-A small prototype of 2D level editor is also provided with the engine (can be compiled with Embarcadero RAD Studio, available here: https://www.embarcadero.com/products/cbuilder/starter/free-download)
+<b>A small prototype of 2D level editor is also provided with the engine.</b>
 
 ![Screenshot](Common/Images/Screenshots/CompactStar%20Engine%202D%20Editor.png?raw=true "Screenshot")
+
+The SDK may be compiled with any C or C++ compiler (Tested with Embarcadero RAD Studio, CodeBlocks and xCode). The provided demos and tools may be compiled with Embarcadero RAD Studio (a free version is available here: https://www.embarcadero.com/products/cbuilder/starter/free-download) or with xCode.
+
+The third-party libraries depend on which OS is targetted, but are cross-platform, and normally are available on any OS.
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
