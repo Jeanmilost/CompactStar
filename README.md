@@ -25,7 +25,7 @@ It's the reason why this engine exists.
 - Cross-platform SDK (Windows and Mac OS X) written in C
 - Objective-C Metal renderer for OSX/iOS (experimental)
 
-<b>Here are some screenshots of several project I realized with this engine (all are available as demos)</b>:
+<b>Here are some screenshots of several projects I realized with this engine (all are available as demo)</b>
 
 ![Screenshot](Common/Images/Screenshots/Demos.png?raw=true "Screenshot")
 
