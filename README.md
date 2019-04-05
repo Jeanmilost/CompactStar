@@ -22,7 +22,7 @@ It's the reason why this engine exists.
 - Particles system (early stage, see the Weather demo and Spaceship game demo)
 - Physics (early stage, see the Wild Soccer demo)
 - Sound and music
-- Cross-platform SDK (Windows and Mac OS X) written in C
+- Cross-platform SDK written in C
 - Objective-C Metal renderer for OSX/iOS (experimental)
 
 <b>Here are some screenshots of several projects I realized with this engine (all are available as demo)</b>
@@ -33,8 +33,14 @@ It's the reason why this engine exists.
 
 ![Screenshot](Common/Images/Screenshots/CompactStar%20Engine%202D%20Editor.png?raw=true "Screenshot")
 
+<b>Supported compilers and OS</b>
+
 The SDK may be compiled with any C or C++ compiler (Tested with Embarcadero RAD Studio, CodeBlocks and xCode). The provided demos and tools may be compiled with Embarcadero RAD Studio (a free version is available here: https://www.embarcadero.com/products/cbuilder/starter/free-download) or with xCode.
 
-The third-party libraries depend on which OS is targetted, but are cross-platform, and normally are available on any OS.
+This game engine is also available for the Mobile C Compiler (https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
+
+The third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS.
+
+<b>Copyright</b>
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
