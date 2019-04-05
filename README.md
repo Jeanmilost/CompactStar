@@ -41,6 +41,6 @@ This game engine is also available for the Mobile C Compiler (https://itunes.app
 
 The third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS.
 
-<b>Copyright</b>
+<b>License</b>
 
 I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
