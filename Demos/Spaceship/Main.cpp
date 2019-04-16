@@ -229,8 +229,8 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_Angle        = std::fmod(m_Angle + m_RotateVelocity, M_PI * 2.0f); return;
-                case VK_RIGHT: m_Angle        = std::fmod(m_Angle - m_RotateVelocity, M_PI * 2.0f); return;
+                case VK_LEFT:  m_Angle        = std::fmod(float(m_Angle + m_RotateVelocity), float(M_PI * 2.0f)); return;
+                case VK_RIGHT: m_Angle        = std::fmod(float(m_Angle - m_RotateVelocity), float(M_PI * 2.0f)); return;
 
                 case VK_SPACE:
                 {
