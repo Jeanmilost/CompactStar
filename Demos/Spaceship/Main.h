@@ -124,7 +124,7 @@ class TMainForm : public TForm
         *@param pSkin - skin
         *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
         */
-        static void OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
+        static void OnApplySkinCallback(std::size_t index, const CSR_Skin* pSkin, int* pCanRelease);
 
         /**
         * Called when a resource identifier should be get from a key
@@ -343,7 +343,7 @@ class TMainForm : public TForm
         *@param pSkin - skin
         *@param[in, out] pCanRelease - if 1, the skin content may be released after the skin is applied
         */
-        void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease);
+        void OnApplySkin(std::size_t index, const CSR_Skin* pSkin, int* pCanRelease);
 
         /**
         * Called when a resource identifier should be get from a key

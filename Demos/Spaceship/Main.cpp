@@ -229,8 +229,8 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_Angle        = std::fmod(float(m_Angle + m_RotateVelocity), float(M_PI * 2.0f)); return;
-                case VK_RIGHT: m_Angle        = std::fmod(float(m_Angle - m_RotateVelocity), float(M_PI * 2.0f)); return;
+                case VK_LEFT:  m_Angle = std::fmod(float(m_Angle + m_RotateVelocity), float(M_PI * 2.0f)); return;
+                case VK_RIGHT: m_Angle = std::fmod(float(m_Angle - m_RotateVelocity), float(M_PI * 2.0f)); return;
 
                 case VK_SPACE:
                 {
@@ -310,7 +310,7 @@ void TMainForm::OnSceneEndCallback(const CSR_Scene* pScene, const CSR_SceneConte
     pMainForm->OnSceneEnd(pScene, pContext);
 }
 //---------------------------------------------------------------------------
-void TMainForm::OnApplySkinCallback(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+void TMainForm::OnApplySkinCallback(std::size_t index, const CSR_Skin* pSkin, int* pCanRelease)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
@@ -652,10 +652,10 @@ void TMainForm::OnCalculateMeteoreMotion(const CSR_Particles* pParticles,
                                                float          elapsedTime)
 {
     CSR_Vector3 position;
-    size_t      index;
+    std::size_t index;
 
     // get particle index (mass was used for that)
-    index = (size_t)pParticle->m_pBody->m_Mass;
+    index = (std::size_t)pParticle->m_pBody->m_Mass;
 
     // calculate velocity on x and y axis
     pParticle->m_pBody->m_Velocity.m_X =  0.5f * sinf(m_Angle);
@@ -1216,7 +1216,7 @@ void TMainForm::OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pCon
     csrDrawEnd();
 }
 //---------------------------------------------------------------------------
-void TMainForm::OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+void TMainForm::OnApplySkin(std::size_t index, const CSR_Skin* pSkin, int* pCanRelease)
 {
     // load the texture from the received pixel buffer
     const GLuint textureID = csrOpenGLTextureFromPixelBuffer(pSkin->m_Texture.m_pBuffer);
