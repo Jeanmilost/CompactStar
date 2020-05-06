@@ -1309,9 +1309,9 @@ void TMainForm::OnPrepareSearching()
 
     // calculate the final bot direction angle
     if (angle < 0.0f)
-        m_Bot.m_Angle = fmod(m_Bot.m_Angle, M_PI * 2.0);
+        m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
     else
-        m_Bot.m_Angle = (M_PI * 2.0f) - fmod(m_Bot.m_Angle, M_PI * 2.0);
+        m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
 
     m_Bot.m_MovePos = 0.0f;
     m_BotShowPlayer = 0;
@@ -1401,9 +1401,9 @@ void TMainForm::OnPrepareAttacking()
 
     // calculate the final bot direction angle
     if (angle < 0.0f)
-        m_Bot.m_Angle = fmod(m_Bot.m_Angle, M_PI * 2.0);
+        m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
     else
-        m_Bot.m_Angle = (M_PI * 2.0f) - fmod(m_Bot.m_Angle, M_PI * 2.0);
+        m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
 
     m_Bot.m_MovePos = 0.0f;
     m_BotShowPlayer = 0;
