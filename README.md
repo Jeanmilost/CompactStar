@@ -1,4 +1,4 @@
-<b><u>CompactStar engine</u></b>
+# CompactStar engine
 
 The CompactStar engine is a tiny game engine I'm using for my own purposes. With the existence of very performant and low cost, sometimes even free, 3D engines like Unity, Unreal or Panda, I know that the reasons that motivated me to write my own 3D game engine may appear somewhat strange, especially when the result is less efficient than these engines.
 
@@ -34,14 +34,34 @@ It's the reason why this engine exists.
 
 ![Screenshot](Common/Images/Screenshots/CompactStar%20Engine%202D%20Editor.png?raw=true "Screenshot")
 
-<b>Supported compilers and OS</b>
+## Supported compilers and OS
 
-The SDK may be compiled with any C or C++ compiler (Tested with Embarcadero RAD Studio, CodeBlocks and xCode). The provided demos and tools may be compiled with Embarcadero RAD Studio (a free version is available here: https://www.embarcadero.com/products/cbuilder/starter/free-download) or with xCode.
+The SDK may be compiled with any C or C++ compiler (Tested with [Embarcadero RAD Studio](https://www.embarcadero.com/), [CodeBlocks](http://www.codeblocks.org/) and [xCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12)). The provided demos and tools may be compiled with [Embarcadero RAD Studio](https://www.embarcadero.com/products/cbuilder/starter/free-download) or with xCode.
 
-This game engine is also available for the Mobile C Compiler (https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
+This game engine is also available for the [Mobile C Compiler](https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
 
-The third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS.
+## Third-party
+This project depends on several third-party libraries, which are:
+- Glew (http://glew.sourceforge.net/)
+- OpenAL (https://openal.org/)
+- sxml (https://github.com/capmar/sxml)
 
-<b>License</b>
+These third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS. Please refer to the original website for the documentation, updates, and licenses.
 
-I decided to share this code freely, don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
+Several [Blender](https://www.blender.org/) plugins were also used to export models in Quake I (.mdl), Quake II (.md2) and Quake III (.md3) formats. You may find them on the following websites:
+- Quake I (.mdl): http://quakeforge.net/files.php
+- Quake II (.md2): https://www.rockraidersunited.com/topic/8175-md2-blender-importexport-add-on-early-release/
+- Quake III (.md3): https://github.com/neumond/blender-md3
+
+## Assets
+Several free assets were used in the demo projects. For convenience, they were left with the demo projects, as a part of them.
+
+All the assets used in the demos were free assets downloaded from [CadNav](https://www.cadnav.com/) and [Free3D](https://free3d.com/), and are subject to the user licenses applied on their respective websites.
+
+<b>Please don't use these assets outside the legal framework defined for them, and if you want to use them, they should be downloaded from their original website</b>, which are:
+- Old farm tractor: https://www.cadnav.com/3d-models/model-44958.html
+- Trees: https://free3d.com/3d-model/trees-9-53338.html
+
+## License
+
+I decided to share this code freely (under MIT license), don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
