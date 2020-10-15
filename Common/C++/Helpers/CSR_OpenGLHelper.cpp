@@ -258,7 +258,7 @@ void CSR_OpenGLHelper::AddTexture(const void* pKey, GLuint id, IResources& resou
     // found one?
     if (it != resources.end())
     {
-        // increase his use count
+        // increase its use count
         assert(it->second->m_ID == GLint(id));
         ++it->second->m_UseCount;
         return;

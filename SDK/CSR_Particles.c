@@ -258,7 +258,7 @@ void csrParticlesAnimate(CSR_Particles* pParticles, float elapsedTime)
     if (!pParticles || !pParticles->m_fOnCalculateMotion)
         return;
 
-    // iterate through each particles and calculate his motion
+    // iterate through each particles and calculate its motion
     for (i = 0; i < pParticles->m_Count; ++i)
         pParticles->m_fOnCalculateMotion(pParticles, &pParticles->m_pParticle[i], elapsedTime);
 }

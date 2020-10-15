@@ -26,7 +26,7 @@
     #define CSR_USE_OPENGL
 
     // the Mobile C Compiler cannot use the OpenGL 3.0 and higher functionalities required by
-    // several functions. For that reason, his usage is limited to OpenGL 2.0
+    // several functions. For that reason, its usage is limited to OpenGL 2.0
     #define CSR_OPENGL_2_ONLY
 #elif defined(__APPLE__)
     // OpenGL is (unfortunately) deprecated, from now Metal should be used instead. To do that,

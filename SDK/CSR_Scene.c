@@ -977,7 +977,7 @@ CSR_SceneItem* csrSceneAddModel(CSR_Scene* pScene, CSR_Model* pModel, int transp
             // copy the tree content
             memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
 
-            // release the source tree (NOTE reset his value before, otherwise the copied tree
+            // release the source tree (NOTE reset its value before, otherwise the copied tree
             // content will also be released, which will corrupt the tree)
             pAABBTree->m_pParent        = 0;
             pAABBTree->m_pLeft          = 0;
@@ -1113,7 +1113,7 @@ CSR_SceneItem* csrSceneAddMDL(CSR_Scene* pScene, CSR_MDL* pMDL, int transparent,
                 // copy the tree content
                 memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
 
-                // release the source tree (NOTE reset his value before, otherwise the copied tree
+                // release the source tree (NOTE reset its value before, otherwise the copied tree
                 // content will also be released, which will corrupt the tree)
                 pAABBTree->m_pParent        = 0;
                 pAABBTree->m_pLeft          = 0;
@@ -1247,7 +1247,7 @@ CSR_SceneItem* csrSceneAddX(CSR_Scene* pScene, CSR_X* pX, int transparent, int a
             // copy the tree content
             memcpy(&pItem[index].m_pAABBTree[i], pAABBTree, sizeof(CSR_AABBNode));
 
-            // release the source tree (NOTE reset his value before, otherwise the copied tree
+            // release the source tree (NOTE reset its value before, otherwise the copied tree
             // content will also be released, which will corrupt the tree)
             pAABBTree->m_pParent        = 0;
             pAABBTree->m_pLeft          = 0;

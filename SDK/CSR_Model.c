@@ -5195,7 +5195,7 @@ int csrXBuildVertex(const CSR_Item_X*                 pItem,
             return 0;
 
         // build the texture coordinate. NOTE several files contain negative values, force them to
-        // be positive (assume that the user will correct his texture in this case)
+        // be positive (assume that the user will correct its texture in this case)
         uv.m_X = fabs(pUVDataset->m_pUV[uvIndex]);
         uv.m_Y = fabs(pUVDataset->m_pUV[uvIndex + 1]);
 
@@ -5431,7 +5431,7 @@ int csrXBuildMesh(const CSR_Item_X*           pItem,
                 // found the material list, get it
                 pMatListItem = &pItem->m_pChildren[i];
 
-                // and get his dataset
+                // and get its dataset
                 pMatListDataset = (CSR_Dataset_MaterialList_X*)pMatListItem->m_pData;
 
                 // succeeded?
@@ -7786,7 +7786,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7804,7 +7804,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7822,7 +7822,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7841,7 +7841,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7865,7 +7865,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7886,7 +7886,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7907,7 +7907,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7925,7 +7925,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7943,7 +7943,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7970,7 +7970,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 
@@ -7991,7 +7991,7 @@ void csrXReleaseItems(CSR_Item_X* pItem, int contentOnly)
             // succeeded?
             if (pData)
             {
-                // release his content
+                // release its content
                 if (pData->m_pName)
                     free(pData->m_pName);
 

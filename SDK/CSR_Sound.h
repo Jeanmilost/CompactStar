@@ -88,7 +88,7 @@ typedef struct
                                         unsigned    sampling);
 
         /**
-        * Releases a sound and frees his memory
+        * Releases a sound and frees its memory
         *@param[in, out] pSound - sound to release
         */
         void csrSoundRelease(CSR_Sound* pSound);

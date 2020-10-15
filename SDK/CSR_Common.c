@@ -195,7 +195,7 @@ void csrArrayRelease(CSR_Array* pArray)
     {
         size_t i;
 
-        // iterate through each item and free his content
+        // iterate through each item and free its content
         for (i = 0; i < pArray->m_Count; ++i)
             // do free the item content?
             if (pArray->m_pItem[i].m_AutoFree)
