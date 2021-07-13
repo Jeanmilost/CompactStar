@@ -335,6 +335,9 @@ CSR_OpenGLShader* csrOpenGLShaderLoadFromStr(const char*               pVertex,
     pVS = csrBufferCreate();
     pFS = csrBufferCreate();
 
+    if (!pVS || !pFS)
+        return 0;
+
     // copy the vertex program to read
     pVS->m_Length = vertexLength;
     pVS->m_pData  = (unsigned char*)malloc(pVS->m_Length + 1);
@@ -373,6 +376,11 @@ CSR_OpenGLShader* csrOpenGLShaderLoadFromBuffer(const CSR_Buffer*         pVerte
 
     // succeeded?
     if (!pShader)
+        return 0;
+
+    // sometimes the OpenGL driver isn't compatible with Glew and this function isn't available.
+    // Stop here if it's the case
+    if (!glCreateProgram)
         return 0;
 
     // create a new shader program
