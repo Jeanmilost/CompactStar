@@ -58,6 +58,8 @@
 #define SKYBOX_BACK                "\\skybox_frontback.png"
 #define FOOT_STEP_LEFT_SOUND_FILE  "\\footstep_left.wav"
 #define FOOT_STEP_RIGHT_SOUND_FILE "\\footstep_right.wav"
+#define CAVE_AMBIENT_SOUND_FILE    "\\cave_ambient.wav"
+#define DING_SOUND_FILE            "\\ding.wav"
 #define HIT_SOUND_FILE             "\\hit.wav"
 
 #ifdef USE_BOT
@@ -69,53 +71,38 @@
 // Global constants
 //----------------------------------------------------------------------------
 const char g_VSTextured[] =
-    "precision mediump float;"
-    "attribute vec3  csr_aVertices;"
-    "attribute vec4  csr_aColor;"
-    "attribute vec2  csr_aTexCoord;"
-    "uniform   float csr_uAlpha;"
-    "uniform   int   csr_uGrayscale;"
-    "uniform   mat4  csr_uProjection;"
-    "uniform   mat4  csr_uView;"
-    "uniform   mat4  csr_uModel;"
-    "varying   vec4  csr_vColor;"
-    "varying   vec2  csr_vTexCoord;"
-    "varying   float csr_fGrayscale;"
-    "varying   float csr_fAlpha;"
-    "void main(void)"
-    "{"
-    "    csr_vColor    = csr_aColor;"
-    "    csr_vTexCoord = csr_aTexCoord;"
-    "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
-    ""
-    "    if (csr_uGrayscale == 1)"
-    "        csr_fGrayscale = 1.0;"
-    "    else"
-    "        csr_fGrayscale = 0.0;"
-    ""
-    "    csr_fAlpha = csr_uAlpha;"
-    "}";
+    "#version 130\n"
+    "precision mediump float;\n"
+    "attribute vec3  csr_aVertices;\n"
+    "attribute vec4  csr_aColor;\n"
+    "attribute vec2  csr_aTexCoord;\n"
+    "uniform   float csr_uAlpha;\n"
+    "uniform   mat4  csr_uProjection;\n"
+    "uniform   mat4  csr_uView;\n"
+    "uniform   mat4  csr_uModel;\n"
+    "varying   vec4  csr_vColor;\n"
+    "varying   vec2  csr_vTexCoord;\n"
+    "varying   float csr_fAlpha;\n"
+    "void main(void)\n"
+    "{\n"
+    "    csr_vColor    = csr_aColor;\n"
+    "    csr_vTexCoord = csr_aTexCoord;\n"
+    "    csr_fAlpha    = csr_uAlpha;\n"
+    "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);\n"
+    "}\n";
 //----------------------------------------------------------------------------
 const char g_FSTextured[] =
-    "precision mediump float;"
-    "uniform sampler2D  csr_sColorMap;"
-    "varying lowp vec4  csr_vColor;"
-    "varying      vec2  csr_vTexCoord;"
-    "varying      float csr_fGrayscale;"
-    "varying      float csr_fAlpha;"
-    "void main(void)"
-    "{"
-    "    float csr_fFadeFactor = 1.0;"
-    "    vec4 color            = csr_vColor * texture2D(csr_sColorMap, csr_vTexCoord);"
-    ""
-    "    if (csr_fGrayscale > 0.5)"
-    "    {"
-    "        float grayscaleVal = (color.x * 0.3 + color.y * 0.59 + color.z * 0.11);"
-    "        gl_FragColor       = vec4(grayscaleVal, grayscaleVal, grayscaleVal, csr_fAlpha);"
-    "    }"
-    "    else"
-    "        gl_FragColor = vec4(color.x * csr_fFadeFactor, color.y * csr_fFadeFactor, color.z * csr_fFadeFactor, csr_fAlpha);"
-    "}";
+    "#version 130\n"
+    "precision mediump float;\n"
+    "uniform sampler2D  csr_sColorMap;\n"
+    "varying lowp vec4  csr_vColor;\n"
+    "varying      vec2  csr_vTexCoord;\n"
+    "varying      float csr_fAlpha;\n"
+    "void main(void)\n"
+    "{\n"
+    "    vec4 color   = csr_vColor * texture2D(csr_sColorMap, csr_vTexCoord);\n"
+    "    gl_FragColor = vec4(color.x, color.y, color.z, csr_fAlpha);\n"
+    "}\n";
 //---------------------------------------------------------------------------
 // TMainForm::IBot
 //---------------------------------------------------------------------------
@@ -172,10 +159,11 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_LastKnownIndex(0),
     m_FrameCount(0),
     m_AlternateStep(0),
-    m_GrayscaleSlot(0),
     m_AlphaSlot(0),
-    m_pFootStepLeftSound (NULL),
+    m_pCaveAmbientSound(NULL),
+    m_pFootStepLeftSound(NULL),
     m_pFootStepRightSound(NULL),
+    m_pDingSound(NULL),
     m_FPS(0.0),
     m_StartTime(0L),
     m_PreviousTime(0L),
@@ -211,7 +199,7 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     CSR_OpenGLHelper::EnableOpenGL(Handle, &m_hDC, &m_hRC);
 
     // stop GLEW crashing on OSX :-/
-	glewExperimental = GL_TRUE;
+    glewExperimental = GL_TRUE;
 
     // initialize GLEW
     if (glewInit() != GLEW_OK)
@@ -666,7 +654,6 @@ void TMainForm::InitScene(int w, int h)
     m_pShader->m_ColorSlot    = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aColor");
     m_pShader->m_TexCoordSlot = glGetAttribLocation (m_pShader->m_ProgramID, "csr_aTexCoord");
     m_pShader->m_TextureSlot  = glGetAttribLocation (m_pShader->m_ProgramID, "csr_sColorMap");
-    m_GrayscaleSlot           = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uGrayscale");
     m_AlphaSlot               = glGetUniformLocation(m_pShader->m_ProgramID, "csr_uAlpha");
 
     // configure OpenGL depth testing
@@ -943,18 +930,21 @@ void TMainForm::InitScene(int w, int h)
                                   LoadCubemap(cubemapFileNames),
                                   m_OpenGLResources);
 
-    csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
-
     // load the sound files
+    m_pCaveAmbientSound   = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + CAVE_AMBIENT_SOUND_FILE).c_str());
     m_pFootStepLeftSound  = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_LEFT_SOUND_FILE).c_str());
     m_pFootStepRightSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_RIGHT_SOUND_FILE).c_str());
     #ifdef USE_BOT
         m_pHitSound       = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + HIT_SOUND_FILE).c_str());
     #endif
+    m_pDingSound          = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + DING_SOUND_FILE).c_str());
 
     // change the volume
     csrSoundChangeVolume(m_pFootStepLeftSound,  0.2f);
     csrSoundChangeVolume(m_pFootStepRightSound, 0.2f);
+
+    // loop the ambient sound
+    csrSoundLoop(m_pCaveAmbientSound, 1);
 
     #ifdef USE_BOT
         // initialize the IA task manager
@@ -974,6 +964,9 @@ void TMainForm::InitScene(int w, int h)
         // prepare the first bot task
         OnPrepareWatching();
     #endif
+
+    // play the ambient sound
+    csrSoundPlay(m_pCaveAmbientSound);
 
     m_Initialized = true;
 }
@@ -997,6 +990,7 @@ void TMainForm::DeleteScene()
     csrOpenGLShaderRelease(m_pSkyboxShader);
 
     // stop running step sound, if needed
+    csrSoundStop(m_pCaveAmbientSound);
     csrSoundStop(m_pFootStepLeftSound);
     csrSoundStop(m_pFootStepRightSound);
     #ifdef USE_BOT
@@ -1004,6 +998,7 @@ void TMainForm::DeleteScene()
     #endif
 
     // release OpenAL interface
+    csrSoundRelease(m_pCaveAmbientSound);
     csrSoundRelease(m_pFootStepLeftSound);
     csrSoundRelease(m_pFootStepRightSound);
     #ifdef USE_BOT
@@ -1058,7 +1053,6 @@ void TMainForm::UpdateScene(float elapsedTime)
             // reset the bot data
             m_pTaskManager->m_pTask->m_Action = E_BT_Watching;
             m_BotShowPlayer                   = 0;
-            glUniform1i(m_GrayscaleSlot, 0);
 
             // fade to red
             m_FaderAlpha += 1.0f * elapsedTime;
@@ -1178,14 +1172,24 @@ void TMainForm::UpdateScene(float elapsedTime)
 
     // player found dynamite?
     if (csrIntersect3(&m_First, &m_Second, 0, 0, 0))
+    {
+        if (!paFirstItem->Visible)
+            csrSoundPlay(m_pDingSound);
+
         paFirstItem->Visible = true;
+    }
 
     m_Second.m_Type    =  CSR_F3_Sphere;
     m_Second.m_pFigure = &m_Matches.m_Geometry;
 
     // player found matches?
     if (csrIntersect3(&m_First, &m_Second, 0, 0, 0))
+    {
+        if (!paSecondItem->Visible)
+            csrSoundPlay(m_pDingSound);
+
         paSecondItem->Visible = true;
+    }
 
     m_Second.m_Type    =  CSR_F3_Sphere;
     m_Second.m_pFigure = &m_Door.m_Geometry;
@@ -1439,17 +1443,9 @@ int TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matri
         csrVec3Normalize(&botToPlayer, &botToPlayerDir);
         csrVec3Dot(&botToPlayerDir, &m_Bot.m_Dir, &angle);
 
-        // reset the bot detection signal
-        csrShaderEnable(m_pShader);
-        glUniform1i(m_GrayscaleSlot, 0);
-
         // is bot showing the player?
         if (angle > -0.707f)
             return 0;
-
-        // set the bot detection signal
-        csrShaderEnable(m_pShader);
-        glUniform1i(m_GrayscaleSlot, 1);
 
         return 1;
     }

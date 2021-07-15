@@ -267,10 +267,11 @@ class TMainForm : public TForm
         CSR_Vector2                  m_TouchPosition;
         CSR_Color                    m_Color;
         CSR_TerrainLimits            m_TerrainLimits;
-        GLuint                       m_GrayscaleSlot;
         GLuint                       m_AlphaSlot;
+        CSR_Sound*                   m_pCaveAmbientSound;
         CSR_Sound*                   m_pFootStepLeftSound;
         CSR_Sound*                   m_pFootStepRightSound;
+        CSR_Sound*                   m_pDingSound;
         std::string                  m_SceneDir;
         double                       m_FPS;
         unsigned __int64             m_StartTime;

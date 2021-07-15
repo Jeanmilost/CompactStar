@@ -763,8 +763,6 @@ void TMainForm::InitScene(int w, int h)
                                   LoadCubemap(cubemapFileNames),
                                   m_OpenGLResources);
 
-    csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
-
     // load the sound files
     m_pFootStepLeftSound  = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_LEFT_SOUND_FILE).c_str());
     m_pFootStepRightSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_RIGHT_SOUND_FILE).c_str());
