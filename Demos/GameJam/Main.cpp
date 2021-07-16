@@ -262,8 +262,8 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_DirVelocity = -1.0f; handled = true; break;
-                case VK_RIGHT: m_DirVelocity =  1.0f; handled = true; break;
+                case VK_LEFT:  m_DirVelocity = -1.5f; handled = true; break;
+                case VK_RIGHT: m_DirVelocity =  1.5f; handled = true; break;
                 case VK_UP:    m_PosVelocity = -1.0f; handled = true; break;
                 case VK_DOWN:  m_PosVelocity =  1.0f; handled = true; break;
             }
@@ -308,6 +308,13 @@ void __fastcall TMainForm::laStartGameWithoutBotClick(TObject* pSender)
     m_BoundingSphere.m_Center.m_Y = 0.0f;
     m_BoundingSphere.m_Center.m_Z = 0.0f;
 
+    // hide the bot
+    m_Bot.m_Geometry.m_Center.m_Y =  0.0f;
+    m_Bot.m_Matrix.m_Table[3][1]  = -99999.0f;
+
+    // randomize items
+    RandomizeItems();
+
     // reset the game state
     m_ShowBot           = false;
     m_PlayerDying       = false;
@@ -321,6 +328,9 @@ void __fastcall TMainForm::laStartGameWithBotClick(TObject *Sender)
     m_BoundingSphere.m_Center.m_X = 0.0f;
     m_BoundingSphere.m_Center.m_Y = 0.0f;
     m_BoundingSphere.m_Center.m_Z = 0.0f;
+
+    // randomize items
+    RandomizeItems();
 
     // reset the game state
     m_ShowBot           = true;
@@ -637,7 +647,7 @@ void TMainForm::InitScene(int w, int h)
     CSR_VertexFormat vertexFormat;
     CSR_Material     material;
 
-    std::srand(0);
+    std::srand(std::time(0));
 
     // initialize the terrain limits
     m_TerrainLimits.m_Min.m_X = -3.0f;
@@ -787,9 +797,9 @@ void TMainForm::InitScene(int w, int h)
     material.m_Wireframe   = 0;
 
     // create the matches box
-    m_Matches.m_pModel = csrShapeCreateBox(0.0075f,
-                                           0.005f,
-                                           0.005f,
+    m_Matches.m_pModel = csrShapeCreateBox(0.01f,
+                                           0.0025f,
+                                           0.0075f,
                                            0,
                                            &vertexFormat,
                                            0,
@@ -1058,10 +1068,6 @@ void TMainForm::UpdateScene(float elapsedTime)
     // do show the bot?
     if (m_ShowBot)
     {
-        float          posY;
-        float          angle;
-        CSR_SceneItem* pSceneItem;
-
         // check if the bot hit the player
         m_BotHitPlayer = CheckBotHitPlayer();
 
@@ -1071,8 +1077,8 @@ void TMainForm::UpdateScene(float elapsedTime)
         // rebuild the bot matrix
         BuildBotMatrix();
 
-        pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
-        posY       = M_CSR_NoGround;
+        CSR_SceneItem* pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+        float          posY       = M_CSR_NoGround;
 
         // calculate the y position where to place the bot
         csrGroundPosY(&m_Bot.m_Geometry, pSceneItem->m_pAABBTree, &m_pScene->m_GroundDir, 0, &posY);
@@ -1195,7 +1201,6 @@ void TMainForm::UpdateScene(float elapsedTime)
         paFirstItem->Visible = true;
     }
 
-    m_Second.m_Type    =  CSR_F3_Sphere;
     m_Second.m_pFigure = &m_Matches.m_Geometry;
 
     // player found matches?
@@ -1207,7 +1212,6 @@ void TMainForm::UpdateScene(float elapsedTime)
         paSecondItem->Visible = true;
     }
 
-    m_Second.m_Type    =  CSR_F3_Sphere;
     m_Second.m_pFigure = &m_Door.m_Geometry;
 
     // player hit door?
@@ -1342,6 +1346,122 @@ void TMainForm::BuildBotMatrix()
     // build the model matrix
     csrMat4Multiply(&scaleMatrix,        &rotateXMatrix, &intermediateMatrix);
     csrMat4Multiply(&intermediateMatrix, &rotateYMatrix, &m_Bot.m_Matrix);
+}
+//---------------------------------------------------------------------------
+void TMainForm::RandomizeItems()
+{
+    // get the landscape scene item
+    CSR_SceneItem* pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
+
+    // found it?
+    if (!pSceneItem)
+    {
+        // set the default dynamite position
+        m_Dynamite.m_Geometry.m_Center.m_X = -1.0f;
+        m_Dynamite.m_Geometry.m_Center.m_Y =  0.025f;
+        m_Dynamite.m_Geometry.m_Center.m_Z =  3.0f;
+
+        // set the dynamite in the level
+        m_Dynamite.m_Matrix.m_Table[3][0] = m_Dynamite.m_Geometry.m_Center.m_X;
+        m_Dynamite.m_Matrix.m_Table[3][1] = m_Dynamite.m_Geometry.m_Center.m_Y;
+        m_Dynamite.m_Matrix.m_Table[3][2] = m_Dynamite.m_Geometry.m_Center.m_Z;
+
+        // set the default matches position
+        m_Matches.m_Geometry.m_Center.m_X =  1.75f;
+        m_Matches.m_Geometry.m_Center.m_Y =  0.0025f;
+        m_Matches.m_Geometry.m_Center.m_Z = -2.0f;
+
+        // set the matches in the level
+        m_Matches.m_Matrix.m_Table[3][0] = m_Matches.m_Geometry.m_Center.m_X;
+        m_Matches.m_Matrix.m_Table[3][1] = m_Matches.m_Geometry.m_Center.m_Y;
+        m_Matches.m_Matrix.m_Table[3][2] = m_Matches.m_Geometry.m_Center.m_Z;
+    }
+
+    // configure dynamite geometry
+    m_Dynamite.m_Geometry.m_Center.m_X = -3.0f + ((rand() % 600) / 100.0f);
+    m_Dynamite.m_Geometry.m_Center.m_Z = -3.0f + ((rand() % 600) / 100.0f);
+
+    CSR_Figure3 m_First;
+    m_First.m_Type    =  CSR_F3_Sphere;
+    m_First.m_pFigure = &m_Door.m_Geometry;
+
+    CSR_Figure3 m_Second;
+    m_Second.m_Type    =  CSR_F3_Sphere;
+    m_Second.m_pFigure = &m_Dynamite.m_Geometry;
+
+    std::size_t count = 0;
+
+    // is item inside door area?
+    while (csrIntersect3(&m_First, &m_Second, 0, 0, 0))
+    {
+        // select another position for the dynamite item
+        m_Dynamite.m_Geometry.m_Center.m_X = -3.0f + ((rand() % 600) / 100.0f);
+        m_Dynamite.m_Geometry.m_Center.m_Z = -3.0f + ((rand() % 600) / 100.0f);
+
+        // max retries reached?
+        if (count > 100)
+        {
+            // set the default position
+            m_Dynamite.m_Geometry.m_Center.m_X = -1.0f;
+            m_Dynamite.m_Geometry.m_Center.m_Z =  3.0f;
+            break;
+        }
+
+        ++count;
+    }
+
+    float posY = M_CSR_NoGround;
+
+    // calculate the y position where to place the item
+    csrGroundPosY(&m_Dynamite.m_Geometry, pSceneItem->m_pAABBTree, &m_pScene->m_GroundDir, 0, &posY);
+
+    // apply the found y position
+    m_Dynamite.m_Geometry.m_Center.m_Y = posY - 0.1f;
+
+    // set the dynamite in the level
+    m_Dynamite.m_Matrix.m_Table[3][0] = m_Dynamite.m_Geometry.m_Center.m_X;
+    m_Dynamite.m_Matrix.m_Table[3][1] = m_Dynamite.m_Geometry.m_Center.m_Y;
+    m_Dynamite.m_Matrix.m_Table[3][2] = m_Dynamite.m_Geometry.m_Center.m_Z;
+
+    // configure matches geometry
+    m_Matches.m_Geometry.m_Center.m_X = -3.0f + ((rand() % 600) / 100.0f);
+    m_Matches.m_Geometry.m_Center.m_Z = -3.0f + ((rand() % 600) / 100.0f);
+
+    m_Second.m_pFigure = &m_Matches.m_Geometry;
+
+    count = 0;
+
+    // is item inside door area?
+    while (csrIntersect3(&m_First, &m_Second, 0, 0, 0))
+    {
+        // select another position for the dynamite item
+        m_Matches.m_Geometry.m_Center.m_X = -3.0f + ((rand() % 600) / 100.0f);
+        m_Matches.m_Geometry.m_Center.m_Z = -3.0f + ((rand() % 600) / 100.0f);
+
+        // max retries reached?
+        if (count > 100)
+        {
+            // set the default position
+            m_Matches.m_Geometry.m_Center.m_X = -1.0f;
+            m_Matches.m_Geometry.m_Center.m_Z =  3.0f;
+            break;
+        }
+
+        ++count;
+    }
+
+    posY = M_CSR_NoGround;
+
+    // calculate the y position where to place the item
+    csrGroundPosY(&m_Matches.m_Geometry, pSceneItem->m_pAABBTree, &m_pScene->m_GroundDir, 0, &posY);
+
+    // apply the found y position
+    m_Matches.m_Geometry.m_Center.m_Y = posY - 0.121f;
+
+    // set the matches in the level
+    m_Matches.m_Matrix.m_Table[3][0] = m_Matches.m_Geometry.m_Center.m_X;
+    m_Matches.m_Matrix.m_Table[3][1] = m_Matches.m_Geometry.m_Center.m_Y;
+    m_Matches.m_Matrix.m_Table[3][2] = m_Matches.m_Geometry.m_Center.m_Z;
 }
 //---------------------------------------------------------------------------
 int TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const

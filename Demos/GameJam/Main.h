@@ -345,6 +345,11 @@ class TMainForm : public TForm
         void BuildBotMatrix();
 
         /**
+        * Randomize the item positions in the scene
+        */
+        void RandomizeItems();
+
+        /**
         * Calculates the ground collision point
         *@param pBoundingSphere - bounding sphere for which the ground collision point should be found
         *@param pMatrix - matrix of the model surrounded by the bounding sphere

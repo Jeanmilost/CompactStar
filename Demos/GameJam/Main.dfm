@@ -48471,7 +48471,6 @@ object MainForm: TMainForm
       ParentColor = False
       ParentFont = False
       Layout = tlCenter
-      ExplicitTop = 40
       ExplicitWidth = 258
       ExplicitHeight = 23
     end
