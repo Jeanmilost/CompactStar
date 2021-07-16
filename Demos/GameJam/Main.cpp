@@ -47,6 +47,7 @@
 // resource files to load
 #define LANDSCAPE_TEXTURE_FILE     "\\stone.png"
 #define LANDSCAPE_DATA_FILE        "\\cave_level.bmp"
+#define MDL_BOT_FILE               "\\wizard.mdl"
 #define DYNAMITE_TEXTURE_FILE      "\\dynamite_texture.png"
 #define MATCHES_TEXTURE_FILE       "\\matches_texture.png"
 #define DOOR_TEXTURE_FILE          "\\door_texture.png"
@@ -56,16 +57,13 @@
 #define SKYBOX_BOTTOM              "\\skybox_topbottom.png"
 #define SKYBOX_FRONT               "\\skybox_frontback.png"
 #define SKYBOX_BACK                "\\skybox_frontback.png"
+#define BACKGROUND_IMAGE           "\\background.bmp"
 #define FOOT_STEP_LEFT_SOUND_FILE  "\\footstep_left.wav"
 #define FOOT_STEP_RIGHT_SOUND_FILE "\\footstep_right.wav"
 #define CAVE_AMBIENT_SOUND_FILE    "\\cave_ambient.wav"
 #define DING_SOUND_FILE            "\\ding.wav"
 #define HIT_SOUND_FILE             "\\hit.wav"
-
-#ifdef USE_BOT
-    #define MDL_BOT_FILE           "\\wizard.mdl"
-    #define FADER_TEXTURE_FILE     "\\blank.bmp"
-#endif
+#define WARNING_SOUND_FILE         "\\warning.wav"
 
 //----------------------------------------------------------------------------
 // Global constants
@@ -106,15 +104,13 @@ const char g_FSTextured[] =
 //---------------------------------------------------------------------------
 // TMainForm::IBot
 //---------------------------------------------------------------------------
-#ifdef USE_BOT
-    TMainForm::IBot::IBot() :
-        m_pModel(NULL),
-        m_DyingSequence(E_DS_None),
-        m_Angle(0.0f),
-        m_Velocity(0.0f)
-        m_MovePos(0.0f)
-    {}
-#endif
+TMainForm::IBot::IBot() :
+    m_pModel(NULL),
+    m_DyingSequence(E_DS_None),
+    m_Angle(0.0f),
+    m_Velocity(0.0f),
+    m_MovePos(0.0f)
+{}
 //---------------------------------------------------------------------------
 // TMainForm::ICollectible
 //---------------------------------------------------------------------------
@@ -133,8 +129,10 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pOpenALDevice(NULL),
     m_pOpenALContext(NULL),
     m_pScene(NULL),
+    m_pTaskManager(NULL),
     m_pShader(NULL),
     m_pSkyboxShader(NULL),
+    m_pBackground(NULL),
     m_pLandscapeKey(NULL),
     m_MapHeight(3.0f),
     m_MapScale(0.2f),
@@ -163,23 +161,20 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     m_pCaveAmbientSound(NULL),
     m_pFootStepLeftSound(NULL),
     m_pFootStepRightSound(NULL),
+    m_pHitSound(NULL),
     m_pDingSound(NULL),
+    m_pWarningSound(NULL),
     m_FPS(0.0),
+    m_BotAlpha(1.0f),
+    m_BotShowPlayer(0),
+    m_BotHitPlayer(0),
+    m_BotDying(0),
+    m_PlayerDying(0),
     m_StartTime(0L),
     m_PreviousTime(0L),
-    m_Initialized(false)
-    #ifdef USE_BOT
-        ,
-        m_pTaskManager(NULL),
-        m_pFader(NULL),
-        m_pHitSound(NULL),
-        m_BotAlpha(1.0f),
-        m_FaderAlpha(0.0f),
-        m_BotShowPlayer(0),
-        m_BotHitPlayer(0),
-        m_BotDying(0),
-        m_PlayerDying(0)
-    #endif
+    m_Initialized(false),
+    m_ShowBot(false),
+    m_GameOver(true)
 {
     // build the model dir from the application exe
     #ifdef _DEBUG
@@ -256,6 +251,9 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 {
+    if (m_GameOver)
+        return;
+
     m_PosVelocity = 0.0f;
     m_DirVelocity = 0.0f;
 
@@ -273,30 +271,88 @@ void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
             return;
     }
 }
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::tmHideMsgTimer(TObject* pSender)
+{
+    tmHideMsg->Enabled = false;
+    paMessage->Visible = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::tmCloseGameOverTimer(TObject* pSender)
+{
+    tmCloseGameOver->Enabled = false;
+    paGameOverMsg->Visible   = false;
+    paMainMenu->Visible      = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::laMenuItemMouseEnter(TObject* pSender)
+{
+    TLabel* pLabel = dynamic_cast<TLabel*>(pSender);
+
+    if (pLabel)
+        pLabel->Font->Color = clRed;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::laMenuItemMouseLeave(TObject* pSender)
+{
+    TLabel* pLabel = dynamic_cast<TLabel*>(pSender);
+
+    if (pLabel)
+        pLabel->Font->Color = clYellow;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::laStartGameWithoutBotClick(TObject* pSender)
+{
+    // reset the player position
+    m_BoundingSphere.m_Center.m_X = 0.0f;
+    m_BoundingSphere.m_Center.m_Y = 0.0f;
+    m_BoundingSphere.m_Center.m_Z = 0.0f;
+
+    // reset the game state
+    m_ShowBot           = false;
+    m_PlayerDying       = false;
+    m_GameOver          = false;
+    paMainMenu->Visible = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::laStartGameWithBotClick(TObject *Sender)
+{
+    // reset the player position
+    m_BoundingSphere.m_Center.m_X = 0.0f;
+    m_BoundingSphere.m_Center.m_Y = 0.0f;
+    m_BoundingSphere.m_Center.m_Z = 0.0f;
+
+    // reset the game state
+    m_ShowBot           = true;
+    m_PlayerDying       = false;
+    m_GameOver          = false;
+    paMainMenu->Visible = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::laExitClick(TObject* pSender)
+{
+    Application->Terminate();
+}
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnTaskChangeCallback(CSR_Task* pTask, double elapsedTime)
-    {
-        TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+void TMainForm::OnTaskChangeCallback(CSR_Task* pTask, double elapsedTime)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
-        if (!pMainForm)
-            return;
+    if (!pMainForm)
+        return;
 
-        pMainForm->OnTaskChange(pTask, elapsedTime);
-    }
-#endif
+    pMainForm->OnTaskChange(pTask, elapsedTime);
+}
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnTaskRunCallback(CSR_Task* pTask, double elapsedTime)
-    {
-        TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+int TMainForm::OnTaskRunCallback(CSR_Task* pTask, double elapsedTime)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
-        if (!pMainForm)
-            return 0;
+    if (!pMainForm)
+        return 0;
 
-        return pMainForm->OnTaskRun(pTask, elapsedTime);
-    }
-#endif
+    return pMainForm->OnTaskRun(pTask, elapsedTime);
+}
 //------------------------------------------------------------------------------
 void* TMainForm::OnGetShaderCallback(const void* pModel, CSR_EModelType type)
 {
@@ -348,20 +404,18 @@ void* TMainForm::OnGetIDCallback(const void* pKey)
     return pMainForm->OnGetID(pKey);
 }
 //---------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnGetMDLIndexCallback(const CSR_MDL*     pMDL,
-                                                std::size_t* pSkinIndex,
-                                                std::size_t* pModelIndex,
-                                                std::size_t* pMeshIndex)
-    {
-        TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
+void TMainForm::OnGetMDLIndexCallback(const CSR_MDL*     pMDL,
+                                            std::size_t* pSkinIndex,
+                                            std::size_t* pModelIndex,
+                                            std::size_t* pMeshIndex)
+{
+    TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);
 
-        if (!pMainForm)
-            return;
+    if (!pMainForm)
+        return;
 
-        pMainForm->OnGetMDLIndex(pMDL, pSkinIndex, pModelIndex, pMeshIndex);
-    }
-#endif
+    pMainForm->OnGetMDLIndex(pMDL, pSkinIndex, pModelIndex, pMeshIndex);
+}
 //---------------------------------------------------------------------------
 void TMainForm::OnDeleteTextureCallback(const CSR_Texture* pTexture)
 {
@@ -429,7 +483,6 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
 
                 // iterate through pixels to copy
                 for (int x = 0; x < pTexture->Width; ++x)
-                {
                     // copy to pixel array and take the opportunity to swap the pixel RGB values
                     if (pixelSize == 3)
                     {
@@ -444,7 +497,6 @@ GLuint TMainForm::LoadTexture(const std::string& fileName) const
                         ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 2] = pLineRGBA[x].rgbBlue;
                         ((unsigned char*)pPixelBuffer->m_pData)[yPos + (x * 4) + 3] = pLineRGBA[x].rgbReserved;
                     }
-                }
             }
 
             // load the texture on the GPU
@@ -529,7 +581,6 @@ GLuint TMainForm::LoadCubemap(const IFileNames fileNames) const
 
                     // iterate through pixels to copy
                     for (int x = 0; x < pTexture->Width; ++x)
-                    {
                         // copy to pixel array
                         if (pixelSize == 3)
                         {
@@ -548,7 +599,6 @@ GLuint TMainForm::LoadCubemap(const IFileNames fileNames) const
                             ((unsigned char*)pPixelBuffer->m_pData)[offset + 2] = pLineRGBA[x].rgbBlue;
                             ((unsigned char*)pPixelBuffer->m_pData)[offset + 3] = pLineRGBA[x].rgbReserved;
                         }
-                    }
                 }
 
                 // load the texture on the GPU
@@ -623,10 +673,7 @@ void TMainForm::InitScene(int w, int h)
     m_SceneContext.m_fOnGetShader     = OnGetShaderCallback;
     m_SceneContext.m_fOnGetID         = OnGetIDCallback;
     m_SceneContext.m_fOnDeleteTexture = OnDeleteTextureCallback;
-
-    #ifdef USE_BOT
-        m_SceneContext.m_fOnGetMDLIndex = OnGetMDLIndexCallback;
-    #endif
+    m_SceneContext.m_fOnGetMDLIndex   = OnGetMDLIndexCallback;
 
     // compile, link and use shader
     m_pShader = csrOpenGLShaderLoadFromStr(&g_VSTextured[0],
@@ -813,67 +860,67 @@ void TMainForm::InitScene(int w, int h)
     m_Door.m_Matrix.m_Table[3][1] = m_Door.m_Geometry.m_Center.m_Y;
     m_Door.m_Matrix.m_Table[3][2] = m_Door.m_Geometry.m_Center.m_Z;
 
-    #ifdef USE_BOT
-        m_Bot.m_Angle         = 0.0f;
-        m_Bot.m_Velocity      = 0.5f;
-        m_Bot.m_DyingSequence = E_DS_None;
+    // configure the bot
+    m_Bot.m_Angle         = 0.0f;
+    m_Bot.m_Velocity      = 0.5f;
+    m_Bot.m_DyingSequence = E_DS_None;
 
-        BuildBotMatrix();
+    BuildBotMatrix();
 
-        // configure the vertex format
-        vertexFormat.m_HasNormal         = 0;
-        vertexFormat.m_HasTexCoords      = 1;
-        vertexFormat.m_HasPerVertexColor = 1;
+    // configure the vertex format
+    vertexFormat.m_HasNormal         = 0;
+    vertexFormat.m_HasTexCoords      = 1;
+    vertexFormat.m_HasPerVertexColor = 1;
 
-        // configure the material
-        material.m_Color       = 0xFFFFFFFF;
-        material.m_Transparent = 1;
-        material.m_Wireframe   = 0;
+    // configure the material
+    material.m_Color       = 0xFFFFFFFF;
+    material.m_Transparent = 1;
+    material.m_Wireframe   = 0;
 
-        // load the MDL model
-        m_Bot.m_pModel = csrMDLOpen((m_SceneDir + MDL_BOT_FILE).c_str(),
-                                    0,
-                                    &vertexFormat,
-                                    0,
-                                    &material,
-                                    0,
-                                    OnApplySkinCallback,
-                                    OnDeleteTextureCallback);
+    // load the MDL model
+    m_Bot.m_pModel = csrMDLOpen((m_SceneDir + MDL_BOT_FILE).c_str(),
+                                0,
+                                &vertexFormat,
+                                0,
+                                &material,
+                                0,
+                                OnApplySkinCallback,
+                                OnDeleteTextureCallback);
 
-        // add the model to the scene
-        CSR_SceneItem* pSceneItem = csrSceneAddMDL(m_pScene, m_Bot.m_pModel, 1, 0);
-        csrSceneAddModelMatrix(m_pScene, m_Bot.m_pModel, &m_Bot.m_Matrix);
+    // succeeded?
+    if (!m_Bot.m_pModel)
+    {
+        std::string errorMsg  = "An error happened while the scene was created.\r\n\r\nThe bot model could not be created.\r\n\r\nPlease check if the Resources directory was well extracted next to the executable file and if it contains the wizard.mdl file.";
+        errorMsg             += (char*)glGetString(GL_VERSION);
+        ::MessageDlg(errorMsg.c_str(), mtWarning, TMsgDlgButtons() << mbOK, 0);
 
-        // succeeded?
-        if (pSceneItem)
-            pSceneItem->m_CollisionType = CSR_CO_Ground;
+        Close();
+        return;
+    }
 
-        // configure bot geometry
-        m_Bot.m_Geometry.m_Center.m_X = 3.0f;
-        m_Bot.m_Geometry.m_Center.m_Y = 0.0f;
-        m_Bot.m_Geometry.m_Center.m_Z = 0.0f;
-        m_Bot.m_Geometry.m_Radius     = 0.125f;
+    // add the model to the scene
+    CSR_SceneItem* pSceneItem = csrSceneAddMDL(m_pScene, m_Bot.m_pModel, 1, 0);
+    csrSceneAddModelMatrix(m_pScene, m_Bot.m_pModel, &m_Bot.m_Matrix);
 
-        // configure the vertex format
-        vertexFormat.m_HasNormal         = 0;
-        vertexFormat.m_HasTexCoords      = 1;
-        vertexFormat.m_HasPerVertexColor = 1;
+    // succeeded?
+    if (pSceneItem)
+        pSceneItem->m_CollisionType = CSR_CO_Ground;
 
-        // configure the material
-        material.m_Color       = 0xFF0000FF;
-        material.m_Transparent = 1;
-        material.m_Wireframe   = 0;
+    // configure bot geometry
+    m_Bot.m_Geometry.m_Center.m_X = 3.0f;
+    m_Bot.m_Geometry.m_Center.m_Y = 0.0f;
+    m_Bot.m_Geometry.m_Center.m_Z = 0.0f;
+    m_Bot.m_Geometry.m_Radius     = 0.125f;
 
-        // create a surface for the fader
-        m_pFader = csrShapeCreateSurface(100.0f, 100.0f, &vertexFormat, 0, &material, 0);
+    // configure the vertex format
+    vertexFormat.m_HasNormal         = 0;
+    vertexFormat.m_HasTexCoords      = 1;
+    vertexFormat.m_HasPerVertexColor = 1;
 
-        // add the mesh to the scene
-        pSceneItem = csrSceneAddMesh(m_pScene, m_pFader, 1, 0);
-        csrSceneAddModelMatrix(m_pScene, m_pFader, &m_FaderMatrix);
-
-        // initialize the fader matrix
-        BuildFaderMatrix();
-    #endif
+    // configure the material
+    material.m_Color       = 0xFF0000FF;
+    material.m_Transparent = 1;
+    material.m_Wireframe   = 0;
 
     const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader(CSR_ShaderHelper::IE_ST_Skybox);
     const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
@@ -934,10 +981,9 @@ void TMainForm::InitScene(int w, int h)
     m_pCaveAmbientSound   = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + CAVE_AMBIENT_SOUND_FILE).c_str());
     m_pFootStepLeftSound  = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_LEFT_SOUND_FILE).c_str());
     m_pFootStepRightSound = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + FOOT_STEP_RIGHT_SOUND_FILE).c_str());
-    #ifdef USE_BOT
-        m_pHitSound       = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + HIT_SOUND_FILE).c_str());
-    #endif
+    m_pHitSound           = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + HIT_SOUND_FILE).c_str());
     m_pDingSound          = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + DING_SOUND_FILE).c_str());
+    m_pWarningSound       = csrSoundOpenWavFile(m_pOpenALDevice, m_pOpenALContext, (m_SceneDir + WARNING_SOUND_FILE).c_str());
 
     // change the volume
     csrSoundChangeVolume(m_pFootStepLeftSound,  0.2f);
@@ -946,24 +992,22 @@ void TMainForm::InitScene(int w, int h)
     // loop the ambient sound
     csrSoundLoop(m_pCaveAmbientSound, 1);
 
-    #ifdef USE_BOT
-        // initialize the IA task manager
-        m_pTaskManager = csrTaskManagerCreate();
-        csrTaskManagerInit(m_pTaskManager);
-        m_pTaskManager->m_pTask = csrTaskCreate();
-        m_pTaskManager->m_Count = 1;
+    // initialize the IA task manager
+    m_pTaskManager = csrTaskManagerCreate();
+    csrTaskManagerInit(m_pTaskManager);
+    m_pTaskManager->m_pTask = csrTaskCreate();
+    m_pTaskManager->m_Count = 1;
 
-        // initialize the bot task
-        csrTaskInit(m_pTaskManager->m_pTask);
-        m_pTaskManager->m_pTask->m_Action = E_BT_Watching;
+    // initialize the bot task
+    csrTaskInit(m_pTaskManager->m_pTask);
+    m_pTaskManager->m_pTask->m_Action = E_BT_Watching;
 
-        // initialize the IA task manager context
-        m_TaskContext.m_fOnTaskChange = OnTaskChangeCallback;
-        m_TaskContext.m_fOnTaskRun    = OnTaskRunCallback;
+    // initialize the IA task manager context
+    m_TaskContext.m_fOnTaskChange = OnTaskChangeCallback;
+    m_TaskContext.m_fOnTaskRun    = OnTaskRunCallback;
 
-        // prepare the first bot task
-        OnPrepareWatching();
-    #endif
+    // prepare the first bot task
+    OnPrepareWatching();
 
     // play the ambient sound
     csrSoundPlay(m_pCaveAmbientSound);
@@ -976,9 +1020,7 @@ void TMainForm::DeleteScene()
     m_Initialized = false;
 
     // delete the task manager
-    #ifdef USE_BOT
-        csrTaskManagerRelease(m_pTaskManager);
-    #endif
+    csrTaskManagerRelease(m_pTaskManager);
 
     // delete the scene
     csrSceneRelease(m_pScene, OnDeleteTextureCallback);
@@ -993,25 +1035,31 @@ void TMainForm::DeleteScene()
     csrSoundStop(m_pCaveAmbientSound);
     csrSoundStop(m_pFootStepLeftSound);
     csrSoundStop(m_pFootStepRightSound);
-    #ifdef USE_BOT
-        csrSoundStop(m_pHitSound);
-    #endif
+    csrSoundStop(m_pHitSound);
+    csrSoundStop(m_pDingSound);
+    csrSoundStop(m_pWarningSound);
 
     // release OpenAL interface
     csrSoundRelease(m_pCaveAmbientSound);
     csrSoundRelease(m_pFootStepLeftSound);
     csrSoundRelease(m_pFootStepRightSound);
-    #ifdef USE_BOT
-        csrSoundRelease(m_pHitSound);
-    #endif
+    csrSoundRelease(m_pHitSound);
+    csrSoundRelease(m_pDingSound);
+    csrSoundRelease(m_pWarningSound);
 }
 //------------------------------------------------------------------------------
 void TMainForm::UpdateScene(float elapsedTime)
 {
-    #ifdef USE_BOT
+    if (m_GameOver)
+        return;
+
+    CSR_Sphere prevSphere;
+
+    // do show the bot?
+    if (m_ShowBot)
+    {
         float          posY;
         float          angle;
-        CSR_Sphere     prevSphere;
         CSR_SceneItem* pSceneItem;
 
         // check if the bot hit the player
@@ -1050,37 +1098,13 @@ void TMainForm::UpdateScene(float elapsedTime)
         // is player dying?
         if (m_PlayerDying)
         {
-            // reset the bot data
-            m_pTaskManager->m_pTask->m_Action = E_BT_Watching;
-            m_BotShowPlayer                   = 0;
+            // play hit sound
+            csrSoundPlay(m_pHitSound);
 
-            // fade to red
-            m_FaderAlpha += 1.0f * elapsedTime;
-
-            // fader max value reached?
-            if (m_FaderAlpha >= 1.0f)
-            {
-                m_FaderAlpha = 1.0f;
-
-                // get a new player position
-                m_BoundingSphere.m_Center.m_X = -3.0f + ((rand() % 600) / 100.0f);
-                m_BoundingSphere.m_Center.m_Z = -3.0f + ((rand() % 600) / 100.0f);
-
-                // update the fader position
-                BuildFaderMatrix();
-
-                m_PlayerDying = 0;
-            }
-
+            OnGameOver(true);
             return;
         }
-
-        // fade out
-        if (m_FaderAlpha > 0.0f)
-            m_FaderAlpha -= 1.0f * elapsedTime;
-        else
-            m_FaderAlpha = 0.0f;
-    #endif
+    }
 
     // is player rotating?
     if (m_DirVelocity)
@@ -1096,11 +1120,7 @@ void TMainForm::UpdateScene(float elapsedTime)
             m_Angle += M_PI * 2.0f;
     }
 
-    #ifdef USE_BOT
-        prevSphere = m_BoundingSphere;
-    #else
-        CSR_Sphere prevSphere = m_BoundingSphere;
-    #endif
+    prevSphere = m_BoundingSphere;
 
     // is player moving?
     if (m_PosVelocity)
@@ -1138,10 +1158,6 @@ void TMainForm::UpdateScene(float elapsedTime)
             // previous position is always considered as valid)
             ApplyGroundCollision(&m_BoundingSphere, &m_pScene->m_ViewMatrix);
         }
-
-        #ifdef USE_BOT
-            BuildFaderMatrix();
-        #endif
 
         // calculate next time where the step sound should be played
         m_StepTime += (elapsedTime * 1000.0f);
@@ -1211,8 +1227,8 @@ void TMainForm::UpdateScene(float elapsedTime)
             laMessage->Caption = L"I have matches, maybe there is dynamite somewhere? ";
         else
         {
-            ::MessageDlg("You WIN!!!", mtInformation, TMsgDlgButtons() << mbOK, 0);
-            Application->Terminate();
+            OnGameOver(false);
+            return;
         }
 
         paMessage->Visible = true;
@@ -1288,82 +1304,45 @@ int TMainForm::LoadLandscapeFromBitmap(const char* fileName)
     return 1;
 }
 //---------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::BuildBotMatrix()
-    {
-        CSR_Vector3 axis;
-        CSR_Vector3 factor;
-        CSR_Matrix4 rotateXMatrix;
-        CSR_Matrix4 rotateYMatrix;
-        CSR_Matrix4 scaleMatrix;
-        CSR_Matrix4 intermediateMatrix;
+void TMainForm::BuildBotMatrix()
+{
+    CSR_Vector3 axis;
+    CSR_Vector3 factor;
+    CSR_Matrix4 rotateXMatrix;
+    CSR_Matrix4 rotateYMatrix;
+    CSR_Matrix4 scaleMatrix;
+    CSR_Matrix4 intermediateMatrix;
 
-        csrMat4Identity(&m_Bot.m_Matrix);
+    csrMat4Identity(&m_Bot.m_Matrix);
 
-        // set rotation axis
-        axis.m_X = 1.0f;
-        axis.m_Y = 0.0f;
-        axis.m_Z = 0.0f;
+    // set rotation axis
+    axis.m_X = 1.0f;
+    axis.m_Y = 0.0f;
+    axis.m_Z = 0.0f;
 
-        // create the rotation matrix
-        csrMat4Rotate(-M_PI / 2.0f, &axis, &rotateXMatrix);
+    // create the rotation matrix
+    csrMat4Rotate(-M_PI / 2.0f, &axis, &rotateXMatrix);
 
-        // set rotation axis
-        axis.m_X = 0.0f;
-        axis.m_Y = 1.0f;
-        axis.m_Z = 0.0f;
+    // set rotation axis
+    axis.m_X = 0.0f;
+    axis.m_Y = 1.0f;
+    axis.m_Z = 0.0f;
 
-        // create the rotation matrix
-        csrMat4Rotate(m_Bot.m_Angle, &axis, &rotateYMatrix);
+    // create the rotation matrix
+    csrMat4Rotate(m_Bot.m_Angle, &axis, &rotateYMatrix);
 
-        // set scale factor
-        factor.m_X = 0.005f;
-        factor.m_Y = 0.005f;
-        factor.m_Z = 0.005f;
+    // set scale factor
+    factor.m_X = 0.005f;
+    factor.m_Y = 0.005f;
+    factor.m_Z = 0.005f;
 
-        // create the scale matrix
-        csrMat4Scale(&factor, &scaleMatrix);
+    // create the scale matrix
+    csrMat4Scale(&factor, &scaleMatrix);
 
-        // build the model matrix
-        csrMat4Multiply(&scaleMatrix,        &rotateXMatrix, &intermediateMatrix);
-        csrMat4Multiply(&intermediateMatrix, &rotateYMatrix, &m_Bot.m_Matrix);
-    }
-#endif
-//---------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::BuildFaderMatrix()
-    {
-        CSR_Vector3 translation;
-        CSR_Vector3 axis;
-        CSR_Matrix4 translateMatrix;
-        CSR_Matrix4 rotateYMatrix;
-        float       angle;
-
-        csrMat4Identity(&m_FaderMatrix);
-
-        // calculate the fader angle
-        angle = (M_PI * 2.0f) - m_Angle;
-
-        // calculate the fader position
-        translation.m_X = m_BoundingSphere.m_Center.m_X - (0.05 * sin(angle));
-        translation.m_Y = m_BoundingSphere.m_Center.m_Y;
-        translation.m_Z = m_BoundingSphere.m_Center.m_Z - (0.05 * cos(angle));
-
-        // create the translate matrix
-        csrMat4Translate(&translation, &translateMatrix);
-
-        // set rotation axis
-        axis.m_X = 0.0f;
-        axis.m_Y = 1.0f;
-        axis.m_Z = 0.0f;
-
-        // create the rotation matrix
-        csrMat4Rotate(angle, &axis, &rotateYMatrix);
-
-        // build the final matrix
-        csrMat4Multiply(&rotateYMatrix, &translateMatrix, &m_FaderMatrix);
-    }
-#endif
+    // build the model matrix
+    csrMat4Multiply(&scaleMatrix,        &rotateXMatrix, &intermediateMatrix);
+    csrMat4Multiply(&intermediateMatrix, &rotateYMatrix, &m_Bot.m_Matrix);
+}
 //---------------------------------------------------------------------------
 int TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix) const
 {
@@ -1424,276 +1403,81 @@ int TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matri
     return 0;
 }
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::CheckPlayerVisible()
+int TMainForm::CheckPlayerVisible()
+{
+    CSR_SceneItem*     pSceneItem;
+    CSR_Vector3        botToPlayer;
+    CSR_Vector3        botToPlayerDir;
+    CSR_Polygon3Buffer polygons;
+    CSR_Ray3           ray;
+    float              angle;
+
+    // calculate the bot to player vector
+    botToPlayer.m_X = m_Bot.m_Geometry.m_Center.m_X - m_BoundingSphere.m_Center.m_X;
+    botToPlayer.m_Y = m_Bot.m_Geometry.m_Center.m_Y - m_BoundingSphere.m_Center.m_Y;
+    botToPlayer.m_Z = m_Bot.m_Geometry.m_Center.m_Z - m_BoundingSphere.m_Center.m_Z;
+
+    // calculate the angle between the bot dir and the bot to player dir
+    csrVec3Normalize(&botToPlayer, &botToPlayerDir);
+    csrVec3Dot(&botToPlayerDir, &m_Bot.m_Dir, &angle);
+
+    // is bot showing the player?
+    if (angle > -0.707f)
     {
-        CSR_SceneItem*     pSceneItem;
-        CSR_Vector3        botToPlayer;
-        CSR_Vector3        botToPlayerDir;
-        CSR_Polygon3Buffer polygons;
-        CSR_Ray3           ray;
-        float              angle;
-
-        // calculate the bot to player vector
-        botToPlayer.m_X = m_Bot.m_Geometry.m_Center.m_X - m_BoundingSphere.m_Center.m_X;
-        botToPlayer.m_Y = m_Bot.m_Geometry.m_Center.m_Y - m_BoundingSphere.m_Center.m_Y;
-        botToPlayer.m_Z = m_Bot.m_Geometry.m_Center.m_Z - m_BoundingSphere.m_Center.m_Z;
-
-        // calculate the angle between the bot dir and the bot to player dir
-        csrVec3Normalize(&botToPlayer, &botToPlayerDir);
-        csrVec3Dot(&botToPlayerDir, &m_Bot.m_Dir, &angle);
-
-        // is bot showing the player?
-        if (angle > -0.707f)
-            return 0;
-
-        return 1;
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::CheckBotHitPlayer()
-    {
-        CSR_Figure3 firstSphere;
-        CSR_Figure3 secondSphere;
-
-        // get the player bounding object
-        firstSphere.m_Type    = CSR_F3_Sphere;
-        firstSphere.m_pFigure = &m_BoundingSphere;
-
-        // get the bot bounding object
-        secondSphere.m_Type    = CSR_F3_Sphere;
-        secondSphere.m_pFigure = &m_Bot.m_Geometry;
-
-        return csrIntersect3(&firstSphere, &secondSphere, 0, 0, 0);
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnPrepareWatching()
-    {
-        // calculate a new sleep time and reset the elapsed time
-        m_WatchingTime  = (double)(rand() % 200) / 100.0;
-        m_ElapsedTime   = 0.0;
-        m_BotShowPlayer = 0;
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnWatching(double elapsedTime)
-    {
-        if (m_BotAlpha < 1.0f)
-            m_BotAlpha += 1.0f * elapsedTime;
-
-        if (m_BotAlpha >= 1.0f)
-        {
-            m_BotAlpha            = 1.0f;
-            m_Bot.m_DyingSequence = E_DS_None;
-        }
-
-        // is player alive?
-        if (!m_PlayerDying)
-        {
-            // player hit bot?
-            if (m_BotHitPlayer)
-            {
-                m_BotDying = 1;
-
-                // play hit sound
-                csrSoundPlay(m_pHitSound);
-
-                return 1;
-            }
-
-            // is bot showing player?
-            if (CheckPlayerVisible())
-            {
-                m_BotShowPlayer = 1;
-                return 1;
-            }
-        }
-
-        // watching time elapsed?
-        if (m_ElapsedTime >= m_WatchingTime)
-            return 1;
-
-        m_ElapsedTime += elapsedTime;
+        paWarning->Visible = false;
         return 0;
     }
-#endif
+
+    // play hit sound
+    if (!paWarning->Visible)
+        csrSoundPlay(m_pWarningSound);
+
+    paWarning->Visible = true;
+    return 1;
+}
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnPrepareSearching()
+int TMainForm::CheckBotHitPlayer()
+{
+    CSR_Figure3 firstSphere;
+    CSR_Figure3 secondSphere;
+
+    // get the player bounding object
+    firstSphere.m_Type    = CSR_F3_Sphere;
+    firstSphere.m_pFigure = &m_BoundingSphere;
+
+    // get the bot bounding object
+    secondSphere.m_Type    = CSR_F3_Sphere;
+    secondSphere.m_pFigure = &m_Bot.m_Geometry;
+
+    return csrIntersect3(&firstSphere, &secondSphere, 0, 0, 0);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnPrepareWatching()
+{
+    // calculate a new sleep time and reset the elapsed time
+    m_WatchingTime  = (double)(rand() % 200) / 100.0;
+    m_ElapsedTime   = 0.0;
+    m_BotShowPlayer = 0;
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnWatching(double elapsedTime)
+{
+    if (m_BotAlpha < 1.0f)
+        m_BotAlpha += 1.0f * elapsedTime;
+
+    if (m_BotAlpha >= 1.0f)
     {
-        CSR_Vector3 dir;
-        CSR_Vector3 refDir;
-        CSR_Vector3 refNormal;
-        float       angle;
-
-        // build the reference dir
-        refDir.m_X = 1.0f;
-        refDir.m_Y = 0.0f;
-        refDir.m_Z = 0.0f;
-
-        // build the reference dir
-        refNormal.m_X = 0.0f;
-        refNormal.m_Y = 0.0f;
-        refNormal.m_Z = 1.0f;
-
-        // keep the current position as the start one
-        m_Bot.m_StartPosition.m_X = m_Bot.m_Geometry.m_Center.m_X;
-        m_Bot.m_StartPosition.m_Y = m_Bot.m_Geometry.m_Center.m_Z;
-
-        // get a new position to move to
-        m_Bot.m_EndPosition.m_X = -3.0f + ((rand() % 600) / 100.0f);
-        m_Bot.m_EndPosition.m_Y = -3.0f + ((rand() % 600) / 100.0f);
-
-        // calculate the bot direction
-        dir.m_X = m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X;
-        dir.m_Y = 0.0f;
-        dir.m_Z = m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y;
-        csrVec3Normalize(&dir, &m_Bot.m_Dir);
-
-        // calculate the bot direction angle
-        csrVec3Dot(&refDir, &m_Bot.m_Dir, &angle);
-        m_Bot.m_Angle = std::acos(angle);
-
-        // calculate the bot direction normal angle
-        csrVec3Dot(&refNormal, &m_Bot.m_Dir, &angle);
-
-        // calculate the final bot direction angle
-        if (angle < 0.0f)
-            m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
-        else
-            m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
-
-        m_Bot.m_MovePos = 0.0f;
-        m_BotShowPlayer = 0;
+        m_BotAlpha            = 1.0f;
+        m_Bot.m_DyingSequence = E_DS_None;
     }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnSearching(double elapsedTime)
+
+    // is player alive?
+    if (!m_PlayerDying)
     {
-        if (m_BotAlpha < 1.0f)
-            m_BotAlpha += 1.0f * elapsedTime;
-
-        if (m_BotAlpha >= 1.0f)
-        {
-            m_BotAlpha            = 1.0f;
-            m_Bot.m_DyingSequence = E_DS_None;
-        }
-
-        // calculate the next position
-        m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_StartPosition.m_X + ((m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X) * m_Bot.m_MovePos);
-        m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_StartPosition.m_Y + ((m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y) * m_Bot.m_MovePos);
-
-        // calculate the next move
-        m_Bot.m_MovePos += m_Bot.m_Velocity * elapsedTime;
-
-        // is player alive?
-        if (!m_PlayerDying)
-        {
-            // player hit bot?
-            if (m_BotHitPlayer)
-            {
-                m_BotDying = 1;
-
-                // play hit sound
-                csrSoundPlay(m_pHitSound);
-
-                return 1;
-            }
-
-            // is bot showing player?
-            if (CheckPlayerVisible())
-            {
-                m_BotShowPlayer = 1;
-                return 1;
-            }
-        }
-
-        // check if move end was reached
-        return m_Bot.m_MovePos >= 1.0f;
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnPrepareAttacking()
-    {
-        CSR_Vector3 dir;
-        CSR_Vector3 refDir;
-        CSR_Vector3 refNormal;
-        float       angle;
-
-        // build the reference dir
-        refDir.m_X = 1.0f;
-        refDir.m_Y = 0.0f;
-        refDir.m_Z = 0.0f;
-
-        // build the reference dir
-        refNormal.m_X = 0.0f;
-        refNormal.m_Y = 0.0f;
-        refNormal.m_Z = 1.0f;
-
-        // keep the current position as the start one
-        m_Bot.m_StartPosition.m_X = m_Bot.m_Geometry.m_Center.m_X;
-        m_Bot.m_StartPosition.m_Y = m_Bot.m_Geometry.m_Center.m_Z;
-
-        // get the player position as destination
-        m_Bot.m_EndPosition.m_X = m_BoundingSphere.m_Center.m_X;
-        m_Bot.m_EndPosition.m_Y = m_BoundingSphere.m_Center.m_Z;
-
-        // calculate the bot direction
-        dir.m_X = m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X;
-        dir.m_Y = 0.0f;
-        dir.m_Z = m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y;
-        csrVec3Normalize(&dir, &m_Bot.m_Dir);
-
-        // calculate the bot direction angle
-        csrVec3Dot(&refDir, &m_Bot.m_Dir, &angle);
-        m_Bot.m_Angle = std::acos(angle);
-
-        // calculate the bot direction normal angle
-        csrVec3Dot(&refNormal, &m_Bot.m_Dir, &angle);
-
-        // calculate the final bot direction angle
-        if (angle < 0.0f)
-            m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
-        else
-            m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
-
-        m_Bot.m_MovePos = 0.0f;
-        m_BotShowPlayer = 0;
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnAttacking(double elapsedTime)
-    {
-        if (m_BotAlpha < 1.0f)
-            m_BotAlpha += 1.0f * elapsedTime;
-
-        if (m_BotAlpha >= 1.0f)
-        {
-            m_BotAlpha            = 1.0f;
-            m_Bot.m_DyingSequence = E_DS_None;
-        }
-
-        // calculate the next position
-        m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_StartPosition.m_X + ((m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X) * m_Bot.m_MovePos);
-        m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_StartPosition.m_Y + ((m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y) * m_Bot.m_MovePos);
-
-        // calculate the next move
-        m_Bot.m_MovePos += m_Bot.m_Velocity * elapsedTime;
-
-        // to keep the correct visual
-        CheckPlayerVisible();
-
-        // the bot hit the player?
+        // player hit bot?
         if (m_BotHitPlayer)
         {
-            m_PlayerDying = 1;
+            m_BotDying = 1;
 
             // play hit sound
             csrSoundPlay(m_pHitSound);
@@ -1701,126 +1485,305 @@ int TMainForm::ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matri
             return 1;
         }
 
-        // check if move end was reached
-        return (m_Bot.m_MovePos >= 1.0f);
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnPrepareDying()
-    {
-        m_Bot.m_DyingSequence = E_DS_Dying;
-        m_LastKnownIndex      = 0;
-    }
-#endif
-//------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnDying(double elapsedTime)
-    {
-        // execute the dying sequence
-        switch (m_Bot.m_DyingSequence)
+        // is bot showing player?
+        if (CheckPlayerVisible())
         {
-            case E_DS_Dying:
-                // dying animation end reached?
-                if (m_LastKnownIndex && m_ModelIndex < m_LastKnownIndex)
-                {
-                    m_ModelIndex          = m_LastKnownIndex;
-                    m_Bot.m_DyingSequence = E_DS_FadeOut;
-                }
-                else
-                    m_LastKnownIndex = m_ModelIndex;
+            m_BotShowPlayer = 1;
+            return 1;
+        }
+    }
 
-                break;
+    // watching time elapsed?
+    if (m_ElapsedTime >= m_WatchingTime)
+        return 1;
 
-            case E_DS_FadeOut:
-                // fade out the bot
-                m_BotAlpha -= 1.0f * elapsedTime;
+    m_ElapsedTime += elapsedTime;
+    return 0;
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnPrepareSearching()
+{
+    CSR_Vector3 dir;
+    CSR_Vector3 refDir;
+    CSR_Vector3 refNormal;
+    float       angle;
 
-                // fade out end reached?
-                if (m_BotAlpha <= 0.0f)
-                {
-                    m_BotAlpha            = 0.0f;
-                    m_Bot.m_DyingSequence = E_DS_FadeIn;
+    // build the reference dir
+    refDir.m_X = 1.0f;
+    refDir.m_Y = 0.0f;
+    refDir.m_Z = 0.0f;
 
-                    // ...thus a new position will be calculated
-                    OnPrepareSearching();
+    // build the reference dir
+    refNormal.m_X = 0.0f;
+    refNormal.m_Y = 0.0f;
+    refNormal.m_Z = 1.0f;
 
-                    // apply it immediately
-                    m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_EndPosition.m_X;
-                    m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_EndPosition.m_Y;
-                }
+    // keep the current position as the start one
+    m_Bot.m_StartPosition.m_X = m_Bot.m_Geometry.m_Center.m_X;
+    m_Bot.m_StartPosition.m_Y = m_Bot.m_Geometry.m_Center.m_Z;
 
-                break;
+    // get a new position to move to
+    m_Bot.m_EndPosition.m_X = -3.0f + ((rand() % 600) / 100.0f);
+    m_Bot.m_EndPosition.m_Y = -3.0f + ((rand() % 600) / 100.0f);
 
-            case E_DS_FadeIn:
-                m_BotShowPlayer = 0;
-                m_BotDying      = 0;
-                return 1;
+    // calculate the bot direction
+    dir.m_X = m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X;
+    dir.m_Y = 0.0f;
+    dir.m_Z = m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y;
+    csrVec3Normalize(&dir, &m_Bot.m_Dir);
+
+    // calculate the bot direction angle
+    csrVec3Dot(&refDir, &m_Bot.m_Dir, &angle);
+    m_Bot.m_Angle = std::acos(angle);
+
+    // calculate the bot direction normal angle
+    csrVec3Dot(&refNormal, &m_Bot.m_Dir, &angle);
+
+    // calculate the final bot direction angle
+    if (angle < 0.0f)
+        m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
+    else
+        m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
+
+    m_Bot.m_MovePos = 0.0f;
+    m_BotShowPlayer = 0;
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnSearching(double elapsedTime)
+{
+    if (m_BotAlpha < 1.0f)
+        m_BotAlpha += 1.0f * elapsedTime;
+
+    if (m_BotAlpha >= 1.0f)
+    {
+        m_BotAlpha            = 1.0f;
+        m_Bot.m_DyingSequence = E_DS_None;
+    }
+
+    // calculate the next position
+    m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_StartPosition.m_X + ((m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X) * m_Bot.m_MovePos);
+    m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_StartPosition.m_Y + ((m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y) * m_Bot.m_MovePos);
+
+    // calculate the next move
+    m_Bot.m_MovePos += m_Bot.m_Velocity * elapsedTime;
+
+    // is player alive?
+    if (!m_PlayerDying)
+    {
+        // player hit bot?
+        if (m_BotHitPlayer)
+        {
+            m_BotDying = 1;
+
+            // play hit sound
+            csrSoundPlay(m_pHitSound);
+
+            return 1;
         }
 
-        return 0;
+        // is bot showing player?
+        if (CheckPlayerVisible())
+        {
+            m_BotShowPlayer = 1;
+            return 1;
+        }
     }
-#endif
+
+    // check if move end was reached
+    return m_Bot.m_MovePos >= 1.0f;
+}
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    void TMainForm::OnTaskChange(CSR_Task* pTask, double elapsedTime)
+void TMainForm::OnPrepareAttacking()
+{
+    CSR_Vector3 dir;
+    CSR_Vector3 refDir;
+    CSR_Vector3 refNormal;
+    float       angle;
+
+    // build the reference dir
+    refDir.m_X = 1.0f;
+    refDir.m_Y = 0.0f;
+    refDir.m_Z = 0.0f;
+
+    // build the reference dir
+    refNormal.m_X = 0.0f;
+    refNormal.m_Y = 0.0f;
+    refNormal.m_Z = 1.0f;
+
+    // keep the current position as the start one
+    m_Bot.m_StartPosition.m_X = m_Bot.m_Geometry.m_Center.m_X;
+    m_Bot.m_StartPosition.m_Y = m_Bot.m_Geometry.m_Center.m_Z;
+
+    // get the player position as destination
+    m_Bot.m_EndPosition.m_X = m_BoundingSphere.m_Center.m_X;
+    m_Bot.m_EndPosition.m_Y = m_BoundingSphere.m_Center.m_Z;
+
+    // calculate the bot direction
+    dir.m_X = m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X;
+    dir.m_Y = 0.0f;
+    dir.m_Z = m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y;
+    csrVec3Normalize(&dir, &m_Bot.m_Dir);
+
+    // calculate the bot direction angle
+    csrVec3Dot(&refDir, &m_Bot.m_Dir, &angle);
+    m_Bot.m_Angle = std::acos(angle);
+
+    // calculate the bot direction normal angle
+    csrVec3Dot(&refNormal, &m_Bot.m_Dir, &angle);
+
+    // calculate the final bot direction angle
+    if (angle < 0.0f)
+        m_Bot.m_Angle = std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
+    else
+        m_Bot.m_Angle = (M_PI * 2.0f) - std::fmod(m_Bot.m_Angle, float(M_PI * 2.0));
+
+    m_Bot.m_MovePos = 0.0f;
+    m_BotShowPlayer = 0;
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnAttacking(double elapsedTime)
+{
+    if (m_BotAlpha < 1.0f)
+        m_BotAlpha += 1.0f * elapsedTime;
+
+    if (m_BotAlpha >= 1.0f)
     {
-        // is bot dyimg?
-        if (m_BotDying)
-        {
-            OnPrepareDying();
+        m_BotAlpha            = 1.0f;
+        m_Bot.m_DyingSequence = E_DS_None;
+    }
 
-            m_pTaskManager->m_pTask->m_Action = E_BT_Dying;
-            m_AnimIndex                       = 4;
-            return;
-        }
+    // calculate the next position
+    m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_StartPosition.m_X + ((m_Bot.m_EndPosition.m_X - m_Bot.m_StartPosition.m_X) * m_Bot.m_MovePos);
+    m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_StartPosition.m_Y + ((m_Bot.m_EndPosition.m_Y - m_Bot.m_StartPosition.m_Y) * m_Bot.m_MovePos);
 
-        // do bot attack the player?
-        if (m_BotShowPlayer && !m_PlayerDying && pTask->m_Action != E_BT_Dying)
-        {
-            OnPrepareAttacking();
+    // calculate the next move
+    m_Bot.m_MovePos += m_Bot.m_Velocity * elapsedTime;
 
-            m_AnimIndex     = 1;
-            pTask->m_Action = E_BT_Attacking;
-            return;
-        }
+    // to keep the correct visual
+    CheckPlayerVisible();
 
-        // prepare the next task
-        switch (pTask->m_Action)
-        {
-            case E_BT_Watching:
+    // the bot hit the player?
+    if (m_BotHitPlayer)
+    {
+        m_PlayerDying = 1;
+
+        // play hit sound
+        csrSoundPlay(m_pHitSound);
+
+        return 1;
+    }
+
+    // check if move end was reached
+    return (m_Bot.m_MovePos >= 1.0f);
+}
+//------------------------------------------------------------------------------
+void TMainForm::OnPrepareDying()
+{
+    m_Bot.m_DyingSequence = E_DS_Dying;
+    m_LastKnownIndex      = 0;
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnDying(double elapsedTime)
+{
+    // execute the dying sequence
+    switch (m_Bot.m_DyingSequence)
+    {
+        case E_DS_Dying:
+            // dying animation end reached?
+            if (m_LastKnownIndex && m_ModelIndex < m_LastKnownIndex)
+            {
+                m_ModelIndex          = m_LastKnownIndex;
+                m_Bot.m_DyingSequence = E_DS_FadeOut;
+            }
+            else
+                m_LastKnownIndex = m_ModelIndex;
+
+            break;
+
+        case E_DS_FadeOut:
+            // fade out the bot
+            m_BotAlpha -= 1.0f * elapsedTime;
+
+            // fade out end reached?
+            if (m_BotAlpha <= 0.0f)
+            {
+                m_BotAlpha            = 0.0f;
+                m_Bot.m_DyingSequence = E_DS_FadeIn;
+
+                // ...thus a new position will be calculated
                 OnPrepareSearching();
 
-                m_AnimIndex     = 1;
-                pTask->m_Action = E_BT_Searching;
-                break;
+                // apply it immediately
+                m_Bot.m_Geometry.m_Center.m_X = m_Bot.m_EndPosition.m_X;
+                m_Bot.m_Geometry.m_Center.m_Z = m_Bot.m_EndPosition.m_Y;
+            }
 
-            case E_BT_Searching:
-            case E_BT_Attacking:
-            case E_BT_Dying:
-                OnPrepareWatching();
+            break;
 
-                m_AnimIndex     = 0;
-                pTask->m_Action = E_BT_Watching;
-                break;
-        }
+        case E_DS_FadeIn:
+            m_BotShowPlayer = 0;
+            m_BotDying      = 0;
+            return 1;
     }
-#endif
+
+    return 0;
+}
 //------------------------------------------------------------------------------
-#ifdef USE_BOT
-    int TMainForm::OnTaskRun(CSR_Task* pTask, double elapsedTime)
+void TMainForm::OnTaskChange(CSR_Task* pTask, double elapsedTime)
+{
+    // is bot dyimg?
+    if (m_BotDying)
     {
-        switch (pTask->m_Action)
-        {
-            case E_BT_Watching:  return OnWatching(elapsedTime);
-            case E_BT_Searching: return OnSearching(elapsedTime);
-            case E_BT_Attacking: return OnAttacking(elapsedTime);
-            case E_BT_Dying:     return OnDying(elapsedTime);
-        }
+        OnPrepareDying();
 
-        return 0;
+        m_pTaskManager->m_pTask->m_Action = E_BT_Dying;
+        m_AnimIndex                       = 4;
+        return;
     }
-#endif
+
+    // do bot attack the player?
+    if (m_BotShowPlayer && !m_PlayerDying && pTask->m_Action != E_BT_Dying)
+    {
+        OnPrepareAttacking();
+
+        m_AnimIndex     = 1;
+        pTask->m_Action = E_BT_Attacking;
+        return;
+    }
+
+    // prepare the next task
+    switch (pTask->m_Action)
+    {
+        case E_BT_Watching:
+            OnPrepareSearching();
+
+            m_AnimIndex     = 1;
+            pTask->m_Action = E_BT_Searching;
+            break;
+
+        case E_BT_Searching:
+        case E_BT_Attacking:
+        case E_BT_Dying:
+            OnPrepareWatching();
+
+            m_AnimIndex     = 0;
+            pTask->m_Action = E_BT_Watching;
+            break;
+    }
+}
+//------------------------------------------------------------------------------
+int TMainForm::OnTaskRun(CSR_Task* pTask, double elapsedTime)
+{
+    switch (pTask->m_Action)
+    {
+        case E_BT_Watching:  return OnWatching(elapsedTime);
+        case E_BT_Searching: return OnSearching(elapsedTime);
+        case E_BT_Attacking: return OnAttacking(elapsedTime);
+        case E_BT_Dying:     return OnDying(elapsedTime);
+    }
+
+    return 0;
+}
 //---------------------------------------------------------------------------
 void TMainForm::OnDrawScene(bool resize)
 {
@@ -1873,15 +1836,10 @@ void* TMainForm::OnGetShader(const void* pModel, CSR_EModelType type)
 
     csrShaderEnable(m_pShader);
 
-    // bot or fader?
-    #ifdef USE_BOT
-        if (pModel == m_Bot.m_pModel)
-            glUniform1f(m_AlphaSlot, m_BotAlpha);
-        else
-        if (pModel == m_pFader)
-            glUniform1f(m_AlphaSlot, m_FaderAlpha);
-        else
-    #endif
+    // do change bot alpha value?
+    if (pModel == m_Bot.m_pModel)
+        glUniform1f(m_AlphaSlot, m_BotAlpha);
+    else
         glUniform1f(m_AlphaSlot, 1.0f);
 
     return m_pShader;
@@ -1934,16 +1892,35 @@ void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
     return CSR_OpenGLHelper::DeleteTexture(pTexture, m_OpenGLResources);
 }
 //---------------------------------------------------------------------------
+void TMainForm::OnGameOver(bool failed)
+{
+    // set game over mode
+    m_GameOver = true;
+
+    // show the game over message
+    if (failed)
+    {
+        laGameOverInfoMsg->Font->Color = clRed;
+        laGameOverInfoMsg->Caption     = L"The guardian has captured you!!!";
+    }
+    else
+    {
+        laGameOverInfoMsg->Font->Color = clGreen;
+        laGameOverInfoMsg->Caption     = L"You escaped from the cave!!!";
+    }
+
+    // update the interface
+    paFirstItem->Visible     = false;
+    paSecondItem->Visible    = false;
+    paWarning->Visible       = false;
+    paGameOverMsg->Visible   = true;
+    tmCloseGameOver->Enabled = true;
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
     OnDrawScene(false);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::tmHideMsgTimer(TObject* pSender)
-{
-    paMessage->Visible = false;
-    tmHideMsg->Enabled = false;
 }
 //---------------------------------------------------------------------------
 

@@ -41,8 +41,6 @@
 #include "CSR_OpenGLHelper.h"
 #include "CSR_VCLHelper.h"
 
-//#define USE_BOT
-
 /**
 * Cave game jam main form
 *@author Jean-Milost Reymond
@@ -58,11 +56,29 @@ class TMainForm : public TForm
         TPanel *paMessage;
         TLabel *laMessage;
         TTimer *tmHideMsg;
+        TPanel *paWarning;
+        TImage *imWarning;
+        TPanel *paMainMenu;
+        TPanel *paGameOverMsg;
+        TLabel *laGameOverMsg;
+        TLabel *laGameOverInfoMsg;
+        TLabel *laStartGameWithoutBot;
+        TLabel *laExit;
+        TTimer *tmCloseGameOver;
+        TLabel *laStartGameWithBot;
+        TLabel *laTitle;
+        TImage *imBackground;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
         void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
         void __fastcall tmHideMsgTimer(TObject* pSender);
+        void __fastcall tmCloseGameOverTimer(TObject* pSender);
+        void __fastcall laMenuItemMouseEnter(TObject* pSender);
+        void __fastcall laMenuItemMouseLeave(TObject* pSender);
+        void __fastcall laStartGameWithoutBotClick(TObject* pSender);
+        void __fastcall laStartGameWithBotClick(TObject* pSender);
+        void __fastcall laExitClick(TObject* pSender);
 
     public:
         /**
@@ -81,20 +97,16 @@ class TMainForm : public TForm
         *@param pTask - the new task to execute
         *@param elapsedTime - elapsed time since last frame
         */
-        #ifdef USE_BOT
-            static void OnTaskChangeCallback(CSR_Task* pTask, double elapsedTime);
-        #endif
+        static void OnTaskChangeCallback(CSR_Task* pTask, double elapsedTime);
 
         /**
         * Called when a task should be executed
         *@param pTask - the running task
         *@param elapsedTime - elapsed time since last frame
         */
-        #ifdef USE_BOT
-            static int OnTaskRunCallback(CSR_Task* pTask, double elapsedTime);
-        #endif
+        static int OnTaskRunCallback(CSR_Task* pTask, double elapsedTime);
 
-        /**
+        /**
         * Called when a shader should be get for a model
         *@param pModel - model for which the shader shoudl be get
         *@param type - model type
@@ -139,12 +151,10 @@ class TMainForm : public TForm
         *@param pModelIndex - model index
         *@param pMeshIndex - mesh index
         */
-        #ifdef USE_BOT
-            static void OnGetMDLIndexCallback(const CSR_MDL*     pMDL,
-                                                    std::size_t* pSkinIndex,
-                                                    std::size_t* pModelIndex,
-                                                    std::size_t* pMeshIndex);
-        #endif
+        static void OnGetMDLIndexCallback(const CSR_MDL*     pMDL,
+                                                std::size_t* pSkinIndex,
+                                                std::size_t* pModelIndex,
+                                                std::size_t* pMeshIndex);
 
         /**
         * Called when a texture should be deleted
@@ -156,49 +166,43 @@ class TMainForm : public TForm
         /**
         * Artificial intelligence tasks enumeration
         */
-        #ifdef USE_BOT
-            enum IEBotTask
-            {
-                E_BT_Watching,
-                E_BT_Searching,
-                E_BT_Attacking,
-                E_BT_Dying
-            };
-        #endif
+        enum IEBotTask
+        {
+            E_BT_Watching,
+            E_BT_Searching,
+            E_BT_Attacking,
+            E_BT_Dying
+        };
 
         /**
         * Bot dying sequence
         */
-        #ifdef USE_BOT
-            enum IEDyingSequence
-            {
-                E_DS_None,
-                E_DS_Dying,
-                E_DS_FadeOut,
-                E_DS_FadeIn
-            };
-        #endif
+        enum IEDyingSequence
+        {
+            E_DS_None,
+            E_DS_Dying,
+            E_DS_FadeOut,
+            E_DS_FadeIn
+        };
 
         /**
         * Bot
         */
-        #ifdef USE_BOT
-            struct IBot
-            {
-                CSR_MDL*        m_pModel;
-                CSR_Sphere      m_Geometry;
-                CSR_Vector2     m_StartPosition;
-                CSR_Vector2     m_EndPosition;
-                CSR_Vector3     m_Dir;
-                CSR_Matrix4     m_Matrix;
-                IEDyingSequence m_DyingSequence;
-                float           m_Angle;
-                float           m_Velocity;
-                float           m_MovePos;
+        struct IBot
+        {
+            CSR_MDL*        m_pModel;
+            CSR_Sphere      m_Geometry;
+            CSR_Vector2     m_StartPosition;
+            CSR_Vector2     m_EndPosition;
+            CSR_Vector3     m_Dir;
+            CSR_Matrix4     m_Matrix;
+            IEDyingSequence m_DyingSequence;
+            float           m_Angle;
+            float           m_Velocity;
+            float           m_MovePos;
 
-                IBot();
-            };
-        #endif
+            IBot();
+        };
 
         /**
         * Collectible object item (may be dynamite, matches, ...)
@@ -225,12 +229,16 @@ class TMainForm : public TForm
 
         HDC                          m_hDC;
         HGLRC                        m_hRC;
+        HBRUSH                       m_BackgroundBrush;
         CSR_OpenGLHelper::IResources m_OpenGLResources;
         ALCdevice*                   m_pOpenALDevice;
         ALCcontext*                  m_pOpenALContext;
         CSR_Scene*                   m_pScene;
+        CSR_TaskManager*             m_pTaskManager;
         CSR_OpenGLShader*            m_pShader;
         CSR_OpenGLShader*            m_pSkyboxShader;
+        TBitmap*                     m_pBackground;
+        IBot                         m_Bot;
         ICollectible                 m_Dynamite;
         ICollectible                 m_Matches;
         ICollectible                 m_Door;
@@ -271,25 +279,21 @@ class TMainForm : public TForm
         CSR_Sound*                   m_pCaveAmbientSound;
         CSR_Sound*                   m_pFootStepLeftSound;
         CSR_Sound*                   m_pFootStepRightSound;
+        CSR_Sound*                   m_pHitSound;
         CSR_Sound*                   m_pDingSound;
+        CSR_Sound*                   m_pWarningSound;
         std::string                  m_SceneDir;
         double                       m_FPS;
+        float                        m_BotAlpha;
+        int                          m_BotShowPlayer;
+        int                          m_BotHitPlayer;
+        int                          m_BotDying;
+        int                          m_PlayerDying;
         unsigned __int64             m_StartTime;
         unsigned __int64             m_PreviousTime;
         bool                         m_Initialized;
-
-        #ifdef USE_BOT
-            IBot                     m_Bot;
-            CSR_TaskManager*         m_pTaskManager;
-            CSR_Mesh*                m_pFader;
-            CSR_Sound*               m_pHitSound;
-            float                    m_BotAlpha;
-            float                    m_FaderAlpha;
-            int                      m_BotShowPlayer;
-            int                      m_BotHitPlayer;
-            int                      m_BotDying;
-            int                      m_PlayerDying;
-        #endif
+        bool                         m_ShowBot;
+        bool                         m_GameOver;
 
         /**
         * Loads a texture
@@ -338,16 +342,7 @@ class TMainForm : public TForm
         /**
         * Builds the bot matrix
         */
-        #ifdef USE_BOT
-            void BuildBotMatrix();
-        #endif
-
-        /**
-        * Builds the fader matrix
-        */
-        #ifdef USE_BOT
-            void BuildFaderMatrix();
-        #endif
+        void BuildBotMatrix();
 
         /**
         * Calculates the ground collision point
@@ -361,99 +356,75 @@ class TMainForm : public TForm
         * Checks if the bot may show the player
         *@return 1 if the bot shows the player, otherwise 0
         */
-        #ifdef USE_BOT
-            int CheckPlayerVisible();
-        #endif
+        int CheckPlayerVisible();
 
         /**
         * Checks if the bot hits the player
         *@return 1 if the bot hits the player, otherwise 0
         */
-        #ifdef USE_BOT
-            int CheckBotHitPlayer();
-        #endif
+        int CheckBotHitPlayer();
 
         /**
         * Called when the watching task should be prepared
         */
-        #ifdef USE_BOT
-            void OnPrepareWatching();
-        #endif
+        void OnPrepareWatching();
 
         /**
         * Called when the watching task should be applied
         *@param elapsedTime - elapsed time since last frame
         *@return 1 if the task was sucessfully terminated, otherwise 0
         */
-        #ifdef USE_BOT
-            int OnWatching(double elapsedTime);
-        #endif
+        int OnWatching(double elapsedTime);
 
         /**
         * Called when the searching task should be prepared
         */
-        #ifdef USE_BOT
-            void OnPrepareSearching();
-        #endif
+        void OnPrepareSearching();
 
         /**
         * Called when the searching task should be applied
         *@param elapsedTime - elapsed time since last frame
         *@return 1 if the task was sucessfully terminated, otherwise 0
         */
-        #ifdef USE_BOT
-            int OnSearching(double elapsedTime);
-        #endif
+        int OnSearching(double elapsedTime);
 
         /**
         * Called when the attacking task should be prepared
         */
-        #ifdef USE_BOT
-            void OnPrepareAttacking();
-        #endif
+        void OnPrepareAttacking();
 
         /**
         * Called when the attacking task should be applied
         *@param elapsedTime - elapsed time since last frame
         *@return 1 if the task was sucessfully terminated, otherwise 0
         */
-        #ifdef USE_BOT
-            int OnAttacking(double elapsedTime);
-        #endif
+        int OnAttacking(double elapsedTime);
 
         /**
         * Called when the dying task should be prepared
         */
-        #ifdef USE_BOT
-            void OnPrepareDying();
-        #endif
+        void OnPrepareDying();
 
         /**
         * Called when the dying task should be applied
         *@param elapsedTime - elapsed time since last frame
         *@return 1 if the task was sucessfully terminated, otherwise 0
         */
-        #ifdef USE_BOT
-            int OnDying(double elapsedTime);
-        #endif
+        int OnDying(double elapsedTime);
 
         /**
         * Called when a task changed
         *@param pTask - the new task to execute
         *@param elapsedTime - elapsed time since last frame
         */
-        #ifdef USE_BOT
-            void OnTaskChange(CSR_Task* pTask, double elapsedTime);
-        #endif
+        void OnTaskChange(CSR_Task* pTask, double elapsedTime);
 
         /**
         * Called when a task should be executed
         *@param pTask - the running task
         *@param elapsedTime - elapsed time since last frame
         */
-        #ifdef USE_BOT
-            int OnTaskRun(CSR_Task* pTask, double elapsedTime);
-        #endif
+        int OnTaskRun(CSR_Task* pTask, double elapsedTime);
 
         /**
         * Called when the scene should be drawn
@@ -516,6 +487,12 @@ class TMainForm : public TForm
         *@param pTexture - texture to delete
         */
         void OnDeleteTexture(const CSR_Texture* pTexture);
+
+        /**
+        * Called when the game is over
+        *@param failed - if true, the player has failed
+        */
+        void OnGameOver(bool failed);
 
         /**
         * Called while application is idle
