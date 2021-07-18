@@ -48475,23 +48475,18 @@ object MainForm: TMainForm
       ExplicitHeight = 23
     end
   end
-  object aeEvents: TApplicationEvents
-    OnMessage = aeEventsMessage
-    Left = 696
-    Top = 8
-  end
   object tmHideMsg: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = tmHideMsgTimer
-    Left = 696
-    Top = 64
+    Left = 752
+    Top = 16
   end
   object tmCloseGameOver: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = tmCloseGameOverTimer
-    Left = 696
-    Top = 120
+    Left = 752
+    Top = 72
   end
 end

@@ -48,7 +48,6 @@
 class TMainForm : public TForm
 {
     __published:
-        TApplicationEvents *aeEvents;
         TPanel *paFirstItem;
         TPanel *paSecondItem;
         TImage *imFirstItem;
@@ -71,7 +70,6 @@ class TMainForm : public TForm
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
-        void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
         void __fastcall tmHideMsgTimer(TObject* pSender);
         void __fastcall tmCloseGameOverTimer(TObject* pSender);
         void __fastcall laMenuItemMouseEnter(TObject* pSender);

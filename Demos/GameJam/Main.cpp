@@ -35,6 +35,7 @@
 #include "CSR_OpenGLHelper.h"
 #include "CSR_ShaderHelper.h"
 
+// third-party libraries linking
 #pragma package(smart_init)
 #ifdef __llvm__
     #pragma link "glewSL.a"
@@ -247,29 +248,6 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
                                      100.0f,
                                      m_pShader,
                                      m_pScene->m_ProjectionMatrix);
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
-{
-    if (m_GameOver)
-        return;
-
-    m_PosVelocity = 0.0f;
-    m_DirVelocity = 0.0f;
-
-    switch (msg.message)
-    {
-        case WM_KEYDOWN:
-            switch (msg.wParam)
-            {
-                case VK_LEFT:  m_DirVelocity = -1.5f; handled = true; break;
-                case VK_RIGHT: m_DirVelocity =  1.5f; handled = true; break;
-                case VK_UP:    m_PosVelocity = -1.0f; handled = true; break;
-                case VK_DOWN:  m_PosVelocity =  1.0f; handled = true; break;
-            }
-
-            return;
-    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::tmHideMsgTimer(TObject* pSender)
@@ -1416,7 +1394,15 @@ void TMainForm::RandomizeItems()
     csrGroundPosY(&m_Dynamite.m_Geometry, pSceneItem->m_pAABBTree, &m_pScene->m_GroundDir, 0, &posY);
 
     // apply the found y position
-    m_Dynamite.m_Geometry.m_Center.m_Y = posY - 0.1f;
+    if (posY <= 0.25f)
+        m_Dynamite.m_Geometry.m_Center.m_Y = posY - 0.1f;
+    else
+    {
+        // if item is too high there is a detection bug, so reset it to its default position
+        m_Dynamite.m_Geometry.m_Center.m_X = -1.0f;
+        m_Dynamite.m_Geometry.m_Center.m_Y =  0.025f;
+        m_Dynamite.m_Geometry.m_Center.m_Z =  3.0f;
+    }
 
     // set the dynamite in the level
     m_Dynamite.m_Matrix.m_Table[3][0] = m_Dynamite.m_Geometry.m_Center.m_X;
@@ -1456,7 +1442,15 @@ void TMainForm::RandomizeItems()
     csrGroundPosY(&m_Matches.m_Geometry, pSceneItem->m_pAABBTree, &m_pScene->m_GroundDir, 0, &posY);
 
     // apply the found y position
-    m_Matches.m_Geometry.m_Center.m_Y = posY - 0.121f;
+    if (posY <= 0.25f)
+        m_Matches.m_Geometry.m_Center.m_Y = posY - 0.121f;
+    else
+    {
+        // if item is too high there is a detection bug, so reset it to its default position
+        m_Dynamite.m_Geometry.m_Center.m_X = -1.0f;
+        m_Dynamite.m_Geometry.m_Center.m_Y =  0.025f;
+        m_Dynamite.m_Geometry.m_Center.m_Z =  3.0f;
+    }
 
     // set the matches in the level
     m_Matches.m_Matrix.m_Table[3][0] = m_Matches.m_Geometry.m_Center.m_X;
@@ -2040,6 +2034,32 @@ void TMainForm::OnGameOver(bool failed)
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
+
+    // detect the keyboard directly (unfortunately the Windows message loop detects keys one by
+    // one, as well as DirectInput if not in exclusive mode, which isn't possible if the window isn't
+    // in full screen)
+    if (!m_GameOver)
+    {
+        m_PosVelocity = 0.0f;
+        m_DirVelocity = 0.0f;
+
+        // a key or left arrow?
+        if (::GetAsyncKeyState(0x41) || ::GetAsyncKeyState(VK_LEFT))
+            m_DirVelocity = -1.5f;
+
+        // d key or right arrow?
+        if (::GetAsyncKeyState(0x44) || ::GetAsyncKeyState(VK_RIGHT))
+            m_DirVelocity = 1.5f;
+
+        // w key or up arrow?
+        if (::GetAsyncKeyState(0x57) || ::GetAsyncKeyState(VK_UP))
+            m_PosVelocity = -1.0f;
+
+        // s key or down arrow?
+        if (::GetAsyncKeyState(0x53) || ::GetAsyncKeyState(VK_DOWN))
+            m_PosVelocity = 1.0f;
+    }
+
     OnDrawScene(false);
 }
 //---------------------------------------------------------------------------
