@@ -29527,6 +29527,7 @@ object MainForm: TMainForm
     Top = 5
     Width = 40
     Height = 40
+    Anchors = [akTop, akRight]
     BevelOuter = bvNone
     Color = clCream
     DoubleBuffered = True
