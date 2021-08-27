@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="WildSoccer" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="../../../Third-party/glew" />
+			<Add directory="../../../Third-party/OpenAL/include" />
+			<Add directory="../../../SDK" />
+			<Add directory="../../../Common/C++/Helpers" />
+		</Compiler>
+		<Linker>
+			<Add library="../../../Third-party/glew/glew32s.lib" />
+			<Add library="opengl32" />
+			<Add library="glu32" />
+			<Add library="gdi32" />
+			<Add library="../../../Third-party/OpenAL/libs/Win32/OpenAL32.lib" />
+		</Linker>
+		<Unit filename="../../../Common/C++/Helpers/CSR_OpenGLHelper.cpp" />
+		<Unit filename="../../../Common/C++/Helpers/CSR_OpenGLHelper.h" />
+		<Unit filename="../../../Common/C++/Helpers/CSR_ShaderHelper.cpp" />
+		<Unit filename="../../../Common/C++/Helpers/CSR_ShaderHelper.h" />
+		<Unit filename="../../../SDK/CSR_AI.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_AI.h" />
+		<Unit filename="../../../SDK/CSR_Collision.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Collision.h" />
+		<Unit filename="../../../SDK/CSR_Common.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Common.h" />
+		<Unit filename="../../../SDK/CSR_Geometry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Geometry.h" />
+		<Unit filename="../../../SDK/CSR_Lighting.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Lighting.h" />
+		<Unit filename="../../../SDK/CSR_Model.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Model.h" />
+		<Unit filename="../../../SDK/CSR_Particles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Particles.h" />
+		<Unit filename="../../../SDK/CSR_Physics.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Physics.h" />
+		<Unit filename="../../../SDK/CSR_Renderer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Renderer.h" />
+		<Unit filename="../../../SDK/CSR_Renderer_OpenGL.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Renderer_OpenGL.h" />
+		<Unit filename="../../../SDK/CSR_Scene.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Scene.h" />
+		<Unit filename="../../../SDK/CSR_SoftwareRaster.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_SoftwareRaster.h" />
+		<Unit filename="../../../SDK/CSR_Sound.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Sound.h" />
+		<Unit filename="../../../SDK/CSR_Texture.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Texture.h" />
+		<Unit filename="../../../SDK/CSR_Vertex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Vertex.h" />
+		<Unit filename="Main.cpp" />
+		<Unit filename="resources.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="resources.rh" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

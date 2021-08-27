@@ -34,7 +34,7 @@
     #ifndef CSR_USE_METAL
         #define CSR_USE_OPENGL
     #endif
-#elif defined(__CODEGEARC__) || defined(__GNUC__)
+#elif defined(__CODEGEARC__) || defined(__GNUC__) || defined(_MSC_VER)
     #define CSR_USE_OPENGL
 #else
     #error "The graphics library to use in unknown for this system."

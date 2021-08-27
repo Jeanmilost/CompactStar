@@ -16,9 +16,6 @@
 #ifndef CSR_OpenGLHelperH
 #define CSR_OpenGLHelperH
 
-// vcl
-#include <Vcl.Controls.hpp>
-
 // std
 #include <map>
 
@@ -74,7 +71,7 @@ class CSR_OpenGLHelper
         /**
         * Gets a model matrix which make a model to fit the viewport (as closest as possible)
         *@param pBox - model bounding box, if 0 an identity matrix will be returned
-        *@param fov - vield of view used in the viewport, in radians
+        *@param fov - field of view used in the viewport, in radians
         *@param rotated - if true, the model is rotated by default of 90° on the x axis (this is
         *                 generally the case for the MDL models)
         *@return the model matrix

@@ -24,7 +24,7 @@
 //---------------------------------------------------------------------------
 GLuint csrOpenGLTextureFromPixelBuffer(const CSR_PixelBuffer* pPixelBuffer)
 {
-    unsigned char* pPixels;
+    unsigned char* pPixels = 0;
     unsigned       x;
     unsigned       y;
     unsigned char  c;
@@ -646,7 +646,11 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
 #ifndef CSR_OPENGL_2_ONLY
     void csrOpenGLMSAALinkStaticVB(const CSR_OpenGLShader* pShader, const void* pCustomData)
     {
-        CSR_Buffer buffer;
+        #ifdef _MSC_VER
+            CSR_Buffer buffer = {0};
+        #else
+            CSR_Buffer buffer;
+        #endif
 
         // get the multisampling antialiasing sent in custom data
         CSR_OpenGLMSAA* pMSAA = (CSR_OpenGLMSAA*)pCustomData;
@@ -669,7 +673,6 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
     int csrOpenGLMSAAConfigure(size_t width, size_t height, size_t factor, CSR_OpenGLMSAA* pMSAA)
     {
         GLuint msTexture;
-        GLuint texture;
 
         // enable multisampling
         glEnable(GL_MULTISAMPLE);
@@ -683,7 +686,7 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
 
         // bind texture to sampler
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msTexture);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, factor, GL_RGB, width, height, GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, (GLsizei)factor, GL_RGB, (GLsizei)width, (GLsizei)height, GL_TRUE);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
         // add texture to the frame buffer
@@ -697,10 +700,10 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
         glGenRenderbuffers(1, &pMSAA->m_RenderBufferID);
         glBindRenderbuffer(GL_RENDERBUFFER, pMSAA->m_RenderBufferID);
         glRenderbufferStorageMultisample(GL_RENDERBUFFER,
-                                         factor,
+                                         (GLsizei)factor,
                                          GL_DEPTH24_STENCIL8,
-                                         width,
-                                         height);
+                                         (GLsizei)width,
+                                         (GLsizei)height);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER,
                                   GL_DEPTH_STENCIL_ATTACHMENT,
@@ -960,12 +963,12 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pMSAA->m_TextureBufferID);
             glBlitFramebuffer(0,
                               0,
-                              pMSAA->m_Width,
-                              pMSAA->m_Height,
+                              (GLint)pMSAA->m_Width,
+                              (GLint)pMSAA->m_Height,
                               0,
                               0,
-                              pMSAA->m_Width,
-                              pMSAA->m_Height,
+                              (GLint)pMSAA->m_Width,
+                              (GLint)pMSAA->m_Height,
                               GL_COLOR_BUFFER_BIT,
                               GL_NEAREST);
 
@@ -981,7 +984,7 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(pMSAA->m_pShader->m_TextureSlot, GL_TEXTURE0);
 
-            // bind the texure to use
+            // bind the texture to use
             glBindTexture(GL_TEXTURE_2D, pMSAA->m_TextureID);
 
             // bind the VBO containing the shape to draw
@@ -993,7 +996,7 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
                                   2,
                                   GL_FLOAT,
                                   GL_FALSE,
-                                  (float)pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
+                                  (GLsizei)(pMSAA->m_pStaticBuffer->m_Stride * sizeof(float)),
                                   0);
 
             // enable the texture coordinates
@@ -1002,7 +1005,7 @@ void csrOpenGLStaticBufferInit(CSR_OpenGLStaticBuffer* pSB)
                                   2,
                                   GL_FLOAT,
                                   GL_FALSE,
-                                  (float)pMSAA->m_pStaticBuffer->m_Stride * sizeof(float),
+                                  (GLsizei)(pMSAA->m_pStaticBuffer->m_Stride * sizeof(float)),
                                   (void*)(2 * sizeof(float)));
 
             // draw the surface
@@ -1057,9 +1060,15 @@ void csrOpenGLDrawEnd(void)
 //---------------------------------------------------------------------------
 void csrOpenGLDrawLine(const CSR_Line* pLine, const CSR_OpenGLShader* pShader)
 {
-    GLint  slot;
-    size_t stride;
-    float  lineVertex[14];
+    #ifdef _MSC_VER
+        GLint  slot;
+        size_t stride;
+        float  lineVertex[14] = {0};
+    #else
+        GLint  slot;
+        size_t stride;
+        float  lineVertex[14];
+    #endif
 
     // validate the inputs
     if (!pLine || !pShader || pLine->m_Width <= 0.0f)
@@ -1565,11 +1574,19 @@ void csrOpenGLDrawX(const CSR_X*            pX,
                 for (k = 0; k < pX->m_pMeshWeights[i].m_pSkinWeights[j].m_IndexTableCount; ++k)
                     for (l = 0; l < pX->m_pMeshWeights[i].m_pSkinWeights[j].m_pIndexTable[k].m_Count; ++l)
                     {
-                        size_t      iX;
-                        size_t      iY;
-                        size_t      iZ;
-                        CSR_Vector3 inputVertex;
-                        CSR_Vector3 outputVertex;
+                        #ifdef _MSC_VER
+                            size_t      iX;
+                            size_t      iY;
+                            size_t      iZ;
+                            CSR_Vector3 inputVertex  = {0};
+                            CSR_Vector3 outputVertex = {0};
+                        #else
+                            size_t      iX;
+                            size_t      iY;
+                            size_t      iZ;
+                            CSR_Vector3 inputVertex;
+                            CSR_Vector3 outputVertex;
+                        #endif
 
                         // get the next vertex to which the next skin weight should be applied
                         iX = pX->m_pMeshWeights[i].m_pSkinWeights[j].m_pIndexTable[k].m_pData[l];

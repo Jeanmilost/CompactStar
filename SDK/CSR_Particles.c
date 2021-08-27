@@ -170,7 +170,7 @@ void csrParticlesInit(CSR_Particles* pParticles)
 
     // initialize the particle system
     pParticles->m_pParticle          = 0;
-    pParticles->m_Count              = 0.0f;
+    pParticles->m_Count              = 0;
     pParticles->m_fOnCalculateMotion = 0;
 }
 //---------------------------------------------------------------------------

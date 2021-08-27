@@ -27,7 +27,7 @@
 #elif defined(__APPLE__)
     #include <OpenAL/al.h>
     #include <OpenAL/alc.h>
-#elif defined (__CODEGEARC__) || defined (__GNUC__)
+#elif defined (__CODEGEARC__) || defined (__GNUC__) || defined(_MSC_VER)
     #include <al.h>
     #include <alc.h>
 #endif

@@ -23,11 +23,20 @@
 #include "CSR_Model.h"
 #include "CSR_Renderer.h"
 
+// visual studio specific code
+#ifdef _MSC_VER
+    #include <math.h>
+#endif
+
 //---------------------------------------------------------------------------
 // Global defines
 //---------------------------------------------------------------------------
 
-#define M_CSR_NoGround 1.0f / 0.0f // i.e. infinite, this is the only case where a division by 0 is allowed
+#ifdef _MSC_VER
+    #define M_CSR_NoGround INFINITY
+#else
+    #define M_CSR_NoGround 1.0f / 0.0f // i.e. infinite, this is the only case where a division by 0 is allowed
+#endif
 
 //---------------------------------------------------------------------------
 // Enumerators
@@ -46,7 +55,7 @@ typedef enum
 } CSR_EModelType;
 
 /**
-* Collision type (can be combinated)
+* Collision type (can be combined)
 */
 typedef enum
 {

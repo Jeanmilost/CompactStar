@@ -15,15 +15,30 @@
 
 #include "CSR_OpenGLHelper.h"
 
+// std
+#include <math.h>
+#include <memory>
+#include <stdexcept>
+
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
 
-#pragma package(smart_init)
-#ifdef __llvm__
-    #pragma link "glewSL.a"
-#else
-    #pragma link "glewSL.lib"
+// visual studio specific code
+#ifdef _MSC_VER
+    // std
+    #define _USE_MATH_DEFINES
+    #include <math.h>
+#endif
+
+// code specific for all compilers but not for visual studio
+#ifndef _MSC_VER
+    #pragma package(smart_init)
+    #ifdef __llvm__
+        #pragma link "glewSL.a"
+    #else
+        #pragma link "glewSL.lib"
+    #endif
 #endif
 
 //---------------------------------------------------------------------------
@@ -88,7 +103,7 @@ void CSR_OpenGLHelper::CreateViewport(float             w,
     const float aspect = w / h;
 
     // create the OpenGL viewport
-    glViewport(0, 0, w, h);
+    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
 
     // create the projection matrix
     csrMat4Perspective(fov, aspect, zNear, zFar, &matrix);
@@ -108,9 +123,15 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
         return matrix;
     }
 
-    float       angle;
-    CSR_Vector3 r;
-    CSR_Matrix4 rotateMatrixX;
+    #ifdef _MSC_VER
+        float       angle         = 0.0f;
+        CSR_Vector3 r             = {};
+        CSR_Matrix4 rotateMatrixX = {};
+    #else
+        float       angle;
+        CSR_Vector3 r;
+        CSR_Matrix4 rotateMatrixX;
+    #endif
 
     // set rotation axis
     r.m_X = 1.0f;
@@ -118,7 +139,7 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
     r.m_Z = 0.0f;
 
     // set rotation angle
-    angle = rotated ? -M_PI * 0.5f : 0.0f;
+    angle = float(rotated ? -M_PI * 0.5 : 0.0);
 
     csrMat4Rotate(angle, &r, &rotateMatrixX);
 
@@ -130,7 +151,7 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
     r.m_Z = 0.0f;
 
     // set rotation angle
-    angle = rotated ? -M_PI * 0.25f : M_PI * 0.25f;
+    angle = float(rotated ? -M_PI * 0.25 : M_PI * 0.25);
 
     csrMat4Rotate(angle, &r, &rotateMatrixY);
 
@@ -146,8 +167,13 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
 
     csrMat4Rotate(angle, &r, &rotateMatrixZ);
 
-    CSR_Vector3 factor;
-    CSR_Matrix4 scaleMatrix;
+    #ifdef _MSC_VER
+        CSR_Vector3 factor      = {};
+        CSR_Matrix4 scaleMatrix = {};
+    #else
+        CSR_Vector3 factor;
+        CSR_Matrix4 scaleMatrix;
+    #endif
 
     // set scale factor
     factor.m_X = 1.0f;
@@ -165,22 +191,44 @@ CSR_Matrix4 CSR_OpenGLHelper::FitModelInView(const CSR_Box* pBox, float fov, boo
     csrMat4Multiply(&combinedMatrix1, &rotateMatrixY, &combinedMatrix2);
     csrMat4Multiply(&combinedMatrix2, &rotateMatrixZ, &combinedMatrix3);
 
-    CSR_Box rotatedBox;
+    #ifdef _MSC_VER
+    CSR_Box rotatedBox = {};
+    #else
+        CSR_Box rotatedBox;
+    #endif
     csrMat4ApplyToVector(&combinedMatrix3, &pBox->m_Min, &rotatedBox.m_Min);
     csrMat4ApplyToVector(&combinedMatrix3, &pBox->m_Max, &rotatedBox.m_Max);
 
     // calculate the box size (on the x and y axis
-    const float x = std::fabs(rotatedBox.m_Max.m_X - rotatedBox.m_Min.m_X);
-    const float y = std::fabs(rotatedBox.m_Max.m_Y - rotatedBox.m_Min.m_Y);
+    #ifdef __CODEGEARC__
+        const float x = std::fabs(rotatedBox.m_Max.m_X - rotatedBox.m_Min.m_X);
+        const float y = std::fabs(rotatedBox.m_Max.m_Y - rotatedBox.m_Min.m_Y);
+    #else
+        const float x = fabsf(rotatedBox.m_Max.m_X - rotatedBox.m_Min.m_X);
+        const float y = fabsf(rotatedBox.m_Max.m_Y - rotatedBox.m_Min.m_Y);
+    #endif
 
     // search for longest axis and the longest viewport edge
-    const float longestAxis = std::max(x, y);
+    #ifdef _MSC_VER
+        const float longestAxis = max(x, y);
+    #else
+        const float longestAxis = std::max(x, y);
+    #endif
 
     // Calculate the camera distance
-    const float distance = std::fabs(longestAxis / std::sinf(fov / 2.0f)) * 0.25f;
+    #ifdef __CODEGEARC__
+        const float distance = std::fabs(longestAxis / std::sinf(fov / 2.0f)) * 0.25f;
+    #else
+        const float distance = fabsf(longestAxis / sinf(fov / 2.0f)) * 0.25f;
+    #endif
 
-    CSR_Vector3 t;
-    CSR_Matrix4 translateMatrix;
+    #ifdef _MSC_VER
+        CSR_Vector3 t               = {};
+        CSR_Matrix4 translateMatrix = {};
+    #else
+        CSR_Vector3 t;
+        CSR_Matrix4 translateMatrix;
+    #endif
 
     // set translation
     t.m_X = -(rotatedBox.m_Min.m_X + rotatedBox.m_Max.m_X) / 2.0f;
@@ -203,15 +251,27 @@ void CSR_OpenGLHelper::BuildMatrix(const CSR_Vector3* pTranslation,
     if (!pTranslation || !pRotation || !pScaling || !pMatrix)
         return;
 
-    CSR_Vector3 axis;
-    CSR_Matrix4 matrixTranslate;
-    CSR_Matrix4 matrixX;
-    CSR_Matrix4 matrixY;
-    CSR_Matrix4 matrixZ;
-    CSR_Matrix4 matrixScale;
-    CSR_Matrix4 buildMatrix1;
-    CSR_Matrix4 buildMatrix2;
-    CSR_Matrix4 buildMatrix3;
+    #ifdef _MSC_VER
+        CSR_Vector3 axis            = {};
+        CSR_Matrix4 matrixTranslate = {};
+        CSR_Matrix4 matrixX         = {};
+        CSR_Matrix4 matrixY         = {};
+        CSR_Matrix4 matrixZ         = {};
+        CSR_Matrix4 matrixScale     = {};
+        CSR_Matrix4 buildMatrix1    = {};
+        CSR_Matrix4 buildMatrix2    = {};
+        CSR_Matrix4 buildMatrix3    = {};
+    #else
+        CSR_Vector3 axis;
+        CSR_Matrix4 matrixTranslate;
+        CSR_Matrix4 matrixX;
+        CSR_Matrix4 matrixY;
+        CSR_Matrix4 matrixZ;
+        CSR_Matrix4 matrixScale;
+        CSR_Matrix4 buildMatrix1;
+        CSR_Matrix4 buildMatrix2;
+        CSR_Matrix4 buildMatrix3;
+    #endif
 
     // create a translation matrix
     csrMat4Translate(pTranslation, &matrixTranslate);
@@ -258,9 +318,12 @@ void CSR_OpenGLHelper::AddTexture(const void* pKey, GLuint id, IResources& resou
     // found one?
     if (it != resources.end())
     {
+        if (it->second->m_ID != GLint(id))
+            throw new std::range_error("The existing resource texture identifier differs from the identifier passed in arguments");
+
         // increase its use count
-        assert(it->second->m_ID == GLint(id));
         ++it->second->m_UseCount;
+
         return;
     }
 
