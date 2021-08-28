@@ -17,7 +17,7 @@
 #include <simd/simd.h>
 
 // metal
-#import "./../../../../SDK/CSR_Renderer_Metal_Types.h"
+#import "../../../../../../SDK/CSR_Renderer_Metal_Types.h"
 
 using namespace metal;
 
