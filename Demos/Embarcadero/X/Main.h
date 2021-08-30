@@ -35,7 +35,6 @@
 // compactStar engine
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
-#include "CSR_Sound.h"
 
 // classes
 #include "CSR_VCLHelper.h"
@@ -48,11 +47,9 @@
 class TMainForm : public TForm
 {
     __published:
-        TApplicationEvents *aeEvents;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
-        void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
 
     public:
         /**
@@ -128,8 +125,6 @@ class TMainForm : public TForm
     private:
         HDC                          m_hDC;
         HGLRC                        m_hRC;
-        ALCdevice*                   m_pOpenALDevice;
-        ALCcontext*                  m_pOpenALContext;
         CSR_Scene*                   m_pScene;
         CSR_SceneContext             m_SceneContext;
         CSR_OpenGLShader*            m_pShader;
@@ -139,8 +134,6 @@ class TMainForm : public TForm
         std::size_t                  m_FrameCount;
         int                          m_PrevOrigin;
         float                        m_Angle;
-        float                        m_PosVelocity;
-        float                        m_DirVelocity;
         double                       m_FPS;
         unsigned __int64             m_StartTime;
         unsigned __int64             m_PreviousTime;

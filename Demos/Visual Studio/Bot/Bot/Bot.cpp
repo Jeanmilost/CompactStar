@@ -220,6 +220,8 @@ bool                         g_Initialized         = false;
 //------------------------------------------------------------------------------
 int CheckPlayerVisible();
 int CheckBotHitPlayer();
+void UpdateScene(float elapsedTime);
+void DrawScene();
 //------------------------------------------------------------------------------
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -274,6 +276,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                              100.0f,
                                              g_pShader,
                                              g_pScene->m_ProjectionMatrix);
+
+            UpdateScene(0.0f);
+            DrawScene();
+
+            ::SwapBuffers(g_hDC);
             break;
         }
 

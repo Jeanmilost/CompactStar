@@ -28,7 +28,6 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
-#include "CSR_Scene.h"
 
 // classes
 #include "CSR_ShaderHelper.h"
@@ -51,15 +50,11 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
     TForm(pOwner),
     m_hDC(NULL),
     m_hRC(NULL),
-    m_pOpenALDevice(NULL),
-    m_pOpenALContext(NULL),
     m_pScene(NULL),
     m_pShader(NULL),
     m_FrameCount(0),
     m_PrevOrigin(0),
     m_Angle(M_PI / 2),
-    m_PosVelocity(0.0f),
-    m_DirVelocity(0.0f),
     m_FPS(0.0),
     m_StartTime(0),
     m_PreviousTime(0),
@@ -74,9 +69,6 @@ __fastcall TMainForm::TMainForm(TComponent* pOwner) :
                   sceneDir = ::ExtractFilePath(::ExcludeTrailingPathDelimiter(sceneDir));
                   sceneDir = ::ExcludeTrailingPathDelimiter(sceneDir) + L"\\Common";
                 m_SceneDir =   AnsiString(sceneDir).c_str();
-
-    // initialize OpenAL
-    csrSoundInitializeOpenAL(&m_pOpenALDevice, &m_pOpenALContext);
 
     // enable OpenGL
     CSR_OpenGLHelper::EnableOpenGL(Handle, &m_hDC, &m_hRC);
@@ -102,9 +94,6 @@ __fastcall TMainForm::~TMainForm()
 
     // shutdown OpenGL
     CSR_OpenGLHelper::DisableOpenGL(Handle, m_hDC, m_hRC);
-
-    // release OpenAL interface
-    csrSoundReleaseOpenAL(m_pOpenALDevice, m_pOpenALContext);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormShow(TObject* pSender)
@@ -134,18 +123,6 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
                                      m_pScene->m_ProjectionMatrix);
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
-{
-    m_PosVelocity = 0.0f;
-    m_DirVelocity = 0.0f;
-
-    switch (msg.message)
-    {
-        case WM_KEYDOWN:
-            return;
-    }
-}
-//------------------------------------------------------------------------------
 CSR_PixelBuffer* TMainForm::OnLoadTextureCallback(const char* pTextureName)
 {
     TMainForm* pMainForm = static_cast<TMainForm*>(Application->MainForm);

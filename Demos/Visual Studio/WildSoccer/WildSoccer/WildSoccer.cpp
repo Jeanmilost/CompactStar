@@ -123,6 +123,9 @@ unsigned __int64             g_StartTime           = 0L;
 unsigned __int64             g_PreviousTime        = 0L;
 bool                         g_Initialized         = false;
 //------------------------------------------------------------------------------
+void UpdateScene(float elapsedTime);
+void DrawScene();
+//------------------------------------------------------------------------------
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -231,6 +234,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                              100.0f,
                                              g_pShader,
                                              g_pScene->m_ProjectionMatrix);
+
+            UpdateScene(0.0f);
+            DrawScene();
+
+            ::SwapBuffers(g_hDC);
             break;
         }
 

@@ -19,9 +19,4 @@ object MainForm: TMainForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object aeEvents: TApplicationEvents
-    OnMessage = aeEventsMessage
-    Left = 760
-    Top = 8
-  end
 end
