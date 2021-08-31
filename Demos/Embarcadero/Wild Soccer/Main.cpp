@@ -166,19 +166,11 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::aeEventsMessage(tagMSG& msg, bool& handled)
 {
-    m_PosVelocity = 0.0f;
-    m_DirVelocity = 0.0f;
-
     switch (msg.message)
     {
         case WM_KEYDOWN:
             switch (msg.wParam)
             {
-                case VK_LEFT:  m_DirVelocity = -1.0f; handled = true; break;
-                case VK_RIGHT: m_DirVelocity =  1.0f; handled = true; break;
-                case VK_UP:    m_PosVelocity =  1.0f; handled = true; break;
-                case VK_DOWN:  m_PosVelocity = -1.0f; handled = true; break;
-
                 case VK_SPACE:
                 {
                     // get the player position as a circle (i.e. ignore the y axis)
@@ -1427,6 +1419,29 @@ void TMainForm::OnDeleteTexture(const CSR_Texture* pTexture)
 void __fastcall TMainForm::OnIdle(TObject* pSender, bool& done)
 {
     done = false;
+
+    // detect the keyboard directly (unfortunately the Windows message loop detects keys one by
+    // one, as well as DirectInput if not in exclusive mode, which isn't possible if the window isn't
+    // in full screen)
+    m_PosVelocity = 0.0f;
+    m_DirVelocity = 0.0f;
+
+    // a key or left arrow?
+    if (::GetAsyncKeyState(0x41) || ::GetAsyncKeyState(VK_LEFT))
+        m_DirVelocity = -1.0f;
+
+    // d key or right arrow?
+    if (::GetAsyncKeyState(0x44) || ::GetAsyncKeyState(VK_RIGHT))
+        m_DirVelocity =  1.0f;
+
+    // w key or up arrow?
+    if (::GetAsyncKeyState(0x57) || ::GetAsyncKeyState(VK_UP))
+        m_PosVelocity =  1.0f;
+
+    // s key or down arrow?
+    if (::GetAsyncKeyState(0x53) || ::GetAsyncKeyState(VK_DOWN))
+        m_PosVelocity = -1.0f;
+
     OnDrawScene(false);
 }
 //---------------------------------------------------------------------------

@@ -38,7 +38,6 @@
 #else
     #pragma link "glewSL.lib"
 #endif
-#pragma link "openAL32E.lib"
 #pragma resource "*.dfm"
 
 //---------------------------------------------------------------------------
@@ -117,7 +116,7 @@ void __fastcall TMainForm::FormResize(TObject* pSender)
     // update the viewport
     CSR_OpenGLHelper::CreateViewport(ClientWidth,
                                      ClientHeight,
-                                     1.0f,
+                                     0.1f,
                                      1000.0f,
                                      m_pShader,
                                      m_pScene->m_ProjectionMatrix);

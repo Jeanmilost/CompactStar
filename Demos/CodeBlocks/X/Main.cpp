@@ -100,7 +100,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             // update the viewport
             CSR_OpenGLHelper::CreateViewport((float)width,
                                              (float)height,
-                                             0.01f,
+                                             0.1f,
                                              1000.0f,
                                              g_pShader,
                                              g_pScene->m_ProjectionMatrix);
@@ -238,7 +238,7 @@ bool InitScene(int w, int h)
     // create the viewport
     CSR_OpenGLHelper::CreateViewport((float)w,
                                      (float)h,
-                                     0.01f,
+                                     0.1f,
                                      1000.0f,
                                      g_pShader,
                                      g_pScene->m_ProjectionMatrix);

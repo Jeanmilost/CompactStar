@@ -54,12 +54,6 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_Metal.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_Metal_Types.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>

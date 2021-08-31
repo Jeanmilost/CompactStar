@@ -30,17 +30,17 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add directory="../../../Third-party/glew" />
+			<Add directory="../../../Third-party/glew/include" />
 			<Add directory="../../../Third-party/OpenAL/include" />
 			<Add directory="../../../SDK" />
 			<Add directory="../../../Common/C++/Helpers" />
 		</Compiler>
 		<Linker>
-			<Add library="../../../Third-party/glew/glew32s.lib" />
+			<Add library="../../../Third-party/glew/lib/Release/Win32/glew32s.lib" />
+			<Add library="../../../Third-party/OpenAL/libs/Win32/OpenAL32.lib" />
 			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="gdi32" />
-			<Add library="../../../Third-party/OpenAL/libs/Win32/OpenAL32.lib" />
 		</Linker>
 		<Unit filename="../../../Common/C++/Helpers/CSR_OpenGLHelper.cpp" />
 		<Unit filename="../../../Common/C++/Helpers/CSR_OpenGLHelper.h" />
@@ -82,8 +82,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_Renderer.h" />
-		<Unit filename="../../../SDK/CSR_Renderer_Metal.h" />
-		<Unit filename="../../../SDK/CSR_Renderer_Metal_Types.h" />
 		<Unit filename="../../../SDK/CSR_Renderer_OpenGL.c">
 			<Option compilerVar="CC" />
 		</Unit>

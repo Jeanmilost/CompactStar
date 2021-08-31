@@ -45,11 +45,9 @@
 class TMainForm : public TForm
 {
     __published:
-        TApplicationEvents *aeEvents;
 
         void __fastcall FormShow(TObject* pSender);
         void __fastcall FormResize(TObject* pSender);
-        void __fastcall aeEventsMessage(tagMSG& msg, bool& handled);
 
     public:
         /**

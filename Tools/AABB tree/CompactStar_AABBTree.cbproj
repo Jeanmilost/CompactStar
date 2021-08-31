@@ -41,8 +41,8 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <ProjectType>CppVCLApplication</ProjectType>
-        <ILINK_LibraryPath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\glew\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-        <IncludePath>..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Third-party\OpenAL\include\;..\..\Third-party\glew\;$(IncludePath)</IncludePath>
+        <ILINK_LibraryPath>..\..\Third-party\glew\lib\Embarcadero\;..\..\Third-party\OpenAL\libs\Win32\;..\..\SDK\;..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IncludePath>..\..\Third-party\glew\include\;..\..\Third-party\OpenAL\include\;..\..\SDK\;..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CompactStar_AABBTree</SanitizedProjectName>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
@@ -214,7 +214,12 @@
                 <Source>
                     <Source Name="MainSource">CompactStar_AABBTree.cpp</Source>
                 </Source>
-                <Excluded_Packages/>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k210.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp210.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k210.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp210.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">

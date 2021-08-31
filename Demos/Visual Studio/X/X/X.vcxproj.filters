@@ -27,9 +27,6 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_AI.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Collision.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
@@ -45,31 +42,13 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Model.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Particles.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Physics.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_Metal.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_Metal_Types.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Scene.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_SoftwareRaster.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Sound.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h">
@@ -89,9 +68,6 @@
     <ClCompile Include="X.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_AI.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Collision.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
@@ -107,12 +83,6 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Model.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_Particles.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_Physics.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Renderer.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
@@ -120,12 +90,6 @@
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Scene.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_SoftwareRaster.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_Sound.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c">

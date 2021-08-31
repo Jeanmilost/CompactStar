@@ -22,10 +22,10 @@
 //---------------------------------------------------------------------------
 USEFORM("TShapeSelection.cpp", ShapeSelection);
 USEFORM("TModelSelection.cpp", ModelSelection);
-USEFORM("TLevelSelection.cpp", LevelSelection);
+USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
 USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
-USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
+USEFORM("TLevelSelection.cpp", LevelSelection);
 USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 USEFORM("Main.cpp", MainForm);
 //---------------------------------------------------------------------------

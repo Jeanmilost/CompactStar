@@ -46,6 +46,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <Icon_MainIcon>..\..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <BCC_MonitorThis>true</BCC_MonitorThis>
         <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
         <BCC_MonitorInlinePtrAccess>true</BCC_MonitorInlinePtrAccess>
@@ -59,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_2DLevelPlayer</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;..\..\..\Third-party\glew\;..\..\..\Third-party\OpenAL\include\;..\..\..\Third-party\sxml\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\Third-party\sxml\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;..\..\..\Third-party\glew\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\Third-party\sxml\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\Third-party\sxml\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -303,8 +304,8 @@
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2dLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>

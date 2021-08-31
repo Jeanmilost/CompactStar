@@ -100,7 +100,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             // update the viewport
             CSR_OpenGLHelper::CreateViewport((float)width,
                                              (float)height,
-                                             0.01f,
+                                             0.1f,
                                              1000.0f,
                                              g_pShader,
                                              g_pScene->m_ProjectionMatrix);
@@ -238,7 +238,7 @@ bool InitScene(int w, int h)
     // create the viewport
     CSR_OpenGLHelper::CreateViewport((float)w,
                                      (float)h,
-                                     0.01f,
+                                     0.1f,
                                      1000.0f,
                                      g_pShader,
                                      g_pScene->m_ProjectionMatrix);
@@ -284,7 +284,7 @@ bool InitScene(int w, int h)
     axis.m_X         = 0.0f;
     axis.m_Y         = 0.0f;
     axis.m_Z         = 1.0f;
-    csrMat4Rotate(M_PI, &axis, &rotMat);
+    csrMat4Rotate((float)M_PI, &axis, &rotMat);
 
     // create the scale matrix
     CSR_Matrix4 scaleMat;
