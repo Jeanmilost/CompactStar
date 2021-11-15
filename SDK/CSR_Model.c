@@ -6166,20 +6166,11 @@ CSR_X* csrXCreate(const CSR_Buffer*           pBuffer,
         return 0;
     }
 
+    csrXInit(pX);
+
     // configure it
-    pX->m_pMesh               = 0;
-    pX->m_MeshCount           = 0;
-    pX->m_pPrint              = 0;
-    pX->m_PrintCount          = 0;
-    pX->m_pMeshWeights        = 0;
-    pX->m_MeshWeightsCount    = 0;
-    pX->m_pMeshToBoneDict     = 0;
-    pX->m_MeshToBoneDictCount = 0;
-    pX->m_pSkeleton           = 0;
-    pX->m_pAnimationSet       = 0;
-    pX->m_AnimationSetCount   = 0;
-    pX->m_MeshOnly            = meshOnly;
-    pX->m_PoseOnly            = poseOnly;
+    pX->m_MeshOnly = meshOnly;
+    pX->m_PoseOnly = poseOnly;
 
     // convert the read item hierarchy to an x model
     if (!csrXItemToModel(pLocalRoot,
@@ -6371,6 +6362,21 @@ void csrXInit(CSR_X* pX)
     // no X model to initialize?
     if (!pX)
         return;
+
+    // initialize the x model
+    pX->m_pMesh               = 0;
+    pX->m_MeshCount           = 0;
+    pX->m_pPrint              = 0;
+    pX->m_PrintCount          = 0;
+    pX->m_pMeshWeights        = 0;
+    pX->m_MeshWeightsCount    = 0;
+    pX->m_pMeshToBoneDict     = 0;
+    pX->m_MeshToBoneDictCount = 0;
+    pX->m_pSkeleton           = 0;
+    pX->m_pAnimationSet       = 0;
+    pX->m_AnimationSetCount   = 0;
+    pX->m_MeshOnly            = 0;
+    pX->m_PoseOnly            = 0;
 }
 //---------------------------------------------------------------------------
 int csrXParse(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_Item_X** pItem)
