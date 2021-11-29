@@ -4719,9 +4719,6 @@ int csrLandscapeGenerateVertices(const CSR_PixelBuffer* pPixelBuffer,
     if (!pPixelBuffer || height <= 0.0f || scale == 0.0f || !pVertices)
         return 0;
 
-    if (!pVertices->m_Length)
-        return 0;
-
     // calculate landscape data size
     pVertices->m_Length = (size_t)(pPixelBuffer->m_Width * pPixelBuffer->m_Height);
 
