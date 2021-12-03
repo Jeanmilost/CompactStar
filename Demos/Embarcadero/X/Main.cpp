@@ -28,6 +28,8 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
+#include "CSR_Model.h"
+#include "CSR_X.h"
 
 // classes
 #include "CSR_ShaderHelper.h"

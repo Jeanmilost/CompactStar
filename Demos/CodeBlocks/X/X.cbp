@@ -60,6 +60,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_Lighting.h" />
+		<Unit filename="../../../SDK/CSR_Mdl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Mdl.h" />
 		<Unit filename="../../../SDK/CSR_Model.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -88,6 +92,14 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_Vertex.h" />
+		<Unit filename="../../../SDK/CSR_Wavefront.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Wavefront.h" />
+		<Unit filename="../../../SDK/CSR_X.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_X.h" />
 		<Unit filename="Main.cpp" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />

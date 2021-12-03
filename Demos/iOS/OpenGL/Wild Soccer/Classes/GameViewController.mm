@@ -28,6 +28,7 @@
 #include "CSR_Collision.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
+#include "CSR_Wavefront.h"
 #include "CSR_Renderer.h"
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_Physics.h"

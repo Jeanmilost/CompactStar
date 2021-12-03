@@ -20,6 +20,7 @@
 #include "CSR_Geometry.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
+#include "CSR_X.h"
 #include "CSR_Renderer.h"
 
 // metal

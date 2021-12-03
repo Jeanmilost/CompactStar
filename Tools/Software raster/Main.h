@@ -34,6 +34,7 @@
 #include "CSR_Collision.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
+#include "CSR_Mdl.h"
 #include "CSR_SoftwareRaster.h"
 #include <Vcl.ComCtrls.hpp>
 #include <Vcl.ExtCtrls.hpp>

@@ -18,6 +18,12 @@
 		840C240F2137824D006EFECE /* CSR_Collision.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C23FC2137824D006EFECE /* CSR_Collision.c */; };
 		840C24102137824D006EFECE /* CSR_Geometry.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C23FF2137824D006EFECE /* CSR_Geometry.c */; };
 		840C24112137824D006EFECE /* CSR_Lighting.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C24002137824D006EFECE /* CSR_Lighting.c */; };
+		84184B6A275A8C5300EB0407 /* CSR_Mdl.c in Sources */ = {isa = PBXBuildFile; fileRef = 84184B61275A87E700EB0407 /* CSR_Mdl.c */; };
+		84184B6B275A8C5300EB0407 /* CSR_Mdl.h in Sources */ = {isa = PBXBuildFile; fileRef = 84184B60275A87E700EB0407 /* CSR_Mdl.h */; };
+		84184B6C275A8C5300EB0407 /* CSR_Wavefront.c in Sources */ = {isa = PBXBuildFile; fileRef = 84184B65275A87F900EB0407 /* CSR_Wavefront.c */; };
+		84184B6D275A8C5300EB0407 /* CSR_Wavefront.h in Sources */ = {isa = PBXBuildFile; fileRef = 84184B64275A87F900EB0407 /* CSR_Wavefront.h */; };
+		84184B6E275A8C5300EB0407 /* CSR_X.c in Sources */ = {isa = PBXBuildFile; fileRef = 84184B63275A87F900EB0407 /* CSR_X.c */; };
+		84184B6F275A8C5300EB0407 /* CSR_X.h in Sources */ = {isa = PBXBuildFile; fileRef = 84184B62275A87F900EB0407 /* CSR_X.h */; };
 		841C35C9214C470B00A950FE /* soccer_goal.obj in Resources */ = {isa = PBXBuildFile; fileRef = 841C35C8214C470B00A950FE /* soccer_goal.obj */; };
 		841C35CB214C946300A950FE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841C35CA214C946200A950FE /* CoreGraphics.framework */; };
 		841D6C282138869A00E34396 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C252138869A00E34396 /* Metal.framework */; };
@@ -77,6 +83,12 @@
 		840C24002137824D006EFECE /* CSR_Lighting.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Lighting.c; sourceTree = "<group>"; };
 		840C24012137824D006EFECE /* CSR_Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Scene.h; sourceTree = "<group>"; };
 		840C24032137824D006EFECE /* CSR_Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Renderer.h; sourceTree = "<group>"; };
+		84184B60275A87E700EB0407 /* CSR_Mdl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR_Mdl.h; sourceTree = "<group>"; };
+		84184B61275A87E700EB0407 /* CSR_Mdl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CSR_Mdl.c; sourceTree = "<group>"; };
+		84184B62275A87F900EB0407 /* CSR_X.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR_X.h; sourceTree = "<group>"; };
+		84184B63275A87F900EB0407 /* CSR_X.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CSR_X.c; sourceTree = "<group>"; };
+		84184B64275A87F900EB0407 /* CSR_Wavefront.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR_Wavefront.h; sourceTree = "<group>"; };
+		84184B65275A87F900EB0407 /* CSR_Wavefront.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CSR_Wavefront.c; sourceTree = "<group>"; };
 		841C35C8214C470B00A950FE /* soccer_goal.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soccer_goal.obj; sourceTree = "<group>"; };
 		841C35CA214C946200A950FE /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		841D6C252138869A00E34396 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -152,6 +164,8 @@
 				840C23F02137824D006EFECE /* CSR_Geometry.h */,
 				840C24002137824D006EFECE /* CSR_Lighting.c */,
 				840C23EF2137824D006EFECE /* CSR_Lighting.h */,
+				84184B61275A87E700EB0407 /* CSR_Mdl.c */,
+				84184B60275A87E700EB0407 /* CSR_Mdl.h */,
 				840C23ED2137824D006EFECE /* CSR_Model.c */,
 				840C23FB2137824D006EFECE /* CSR_Model.h */,
 				840C23E62137824C006EFECE /* CSR_Physics.c */,
@@ -169,6 +183,10 @@
 				840C23FD2137824D006EFECE /* CSR_Texture.h */,
 				840C23F52137824D006EFECE /* CSR_Vertex.c */,
 				840C23EA2137824D006EFECE /* CSR_Vertex.h */,
+				84184B65275A87F900EB0407 /* CSR_Wavefront.c */,
+				84184B64275A87F900EB0407 /* CSR_Wavefront.h */,
+				84184B63275A87F900EB0407 /* CSR_X.c */,
+				84184B62275A87F900EB0407 /* CSR_X.h */,
 			);
 			name = SDK;
 			path = ../../../../SDK;
@@ -312,7 +330,7 @@
 		84551CB52137768D00625580 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = jeanmilost;
 				TargetAttributes = {
 					84551CBC2137768D00625580 = {
@@ -371,6 +389,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84184B6A275A8C5300EB0407 /* CSR_Mdl.c in Sources */,
+				84184B6B275A8C5300EB0407 /* CSR_Mdl.h in Sources */,
+				84184B6C275A8C5300EB0407 /* CSR_Wavefront.c in Sources */,
+				84184B6D275A8C5300EB0407 /* CSR_Wavefront.h in Sources */,
+				84184B6E275A8C5300EB0407 /* CSR_X.c in Sources */,
+				84184B6F275A8C5300EB0407 /* CSR_X.h in Sources */,
 				84551CD62137768F00625580 /* main.mm in Sources */,
 				840C24072137824D006EFECE /* CSR_Texture.c in Sources */,
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,
@@ -441,6 +465,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -468,7 +493,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -501,6 +526,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -523,7 +549,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -537,7 +563,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJFX679U22;
 				INFOPLIST_FILE = "$(SRCROOT)/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -555,7 +581,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJFX679U22;
 				INFOPLIST_FILE = "$(SRCROOT)/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

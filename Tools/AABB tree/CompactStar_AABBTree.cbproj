@@ -132,6 +132,12 @@
         <None Include="..\..\SDK\CSR_Lighting.h">
             <BuildOrder>11</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>25</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>26</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Model.c">
             <BuildOrder>12</BuildOrder>
         </CppCompile>
@@ -167,6 +173,18 @@
         </CppCompile>
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>23</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>27</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>28</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_X.c">
+            <BuildOrder>29</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_X.h">
+            <BuildOrder>30</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_AABBTree.cpp">
             <BuildOrder>0</BuildOrder>
@@ -227,11 +245,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_AABBTree.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_AABBTree.exe</RemoteName>
@@ -245,6 +258,11 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

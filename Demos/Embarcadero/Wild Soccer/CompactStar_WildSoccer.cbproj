@@ -170,6 +170,12 @@
         <None Include="..\..\..\SDK\CSR_Lighting.h">
             <BuildOrder>16</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>30</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>31</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Model.c">
             <BuildOrder>17</BuildOrder>
         </CppCompile>
@@ -218,6 +224,18 @@
         <None Include="..\..\..\SDK\CSR_Vertex.h">
             <BuildOrder>32</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>32</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>33</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_X.c">
+            <BuildOrder>34</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_X.h">
+            <BuildOrder>35</BuildOrder>
+        </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
@@ -255,12 +273,6 @@
             <Deployment>
                 <DeployFile Condition="'$(UsingDelphiRTL)'=='true'" LocalName="$(BDS)\bin64\borlndmm.dll" Class="DependencyModule">
                     <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\..\..\SDK\CSR_Common.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

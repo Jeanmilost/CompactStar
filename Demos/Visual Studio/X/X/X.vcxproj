@@ -173,12 +173,15 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Common.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Geometry.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Lighting.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_Mdl.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Model.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Scene.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Vertex.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_X.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -188,12 +191,15 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Common.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Geometry.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Lighting.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Model.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Renderer.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Scene.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Vertex.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_X.c" />
     <ClCompile Include="X.cpp" />
   </ItemGroup>
   <ItemGroup>

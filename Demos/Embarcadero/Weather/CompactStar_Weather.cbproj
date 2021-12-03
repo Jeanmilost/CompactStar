@@ -187,6 +187,12 @@
         <None Include="..\..\..\SDK\CSR_Lighting.h">
             <BuildOrder>35</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>36</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>37</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Model.c">
             <BuildOrder>16</BuildOrder>
         </CppCompile>
@@ -240,6 +246,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_Vertex.h">
             <BuildOrder>31</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>38</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>39</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_X.c">
+            <BuildOrder>40</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_X.h">
+            <BuildOrder>41</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">

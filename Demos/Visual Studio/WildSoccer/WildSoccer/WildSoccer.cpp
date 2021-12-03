@@ -25,6 +25,7 @@
 #include "CSR_Texture.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
+#include "CSR_Wavefront.h"
 #include "CSR_Scene.h"
 #include "CSR_Physics.h"
 #include "CSR_Renderer_OpenGL.h"

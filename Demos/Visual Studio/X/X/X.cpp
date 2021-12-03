@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : DirectX (.x) model with bone animation demo                *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2021, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2022, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -21,6 +21,8 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
+#include "CSR_Model.h"
+#include "CSR_X.h"
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 

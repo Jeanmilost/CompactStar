@@ -31,6 +31,7 @@
 
 // compactStar engine
 #include "CSR_Model.h"
+#include "CSR_Mdl.h"
 #include "CSR_Collision.h"
 #include "CSR_Renderer_OpenGL.h"
 

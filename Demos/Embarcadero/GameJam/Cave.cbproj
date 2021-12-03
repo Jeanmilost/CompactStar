@@ -97,7 +97,6 @@
         <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
         <UWP_CppLogo44>$(BDS)\bin\Artwork\Windows\UWP\cppreg_UwpDefault_44.png</UWP_CppLogo44>
         <UWP_CppLogo150>$(BDS)\bin\Artwork\Windows\UWP\cppreg_UwpDefault_150.png</UWP_CppLogo150>
-        <ILINK_LibraryPath>..\..\..\Third-party\OpenAL\libs\Win32\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <PackageImports>adortl;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindengine;CloudService;CustomIPTransport;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXInterBaseDriver;DBXMySQLDriver;DBXSqliteDriver;dclGraphicEx210;dsnap;dsnapcon;dsnapxml;emsclient;fmx;fmxase;fmxdae;fmxobj;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inet;inetdb;inetdbxpress;Mels_Base;Mels_Models;Mels_VCL;Mels_VCLComponentsGL;MetropolisUILiveTile;RESTBackendComponents;RESTComponents;rtl;soapmidas;soaprtl;soapserver;SynEdit_R;tethering;TWSVG;vcl;vclactnband;vcldb;vcldsnap;vclie;vclimg;VCLRESTComponents;vclribbon;VclSmp;vcltouch;vclx;VirtualTreesR;WControls_XE7;xmlrtl;$(PackageImports)</PackageImports>
@@ -209,6 +208,12 @@
         <None Include="..\..\..\SDK\CSR_Lighting.h">
             <BuildOrder>27</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>30</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>31</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Model.c">
             <BuildOrder>22</BuildOrder>
         </CppCompile>
@@ -250,6 +255,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_Vertex.h">
             <BuildOrder>29</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>32</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>33</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_X.c">
+            <BuildOrder>34</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_X.h">
+            <BuildOrder>35</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
@@ -356,6 +373,12 @@
                 </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\Bot.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName="..\..\..\SDK\CSR_Common.c" Configuration="Debug" Class="ProjectFile"/>
+                <DeployFile LocalName=".\Win32\Debug\Cave.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>Cave.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin64\cc64270.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
@@ -363,6 +386,12 @@
                 </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgstl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Cave.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>Cave.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -921,17 +950,17 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="iOSDevice" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME).app"/>
-                <ProjectRoot Platform="iOSDevice" Name="$(PROJECTNAME).app"/>
-                <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
-                <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
             </Deployment>
             <Platforms>
                 <Platform value="Win32">True</Platform>

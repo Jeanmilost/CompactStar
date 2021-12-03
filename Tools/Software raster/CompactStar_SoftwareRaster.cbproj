@@ -127,6 +127,12 @@
         <None Include="..\..\SDK\CSR_Lighting.h">
             <BuildOrder>15</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>19</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>20</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Model.c">
             <BuildOrder>12</BuildOrder>
         </CppCompile>
@@ -150,6 +156,18 @@
         </CppCompile>
         <None Include="..\..\SDK\CSR_Vertex.h">
             <BuildOrder>11</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>21</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>22</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\SDK\CSR_X.c">
+            <BuildOrder>23</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_X.h">
+            <BuildOrder>24</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_SoftwareRaster.cpp">
             <BuildOrder>0</BuildOrder>
@@ -217,12 +235,6 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_SoftwareRaster.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_SoftwareRaster.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\..\SDK\CSR_Model.c" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

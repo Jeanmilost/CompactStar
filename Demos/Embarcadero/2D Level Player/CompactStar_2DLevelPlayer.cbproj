@@ -195,6 +195,12 @@
         <None Include="..\..\..\SDK\CSR_Lighting.h">
             <BuildOrder>37</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Mdl.c">
+            <BuildOrder>38</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Mdl.h">
+            <BuildOrder>39</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Model.c">
             <BuildOrder>22</BuildOrder>
         </CppCompile>
@@ -236,6 +242,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_Vertex.h">
             <BuildOrder>35</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Wavefront.c">
+            <BuildOrder>40</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Wavefront.h">
+            <BuildOrder>41</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\SDK\CSR_X.c">
+            <BuildOrder>42</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_X.h">
+            <BuildOrder>43</BuildOrder>
         </None>
         <CppCompile Include="..\..\..\Third-party\sxml\sxmlc.c">
             <BuildOrder>34</BuildOrder>
@@ -304,8 +322,8 @@
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2dLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>

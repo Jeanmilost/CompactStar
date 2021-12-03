@@ -174,6 +174,7 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Common.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Geometry.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Lighting.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_Mdl.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Model.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Particles.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Physics.h" />
@@ -184,6 +185,8 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Sound.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Vertex.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_X.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -194,6 +197,7 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Common.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Geometry.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Lighting.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Model.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Particles.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Physics.c" />
@@ -204,6 +208,8 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Sound.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Vertex.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_X.c" />
     <ClCompile Include="Capsules.cpp" />
   </ItemGroup>
   <ItemGroup>

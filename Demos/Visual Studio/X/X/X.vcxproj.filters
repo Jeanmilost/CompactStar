@@ -63,6 +63,15 @@
     <ClInclude Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Mdl.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_X.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="X.cpp">
@@ -103,6 +112,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_X.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c">
+      <Filter>SDK\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

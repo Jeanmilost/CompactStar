@@ -12,6 +12,12 @@
 		841D6C292138869A00E34396 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C262138869A00E34396 /* MetalKit.framework */; };
 		841D6C2A2138869A00E34396 /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C272138869A00E34396 /* MetalPerformanceShaders.framework */; };
 		841D6C2C213886A300E34396 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C2B213886A300E34396 /* OpenAL.framework */; };
+		8435C670275A8CCA00C8F27D /* CSR_Mdl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8435C66E275A8CCA00C8F27D /* CSR_Mdl.c */; };
+		8435C676275A8CD800C8F27D /* CSR_Wavefront.c in Sources */ = {isa = PBXBuildFile; fileRef = 8435C673275A8CD800C8F27D /* CSR_Wavefront.c */; };
+		8435C677275A8CD800C8F27D /* CSR_X.c in Sources */ = {isa = PBXBuildFile; fileRef = 8435C674275A8CD800C8F27D /* CSR_X.c */; };
+		8435C679275A8D0900C8F27D /* CSR_Mdl.h in Sources */ = {isa = PBXBuildFile; fileRef = 8435C66F275A8CCA00C8F27D /* CSR_Mdl.h */; };
+		8435C67A275A8D0900C8F27D /* CSR_Wavefront.h in Sources */ = {isa = PBXBuildFile; fileRef = 8435C672275A8CD800C8F27D /* CSR_Wavefront.h */; };
+		8435C67B275A8D0900C8F27D /* CSR_X.h in Sources */ = {isa = PBXBuildFile; fileRef = 8435C675275A8CD800C8F27D /* CSR_X.h */; };
 		84551CCE2137768D00625580 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCC2137768D00625580 /* Main.storyboard */; };
 		84551CD02137768F00625580 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCF2137768F00625580 /* Assets.xcassets */; };
 		84551CD32137768F00625580 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CD12137768F00625580 /* LaunchScreen.storyboard */; };
@@ -44,6 +50,12 @@
 		841D6C262138869A00E34396 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		841D6C272138869A00E34396 /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
 		841D6C2B213886A300E34396 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		8435C66E275A8CCA00C8F27D /* CSR_Mdl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Mdl.c; sourceTree = "<group>"; };
+		8435C66F275A8CCA00C8F27D /* CSR_Mdl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Mdl.h; sourceTree = "<group>"; };
+		8435C672275A8CD800C8F27D /* CSR_Wavefront.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Wavefront.h; sourceTree = "<group>"; };
+		8435C673275A8CD800C8F27D /* CSR_Wavefront.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Wavefront.c; sourceTree = "<group>"; };
+		8435C674275A8CD800C8F27D /* CSR_X.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_X.c; sourceTree = "<group>"; };
+		8435C675275A8CD800C8F27D /* CSR_X.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_X.h; sourceTree = "<group>"; };
 		84551CBD2137768D00625580 /* X Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84551CCD2137768D00625580 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		84551CCF2137768F00625580 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -206,6 +218,8 @@
 				84C4FC8721EF711F004164C4 /* CSR_Geometry.h */,
 				84C4FC9921EF711F004164C4 /* CSR_Lighting.c */,
 				84C4FC8621EF711F004164C4 /* CSR_Lighting.h */,
+				8435C66E275A8CCA00C8F27D /* CSR_Mdl.c */,
+				8435C66F275A8CCA00C8F27D /* CSR_Mdl.h */,
 				84C4FC8421EF711F004164C4 /* CSR_Model.c */,
 				84C4FC9321EF711F004164C4 /* CSR_Model.h */,
 				84C4FC7E21EF711F004164C4 /* CSR_Renderer_Metal_Types.h */,
@@ -219,6 +233,10 @@
 				84C4FC9521EF711F004164C4 /* CSR_Texture.h */,
 				84C4FC8D21EF711F004164C4 /* CSR_Vertex.c */,
 				84C4FC8121EF711F004164C4 /* CSR_Vertex.h */,
+				8435C673275A8CD800C8F27D /* CSR_Wavefront.c */,
+				8435C672275A8CD800C8F27D /* CSR_Wavefront.h */,
+				8435C674275A8CD800C8F27D /* CSR_X.c */,
+				8435C675275A8CD800C8F27D /* CSR_X.h */,
 			);
 			name = SDK;
 			path = ../../../../SDK;
@@ -250,7 +268,7 @@
 		84551CB52137768D00625580 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = jeanmilost;
 				TargetAttributes = {
 					84551CBC2137768D00625580 = {
@@ -296,7 +314,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8435C679275A8D0900C8F27D /* CSR_Mdl.h in Sources */,
+				8435C67A275A8D0900C8F27D /* CSR_Wavefront.h in Sources */,
+				8435C67B275A8D0900C8F27D /* CSR_X.h in Sources */,
 				84C4FC7621EF710A004164C4 /* Shaders.metal in Sources */,
+				8435C670275A8CCA00C8F27D /* CSR_Mdl.c in Sources */,
 				84C4FCA521EF711F004164C4 /* CSR_Scene.c in Sources */,
 				84C4FCAB21EF711F004164C4 /* CSR_Lighting.c in Sources */,
 				84C4FCA621EF711F004164C4 /* CSR_Vertex.c in Sources */,
@@ -305,7 +327,9 @@
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,
 				84C4FCAA21EF711F004164C4 /* CSR_Geometry.c in Sources */,
 				84C4FCA321EF711F004164C4 /* CSR_Renderer.c in Sources */,
+				8435C677275A8CD800C8F27D /* CSR_X.c in Sources */,
 				84C4FCA421EF711F004164C4 /* CSR_Renderer_Metal.mm in Sources */,
+				8435C676275A8CD800C8F27D /* CSR_Wavefront.c in Sources */,
 				84C4FC7A21EF710A004164C4 /* AppDelegate.mm in Sources */,
 				84C4FC7921EF710A004164C4 /* main.mm in Sources */,
 				84C4FCA921EF711F004164C4 /* CSR_Collision.c in Sources */,
@@ -363,6 +387,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -390,7 +415,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -423,6 +448,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -445,7 +471,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -459,7 +485,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJFX679U22;
 				INFOPLIST_FILE = "$(SRCROOT)/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -477,7 +503,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJFX679U22;
 				INFOPLIST_FILE = "$(SRCROOT)/Resources/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
