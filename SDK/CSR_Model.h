@@ -31,11 +31,11 @@
 */
 typedef enum
 {
-    CSR_KT_Unknown    = -1,
-    CSR_KT_Rotation   =  0,
-    CSR_KT_Scale      =  1,
-    CSR_KT_Position   =  2,
-    CSR_KT_MatrixKeys =  4
+    CSR_KT_Unknown  = -1,
+    CSR_KT_Rotation =  0,
+    CSR_KT_Scale    =  1,
+    CSR_KT_Position =  2,
+    CSR_KT_Matrix   =  4
 } CSR_EAnimKeyType;
 
 //---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ typedef enum
 //---------------------------------------------------------------------------
 
 /**
-* Bone, it's a hierarchical local transformation to apply to a mesh
+* Bone, it's a local transformation to apply to a mesh and belonging to a skeleton
 */
 typedef struct CSR_tagBone
 {
@@ -52,16 +52,36 @@ typedef struct CSR_tagBone
     struct CSR_tagBone* m_pParent;       // bone parent, root bone if 0
     struct CSR_tagBone* m_pChildren;     // bone children
            size_t       m_ChildrenCount; // bone children count
-           void*        m_pCustomData;   // additional custom data. Be careful, this data isn't released internally
+           void*        m_pCustomData;   // additional custom data. Be careful, this data may not be released internally
 } CSR_Bone;
+
+/**
+* Skeleton, it's a set of local transformations named bones
+*/
+typedef struct
+{
+    char*       m_pId;           // skeleton identifier
+    char*       m_pTarget;       // target weights identifier
+    CSR_Bone*   m_pRoot;         // root bone
+    CSR_Matrix4 m_InitialMatrix; // initial matrix
+} CSR_Skeleton;
+
+/**
+* Binding between a bone and a mesh
+*/
+typedef struct
+{
+    CSR_Bone* m_pBone;     // bone binded with mesh
+    size_t    m_MeshIndex; // mesh index binded with bone
+} CSR_Bone_Mesh_Binding;
 
 /**
 * Skin weights index table
 */
 typedef struct
 {
-    size_t* m_pData;
-    size_t  m_Count;
+    size_t* m_pData; // indices of the vertices to modify in the source mesh
+    size_t  m_Count; // indices count
 } CSR_Skin_Weight_Index_Table;
 
 /**
@@ -78,6 +98,16 @@ typedef struct
     float*                       m_pWeights;        // weights indicating the bone influence on vertices, between 0.0f and 1.0f
     size_t                       m_WeightCount;     // weight count
 } CSR_Skin_Weights;
+
+/**
+* Skin weights group
+*@note Generally used to contain all skin weights belonging to a mesh
+*/
+typedef struct
+{
+    CSR_Skin_Weights* m_pSkinWeights; // skin weights list
+    size_t            m_Count;        // skin weights count
+} CSR_Skin_Weights_Group;
 
 /**
 * Animation key, may be a rotation, a translation, a scale, a matrix, ...
@@ -97,6 +127,7 @@ typedef struct
     CSR_EAnimKeyType  m_Type;
     CSR_AnimationKey* m_pKey;
     size_t            m_Count;
+    int               m_ColOverRow;
 } CSR_AnimationKeys;
 
 /**
@@ -416,6 +447,30 @@ typedef void (*CSR_fOnApplySkin)(size_t index, const CSR_Skin* pSkin, int* pCanR
                                         size_t                 frameIndex,
                                         CSR_Matrix4*           pInitialMatrix,
                                         CSR_Matrix4*           pMatrix);
+
+        //-------------------------------------------------------------------
+        // Skeleton functions
+        //-------------------------------------------------------------------
+
+        /**
+        * Creates a skeleton
+        *@return newly created skeleton, 0 on error
+        *@note The skeleton must be released when no longer used, see csrSkeletonRelease()
+        */
+        CSR_Skeleton* csrSkeletonCreate(void);
+
+        /**
+        * Releases a skeleton
+        *@param[in, out] pSkeleton - skeleton to release
+        *@param contentOnly - if 1, the skeleton content will be released, but not the skeleton itself
+        */
+        void csrSkeletonRelease(CSR_Skeleton* pSkeleton, int contentOnly);
+
+        /**
+        * Initializes a skeleton structure
+        *@param[in, out] pSkeleton - skeleton to initialize
+        */
+        void csrSkeletonInit(CSR_Skeleton* pSkeleton);
 
         //-------------------------------------------------------------------
         // Skin weights functions
