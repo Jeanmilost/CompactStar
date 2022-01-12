@@ -25,7 +25,11 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
 {
     switch (type)
     {
-        case IE_ST_Color:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Color:
+        #else
+            case IE_ST_Color:
+        #endif
             return "precision mediump float;"
                    "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
@@ -39,7 +43,11 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
                    "}";
 
-        case IE_ST_Texture:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Texture:
+        #else
+            case IE_ST_Texture:
+        #endif
             return "precision mediump float;"
                    "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
@@ -56,7 +64,11 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
                    "}";
 
-        case IE_ST_Skybox:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Skybox:
+        #else
+            case IE_ST_Skybox:
+        #endif
             return "precision mediump float;"
                    "attribute vec3 csr_aVertices;"
                    "uniform   mat4 csr_uProjection;"
@@ -67,6 +79,24 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
                    "    csr_vTexCoord = csr_aVertices;"
                    "    gl_Position   = csr_uProjection * csr_uView * vec4(csr_aVertices, 1.0);"
                    "}";
+
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Line:
+        #else
+            case IE_ST_Line:
+        #endif
+            return "precision mediump float;"
+                   "attribute    vec3 csr_aVertices;"
+                   "attribute    vec4 csr_aColor;"
+                   "uniform      mat4 csr_uProjection;"
+                   "uniform      mat4 csr_uView;"
+                   "uniform      mat4 csr_uModel;"
+                   "varying lowp vec4 csr_vColor;"
+                   "void main(void)"
+                   "{"
+                   "    csr_vColor  = csr_aColor;"
+                   "    gl_Position = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
+                   "}";
     }
 
     return "";
@@ -76,7 +106,11 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
 {
     switch (type)
     {
-        case IE_ST_Color:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Color:
+        #else
+            case IE_ST_Color:
+        #endif
             return "precision mediump float;"
                    "varying lowp vec4 csr_vColor;"
                    "void main(void)"
@@ -84,7 +118,11 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                    "    gl_FragColor = csr_vColor;"
                    "}";
 
-        case IE_ST_Texture:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Texture:
+        #else
+            case IE_ST_Texture:
+        #endif
             return "precision mediump float;"
                    "uniform      sampler2D csr_sTexture;"
                    "varying lowp vec4      csr_vColor;"
@@ -94,7 +132,11 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                    "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
                    "}";
 
-        case IE_ST_Skybox:
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Skybox:
+        #else
+            case IE_ST_Skybox:
+        #endif
             #ifdef __APPLE__
                 return "precision mediump float;"
                        "uniform samplerCube csr_sCubemap;"
@@ -112,6 +154,18 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                        "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
                        "}";
             #endif
+
+        #ifdef _MSC_VER
+            case CSR_ShaderHelper::IEShaderType::IE_ST_Line:
+        #else
+            case IE_ST_Line:
+        #endif
+            return "precision mediump float;"
+                   "varying lowp vec4 csr_vColor;"
+                   "void main(void)"
+                   "{"
+                   "    gl_FragColor = csr_vColor;"
+                   "}";
     }
 
     return "";

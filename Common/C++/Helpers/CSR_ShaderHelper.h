@@ -34,11 +34,16 @@ class CSR_ShaderHelper
         /**
         * Shader type
         */
-        enum IEShaderType
+        #ifdef _MSC_VER
+            enum class IEShaderType
+        #else
+            enum IEShaderType
+        #endif
         {
             IE_ST_Color,
             IE_ST_Texture,
-            IE_ST_Skybox
+            IE_ST_Skybox,
+            IE_ST_Line
         };
 
         /**
