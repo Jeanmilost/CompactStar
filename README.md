@@ -38,7 +38,7 @@ I also used this engine for a small game jam project: https://jeanmilost.itch.io
 
 ## Supported compilers and OS
 
-The SDK may be compiled with any C or C++ compiler (Tested with [Visual Studio 2019](https://visualstudio.microsoft.com/), [Embarcadero RAD Studio](https://www.embarcadero.com/), [CodeBlocks](http://www.codeblocks.org/) and [xCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12)). There are several demo projects provided for each of these compilers.
+The SDK may be compiled with any C or C++ compiler (Tested with [Visual Studio 2019](https://visualstudio.microsoft.com/), [Embarcadero RAD Studio](https://www.embarcadero.com/), [CodeBlocks](https://www.codeblocks.org/) and [xCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12)). There are several demo projects provided for each of these compilers.
 
 This game engine is also available for the [Mobile C Compiler](https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
 
