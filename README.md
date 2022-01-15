@@ -42,7 +42,7 @@ The SDK may be compiled with any C or C++ compiler (Tested with [Visual Studio 2
 
 This game engine is also available for the [Mobile C Compiler](https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
 
-##About the Collada format support
+## About the Collada format support
 
 The Collada (.dae) format support is partial and was planned to support very simple models. For that reason several restrictions should be considered:
 - Only triangles are supported in geometry, for that reason the Triangulate option should be activated in exporter. See e.g. the following Blender exporter screenshot:
