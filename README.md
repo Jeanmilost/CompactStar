@@ -10,21 +10,23 @@ However I had several reasons to do that:
 It's the reason why this engine exists.
 
 <b>Here are the actual supported features</b>
-- Simple shapes creation (surface, box, sphere, cylinder, disk, ring and spiral)
-- Quake I (.mdl), DirectX (.x, partially), and WaveFront (.obj, partially) models
-- Animations for Quake I (.mdl) and DirectX (.x) models
+- Simple shapes creation (surface, box, sphere, cylinder, disk, ring, spiral and capsule)
+- Quake I (.mdl), DirectX (.x, partially), Collada (.dae, partially) and WaveFront (.obj, partially) models
+- Animations for Quake I (.mdl), DirectX (.x) and Collada (.dae) models
 - Skybox
 - Landscape generation
 - Transparency
 - Bump mapping
 - Full-scene antialiasing and post-processing effects
-- Collision detection (partially, ground and mouse collision)
+- Collision detection (partially - geometry, ground and mouse collision)
 - Particles system (early stage, see the Weather demo and Spaceship game demo)
 - Physics (early stage, see the Wild Soccer demo)
 - Artificial intelligence (early stage, see the Bot demo)
 - Sound and music
 - Cross-platform SDK written in C
 - Objective-C Metal renderer for OSX/iOS (experimental)
+
+I also used this engine for a small game jam project: https://jeanmilost.itch.io/in-a-cave-for-a-game-jam
 
 <b>Here are some screenshots of several projects I realized with this engine (all are available as demo)</b>
 
@@ -36,9 +38,21 @@ It's the reason why this engine exists.
 
 ## Supported compilers and OS
 
-The SDK may be compiled with any C or C++ compiler (Tested with [Embarcadero RAD Studio](https://www.embarcadero.com/), [CodeBlocks](http://www.codeblocks.org/) and [xCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12)). The provided demos and tools may be compiled with [Embarcadero RAD Studio](https://www.embarcadero.com/products/cbuilder/starter/free-download) or with xCode.
+The SDK may be compiled with any C or C++ compiler (Tested with [Visual Studio 2019](https://visualstudio.microsoft.com/), [Embarcadero RAD Studio](https://www.embarcadero.com/), [CodeBlocks](http://www.codeblocks.org/) and [xCode](https://apps.apple.com/us/app/xcode/id497799835?mt=12)). There are several demo projects provided for each of these compilers.
 
 This game engine is also available for the [Mobile C Compiler](https://itunes.apple.com/us/app/mobile-c-c-c-compiler/id467393915?mt=8). It may be found on the following GIT: https://github.com/dztall/ucc/tree/master/3D%20engine/CompactStar%20Engine
+
+##About the Collada format support
+
+The Collada (.dae) format support is partial and was planned to support very simple models. For that reason several restrictions should be considered:
+- Only triangles are supported in geometry, for that reason the Triangulate option should be activated in exporter. See e.g. the following Blender exporter screenshot:
+![Screenshot](Common/Images/Screenshots/BlenderExporterGeom.png?raw=true "Screenshot")
+- The skeleton should be as simple as possible. Avoid to create more than 1 skeleton
+- Avoid to create many textures, if possible, create only one RGB texture per model
+- For animations, only matrix transformations and linear interpolations are supported. See e.g the following Blender exporter screenshot:
+![Screenshot](Common/Images/Screenshots/BlenderExporterAnim.png?raw=true "Screenshot")
+- Only one 3d model is supported by scene. Complex scenes, or advanced features like cameras and lights may prevent the model to be opened correctly
+- An example of well supported model is available [here](https://sketchfab.com/3d-models/lowpoly-cat-rig-run-animation-c36df576c9ae4ed28e89069b1a2f427a)
 
 ## Third-party
 This project depends on several third-party libraries, which are:
@@ -48,19 +62,23 @@ This project depends on several third-party libraries, which are:
 
 These third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS. Please refer to the original website for the documentation, updates, and licenses.
 
-Several [Blender](https://www.blender.org/) plugins were also used to export models in Quake I (.mdl), Quake II (.md2) and Quake III (.md3) formats. You may find them on the following websites:
-- Quake I (.mdl): http://quakeforge.net/files.php
-- Quake II (.md2): https://www.rockraidersunited.com/topic/8175-md2-blender-importexport-add-on-early-release/
-- Quake III (.md3): https://github.com/neumond/blender-md3
+Several [Blender](https://www.blender.org/) plugins were also used to export Quake I (.mdl) and DirectX (.x) model formats. You may find them on the following websites:
+- Quake I (.mdl)
+  - For Blender 2.79 and earlier: http://quakeforge.net/files.php
+  - For Blender 2.80 and higher: https://github.com/victorfeitosa/quake-hexen2-mdl-export-import
+- DirectX (.x) for Blender 2.80 and higher: https://github.com/DodgeeSoftware/io_scene_directx
 
 ## Assets
 Several free assets were used in the demo projects. For convenience, they were left with the demo projects, as a part of them.
 
-All the assets used in the demos were free assets downloaded from [CadNav](https://www.cadnav.com/) and [Free3D](https://free3d.com/), and are subject to the user licenses applied on their respective websites.
+All the assets used in the demos were free assets downloaded from [CadNav](https://www.cadnav.com/), [Free3D](https://free3d.com/), [TurboSquid](https://www.turbosquid.com/), [Open3dModel](https://open3dmodel.com/) and [Sketchfab](https://sketchfab.com/), and are subject to the user licenses applied on their respective websites.
 
 <b>Please don't use these assets outside the legal framework defined for them, and if you want to use them, they should be downloaded from their original website</b>, which are:
 - Old farm tractor: https://www.cadnav.com/3d-models/model-44958.html
 - Trees: https://free3d.com/3d-model/trees-9-53338.html
+- Spaceship: https://www.turbosquid.com/3d-models/free-space---3d-model/531813
+- Juliet: https://open3dmodel.com/3d-models/juliet-sexy-girl-free-3d-character-model_9648.html
+- Running cat: https://sketchfab.com/3d-models/lowpoly-cat-rig-run-animation-c36df576c9ae4ed28e89069b1a2f427a
 
 ## License
 
