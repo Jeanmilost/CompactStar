@@ -1,0 +1,9 @@
+[submodule "Third-party/sxml"]
+	path = Third-party/sxml
+	url = https://github.com/Jeanmilost/sxmlc.git
+[submodule "Third-party/Blender/mdl file plugin/since 2.80/source code"]
+	path = Third-party/Blender/mdl file plugin/since 2.80/source code
+	url = https://github.com/victorfeitosa/quake-hexen2-mdl-export-import.git
+[submodule "Third-party/Blender/x file plugin/since 2.80/source code"]
+	path = Third-party/Blender/x file plugin/since 2.80/source code
+	url = https://github.com/DodgeeSoftware/io_scene_directx.git

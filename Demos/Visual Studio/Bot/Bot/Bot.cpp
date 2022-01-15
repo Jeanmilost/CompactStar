@@ -1,9 +1,9 @@
 /*****************************************************************************
  * ==> Bot demo -------------------------------------------------------------*
  *****************************************************************************
- * Description : An intelligent bot demo                                     *
+ * Description : A bot with a very simple AI system                          *
  * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2021, this file is part of the Minimal API. You are  *
+ * Copyright   : 2015 - 2022, this file is part of the Minimal API. You are  *
  *               free to copy or redistribute this file, modify it, or use   *
  *               it for your own projects, commercial or not. This file is   *
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *
@@ -1183,8 +1183,8 @@ bool InitScene(int w, int h)
     // initialize the fader matrix
     BuildFaderMatrix();
 
-    const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Skybox);
-    const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
+    const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Skybox);
+    const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Skybox);
 
     // load the skybox shader
     g_pSkyboxShader = csrOpenGLShaderLoadFromStr(vsSkybox.c_str(),

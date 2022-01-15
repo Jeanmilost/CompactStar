@@ -42,10 +42,10 @@
         <SanitizedProjectName>CompactStar_SoftwareRaster</SanitizedProjectName>
         <Multithreaded>true</Multithreaded>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\Third-party\glew\include\;..\..\SDK\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\Third-party\sxml\src\;..\..\Third-party\glew\include\;..\..\SDK\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
-        <ILINK_LibraryPath>..\..\Third-party\glew\lib\Embarcadero\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\Third-party\sxml\src\;..\..\Third-party\glew\lib\Embarcadero\;..\..\SDK\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
         <DynamicRTL>true</DynamicRTL>
@@ -103,6 +103,12 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <ItemGroup>
+        <CppCompile Include="..\..\SDK\CSR_Collada.c">
+            <BuildOrder>25</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Collada.h">
+            <BuildOrder>26</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>17</BuildOrder>
         </CppCompile>
@@ -169,6 +175,18 @@
         <None Include="..\..\SDK\CSR_X.h">
             <BuildOrder>24</BuildOrder>
         </None>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>27</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>28</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>29</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>30</BuildOrder>
+        </None>
         <CppCompile Include="CompactStar_SoftwareRaster.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
@@ -222,6 +240,11 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -235,11 +258,6 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_SoftwareRaster.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_SoftwareRaster.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_Weather</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Weather\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Weather\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Weather\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Weather\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -163,6 +163,12 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\..\..\SDK\CSR_Collada.c">
+            <BuildOrder>42</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Collada.h">
+            <BuildOrder>43</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Collision.c">
             <BuildOrder>36</BuildOrder>
         </CppCompile>
@@ -258,6 +264,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_X.h">
             <BuildOrder>41</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>44</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>45</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>46</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>47</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">

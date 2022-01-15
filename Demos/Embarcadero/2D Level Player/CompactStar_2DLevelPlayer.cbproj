@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_2DLevelPlayer</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\Third-party\sxml\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\Third-party\sxml\src\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\Third-party\sxml\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\Third-party\sxml\;..\..\..\SDK\;..\..\..\Common\C++\Base\;..\..\..\Common\C++\Effects\;..\..\..\Common\C++\Helpers\;..\..\..\Common\C++\Level\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -171,6 +171,12 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\..\..\SDK\CSR_Collada.c">
+            <BuildOrder>44</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Collada.h">
+            <BuildOrder>45</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Collision.c">
             <BuildOrder>16</BuildOrder>
         </CppCompile>
@@ -255,17 +261,17 @@
         <None Include="..\..\..\SDK\CSR_X.h">
             <BuildOrder>43</BuildOrder>
         </None>
-        <CppCompile Include="..\..\..\Third-party\sxml\sxmlc.c">
-            <BuildOrder>34</BuildOrder>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>40</BuildOrder>
         </CppCompile>
-        <None Include="..\..\..\Third-party\sxml\sxmlc.h">
-            <BuildOrder>35</BuildOrder>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>41</BuildOrder>
         </None>
-        <CppCompile Include="..\..\..\Third-party\sxml\sxmlsearch.c">
-            <BuildOrder>36</BuildOrder>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>42</BuildOrder>
         </CppCompile>
-        <None Include="..\..\..\Third-party\sxml\sxmlsearch.h">
-            <BuildOrder>37</BuildOrder>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>43</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
@@ -322,8 +328,8 @@
                 <DeployFile LocalName=".\Win32\Debug\GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_GroundCollision.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2dLevelPlayer.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_2DLevelPlayer2.tds" Configuration="Debug" Class="DebugSymbols"/>
+                <DeployFile LocalName=".\Win32\Debug\2D Level Player.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>

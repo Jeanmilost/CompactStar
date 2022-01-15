@@ -22,6 +22,18 @@
     <Filter Include="SDK\Source Files">
       <UniqueIdentifier>{8b35ca0f-b103-4c65-ae1d-b15598cc3c44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Third-Party">
+      <UniqueIdentifier>{3036ffa5-e33b-4d64-955e-4e13504f89ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml">
+      <UniqueIdentifier>{981762a8-172d-4d0c-bab1-277233dcd554}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml\Header Files">
+      <UniqueIdentifier>{ee04d364-8f4c-4983-aad1-2496069e66ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml\Source Files">
+      <UniqueIdentifier>{82686106-5182-4077-aef2-b54bb7da4b7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -71,6 +83,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h">
       <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collada.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_DebugHelper.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlc.h">
+      <Filter>Third-Party\sxml\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h">
+      <Filter>Third-Party\sxml\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +146,18 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collada.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_DebugHelper.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlc.c">
+      <Filter>Third-Party\sxml\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c">
+      <Filter>Third-Party\sxml\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="X.rc">
@@ -130,6 +166,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="CompactStarEngine.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Tiny_skin.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

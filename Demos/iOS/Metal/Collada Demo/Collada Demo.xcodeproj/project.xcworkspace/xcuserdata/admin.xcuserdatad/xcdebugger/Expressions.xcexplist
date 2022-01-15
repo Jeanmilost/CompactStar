@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "csrColladaOpen:CSR_Collada.c">
+      </ContextState>
+      <ContextState
+         contextName = "csrColladaParse:CSR_Collada.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "(const CSR_Buffer *)pBuffer">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "_parse_data_SAX:sxmlc.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "(DataSourceBuffer*)in">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "::-[CSR_MetalRenderer InitScene:](MTKView *):Renderer.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "(float)*(pMesh-&gt;m_pVB-&gt;m_pData)">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "read_line_alloc:sxmlc.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "(DataSourceBuffer*)in">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : CompactStar Engine level designer for 2D games             *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2019, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2022, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -22,10 +22,10 @@
 //---------------------------------------------------------------------------
 USEFORM("TShapeSelection.cpp", ShapeSelection);
 USEFORM("TModelSelection.cpp", ModelSelection);
-USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
+USEFORM("TLevelSelection.cpp", LevelSelection);
 USEFORM("TVector3Frame.cpp", Vector3Frame); /* TFrame: File Type */
 USEFORM("TSoundSelection.cpp", SoundSelection);
-USEFORM("TLevelSelection.cpp", LevelSelection);
+USEFORM("TSkyboxSelection.cpp", SkyboxSelection);
 USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
 USEFORM("Main.cpp", MainForm);
 //---------------------------------------------------------------------------

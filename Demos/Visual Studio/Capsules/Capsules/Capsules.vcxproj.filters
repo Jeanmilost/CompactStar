@@ -22,6 +22,18 @@
     <Filter Include="SDK\Source Files">
       <UniqueIdentifier>{8b35ca0f-b103-4c65-ae1d-b15598cc3c44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Third-party">
+      <UniqueIdentifier>{8d01cc9b-6b34-4678-9de7-d79af5e58e29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-party\sxml">
+      <UniqueIdentifier>{cbb5e2ca-b1bc-4a11-8f52-5366ec458409}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-party\sxml\Header Files">
+      <UniqueIdentifier>{9127a3e2-c7e3-4c6f-a70c-b0b174575bd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-party\sxml\Source Files">
+      <UniqueIdentifier>{6c76ea6a-05cb-4609-9051-d6fc8df67279}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -87,6 +99,15 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_X.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collada.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlc.h">
+      <Filter>Third-party\sxml\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h">
+      <Filter>Third-party\sxml\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Capsules.cpp">
@@ -151,6 +172,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c">
       <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collada.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlc.c">
+      <Filter>Third-party\sxml\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c">
+      <Filter>Third-party\sxml\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

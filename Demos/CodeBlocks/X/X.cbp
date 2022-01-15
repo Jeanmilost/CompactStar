@@ -31,6 +31,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="../../../Third-party/glew/include" />
+			<Add directory="../../../Third-party/sxml/src" />
 			<Add directory="../../../SDK" />
 			<Add directory="../../../Common/C++/Helpers" />
 		</Compiler>
@@ -44,6 +45,10 @@
 		<Unit filename="../../../Common/C++/Helpers/CSR_OpenGLHelper.h" />
 		<Unit filename="../../../Common/C++/Helpers/CSR_ShaderHelper.cpp" />
 		<Unit filename="../../../Common/C++/Helpers/CSR_ShaderHelper.h" />
+		<Unit filename="../../../SDK/CSR_Collada.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Collada.h" />
 		<Unit filename="../../../SDK/CSR_Collision.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -100,6 +105,14 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_X.h" />
+		<Unit filename="../../../Third-party/sxml/src/sxmlc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../Third-party/sxml/src/sxmlc.h" />
+		<Unit filename="../../../Third-party/sxml/src/sxmlsearch.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../Third-party/sxml/src/sxmlsearch.h" />
 		<Unit filename="Main.cpp" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />

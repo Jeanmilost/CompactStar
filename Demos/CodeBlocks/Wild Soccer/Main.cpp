@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : Wild soccer game demo                                      *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2021, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2022, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -390,7 +390,6 @@ GLuint LoadCubemap(const IFileNames fileNames)
             unsigned       y;
             unsigned char  c;
             GLint          pixelType;
-            GLuint         index = 0;
 
             // select the correct pixel type to use
             switch (pPixelBuffer->m_BytePerPixel)
@@ -632,7 +631,6 @@ bool CheckForGoal(CSR_Ball* pBall, const CSR_Vector3* pOldPos, const CSR_Vector3
 void ApplyPhysics(float elapsedTime)
 {
     CSR_Plane   groundPlane  = {};
-    CSR_Vector3 acceleration = {};
     CSR_Vector3 prevCenter   = {};
     CSR_Vector3 ballDir      = {};
     CSR_Vector3 ballDirN     = {};

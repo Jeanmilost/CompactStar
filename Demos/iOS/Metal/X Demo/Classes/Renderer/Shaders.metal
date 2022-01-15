@@ -44,9 +44,9 @@ typedef struct
 //---------------------------------------------------------------------------
 // Vertex shader
 //---------------------------------------------------------------------------
-vertex CSR_Vertex_Out csrVertexShader(device   CSR_Vertex_In* pVertices[[buffer(0)]],
-                                      constant CSR_Uniforms&  uniforms[[buffer(1)]],
-                                      uint                    vid[[vertex_id]])
+vertex CSR_Vertex_Out csrVertexShader(const device CSR_Vertex_In* pVertices[[buffer(0)]],
+                                      constant     CSR_Uniforms&  uniforms[[buffer(1)]],
+                                                   uint           vid[[vertex_id]])
 {
     CSR_Vertex_Out out;
 

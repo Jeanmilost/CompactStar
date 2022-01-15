@@ -12,6 +12,9 @@
 		844398B9219A5CCD002D652F /* footstep_left.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B6219A5CCC002D652F /* footstep_left.wav */; };
 		844398BA219A5CCD002D652F /* footstep_right.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B7219A5CCC002D652F /* footstep_right.wav */; };
 		844398BB219A5CCD002D652F /* soccer_ball_kick.wav in Resources */ = {isa = PBXBuildFile; fileRef = 844398B8219A5CCD002D652F /* soccer_ball_kick.wav */; };
+		8464BF21279272E5003463D3 /* sxmlsearch.c in Sources */ = {isa = PBXBuildFile; fileRef = 8464BF1E279272E5003463D3 /* sxmlsearch.c */; };
+		8464BF22279272E5003463D3 /* sxmlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 8464BF20279272E5003463D3 /* sxmlc.c */; };
+		8464BF2927927327003463D3 /* CSR_ShaderHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8464BF2727927327003463D3 /* CSR_ShaderHelper.cpp */; };
 		846C90FA1F43EAC300BFAD74 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */; };
 		846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90F61F43EAC300BFAD74 /* GameViewController.mm */; };
 		846C91001F43EAC300BFAD74 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 846C90F81F43EAC300BFAD74 /* main.mm */; };
@@ -33,7 +36,6 @@
 		84942798213734C500ADDCAC /* CSR_Collision.c in Sources */ = {isa = PBXBuildFile; fileRef = 84942785213734C500ADDCAC /* CSR_Collision.c */; };
 		84942799213734C500ADDCAC /* CSR_Geometry.c in Sources */ = {isa = PBXBuildFile; fileRef = 84942788213734C500ADDCAC /* CSR_Geometry.c */; };
 		8494279A213734C500ADDCAC /* CSR_Lighting.c in Sources */ = {isa = PBXBuildFile; fileRef = 84942789213734C500ADDCAC /* CSR_Lighting.c */; };
-		849427D0213734FF00ADDCAC /* CSR_ShaderHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 849427BA213734FF00ADDCAC /* CSR_ShaderHelper.cpp */; };
 		84B444202135E5D400EA6FAD /* skybox_front_small.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B444142135E5D300EA6FAD /* skybox_front_small.bmp */; };
 		84B444212135E5D400EA6FAD /* skybox_left_small.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B444152135E5D300EA6FAD /* skybox_left_small.bmp */; };
 		84B444222135E5D400EA6FAD /* skybox_right_small.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B444162135E5D300EA6FAD /* skybox_right_small.bmp */; };
@@ -46,6 +48,7 @@
 		84B444292135E5D400EA6FAD /* soccer_ball.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B4441D2135E5D300EA6FAD /* soccer_ball.bmp */; };
 		84B4442A2135E5D400EA6FAD /* soccer_goal.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B4441E2135E5D400EA6FAD /* soccer_goal.bmp */; };
 		84B4442B2135E5D400EA6FAD /* soccer_goal.obj in Resources */ = {isa = PBXBuildFile; fileRef = 84B4441F2135E5D400EA6FAD /* soccer_goal.obj */; };
+		84C437E42791AB6B00FCFC10 /* CSR_Collada.c in Sources */ = {isa = PBXBuildFile; fileRef = 84C437E32791AB6B00FCFC10 /* CSR_Collada.c */; };
 		84CD1EFC1F8FBC2900E5C77D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1EFB1F8FBC2900E5C77D /* QuartzCore.framework */; };
 		84CD1EFF1F8FBC5A00E5C77D /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1EFD1F8FBC5A00E5C77D /* OpenAL.framework */; };
 		84CD1F001F8FBC5A00E5C77D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */; };
@@ -61,6 +64,12 @@
 		844398B6219A5CCC002D652F /* footstep_left.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = footstep_left.wav; sourceTree = "<group>"; };
 		844398B7219A5CCC002D652F /* footstep_right.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = footstep_right.wav; sourceTree = "<group>"; };
 		844398B8219A5CCD002D652F /* soccer_ball_kick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = soccer_ball_kick.wav; sourceTree = "<group>"; };
+		8464BF1D279272E5003463D3 /* sxmlsearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlsearch.h; path = "../../../../Third-party/sxml/src/sxmlsearch.h"; sourceTree = "<group>"; };
+		8464BF1E279272E5003463D3 /* sxmlsearch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlsearch.c; path = "../../../../Third-party/sxml/src/sxmlsearch.c"; sourceTree = "<group>"; };
+		8464BF1F279272E5003463D3 /* sxmlc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlc.h; path = "../../../../Third-party/sxml/src/sxmlc.h"; sourceTree = "<group>"; };
+		8464BF20279272E5003463D3 /* sxmlc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlc.c; path = "../../../../Third-party/sxml/src/sxmlc.c"; sourceTree = "<group>"; };
+		8464BF2727927327003463D3 /* CSR_ShaderHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CSR_ShaderHelper.cpp; path = "../../../../Common/C++/Helpers/CSR_ShaderHelper.cpp"; sourceTree = "<group>"; };
+		8464BF2827927327003463D3 /* CSR_ShaderHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CSR_ShaderHelper.h; path = "../../../../Common/C++/Helpers/CSR_ShaderHelper.h"; sourceTree = "<group>"; };
 		846C90EE1F43EAC300BFAD74 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		846C90EF1F43EAC300BFAD74 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		846C90F51F43EAC300BFAD74 /* GameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
@@ -100,8 +109,6 @@
 		84942789213734C500ADDCAC /* CSR_Lighting.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Lighting.c; sourceTree = "<group>"; };
 		8494278A213734C500ADDCAC /* CSR_Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Scene.h; sourceTree = "<group>"; };
 		8494278C213734C500ADDCAC /* CSR_Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Renderer.h; sourceTree = "<group>"; };
-		849427B9213734FF00ADDCAC /* CSR_ShaderHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_ShaderHelper.h; sourceTree = "<group>"; };
-		849427BA213734FF00ADDCAC /* CSR_ShaderHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSR_ShaderHelper.cpp; sourceTree = "<group>"; };
 		84B444142135E5D300EA6FAD /* skybox_front_small.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = skybox_front_small.bmp; sourceTree = "<group>"; };
 		84B444152135E5D300EA6FAD /* skybox_left_small.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = skybox_left_small.bmp; sourceTree = "<group>"; };
 		84B444162135E5D300EA6FAD /* skybox_right_small.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = skybox_right_small.bmp; sourceTree = "<group>"; };
@@ -114,6 +121,8 @@
 		84B4441D2135E5D300EA6FAD /* soccer_ball.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = soccer_ball.bmp; sourceTree = "<group>"; };
 		84B4441E2135E5D400EA6FAD /* soccer_goal.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = soccer_goal.bmp; sourceTree = "<group>"; };
 		84B4441F2135E5D400EA6FAD /* soccer_goal.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soccer_goal.obj; sourceTree = "<group>"; };
+		84C437E22791AB6B00FCFC10 /* CSR_Collada.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Collada.h; sourceTree = "<group>"; };
+		84C437E32791AB6B00FCFC10 /* CSR_Collada.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Collada.c; sourceTree = "<group>"; };
 		84CD1EFB1F8FBC2900E5C77D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		84CD1EFD1F8FBC5A00E5C77D /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
@@ -165,6 +174,50 @@
 			path = Helpers;
 			sourceTree = "<group>";
 		};
+		8464BF1B279272B8003463D3 /* Third-party */ = {
+			isa = PBXGroup;
+			children = (
+				8464BF1C279272CE003463D3 /* sxml */,
+			);
+			name = "Third-party";
+			sourceTree = "<group>";
+		};
+		8464BF1C279272CE003463D3 /* sxml */ = {
+			isa = PBXGroup;
+			children = (
+				8464BF20279272E5003463D3 /* sxmlc.c */,
+				8464BF1F279272E5003463D3 /* sxmlc.h */,
+				8464BF1E279272E5003463D3 /* sxmlsearch.c */,
+				8464BF1D279272E5003463D3 /* sxmlsearch.h */,
+			);
+			name = sxml;
+			sourceTree = "<group>";
+		};
+		8464BF24279272F7003463D3 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				8464BF2527927302003463D3 /* C++ */,
+			);
+			name = Common;
+			sourceTree = "<group>";
+		};
+		8464BF2527927302003463D3 /* C++ */ = {
+			isa = PBXGroup;
+			children = (
+				8464BF262792730F003463D3 /* Helpers */,
+			);
+			name = "C++";
+			sourceTree = "<group>";
+		};
+		8464BF262792730F003463D3 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				8464BF2727927327003463D3 /* CSR_ShaderHelper.cpp */,
+				8464BF2827927327003463D3 /* CSR_ShaderHelper.h */,
+			);
+			name = Helpers;
+			sourceTree = "<group>";
+		};
 		846C90ED1F43EAC300BFAD74 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -207,6 +260,8 @@
 		8494276E213734C500ADDCAC /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				84C437E32791AB6B00FCFC10 /* CSR_Collada.c */,
+				84C437E22791AB6B00FCFC10 /* CSR_Collada.h */,
 				84942785213734C500ADDCAC /* CSR_Collision.c */,
 				84942774213734C500ADDCAC /* CSR_Collision.h */,
 				84942772213734C500ADDCAC /* CSR_Common.c */,
@@ -242,24 +297,6 @@
 			path = ../../../../SDK;
 			sourceTree = "<group>";
 		};
-		8494279C213734FF00ADDCAC /* C++ */ = {
-			isa = PBXGroup;
-			children = (
-				849427B5213734FF00ADDCAC /* Helpers */,
-			);
-			name = "C++";
-			path = "../../../../Common/C++";
-			sourceTree = "<group>";
-		};
-		849427B5213734FF00ADDCAC /* Helpers */ = {
-			isa = PBXGroup;
-			children = (
-				849427BA213734FF00ADDCAC /* CSR_ShaderHelper.cpp */,
-				849427B9213734FF00ADDCAC /* CSR_ShaderHelper.h */,
-			);
-			path = Helpers;
-			sourceTree = "<group>";
-		};
 		84CD1F051F8FBFB800E5C77D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -276,8 +313,9 @@
 			isa = PBXGroup;
 			children = (
 				8494276E213734C500ADDCAC /* SDK */,
-				8494279C213734FF00ADDCAC /* C++ */,
+				8464BF24279272F7003463D3 /* Common */,
 				842C51412137889700B7159A /* Objective-C */,
+				8464BF1B279272B8003463D3 /* Third-party */,
 				846C90ED1F43EAC300BFAD74 /* Classes */,
 				846C91011F43EB6100BFAD74 /* Resources */,
 				84CD1F051F8FBFB800E5C77D /* Frameworks */,
@@ -380,22 +418,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				841755C5213B474300F11208 /* GameLogic.mm in Sources */,
+				8464BF22279272E5003463D3 /* sxmlc.c in Sources */,
 				846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */,
 				84942790213734C500ADDCAC /* CSR_Texture.c in Sources */,
 				842C51452137889700B7159A /* CSR_ObjectiveCHelper.m in Sources */,
-				849427D0213734FF00ADDCAC /* CSR_ShaderHelper.cpp in Sources */,
 				84942794213734C500ADDCAC /* CSR_Scene.c in Sources */,
 				846D147A275A828D001E44BD /* CSR_X.c in Sources */,
 				846D1479275A828D001E44BD /* CSR_Mdl.c in Sources */,
 				84942795213734C500ADDCAC /* CSR_Vertex.c in Sources */,
 				846C90FA1F43EAC300BFAD74 /* AppDelegate.mm in Sources */,
 				84942797213734C500ADDCAC /* CSR_Renderer_OpenGL.c in Sources */,
+				8464BF2927927327003463D3 /* CSR_ShaderHelper.cpp in Sources */,
 				84942791213734C500ADDCAC /* CSR_Model.c in Sources */,
 				84942799213734C500ADDCAC /* CSR_Geometry.c in Sources */,
 				846D1478275A828D001E44BD /* CSR_Wavefront.c in Sources */,
 				8494278F213734C500ADDCAC /* CSR_Common.c in Sources */,
 				84942796213734C500ADDCAC /* CSR_Sound.c in Sources */,
 				8494278D213734C500ADDCAC /* CSR_Physics.c in Sources */,
+				84C437E42791AB6B00FCFC10 /* CSR_Collada.c in Sources */,
+				8464BF21279272E5003463D3 /* sxmlsearch.c in Sources */,
 				84942798213734C500ADDCAC /* CSR_Collision.c in Sources */,
 				8494279A213734C500ADDCAC /* CSR_Lighting.c in Sources */,
 				84942793213734C500ADDCAC /* CSR_Renderer.c in Sources */,

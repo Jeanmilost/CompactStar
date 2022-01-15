@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_LevelDesigner_2D</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\Third-party\glew\include\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\;..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\Third-party\glew\include\;..\..\Third-party\OpenAL\include\;..\..\Third-party\sxml\src\;..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\Third-party\glew\lib\Embarcadero\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\Third-party\sxml\src\;..\..\Third-party\glew\lib\Embarcadero\;..\..\Third-party\OpenAL\libs\Win32\;..\..\Third-party\sxml\;..\..\SDK\;..\..\Common\C++\Base\;..\..\Common\C++\Designer\;..\..\Common\C++\Effects\;..\..\Common\C++\Helpers\;..\..\Common\C++\Level\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -167,6 +167,12 @@
             <DependentOn>..\..\Common\C++\Level\CSR_LevelFile_XML.h</DependentOn>
             <BuildOrder>49</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\..\SDK\CSR_Collada.c">
+            <BuildOrder>49</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Collada.h">
+            <BuildOrder>50</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
@@ -251,17 +257,17 @@
         <None Include="..\..\SDK\CSR_X.h">
             <BuildOrder>52</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Third-party\sxml\sxmlc.c">
-            <BuildOrder>43</BuildOrder>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>51</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Third-party\sxml\sxmlc.h">
-            <BuildOrder>44</BuildOrder>
+        <None Include="..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>52</BuildOrder>
         </None>
-        <CppCompile Include="..\..\Third-party\sxml\sxmlsearch.c">
-            <BuildOrder>45</BuildOrder>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>53</BuildOrder>
         </CppCompile>
-        <None Include="..\..\Third-party\sxml\sxmlsearch.h">
-            <BuildOrder>46</BuildOrder>
+        <None Include="..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>54</BuildOrder>
         </None>
         <CppCompile Include="CompactStar_LevelDesigner_2D.cpp">
             <BuildOrder>0</BuildOrder>
@@ -320,10 +326,10 @@
         </CppCompile>
         <FormResources Include="TShapeSelection.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
-        <FormResources Include="TSkyboxSelection.dfm"/>
+        <FormResources Include="TLevelSelection.dfm"/>
         <FormResources Include="TVector3Frame.dfm"/>
         <FormResources Include="TSoundSelection.dfm"/>
-        <FormResources Include="TLevelSelection.dfm"/>
+        <FormResources Include="TSkyboxSelection.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">

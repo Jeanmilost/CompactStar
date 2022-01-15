@@ -61,11 +61,11 @@
         <VerInfo_Locale>4108</VerInfo_Locale>
         <Icon_MainIcon>..\..\..\Common\Icons\Windows\CompactStarEngine.ico</Icon_MainIcon>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <Multithreaded>true</Multithreaded>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_Bot</SanitizedProjectName>
         <ProjectType>CppVCLApplication</ProjectType>
@@ -163,6 +163,12 @@
         <None Include="..\..\..\SDK\CSR_AI.h">
             <BuildOrder>7</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Collada.c">
+            <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Collada.h">
+            <BuildOrder>36</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Collision.c">
             <BuildOrder>4</BuildOrder>
         </CppCompile>
@@ -247,6 +253,18 @@
         <None Include="..\..\..\SDK\CSR_X.h">
             <BuildOrder>34</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>38</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>39</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>40</BuildOrder>
+        </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
@@ -287,6 +305,11 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -297,18 +320,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\Bot.tds" Configuration="Debug" Class="DebugSymbols"/>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_Bot.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_Bot.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Bot.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile LocalName=".\Win32\Debug\Project1.tds" Configuration="Debug" Class="DebugSymbols"/>
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgstl.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">

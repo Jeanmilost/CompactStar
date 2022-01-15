@@ -3,7 +3,7 @@
  *****************************************************************************
  * Description : Capsules and collision demo                                 *
  * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2021, this file is part of the Minimal API. You are  *
+ * Copyright   : 2015 - 2022, this file is part of the Minimal API. You are  *
  *               free to copy or redistribute this file, modify it, or use   *
  *               it for your own projects, commercial or not. This file is   *
  *               provided "as is", without ANY WARRANTY OF ANY KIND          *

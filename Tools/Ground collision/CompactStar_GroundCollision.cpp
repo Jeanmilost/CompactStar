@@ -20,8 +20,8 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
-USEFORM("Main.cpp", MainForm);
 USEFORM("TLandscapeSelection.cpp", LandscapeSelection);
+USEFORM("Main.cpp", MainForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

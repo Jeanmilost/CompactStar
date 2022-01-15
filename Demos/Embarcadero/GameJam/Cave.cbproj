@@ -71,11 +71,11 @@
         <BCC_Defines>WIN32;NO_WIN32_LEAN_AND_MEAN;$(BCC_Defines)</BCC_Defines>
         <VerInfo_Locale>4108</VerInfo_Locale>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\include\;..\..\..\Third-party\OpenAL\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <Multithreaded>true</Multithreaded>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\Third-party\OpenAL\libs\Win32\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>Cave</SanitizedProjectName>
         <ProjectType>CppVCLApplication</ProjectType>
@@ -184,6 +184,12 @@
         <None Include="..\..\..\SDK\CSR_AI.h">
             <BuildOrder>7</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Collada.c">
+            <BuildOrder>36</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Collada.h">
+            <BuildOrder>37</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Collision.c">
             <BuildOrder>4</BuildOrder>
         </CppCompile>
@@ -267,6 +273,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_X.h">
             <BuildOrder>35</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>38</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>39</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>40</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>41</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
@@ -950,7 +968,7 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
@@ -958,9 +976,9 @@
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>
                 <Platform value="Win32">True</Platform>

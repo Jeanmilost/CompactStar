@@ -60,10 +60,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_X</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\..\Third-party\glew\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\include\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\..\Third-party\sxml\src\;..\..\..\Third-party\glew\lib\Embarcadero\;..\..\..\SDK\;..\..\..\Common\C++\Helpers\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -142,6 +142,12 @@
             <DependentOn>Main.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\..\..\SDK\CSR_Collada.c">
+            <BuildOrder>31</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Collada.h">
+            <BuildOrder>32</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Collision.c">
             <BuildOrder>9</BuildOrder>
         </CppCompile>
@@ -219,6 +225,18 @@
         </CppCompile>
         <None Include="..\..\..\SDK\CSR_X.h">
             <BuildOrder>30</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>33</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>34</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>36</BuildOrder>
         </None>
         <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">

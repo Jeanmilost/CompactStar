@@ -1,12 +1,12 @@
 /*****************************************************************************
  * ==> Bot demo -------------------------------------------------------------*
  *****************************************************************************
- * Description : An intelligent bot demo                                     *
+ * Description : A bot with a very simple AI system                          *
  * Developer   : Jean-Milost Reymond                                         *
- * Copyright   : 2015 - 2021, this file is part of the Minimal API. You are  *
- *               free to copy or redistribute this file, modify it, or use   *
- *               it for your own projects, commercial or not. This file is   *
- *               provided "as is", without ANY WARRANTY OF ANY KIND          *
+ * Copyright   : 2017 - 2022, this file is part of the CompactStar engine.   *
+ *               You are free to copy or redistribute this file, modify it,  *
+ *               or use it for your own projects, commercial or not. This    *
+ *               file is provided "as is", without ANY WARRANTY OF ANY KIND  *
  *****************************************************************************/
 
 // std
@@ -579,6 +579,9 @@ int OnDying(double elapsedTime)
     // execute the dying sequence
     switch (g_Bot.m_DyingSequence)
     {
+        case E_DS_None:
+            break;
+
         case E_DS_Dying:
             // dying animation end reached?
             if (g_LastKnownIndex && g_ModelIndex < g_LastKnownIndex)
@@ -788,7 +791,6 @@ GLuint LoadCubemap(const IFileNames fileNames)
             unsigned       y;
             unsigned char  c;
             GLint          pixelType;
-            GLuint         index   = 0;
 
             // select the correct pixel type to use
             switch (pPixelBuffer->m_BytePerPixel)
@@ -975,11 +977,9 @@ int ApplyGroundCollision(const CSR_Sphere* pBoundingSphere, CSR_Matrix4* pMatrix
 //------------------------------------------------------------------------------
 int CheckPlayerVisible()
 {
-    CSR_SceneItem*     pSceneItem;
-    CSR_Vector3        botToPlayer;
-    CSR_Vector3        botToPlayerDir;
-    CSR_Polygon3Buffer polygons;
-    float              angle;
+    CSR_Vector3 botToPlayer;
+    CSR_Vector3 botToPlayerDir;
+    float       angle;
 
     // calculate the bot to player vector
     botToPlayer.m_X = g_Bot.m_Geometry.m_Center.m_X - g_BoundingSphere.m_Center.m_X;
@@ -1025,8 +1025,6 @@ bool InitScene(int w, int h)
 {
     CSR_VertexFormat vertexFormat;
     CSR_Material     material;
-    CSR_Mesh*        pMesh;
-    CSR_Model*       pModel;
 
     srand(0);
 
@@ -1281,7 +1279,6 @@ void DeleteScene()
 void UpdateScene(float elapsedTime)
 {
     float          posY;
-    float          angle;
     CSR_Sphere     prevSphere;
     CSR_SceneItem* pSceneItem;
 

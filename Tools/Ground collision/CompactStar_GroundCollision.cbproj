@@ -53,10 +53,10 @@
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>CompactStar_GroundCollision</SanitizedProjectName>
         <_TCHARMapping>wchar_t</_TCHARMapping>
-        <IncludePath>..\..\Third-party\glew\include\;..\..\Third-party\OpenAL\include\;..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Common\C++\Effects\;$(IncludePath)</IncludePath>
+        <IncludePath>..\..\Third-party\sxml\src\;..\..\Third-party\glew\include\;..\..\Third-party\OpenAL\include\;..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Common\C++\Effects\;$(IncludePath)</IncludePath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Multithreaded>true</Multithreaded>
-        <ILINK_LibraryPath>..\..\Third-party\glew\lib\Embarcadero\;..\..\Third-party\OpenAL\libs\Win32\;..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Common\C++\Effects\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>..\..\Third-party\sxml\src\;..\..\Third-party\glew\lib\Embarcadero\;..\..\Third-party\OpenAL\libs\Win32\;..\..\SDK\;..\..\Common\C++\Helpers\;..\..\Common\C++\Effects\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <AllPackageLibs>rtl.lib;vcl.lib;vclimg.lib</AllPackageLibs>
         <ProjectType>CppVCLApplication</ProjectType>
         <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
@@ -129,6 +129,12 @@
             <DependentOn>..\..\Common\C++\Helpers\CSR_OpenGLHelper.h</DependentOn>
             <BuildOrder>28</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\..\SDK\CSR_Collada.c">
+            <BuildOrder>35</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Collada.h">
+            <BuildOrder>36</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Collision.c">
             <BuildOrder>3</BuildOrder>
         </CppCompile>
@@ -213,6 +219,18 @@
         <None Include="..\..\SDK\CSR_X.h">
             <BuildOrder>34</BuildOrder>
         </None>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlc.c">
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\src\sxmlc.h">
+            <BuildOrder>38</BuildOrder>
+        </None>
+        <CppCompile Include="..\..\Third-party\sxml\src\sxmlsearch.c">
+            <BuildOrder>39</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\Third-party\sxml\src\sxmlsearch.h">
+            <BuildOrder>40</BuildOrder>
+        </None>
         <CppCompile Include="CompactStar_GroundCollision.cpp">
             <BuildOrder>0</BuildOrder>
         </CppCompile>
@@ -231,8 +249,8 @@
             <DependentOn>TLandscapeSelection.h</DependentOn>
             <BuildOrder>25</BuildOrder>
         </CppCompile>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="TLandscapeSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

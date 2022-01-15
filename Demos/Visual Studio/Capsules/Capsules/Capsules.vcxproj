@@ -72,22 +72,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\Third-party\sxml\src\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\..\Third-party\glew\lib\Release\Win32\;..\..\..\..\Third-party\OpenAL\libs\Win32\;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\Third-party\sxml\src\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\..\Third-party\glew\lib\Release\Win32\;..\..\..\..\Third-party\OpenAL\libs\Win32\;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\Third-party\sxml\src\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\..\Third-party\glew\lib\Release\x64\;..\..\..\..\Third-party\OpenAL\libs\Win64\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\Third-party\glew\include\;..\..\..\..\Third-party\OpenAL\include\;..\..\..\..\Third-party\sxml\src\;..\..\..\..\SDK\;..\..\..\..\Common\C++\Helpers\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\..\Third-party\glew\lib\Release\x64\;..\..\..\..\Third-party\OpenAL\libs\Win64\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -105,6 +105,7 @@
       <AdditionalDependencies>opengl32.lib;glew32s.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -126,6 +127,7 @@
       <AdditionalDependencies>opengl32.lib;glew32s.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -143,6 +145,7 @@
       <AdditionalDependencies>opengl32.lib;glew32s.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\Third-party\OpenAL\libs\Win64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -164,12 +167,14 @@
       <AdditionalDependencies>opengl32.lib;glew32s.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\..\..\Third-party\OpenAL\libs\Win64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Common\C++\Helpers\CSR_OpenGLHelper.h" />
     <ClInclude Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_AI.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collada.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Collision.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Common.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Geometry.h" />
@@ -187,12 +192,15 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Vertex.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_X.h" />
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlc.h" />
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp" />
     <ClCompile Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp" />
     <ClCompile Include="..\..\..\..\SDK\CSR_AI.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collada.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Collision.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Common.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Geometry.c" />
@@ -210,6 +218,8 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Vertex.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_X.c" />
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlc.c" />
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c" />
     <ClCompile Include="Capsules.cpp" />
   </ItemGroup>
   <ItemGroup>

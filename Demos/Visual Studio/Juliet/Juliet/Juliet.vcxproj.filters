@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{9a0a0c7a-290e-4a04-87d1-470fe654c48f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\Header Files">
+      <UniqueIdentifier>{c6adbe20-96f4-4d89-b5b2-9ed8e2f6e0ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\Source Files">
+      <UniqueIdentifier>{8b35ca0f-b103-4c65-ae1d-b15598cc3c44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party">
+      <UniqueIdentifier>{3036ffa5-e33b-4d64-955e-4e13504f89ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml">
+      <UniqueIdentifier>{6ce5d866-b637-4880-b4a6-1d1b6a9e7182}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml\Header Files">
+      <UniqueIdentifier>{e3fde213-ffa9-4bc7-8ce4-1d84caca0255}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-Party\sxml\Source Files">
+      <UniqueIdentifier>{a2bf579a-e6a4-4e6f-be8a-64ea4743b798}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collision.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Common.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Geometry.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Lighting.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Model.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Scene.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Vertex.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Common\C++\Helpers\CSR_OpenGLHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Mdl.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_X.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collada.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_DebugHelper.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlc.h">
+      <Filter>Third-Party\sxml\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h">
+      <Filter>Third-Party\sxml\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Juliet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collision.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Common.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Geometry.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Lighting.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Model.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Renderer.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Scene.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Vertex.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Common\C++\Helpers\CSR_OpenGLHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Common\C++\Helpers\CSR_ShaderHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_X.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collada.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_DebugHelper.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlc.c">
+      <Filter>Third-Party\sxml\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c">
+      <Filter>Third-Party\sxml\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Juliet.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="CompactStarEngine.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TX_CH_Main_Juliet_Cloth_D_Cos22.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TX_CH_Main_Juliet_Hair_D_Cos22.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TX_CH_Main_Juliet_Skin_D_Cos22.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Juliet.dae">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

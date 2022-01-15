@@ -26,6 +26,10 @@
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 
+#ifdef _DEBUG
+    #include "CSR_DebugHelper.h"
+#endif
+
 // classes
 #include "CSR_OpenGLHelper.h"
 #include "CSR_ShaderHelper.h"
@@ -42,29 +46,23 @@
 // resources
 #include "Resource.h"
 
-// resource files to load
-#define LANDSCAPE_TEXTURE_FILE     "\\grass.bmp"
-#define LANDSCAPE_DATA_FILE        "\\bot_level.bmp"
-#define FADER_TEXTURE_FILE         "\\blank.bmp"
-#define MDL_FILE                   "\\wizard.mdl"
-#define SKYBOX_LEFT                "\\left.bmp"
-#define SKYBOX_TOP                 "\\top.bmp"
-#define SKYBOX_RIGHT               "\\right.bmp"
-#define SKYBOX_BOTTOM              "\\bottom.bmp"
-#define SKYBOX_FRONT               "\\front.bmp"
-#define SKYBOX_BACK                "\\back.bmp"
-#define FOOT_STEP_LEFT_SOUND_FILE  "\\footstep_left.wav"
-#define FOOT_STEP_RIGHT_SOUND_FILE "\\footstep_right.wav"
-#define HIT_SOUND_FILE             "\\hit.wav"
+#ifdef _DEBUG
+    //#define SHOW_SKELETON
+#endif
 
-//----------------------------------------------------------------------------
-typedef std::vector<std::string> IFileNames;
+// resource files
+#define X_FILE "\\Models\\X\\tiny_4anim.x"
+
 //------------------------------------------------------------------------------
 HDC                          g_hDC             = 0;
 HGLRC                        g_hRC             = 0;
 CSR_Scene*                   g_pScene          = nullptr;
+CSR_X*                       g_pX              = nullptr;
 CSR_SceneContext             g_SceneContext;
 CSR_OpenGLShader*            g_pShader         = nullptr;
+#ifdef SHOW_SKELETON
+    CSR_OpenGLShader*        g_pLineShader     = nullptr;
+#endif
 CSR_OpenGLHelper::IResources g_OpenGLResources;
 CSR_Matrix4                  g_ModelMatrix;
 std::string                  g_SceneDir;
@@ -106,6 +104,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                              1000.0f,
                                              g_pShader,
                                              g_pScene->m_ProjectionMatrix);
+
+            #ifdef SHOW_SKELETON
+                // create the line shader viewport
+                CSR_OpenGLHelper::CreateViewport((float)width,
+                                                 (float)height,
+                                                 0.1f,
+                                                 1000.0f,
+                                                 g_pLineShader,
+                                                 g_pScene->m_ProjectionMatrix);
+            #endif
 
             UpdateScene(0.0f);
             DrawScene();
@@ -164,6 +172,33 @@ void OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 //---------------------------------------------------------------------------
 void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 {
+    #ifdef SHOW_SKELETON
+        csrShaderEnable(g_pLineShader);
+
+        csrOpenGLShaderConnectViewMatrix(g_pLineShader,
+                                        &g_pScene->m_ViewMatrix);
+
+        // create the rotation matrix
+        CSR_Matrix4 rotMat;
+        CSR_Vector3 axis = {};
+        axis.m_X         = 1.0f;
+        axis.m_Y         = 0.0f;
+        axis.m_Z         = 0.0f;
+        csrMat4Rotate((float)(M_PI / 2.0), &axis, &rotMat);
+
+        CSR_Matrix4 modelMatrix;
+        csrMat4Multiply(&rotMat, &g_ModelMatrix, &modelMatrix);
+
+        // connect model matrix to shader
+        GLint slot = glGetUniformLocation(g_pLineShader->m_ProgramID, "csr_uModel");
+        glUniformMatrix4fv(slot, 1, 0, &modelMatrix.m_Table[0][0]);
+
+        csrDebugDrawSkeletonX(g_pX,
+                              g_pLineShader,
+                              1,
+                              (g_PreviousTime * 5) % 4800);
+    #endif
+
     csrDrawEnd();
 }
 //---------------------------------------------------------------------------
@@ -214,13 +249,46 @@ bool InitScene(int w, int h)
     g_pScene->m_Color.m_G = 0.12f;
     g_pScene->m_Color.m_B = 0.17f;
 
+    #ifdef SHOW_SKELETON
+        // get the shaders
+        const std::string vsLine = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Line);
+        const std::string fsLine = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Line);
+
+        // load the line shader
+        g_pLineShader = csrOpenGLShaderLoadFromStr(vsLine.c_str(),
+                                                   vsLine.length(),
+                                                   fsLine.c_str(),
+                                                   fsLine.length(),
+                                                   0,
+                                                   0);
+
+        // succeeded?
+        if (!g_pLineShader)
+            return false;
+
+        // enable the shader program
+        csrShaderEnable(g_pLineShader);
+
+        // create the viewport
+        CSR_OpenGLHelper::CreateViewport((float)w,
+                                         (float)h,
+                                         0.1f,
+                                         1000.0f,
+                                         g_pLineShader,
+                                         g_pScene->m_ProjectionMatrix);
+
+        // get shader attributes
+        g_pLineShader->m_VertexSlot = glGetAttribLocation(g_pLineShader->m_ProgramID, "csr_aVertices");
+        g_pLineShader->m_ColorSlot  = glGetAttribLocation(g_pLineShader->m_ProgramID, "csr_aColor");
+    #endif
+
     // initialize the matrices
     csrMat4Identity(&g_pScene->m_ViewMatrix);
     csrMat4Identity(&g_ModelMatrix);
 
     // get the shaders
-    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Texture);
-    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
+    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
+    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
 
     // load the shader
     g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
@@ -261,24 +329,24 @@ bool InitScene(int w, int h)
     vc.m_Face            = CSR_CF_CCW;
 
     // load the .x model
-    CSR_X* pX = csrXOpen((g_SceneDir + "\\Models\\X\\tiny_4anim.x").c_str(),
-                        &vf,
-                        &vc,
-                         0,
-                         0,
-                         0,
-                         0,
-                         OnLoadTexture,
-                         OnApplySkin,
-                         0);
+    g_pX = csrXOpen((g_SceneDir + X_FILE).c_str(),
+                    &vf,
+                    &vc,
+                     0,
+                     0,
+                     0,
+                     0,
+                     OnLoadTexture,
+                     OnApplySkin,
+                     0);
 
     // succeeded?
-    if (!pX)
+    if (!g_pX)
         return false;
 
     // add it to the scene
-    csrSceneAddX(g_pScene, pX, 0, 0);
-    csrSceneAddModelMatrix(g_pScene, pX, &g_ModelMatrix);
+    csrSceneAddX(g_pScene, g_pX, 0, 0);
+    csrSceneAddModelMatrix(g_pScene, g_pX, &g_ModelMatrix);
 
     // create the rotation matrix
     CSR_Matrix4 rotMat;

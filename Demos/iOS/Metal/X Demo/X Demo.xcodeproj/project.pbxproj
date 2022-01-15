@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8411D4042792689D005248DA /* sxmlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 8411D4002792689D005248DA /* sxmlc.c */; };
+		8411D4052792689D005248DA /* sxmlsearch.c in Sources */ = {isa = PBXBuildFile; fileRef = 8411D4032792689D005248DA /* sxmlsearch.c */; };
 		841C35CB214C946300A950FE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841C35CA214C946200A950FE /* CoreGraphics.framework */; };
 		841D6C282138869A00E34396 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C252138869A00E34396 /* Metal.framework */; };
 		841D6C292138869A00E34396 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841D6C262138869A00E34396 /* MetalKit.framework */; };
@@ -21,6 +23,7 @@
 		84551CCE2137768D00625580 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCC2137768D00625580 /* Main.storyboard */; };
 		84551CD02137768F00625580 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCF2137768F00625580 /* Assets.xcassets */; };
 		84551CD32137768F00625580 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CD12137768F00625580 /* LaunchScreen.storyboard */; };
+		847D10832791B271001EACAB /* CSR_Collada.c in Sources */ = {isa = PBXBuildFile; fileRef = 847D10812791B271001EACAB /* CSR_Collada.c */; };
 		84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 84B48C3B2138D37F00440A0E /* CSR_ObjectiveCHelper.m */; };
 		84B4CD732138912700455015 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD722138912600455015 /* UIKit.framework */; };
 		84B4CD752138913F00455015 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD742138913F00455015 /* QuartzCore.framework */; };
@@ -45,6 +48,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8411D4002792689D005248DA /* sxmlc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlc.c; path = "../../../../Third-party/sxml/src/sxmlc.c"; sourceTree = "<group>"; };
+		8411D4012792689D005248DA /* sxmlc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlc.h; path = "../../../../Third-party/sxml/src/sxmlc.h"; sourceTree = "<group>"; };
+		8411D4022792689D005248DA /* sxmlsearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlsearch.h; path = "../../../../Third-party/sxml/src/sxmlsearch.h"; sourceTree = "<group>"; };
+		8411D4032792689D005248DA /* sxmlsearch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlsearch.c; path = "../../../../Third-party/sxml/src/sxmlsearch.c"; sourceTree = "<group>"; };
 		841C35CA214C946200A950FE /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		841D6C252138869A00E34396 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		841D6C262138869A00E34396 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
@@ -61,6 +68,8 @@
 		84551CCF2137768F00625580 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		84551CD22137768F00625580 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84551CD42137768F00625580 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		847D10812791B271001EACAB /* CSR_Collada.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Collada.c; sourceTree = "<group>"; };
+		847D10822791B271001EACAB /* CSR_Collada.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Collada.h; sourceTree = "<group>"; };
 		84B48C3A2138D37F00440A0E /* CSR_ObjectiveCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_ObjectiveCHelper.h; sourceTree = "<group>"; };
 		84B48C3B2138D37F00440A0E /* CSR_ObjectiveCHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSR_ObjectiveCHelper.m; sourceTree = "<group>"; };
 		84B4CD722138912600455015 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -118,6 +127,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8411D3FF2792687E005248DA /* sxml */ = {
+			isa = PBXGroup;
+			children = (
+				8411D4002792689D005248DA /* sxmlc.c */,
+				8411D4012792689D005248DA /* sxmlc.h */,
+				8411D4032792689D005248DA /* sxmlsearch.c */,
+				8411D4022792689D005248DA /* sxmlsearch.h */,
+			);
+			name = sxml;
+			sourceTree = "<group>";
+		};
 		841D6C242138869A00E34396 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +171,7 @@
 			children = (
 				84C4FC7B21EF711F004164C4 /* SDK */,
 				84B48C382138D37F00440A0E /* Objective-C */,
+				847D10862791B2AD001EACAB /* Third-party */,
 				84C4FC6C21EF7109004164C4 /* Classes */,
 				843EB55C213778C600DA83F3 /* Resources */,
 				841D6C242138869A00E34396 /* Frameworks */,
@@ -164,6 +185,14 @@
 				84551CBD2137768D00625580 /* X Demo.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		847D10862791B2AD001EACAB /* Third-party */ = {
+			isa = PBXGroup;
+			children = (
+				8411D3FF2792687E005248DA /* sxml */,
+			);
+			name = "Third-party";
 			sourceTree = "<group>";
 		};
 		84B48C382138D37F00440A0E /* Objective-C */ = {
@@ -210,6 +239,8 @@
 		84C4FC7B21EF711F004164C4 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				847D10812791B271001EACAB /* CSR_Collada.c */,
+				847D10822791B271001EACAB /* CSR_Collada.h */,
 				84C4FC9421EF711F004164C4 /* CSR_Collision.c */,
 				84C4FC8221EF711F004164C4 /* CSR_Collision.h */,
 				84C4FC8021EF711F004164C4 /* CSR_Common.c */,
@@ -317,6 +348,7 @@
 				8435C679275A8D0900C8F27D /* CSR_Mdl.h in Sources */,
 				8435C67A275A8D0900C8F27D /* CSR_Wavefront.h in Sources */,
 				8435C67B275A8D0900C8F27D /* CSR_X.h in Sources */,
+				847D10832791B271001EACAB /* CSR_Collada.c in Sources */,
 				84C4FC7621EF710A004164C4 /* Shaders.metal in Sources */,
 				8435C670275A8CCA00C8F27D /* CSR_Mdl.c in Sources */,
 				84C4FCA521EF711F004164C4 /* CSR_Scene.c in Sources */,
@@ -326,8 +358,10 @@
 				84C4FC7821EF710A004164C4 /* GameViewController.mm in Sources */,
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,
 				84C4FCAA21EF711F004164C4 /* CSR_Geometry.c in Sources */,
+				8411D4052792689D005248DA /* sxmlsearch.c in Sources */,
 				84C4FCA321EF711F004164C4 /* CSR_Renderer.c in Sources */,
 				8435C677275A8CD800C8F27D /* CSR_X.c in Sources */,
+				8411D4042792689D005248DA /* sxmlc.c in Sources */,
 				84C4FCA421EF711F004164C4 /* CSR_Renderer_Metal.mm in Sources */,
 				8435C676275A8CD800C8F27D /* CSR_Wavefront.c in Sources */,
 				84C4FC7A21EF710A004164C4 /* AppDelegate.mm in Sources */,

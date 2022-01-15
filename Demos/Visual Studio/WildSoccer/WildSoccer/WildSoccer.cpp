@@ -3,7 +3,7 @@
  ****************************************************************************
  * Description : Wild soccer game demo                                      *
  * Developer   : Jean-Milost Reymond                                        *
- * Copyright   : 2017 - 2021, this file is part of the CompactStar Engine.  *
+ * Copyright   : 2017 - 2022, this file is part of the CompactStar Engine.  *
  *               You are free to copy or redistribute this file, modify it, *
  *               or use it for your own projects, commercial or not. This   *
  *               file is provided "as is", WITHOUT ANY WARRANTY OF ANY      *
@@ -779,8 +779,8 @@ bool InitScene(int w, int h)
     g_Ball.m_Geometry.m_Radius     = 0.025f;
     csrBodyInit(&g_Ball.m_Body);
 
-    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Texture);
-    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
+    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
+    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
 
     // load the shader
     g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
@@ -947,8 +947,8 @@ bool InitScene(int w, int h)
     g_YouWonMatrix.m_Table[3][1] =  99999.0f;
     g_YouWonMatrix.m_Table[3][2] = -1.65f;
 
-    const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Skybox);
-    const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Skybox);
+    const std::string vsSkybox = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Skybox);
+    const std::string fsSkybox = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Skybox);
 
     // load the skybox shader
     g_pSkyboxShader = csrOpenGLShaderLoadFromStr(vsSkybox.c_str(),

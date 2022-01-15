@@ -22,6 +22,12 @@
     <Filter Include="SDK\Source Files">
       <UniqueIdentifier>{8b35ca0f-b103-4c65-ae1d-b15598cc3c44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Third-party">
+      <UniqueIdentifier>{c2eae999-c739-4182-b9d1-20b194c6e0ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third-party\sxml">
+      <UniqueIdentifier>{1917a31a-e9a1-4a9c-9bc0-779e2cd85a58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -87,6 +93,15 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_X.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Collada.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlc.h">
+      <Filter>Third-party\sxml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h">
+      <Filter>Third-party\sxml</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bot.cpp">
@@ -151,6 +166,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c">
       <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Collada.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlc.c">
+      <Filter>Third-party\sxml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c">
+      <Filter>Third-party\sxml</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

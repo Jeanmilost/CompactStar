@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "0FE67C4F-3367-4062-BDF1-C69C8C5CD1BE"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9A14344A-A55E-40E6-BAAD-FA52BDCF99EF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../../SDK/CSR_Collada.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "3723"
+            endingLineNumber = "3723"
+            landmarkName = "csrColladaMeshBuild(pVertFormat, pVertCulling, pMaterial, pColladaMesh, pMesh, fOnGetVertexColor)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D13C95DD-08C9-486B-961D-4B23A7EEF591"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../../SDK/CSR_Collada.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "3741"
+            endingLineNumber = "3741"
+            landmarkName = "csrColladaMeshBuild(pVertFormat, pVertCulling, pMaterial, pColladaMesh, pMesh, fOnGetVertexColor)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

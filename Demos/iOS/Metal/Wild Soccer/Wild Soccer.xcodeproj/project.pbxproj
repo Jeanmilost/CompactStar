@@ -41,6 +41,9 @@
 		8429A7B021378BA300303AC7 /* skybox_back_small.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 8429A7A321378BA300303AC7 /* skybox_back_small.bmp */; };
 		8429A7B121378BA300303AC7 /* soccer_goal.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 8429A7A421378BA300303AC7 /* soccer_goal.bmp */; };
 		8429A7B221378BA300303AC7 /* you_won.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 8429A7A521378BA300303AC7 /* you_won.bmp */; };
+		8439FD16279248B4006AF90C /* sxmlsearch.c in Sources */ = {isa = PBXBuildFile; fileRef = 8439FD12279248B4006AF90C /* sxmlsearch.c */; };
+		8439FD17279248B4006AF90C /* sxmlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 8439FD14279248B4006AF90C /* sxmlc.c */; };
+		8439FD1D27924983006AF90C /* CSR_Collada.c in Sources */ = {isa = PBXBuildFile; fileRef = 8439FD1C27924983006AF90C /* CSR_Collada.c */; };
 		84551CC22137768D00625580 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84551CC12137768D00625580 /* AppDelegate.mm */; };
 		84551CC82137768D00625580 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84551CC72137768D00625580 /* GameViewController.mm */; };
 		84551CCE2137768D00625580 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCC2137768D00625580 /* Main.storyboard */; };
@@ -106,6 +109,12 @@
 		8429A7A321378BA300303AC7 /* skybox_back_small.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = skybox_back_small.bmp; sourceTree = "<group>"; };
 		8429A7A421378BA300303AC7 /* soccer_goal.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = soccer_goal.bmp; sourceTree = "<group>"; };
 		8429A7A521378BA300303AC7 /* you_won.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = you_won.bmp; sourceTree = "<group>"; };
+		8439FD12279248B4006AF90C /* sxmlsearch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlsearch.c; path = "../../../../Third-party/sxml/src/sxmlsearch.c"; sourceTree = "<group>"; };
+		8439FD13279248B4006AF90C /* sxmlc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlc.h; path = "../../../../Third-party/sxml/src/sxmlc.h"; sourceTree = "<group>"; };
+		8439FD14279248B4006AF90C /* sxmlc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlc.c; path = "../../../../Third-party/sxml/src/sxmlc.c"; sourceTree = "<group>"; };
+		8439FD15279248B4006AF90C /* sxmlsearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlsearch.h; path = "../../../../Third-party/sxml/src/sxmlsearch.h"; sourceTree = "<group>"; };
+		8439FD1B27924983006AF90C /* CSR_Collada.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Collada.h; sourceTree = "<group>"; };
+		8439FD1C27924983006AF90C /* CSR_Collada.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Collada.c; sourceTree = "<group>"; };
 		84551CBD2137768D00625580 /* Wild Soccer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wild Soccer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84551CC02137768D00625580 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		84551CC12137768D00625580 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -156,6 +165,8 @@
 		840C23E52137824C006EFECE /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				8439FD1C27924983006AF90C /* CSR_Collada.c */,
+				8439FD1B27924983006AF90C /* CSR_Collada.h */,
 				840C23FC2137824D006EFECE /* CSR_Collision.c */,
 				840C23EB2137824D006EFECE /* CSR_Collision.h */,
 				840C23E92137824C006EFECE /* CSR_Common.c */,
@@ -207,6 +218,25 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		8439FD102792487C006AF90C /* Third-party */ = {
+			isa = PBXGroup;
+			children = (
+				8439FD1127924892006AF90C /* sxml */,
+			);
+			name = "Third-party";
+			sourceTree = "<group>";
+		};
+		8439FD1127924892006AF90C /* sxml */ = {
+			isa = PBXGroup;
+			children = (
+				8439FD14279248B4006AF90C /* sxmlc.c */,
+				8439FD13279248B4006AF90C /* sxmlc.h */,
+				8439FD12279248B4006AF90C /* sxmlsearch.c */,
+				8439FD15279248B4006AF90C /* sxmlsearch.h */,
+			);
+			name = sxml;
+			sourceTree = "<group>";
+		};
 		843EB55C213778C600DA83F3 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -238,6 +268,7 @@
 			children = (
 				840C23E52137824C006EFECE /* SDK */,
 				84B48C382138D37F00440A0E /* Objective-C */,
+				8439FD102792487C006AF90C /* Third-party */,
 				84551CBF2137768D00625580 /* Classes */,
 				843EB55C213778C600DA83F3 /* Resources */,
 				841D6C242138869A00E34396 /* Frameworks */,
@@ -392,6 +423,7 @@
 				84184B6A275A8C5300EB0407 /* CSR_Mdl.c in Sources */,
 				84184B6B275A8C5300EB0407 /* CSR_Mdl.h in Sources */,
 				84184B6C275A8C5300EB0407 /* CSR_Wavefront.c in Sources */,
+				8439FD17279248B4006AF90C /* sxmlc.c in Sources */,
 				84184B6D275A8C5300EB0407 /* CSR_Wavefront.h in Sources */,
 				84184B6E275A8C5300EB0407 /* CSR_X.c in Sources */,
 				84184B6F275A8C5300EB0407 /* CSR_X.h in Sources */,
@@ -405,11 +437,13 @@
 				84551CC82137768D00625580 /* GameViewController.mm in Sources */,
 				84DEC1ED213B46840024086B /* GameLogic.mm in Sources */,
 				840C24082137824D006EFECE /* CSR_Model.c in Sources */,
+				8439FD1D27924983006AF90C /* CSR_Collada.c in Sources */,
 				840C24102137824D006EFECE /* CSR_Geometry.c in Sources */,
 				840C24062137824D006EFECE /* CSR_Common.c in Sources */,
 				840C240D2137824D006EFECE /* CSR_Sound.c in Sources */,
 				840C24042137824D006EFECE /* CSR_Physics.c in Sources */,
 				840C240F2137824D006EFECE /* CSR_Collision.c in Sources */,
+				8439FD16279248B4006AF90C /* sxmlsearch.c in Sources */,
 				840C24112137824D006EFECE /* CSR_Lighting.c in Sources */,
 				840C240A2137824D006EFECE /* CSR_Renderer.c in Sources */,
 				84551CC22137768D00625580 /* AppDelegate.mm in Sources */,

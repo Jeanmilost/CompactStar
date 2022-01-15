@@ -24,6 +24,9 @@
 		84B4CD732138912700455015 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD722138912600455015 /* UIKit.framework */; };
 		84B4CD752138913F00455015 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD742138913F00455015 /* QuartzCore.framework */; };
 		84B4CD77213892DE00455015 /* ModelIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD76213892DE00455015 /* ModelIO.framework */; };
+		84B5D81227924A3100B58261 /* CSR_Collada.c in Sources */ = {isa = PBXBuildFile; fileRef = 84B5D81127924A3000B58261 /* CSR_Collada.c */; };
+		84B5D81827924A4800B58261 /* sxmlsearch.c in Sources */ = {isa = PBXBuildFile; fileRef = 84B5D81427924A4800B58261 /* sxmlsearch.c */; };
+		84B5D81927924A4800B58261 /* sxmlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 84B5D81527924A4800B58261 /* sxmlc.c */; };
 		84C4FC7621EF710A004164C4 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 84C4FC6F21EF710A004164C4 /* Shaders.metal */; };
 		84C4FC7721EF710A004164C4 /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84C4FC7021EF710A004164C4 /* Renderer.mm */; };
 		84C4FC7821EF710A004164C4 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84C4FC7121EF710A004164C4 /* GameViewController.mm */; };
@@ -65,6 +68,12 @@
 		84B4CD722138912600455015 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		84B4CD742138913F00455015 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		84B4CD76213892DE00455015 /* ModelIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ModelIO.framework; path = System/Library/Frameworks/ModelIO.framework; sourceTree = SDKROOT; };
+		84B5D81027924A3000B58261 /* CSR_Collada.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Collada.h; sourceTree = "<group>"; };
+		84B5D81127924A3000B58261 /* CSR_Collada.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Collada.c; sourceTree = "<group>"; };
+		84B5D81427924A4800B58261 /* sxmlsearch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlsearch.c; path = "../../../../Third-party/sxml/src/sxmlsearch.c"; sourceTree = "<group>"; };
+		84B5D81527924A4800B58261 /* sxmlc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sxmlc.c; path = "../../../../Third-party/sxml/src/sxmlc.c"; sourceTree = "<group>"; };
+		84B5D81627924A4800B58261 /* sxmlc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlc.h; path = "../../../../Third-party/sxml/src/sxmlc.h"; sourceTree = "<group>"; };
+		84B5D81727924A4800B58261 /* sxmlsearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sxmlsearch.h; path = "../../../../Third-party/sxml/src/sxmlsearch.h"; sourceTree = "<group>"; };
 		84C4FC6E21EF710A004164C4 /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
 		84C4FC6F21EF710A004164C4 /* Shaders.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		84C4FC7021EF710A004164C4 /* Renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
@@ -148,6 +157,7 @@
 			children = (
 				84C4FC7B21EF711F004164C4 /* SDK */,
 				84B48C382138D37F00440A0E /* Objective-C */,
+				84B5D80E27924A0600B58261 /* Third-party */,
 				84C4FC6C21EF7109004164C4 /* Classes */,
 				843EB55C213778C600DA83F3 /* Resources */,
 				841D6C242138869A00E34396 /* Frameworks */,
@@ -181,6 +191,25 @@
 			path = Helpers;
 			sourceTree = "<group>";
 		};
+		84B5D80E27924A0600B58261 /* Third-party */ = {
+			isa = PBXGroup;
+			children = (
+				84B5D80F27924A1600B58261 /* sxml */,
+			);
+			name = "Third-party";
+			sourceTree = "<group>";
+		};
+		84B5D80F27924A1600B58261 /* sxml */ = {
+			isa = PBXGroup;
+			children = (
+				84B5D81527924A4800B58261 /* sxmlc.c */,
+				84B5D81627924A4800B58261 /* sxmlc.h */,
+				84B5D81427924A4800B58261 /* sxmlsearch.c */,
+				84B5D81727924A4800B58261 /* sxmlsearch.h */,
+			);
+			name = sxml;
+			sourceTree = "<group>";
+		};
 		84C4FC6C21EF7109004164C4 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -207,6 +236,8 @@
 		84C4FC7B21EF711F004164C4 /* SDK */ = {
 			isa = PBXGroup;
 			children = (
+				84B5D81127924A3000B58261 /* CSR_Collada.c */,
+				84B5D81027924A3000B58261 /* CSR_Collada.h */,
 				84C4FC9421EF711F004164C4 /* CSR_Collision.c */,
 				84C4FC8221EF711F004164C4 /* CSR_Collision.h */,
 				84C4FC8021EF711F004164C4 /* CSR_Common.c */,
@@ -320,12 +351,15 @@
 				84C4FC7821EF710A004164C4 /* GameViewController.mm in Sources */,
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,
 				84C4FCAA21EF711F004164C4 /* CSR_Geometry.c in Sources */,
+				84B5D81827924A4800B58261 /* sxmlsearch.c in Sources */,
 				84C4FCA321EF711F004164C4 /* CSR_Renderer.c in Sources */,
 				84C4FCA421EF711F004164C4 /* CSR_Renderer_Metal.mm in Sources */,
 				84598C67275A872D00420F94 /* CSR_Wavefront.c in Sources */,
 				84C4FC7A21EF710A004164C4 /* AppDelegate.mm in Sources */,
+				84B5D81227924A3100B58261 /* CSR_Collada.c in Sources */,
 				84C4FC7921EF710A004164C4 /* main.mm in Sources */,
 				84C4FCA921EF711F004164C4 /* CSR_Collision.c in Sources */,
+				84B5D81927924A4800B58261 /* sxmlc.c in Sources */,
 				84C4FC9F21EF711F004164C4 /* CSR_Common.c in Sources */,
 				84598C6B275A873B00420F94 /* CSR_Mdl.c in Sources */,
 				84C4FCA121EF711F004164C4 /* CSR_Model.c in Sources */,
