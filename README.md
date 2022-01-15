@@ -60,7 +60,7 @@ The Collada (.dae) format support is partial and was planned to support very sim
 This project depends on several third-party libraries, which are:
 - Glew (http://glew.sourceforge.net/)
 - OpenAL (https://openal.org/)
-- sxml (https://github.com/capmar/sxml)
+- sxmlc (https://github.com/matthieu-labas/sxmlc)
 
 These third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS. Please refer to the original website for the documentation, updates, and licenses.
 
