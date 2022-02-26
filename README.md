@@ -1,6 +1,6 @@
 # CompactStar engine
 
-The CompactStar engine is a tiny game engine I'm using for my own purposes. With the existence of very performant and low cost, sometimes even free, 3D engines like Unity, Unreal or Panda, I know that the reasons that motivated me to write my own 3D game engine may appear somewhat strange, especially when the result is less efficient than these engines.
+The CompactStar engine is a tiny game engine I'm using for my own purposes. With the existence of very efficient and low cost, sometimes even free, 3D engines like Unity, Unreal or Panda, I know that the reasons that motivated me to write my own 3D game engine may appear somewhat strange, especially when the result is lower than these engines.
 
 However I had several reasons to do that:
 1. I wanted to learn something, and to confront myself to the difficulty to create a such engine.
