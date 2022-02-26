@@ -13,10 +13,6 @@
   <g
     id="layer1">
     <path
-      style="fill:none;stroke:#131aff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-      d="M 243.62821,119.15731 184.74274,270.36474 347.15266,206.64841 Z"
-      id="polygon" />
-    <path
       id="plane"
       style="fill:#e40600;fill-opacity:0.501355;stroke:none;stroke-width:0.499998;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke markers fill"
       d="M 100.05108,132.59931 411.94892,5.1666306 V 241.44368 L 100.05108,368.87636 Z">
@@ -99,6 +95,10 @@
         begin="0s"
         repeatCount="indefinite" />
     </path>
+    <path
+      style="fill:none;stroke:#131aff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+      d="M 243.62821,119.15731 184.74274,270.36474 347.15266,206.64841 Z"
+      id="polygon" />
     <ellipse
       style="fill:none;fill-opacity:0.501355;stroke:#9344e5;stroke-width:0.377952;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke markers fill"
       id="angles"
