@@ -147,9 +147,6 @@ void* OnGetID(const void* pKey)
 //---------------------------------------------------------------------------
 void OnGetColladaIndex(const CSR_Collada* pCollada, size_t* pAnimSetIndex, size_t* pFrameIndex)
 {
-    static size_t ii = 0;
-    ++ii;
-
     *pAnimSetIndex = 0;
     *pFrameIndex   = (g_AnimCount / 10) % 36;
 }
