@@ -1319,6 +1319,43 @@ int csrIQMBuildSrcVertices(const CSR_IQMHeader*       pHeader,
     return 1;
 }
 //---------------------------------------------------------------------------
+void csrIQMQuatToRotMat(const CSR_Quaternion* pQ, CSR_Matrix4* pR)
+{
+    float x = pQ->m_X;
+    float y = pQ->m_Y;
+    float z = pQ->m_Z;
+    float w = pQ->m_W;
+    float tx = 2.0f * x;
+    float ty = 2.0f * y;
+    float tz = 2.0f * z;
+    float txx = tx * x;
+    float tyy = ty * y;
+    float tzz = tz * z;
+    float txy = tx * y;
+    float txz = tx * z;
+    float tyz = ty * z;
+    float twx = w * tx;
+    float twy = w * ty;
+    float twz = w * tz;
+
+    csrMat4Identity(pR);
+
+    //a = Vec3(1 - (tyy + tzz), txy - twz, txz + twy);
+    pR->m_Table[0][0] = 1.0f - (tyy + tzz);
+    pR->m_Table[1][0] = txy - twz;
+    pR->m_Table[2][0] = txz + twy;
+
+    //b = Vec3(txy + twz, 1 - (txx + tzz), tyz - twx);
+    pR->m_Table[0][1] = txy + twz;
+    pR->m_Table[1][1] = 1.0f - (txx + tzz);
+    pR->m_Table[2][1] = tyz - twx;
+
+    //c = Vec3(txz - twy, tyz + twx, 1 - (txx + tyy));
+    pR->m_Table[0][2] = txz - twy;
+    pR->m_Table[1][2] = tyz + twx;
+    pR->m_Table[2][2] = 1.0f - (txx + tyy);
+}
+//---------------------------------------------------------------------------
 int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, size_t jointIndex, CSR_Bone* pBone)
 {
     char*              pBoneName;
@@ -1376,7 +1413,8 @@ int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, s
 
     // get the rotation quaternion and the scale and translate vectors
     csrMat4Scale    (&scaling,  &scaleMatrix);
-    csrQuatToMatrix (&rotation, &rotateMatrix);
+    //csrQuatToMatrix (&rotation, &rotateMatrix);
+    csrIQMQuatToRotMat(&rotation, &rotateMatrix);
     csrMat4Translate(&position, &translateMatrix);
 
     // build the final matrix
@@ -1415,6 +1453,19 @@ CSR_Bone* csrIQMFindBone(CSR_Bone* pBone, size_t index)
     return 0;
 }
 //---------------------------------------------------------------------------
+void csrIQMBoneSetParent(CSR_Bone* pBone, CSR_Bone* pParent)
+{
+    size_t i;
+
+    if (!pBone)
+        return;
+
+    pBone->m_pParent = pParent;
+
+    for (i = 0; i < pBone->m_ChildrenCount; ++i)
+        csrIQMBoneSetParent(&pBone->m_pChildren[i], pBone);
+}
+//---------------------------------------------------------------------------
 int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoints, int parentIndex, CSR_Bone* pRoot, size_t* pIndex)
 {
     size_t    i;
@@ -1449,9 +1500,6 @@ int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoi
             if (!csrIQMPopulateBone(pTexts, &pJoints->m_pJoint[i], i, &pChildren[index]))
                 return 0;
 
-            // associate the parent to the bone
-            pChildren[index].m_pParent = pParent;
-
             // set it in parent bone
             pParent->m_pChildren = pChildren;
             ++pParent->m_ChildrenCount;
@@ -1473,14 +1521,14 @@ int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoi
             if (!csrIQMPopulateBone(pTexts, &pJoints->m_pJoint[i], i, &pChildren[index]))
                 return 0;
 
-            // associate the parent to the bone
-            pChildren[index].m_pParent = pRoot;
-
             // set it in parent bone
             pRoot->m_pChildren = pChildren;
             ++pRoot->m_ChildrenCount;
         }
     }
+
+    // allocate parents after all the bones were created to avoid pointer corruptions
+    csrIQMBoneSetParent(pRoot, 0);
 
     return 1;
 }
