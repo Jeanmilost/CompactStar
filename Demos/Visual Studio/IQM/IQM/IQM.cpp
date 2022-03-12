@@ -21,10 +21,7 @@
 #include "CSR_Texture.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
-#include "CSR_Collada.h"
 #include "CSR_Iqm.h"
-#include "CSR_Mdl.h"
-#include "CSR_X.h"
 #include "CSR_Scene.h"
 #include "CSR_AI.h"
 #include "CSR_Renderer_OpenGL.h"
@@ -55,7 +52,7 @@
 #include "Resource.h"
 
 #ifdef _DEBUG
-    //#define SHOW_SKELETON
+    #define SHOW_SKELETON
 #endif
 
 // resource files to load
@@ -198,9 +195,9 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
         factor.m_Y = 0.1f;
         factor.m_Z = 0.1f;
     #else
-        factor.m_X = 0.4f;
-        factor.m_Y = 0.4f;
-        factor.m_Z = 0.4f;
+        factor.m_X = 0.2f;// 4f;
+        factor.m_Y = 0.2f;//4f;
+        factor.m_Z = 0.2f;//4f;
     #endif
 
     // create the scale matrix
@@ -240,7 +237,7 @@ void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
         csrDebugDrawSkeletonIQM(g_pModel,
                                 g_pLineShader,
                                 0,
-                               (g_AnimCount / 10) % 36);
+                                0);// (g_AnimCount / 10) % 36);
     #endif
 
     csrDrawEnd();

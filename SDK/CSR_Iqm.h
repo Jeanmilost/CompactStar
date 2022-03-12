@@ -129,7 +129,7 @@ typedef struct
 
 // needed in mobile c compiler to link the .h file with the .c
 #if defined(_OS_IOS_) || defined(_OS_ANDROID_) || defined(_OS_WINDOWS_)
-    #include "CSR_Mdl.c"
+    #include "CSR_Iqm.c"
 #endif
 
 #endif

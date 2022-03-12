@@ -1319,6 +1319,172 @@ int csrIQMBuildSrcVertices(const CSR_IQMHeader*       pHeader,
     return 1;
 }
 //---------------------------------------------------------------------------
+int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, size_t jointIndex, CSR_Bone* pBone)
+{
+    char*              pBoneName;
+    size_t             nameLen;
+    #ifdef _MSC_VER
+        CSR_Vector3    position = {0};
+        CSR_Vector3    scaling  = {0};
+        CSR_Quaternion rotation = {0};
+    #else
+        CSR_Vector3    position;
+        CSR_Vector3    scaling;
+        CSR_Quaternion rotation;
+    #endif
+    CSR_Matrix4        scaleMatrix;
+    CSR_Matrix4        rotateMatrix;
+    CSR_Matrix4        translateMatrix;
+    CSR_Matrix4        buildMatrix;
+
+    if (!pTexts || !pJoint || !pBone)
+        return 0;
+
+    /* FIXME
+    // get the bone name
+    pBoneName = pTexts->m_pTexts[pJoint->m_Name];
+
+    // measure it
+    nameLen = strlen(pBoneName);
+
+    // allocate memory for destination bone name
+    pBone->m_pName = (char*)malloc((nameLen + 1) * sizeof(char));
+
+    if (!pBone->m_pName)
+        return 0;
+
+    // copy the bone name
+    memcpy(pBone->m_pName, pBoneName, nameLen);
+    pBone->m_pName[nameLen] = 0x0;
+    */
+
+    // get the position
+    position.m_X = pJoint->m_Translate[0];
+    position.m_Y = pJoint->m_Translate[1];
+    position.m_Z = pJoint->m_Translate[2];
+
+    // get the rotation
+    rotation.m_X = pJoint->m_Rotate[0];
+    rotation.m_Y = pJoint->m_Rotate[1];
+    rotation.m_Z = pJoint->m_Rotate[2];
+    rotation.m_W = pJoint->m_Rotate[3];
+
+    // get the scaling
+    scaling.m_X = pJoint->m_Scale[0];
+    scaling.m_Y = pJoint->m_Scale[1];
+    scaling.m_Z = pJoint->m_Scale[2];
+
+    // get the rotation quaternion and the scale and translate vectors
+    csrMat4Scale    (&scaling,  &scaleMatrix);
+    csrQuatToMatrix (&rotation, &rotateMatrix);
+    csrMat4Translate(&position, &translateMatrix);
+
+    // build the final matrix
+    csrMat4Multiply(&scaleMatrix, &rotateMatrix,    &buildMatrix);
+    csrMat4Multiply(&buildMatrix, &translateMatrix, &pBone->m_Matrix);
+
+    // allocate memory for the joint index
+    pBone->m_pCustomData = malloc(sizeof(size_t));
+
+    // succeeded?
+    if (!pBone->m_pCustomData)
+        return 0;
+
+    // link the mesh to the bone owning it
+    *((size_t*)pBone->m_pCustomData) = jointIndex;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+CSR_Bone* csrIQMFindBone(CSR_Bone* pBone, size_t index)
+{
+    size_t    i;
+    CSR_Bone* pChild;
+
+    if (pBone->m_pCustomData && *((size_t*)pBone->m_pCustomData) == index)
+        return pBone;
+
+    for (i = 0; i < pBone->m_ChildrenCount; ++i)
+    {
+        pChild = csrIQMFindBone(&pBone->m_pChildren[i], index);
+
+        if (pChild)
+            return pChild;
+    }
+
+    return 0;
+}
+//---------------------------------------------------------------------------
+int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoints, int parentIndex, CSR_Bone* pRoot, size_t* pIndex)
+{
+    size_t    i;
+    size_t    index;
+    CSR_Bone* pParent;
+    CSR_Bone* pChildren;
+
+    // iterate through source joints
+    for (i = 0; i < pJoints->m_Count; ++i)
+    {
+        if (pJoints->m_pJoint[i].m_Parent >= 0)
+        {
+            // find the parent bone to link with
+            pParent = csrIQMFindBone(pRoot, pJoints->m_pJoint[i].m_Parent);
+
+            // found it?
+            if (!pParent)
+                return 0;
+
+            index = pParent->m_ChildrenCount;
+
+            // allocate memory for new child bone
+            pChildren = (CSR_Bone*)csrMemoryAlloc(pParent->m_pChildren, sizeof(CSR_Bone), index + 1);
+
+            if (!pChildren)
+                return 0;
+
+            // initialize the bone
+            csrBoneInit(&pChildren[index]);
+
+            // populate the newly added bone
+            if (!csrIQMPopulateBone(pTexts, &pJoints->m_pJoint[i], i, &pChildren[index]))
+                return 0;
+
+            // associate the parent to the bone
+            pChildren[index].m_pParent = pParent;
+
+            // set it in parent bone
+            pParent->m_pChildren = pChildren;
+            ++pParent->m_ChildrenCount;
+        }
+        else
+        {
+            index = pRoot->m_ChildrenCount;
+
+            // allocate memory for new child bone
+            pChildren = (CSR_Bone*)csrMemoryAlloc(pRoot->m_pChildren, sizeof(CSR_Bone), index + 1);
+
+            if (!pChildren)
+                return 0;
+
+            // initialize the bone
+            csrBoneInit(&pChildren[index]);
+
+            // populate the newly added bone
+            if (!csrIQMPopulateBone(pTexts, &pJoints->m_pJoint[i], i, &pChildren[index]))
+                return 0;
+
+            // associate the parent to the bone
+            pChildren[index].m_pParent = pRoot;
+
+            // set it in parent bone
+            pRoot->m_pChildren = pChildren;
+            ++pRoot->m_ChildrenCount;
+        }
+    }
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                         const CSR_IQMHeader*        pHeader,
                         const CSR_IQMTexts*         pTexts,
@@ -1368,15 +1534,164 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         return 0;
     }
 
-    // initialize the model and create all the meshes required to contain the MDL group frames
-    pMesh = (CSR_Mesh*)malloc(sizeof(CSR_Mesh));
+    // do create mesh only?
+    //if (!pModel->m_MeshOnly)
+    {
+        /*
+        baseframe = new Matrix3x4[hdr.num_joints];
+        inversebaseframe = new Matrix3x4[hdr.num_joints];
+        for (int i = 0; i < (int)hdr.num_joints; i++)
+        {
+            iqmjoint& j = joints[i];
+            baseframe[i] = Matrix3x4(Quat(j.rotate).normalize(), Vec3(j.translate), Vec3(j.scale));
+            inversebaseframe[i].invert(baseframe[i]);
+            if (j.parent >= 0)
+            {
+                baseframe[i] = baseframe[j.parent] * baseframe[i];
+                inversebaseframe[i] *= inversebaseframe[j.parent];
+            }
+        }
+        */
+        /*
+        -1
+        0
+        1
+        1
+        1
+        2
+        3
+        5
+        6
+
+
+
+        -1
+        0
+        0
+        2
+        2
+        0
+        5
+        6
+        7
+        8
+        9
+        8
+        11
+        8
+        13
+        8
+        15
+        8
+        17
+        18
+        8
+        20
+        21
+        8
+        23
+        24
+        8
+        26
+        27
+        6
+        29
+        30
+        31
+        31
+        29
+        34
+        35
+        29
+        37
+        38
+        6
+        40
+        41
+        41
+        43
+        41
+        45
+        41
+        47
+        41
+        49
+        41
+        51
+        52
+        41
+        54
+        55
+        41
+        57
+        58
+        41
+        60
+        61
+        5
+        63
+        64
+        65
+        66
+        5
+        68
+        69
+        70
+        71
+        -1
+        -1
+        */
+        CSR_Bone* pRootBone;
+        size_t    boneIndex;
+
+        // create a new skeleton
+        pModel->m_pSkeleton = csrBoneCreate();
+
+        if (!pModel->m_pSkeleton)
+            return 0;
+
+        // create the root bone
+        pRootBone = csrBoneCreate();
+
+        /*
+        unsigned m_Name;
+        int      m_Parent; // parent < 0 means this is a root bone
+        float    m_Translate[3];
+        float    m_Rotate[4];
+        float    m_Scale[3];
+        */
+        //pModel->m_pSkeleton->m_pChildren = ;
+
+        /*REM
+        // iterate through source joints
+        for (i = 0; i < pJoints->m_Count; ++i)
+        {
+            char buffer[1000];
+            _itoa_s(pJoints->m_pJoint[i].m_Parent, &buffer[0], 1000, 10);
+            OutputDebugStringA(buffer);
+            OutputDebugStringA("\n");
+        }
+        */
+        boneIndex = 0;
+
+        // populate the skeleton
+        if (!csrIQMPopulateSkeleton(pTexts, pJoints, -1, pRootBone, &boneIndex))
+        {
+            // FIXME release skeleton
+            return 0;
+        }
+
+        // set the skeleton in the model
+        pModel->m_pSkeleton->m_pChildren     = pRootBone;
+        pModel->m_pSkeleton->m_ChildrenCount = 1;
+    }
+
+    // create the model mesh
+    pMesh = csrMeshCreate();
 
     // succeeded?
     if (!pMesh)
         return 0;
-
-    // initialize it
-    csrMeshInit(pMesh);
 
     // create the mesh vertex buffer
     pMesh->m_Count = 1;
@@ -1415,23 +1730,21 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     // create the vertex buffer
     pMesh->m_pVB->m_pData = (float*)malloc(pMesh->m_pVB->m_Format.m_Stride * sizeof(float));
 
-    /*
-    for(int i = 0; i < nummeshes; i++)
-    {
-        iqmmesh &m = meshes[i];
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
-        glDrawElements(GL_TRIANGLES, 3*m.num_triangles, GL_UNSIGNED_INT, &tris[m.first_triangle]);
-    }
-    */
+    // iterate through the source meshes
     for (i = 0; i < pMeshes->m_Count; ++i)
+        // iterate through source mesh triangles
         for (j = 0; j < pMeshes->m_pMesh[i].m_TriangleCount; ++j)
         {
+            // get triangle index
             const size_t index = pMeshes->m_pMesh[i].m_FirstTriangle + j;
 
+            // iterate through vertices to create
             for (k = 0; k < 3; ++k)
             {
+                // get vertex index
                 const size_t vertIndex = pTriangles->m_pTriangle[index].m_Vertex[k];
 
+                // add next vertex to vertex buffer
                 csrVertexBufferAdd(&pSrcVertices->m_pVertex[vertIndex].m_Position,
                                    &pSrcVertices->m_pVertex[vertIndex].m_Normal,
                                    &pSrcVertices->m_pVertex[vertIndex].m_TexCoord,
@@ -1441,22 +1754,12 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
             }
         }
 
-    /*
-    // build the vertex buffer
-    for (i = 0; i < pSrcVertices->m_Count; ++i)
-        csrVertexBufferAdd(&pSrcVertices->m_pVertex[i].m_Position,
-                           &pSrcVertices->m_pVertex[i].m_Normal,
-                           &pSrcVertices->m_pVertex[i].m_TexCoord,
-                            0,
-                            fOnGetVertexColor,
-                            pMesh->m_pVB);
-    */
-
     // populate the model
     pModel->m_pMesh     = pMesh;
     pModel->m_MeshCount = 1;
 
     // release the memory
+    free(pSrcVertices->m_pVertex);
     free(pSrcVertices);
 
     return 1;

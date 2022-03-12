@@ -31,7 +31,7 @@
     #include "CSR_Collada.h"
 #endif
 #ifdef USE_IQM
-    #include "CSR_IQM.h"
+    #include "CSR_Iqm.h"
 #endif
 #include "CSR_Renderer.h"
 
