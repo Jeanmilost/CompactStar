@@ -1321,38 +1321,34 @@ int csrIQMBuildSrcVertices(const CSR_IQMHeader*       pHeader,
 //---------------------------------------------------------------------------
 void csrIQMQuatToRotMat(const CSR_Quaternion* pQ, CSR_Matrix4* pR)
 {
-    float x = pQ->m_X;
-    float y = pQ->m_Y;
-    float z = pQ->m_Z;
-    float w = pQ->m_W;
-    float tx = 2.0f * x;
-    float ty = 2.0f * y;
-    float tz = 2.0f * z;
-    float txx = tx * x;
-    float tyy = ty * y;
-    float tzz = tz * z;
-    float txy = tx * y;
-    float txz = tx * z;
-    float tyz = ty * z;
-    float twx = w * tx;
-    float twy = w * ty;
-    float twz = w * tz;
+    // initialize the constants to use for conversion
+    const float tx  = 2.0f    * pQ->m_X;
+    const float ty  = 2.0f    * pQ->m_Y;
+    const float tz  = 2.0f    * pQ->m_Z;
+    const float txx = tx      * pQ->m_X;
+    const float tyy = ty      * pQ->m_Y;
+    const float tzz = tz      * pQ->m_Z;
+    const float txy = tx      * pQ->m_Y;
+    const float txz = tx      * pQ->m_Z;
+    const float tyz = ty      * pQ->m_Z;
+    const float twx = pQ->m_W * tx;
+    const float twy = pQ->m_W * ty;
+    const float twz = pQ->m_W * tz;
 
+    // initialize the rotation matrix
     csrMat4Identity(pR);
 
-    //a = Vec3(1 - (tyy + tzz), txy - twz, txz + twy);
+    // build it
     pR->m_Table[0][0] = 1.0f - (tyy + tzz);
-    pR->m_Table[1][0] = txy - twz;
-    pR->m_Table[2][0] = txz + twy;
+    pR->m_Table[1][0] =         txy - twz;
+    pR->m_Table[2][0] =         txz + twy;
 
-    //b = Vec3(txy + twz, 1 - (txx + tzz), tyz - twx);
-    pR->m_Table[0][1] = txy + twz;
+    pR->m_Table[0][1] =         txy + twz;
     pR->m_Table[1][1] = 1.0f - (txx + tzz);
-    pR->m_Table[2][1] = tyz - twx;
+    pR->m_Table[2][1] =         tyz - twx;
 
-    //c = Vec3(txz - twy, tyz + twx, 1 - (txx + tyy));
-    pR->m_Table[0][2] = txz - twy;
-    pR->m_Table[1][2] = tyz + twx;
+    pR->m_Table[0][2] =         txz - twy;
+    pR->m_Table[1][2] =         tyz + twx;
     pR->m_Table[2][2] = 1.0f - (txx + tyy);
 }
 //---------------------------------------------------------------------------
@@ -1412,10 +1408,9 @@ int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, s
     scaling.m_Z = pJoint->m_Scale[2];
 
     // get the rotation quaternion and the scale and translate vectors
-    csrMat4Scale    (&scaling,  &scaleMatrix);
-    //csrQuatToMatrix (&rotation, &rotateMatrix);
+    csrMat4Scale      (&scaling,  &scaleMatrix);
     csrIQMQuatToRotMat(&rotation, &rotateMatrix);
-    csrMat4Translate(&position, &translateMatrix);
+    csrMat4Translate  (&position, &translateMatrix);
 
     // build the final matrix
     csrMat4Multiply(&scaleMatrix, &rotateMatrix,    &buildMatrix);
