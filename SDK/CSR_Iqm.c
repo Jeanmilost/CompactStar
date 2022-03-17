@@ -1847,29 +1847,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     size_t           i;
     size_t           j;
     size_t           k;
-    CSR_Mesh*        pMesh;
     CSR_IQMVertices* pSrcVertices;
-
-    // create a source vertices container
-    pSrcVertices = (CSR_IQMVertices*)malloc(sizeof(CSR_IQMVertices));
-
-    // succeeded?
-    if (!pSrcVertices)
-        return 0;
-
-    // initialize it
-    pSrcVertices->m_pVertex = 0;
-    pSrcVertices->m_Count   = 0;
-
-    // read the source vertices
-    if (!csrIQMBuildSrcVertices(pHeader,
-                                pVertexArrays,
-                                pBuffer,
-                                pSrcVertices))
-    {
-        free(pSrcVertices);
-        return 0;
-    }
 
     // do create mesh only?
     //if (!pModel->m_MeshOnly) // FIXME
@@ -1899,8 +1877,8 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         pModel->m_pSkeleton->m_pChildren     = pRootBone;
         pModel->m_pSkeleton->m_ChildrenCount = 1;
 
-        // model contains animations?
-        if (pAnims->m_Count && pRootBone)
+        // model contains animations and should create them?
+        if (pAnims->m_Count && pRootBone && !pModel->m_PoseOnly)
         {
             // create the animation sets
             pAnimSet = (CSR_AnimationSet_Bone*)malloc(pAnims->m_Count * sizeof(CSR_AnimationSet_Bone));
@@ -1958,52 +1936,87 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         }
     }
 
-    // create the model mesh
-    pMesh = csrMeshCreate();
+    // create a source vertices container
+    pSrcVertices = (CSR_IQMVertices*)malloc(sizeof(CSR_IQMVertices));
 
     // succeeded?
-    if (!pMesh)
+    if (!pSrcVertices)
         return 0;
 
-    // create the mesh vertex buffer
-    pMesh->m_Count = 1;
-    pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+    // initialize it
+    pSrcVertices->m_pVertex = 0;
+    pSrcVertices->m_Count   = 0;
 
-    // prepare the vertex buffer format
-    csrVertexBufferInit(pMesh->m_pVB);
-
-    // apply the user wished vertex format
-    if (pVertFormat)
-        pMesh->m_pVB->m_Format = *pVertFormat;
-    else
+    // read the source vertices
+    if (!csrIQMBuildSrcVertices(pHeader,
+                                pVertexArrays,
+                                pBuffer,
+                                pSrcVertices))
     {
-        // otherwise configure the default vertex format
-        pMesh->m_pVB->m_Format.m_HasNormal    = 1;
-        pMesh->m_pVB->m_Format.m_HasTexCoords = 1;
+        free(pSrcVertices);
+        return 0;
     }
 
-    // apply the user wished vertex culling
-    if (pVertCulling)
-        pMesh->m_pVB->m_Culling = *pVertCulling;
-    else
-        // otherwise configure the default culling
-        pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+    // create the meshes
+    pModel->m_pMesh = (CSR_Mesh*)malloc(pMeshes->m_Count * sizeof(CSR_Mesh));
 
-    // apply the user wished material
-    if (pMaterial)
-        pMesh->m_pVB->m_Material = *pMaterial;
+    // succeeded?
+    if (!pModel->m_pMesh)
+    {
+        free(pSrcVertices);
+        return 0;
+    }
 
-    // set the vertex format type
-    pMesh->m_pVB->m_Format.m_Type = CSR_VT_Triangles;
+    // iterate through the created meshes and initialize them
+    for (i = 0; i < pMeshes->m_Count; ++i)
+        csrMeshInit(&pModel->m_pMesh[i]);
 
-    // calculate the vertex stride
-    csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
-
-    // create the vertex buffer
-    pMesh->m_pVB->m_pData = (float*)malloc(pMesh->m_pVB->m_Format.m_Stride * sizeof(float));
+    // set the mesh count
+    pModel->m_MeshCount = pMeshes->m_Count;
 
     // iterate through the source meshes
     for (i = 0; i < pMeshes->m_Count; ++i)
+    {
+        // get the next mesh
+        CSR_Mesh* pMesh = &pModel->m_pMesh[i];
+
+        // create the mesh vertex buffer
+        pMesh->m_Count = 1;
+        pMesh->m_pVB   = (CSR_VertexBuffer*)malloc(sizeof(CSR_VertexBuffer));
+
+        // prepare the vertex buffer format
+        csrVertexBufferInit(pMesh->m_pVB);
+
+        // apply the user wished vertex format
+        if (pVertFormat)
+            pMesh->m_pVB->m_Format = *pVertFormat;
+        else
+        {
+            // otherwise configure the default vertex format
+            pMesh->m_pVB->m_Format.m_HasNormal    = 1;
+            pMesh->m_pVB->m_Format.m_HasTexCoords = 1;
+        }
+
+        // apply the user wished vertex culling
+        if (pVertCulling)
+            pMesh->m_pVB->m_Culling = *pVertCulling;
+        else
+            // otherwise configure the default culling
+            pMesh->m_pVB->m_Culling.m_Face = CSR_CF_CW;
+
+        // apply the user wished material
+        if (pMaterial)
+            pMesh->m_pVB->m_Material = *pMaterial;
+
+        // set the vertex format type
+        pMesh->m_pVB->m_Format.m_Type = CSR_VT_Triangles;
+
+        // calculate the vertex stride
+        csrVertexFormatCalculateStride(&pMesh->m_pVB->m_Format);
+
+        // create the vertex buffer
+        pMesh->m_pVB->m_pData = (float*)malloc(pMesh->m_pVB->m_Format.m_Stride * sizeof(float));
+
         // iterate through source mesh triangles
         for (j = 0; j < pMeshes->m_pMesh[i].m_TriangleCount; ++j)
         {
@@ -2025,10 +2038,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                                     pMesh->m_pVB);
             }
         }
-
-    // populate the model
-    pModel->m_pMesh     = pMesh;
-    pModel->m_MeshCount = 1;
+    }
 
     // release the memory
     free(pSrcVertices->m_pVertex);
