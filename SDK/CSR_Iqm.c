@@ -128,8 +128,9 @@ typedef struct
 */
 typedef struct
 {
-    char** m_pTexts;
-    size_t m_Count;
+    char**  m_pTexts;
+    size_t* m_pOffsets;
+    size_t  m_Count;
 
 } CSR_IQMTexts;
 
@@ -311,8 +312,9 @@ typedef struct
 */
 typedef struct
 {
-    char** m_pComments;
-    size_t m_Count;
+    char**  m_pComments;
+    size_t* m_pOffsets;
+    size_t  m_Count;
 
 } CSR_IQMComments;
 
@@ -435,11 +437,12 @@ int csrIQMReadHeader(const CSR_Buffer* pBuffer, size_t* pOffset, CSR_IQMHeader* 
     return success;
 }
 //---------------------------------------------------------------------------
-int csrIQMCopyStr(char* pTextBuffer, size_t start, size_t pos, char*** pTexts, size_t* pCount)
+int csrIQMCopyStr(char* pTextBuffer, size_t start, size_t pos, char*** pTexts, size_t** pOffsets, size_t* pCount)
 {
-    char** pTextArray;
-    size_t index;
-    size_t len;
+    char**  pTextArray;
+    size_t* pOffsetArray;
+    size_t  index;
+    size_t  len;
 
     if (!pTexts)
         return 0;
@@ -457,8 +460,16 @@ int csrIQMCopyStr(char* pTextBuffer, size_t start, size_t pos, char*** pTexts, s
     if (!pTextArray)
         return 0;
 
-    // allocate new text array
-    *pTexts = pTextArray;
+    // allocate memory for a new offset in the array
+    pOffsetArray = (size_t*)csrMemoryAlloc(*pOffsets, sizeof(size_t), *pCount + 1);
+
+    // succeeded?
+    if (!pOffsetArray)
+        return 0;
+
+    // allocate new text array and offset array
+    *pTexts   = pTextArray;
+    *pOffsets = pOffsetArray;
     ++(*pCount);
 
     // calculate string length
@@ -487,7 +498,21 @@ int csrIQMCopyStr(char* pTextBuffer, size_t start, size_t pos, char*** pTexts, s
     memcpy((*pTexts)[index], &pTextBuffer[start], len);
     (*pTexts)[index][len] = 0x0;
 
+    // copy the offset
+    (*pOffsets)[index] = start;
+
     return 1;
+}
+//---------------------------------------------------------------------------
+int csrIQMGetTextIndex(const CSR_IQMTexts* pTexts, size_t offset)
+{
+    size_t i;
+
+    for (i = 0; i < pTexts->m_Count; ++i)
+        if (pTexts->m_pOffsets[i] == offset)
+            return i;
+
+    return -1;
 }
 //---------------------------------------------------------------------------
 int csrIQMReadTexts(const CSR_Buffer*    pBuffer,
@@ -499,8 +524,9 @@ int csrIQMReadTexts(const CSR_Buffer*    pBuffer,
     size_t start;
     char*  pTextBuffer;
 
-    pTexts->m_pTexts = 0;
-    pTexts->m_Count  = 0;
+    pTexts->m_pTexts   = 0;
+    pTexts->m_pOffsets = 0;
+    pTexts->m_Count    = 0;
 
     // no text to read?
     if (!pHeader->m_TextCount)
@@ -525,7 +551,12 @@ int csrIQMReadTexts(const CSR_Buffer*    pBuffer,
         {
             case '\0':
                 // copy the string text
-                if (!csrIQMCopyStr(pTextBuffer, start, i, &pTexts->m_pTexts, &pTexts->m_Count))
+                if (!csrIQMCopyStr(pTextBuffer,
+                                   start,
+                                   i,
+                                  &pTexts->m_pTexts,
+                                  &pTexts->m_pOffsets,
+                                  &pTexts->m_Count))
                 {
                     free(pTextBuffer);
                     return 0;
@@ -538,7 +569,12 @@ int csrIQMReadTexts(const CSR_Buffer*    pBuffer,
     // is there a remaining string to copy?
     if (start < pHeader->m_TextCount)
         // copy the string text
-        if (!csrIQMCopyStr(pTextBuffer, start, pHeader->m_TextCount, &pTexts->m_pTexts, &pTexts->m_Count))
+        if (!csrIQMCopyStr(pTextBuffer,
+                           start,
+                           pHeader->m_TextCount,
+                          &pTexts->m_pTexts,
+                          &pTexts->m_pOffsets,
+                          &pTexts->m_Count))
         {
             free(pTextBuffer);
             return 0;
@@ -979,6 +1015,7 @@ int csrIQMReadComments(const CSR_Buffer*      pBuffer,
     char*  pTextBuffer;
 
     pComments->m_pComments = 0;
+    pComments->m_pOffsets  = 0;
     pComments->m_Count     = 0;
 
     // no comments to read?
@@ -1004,7 +1041,12 @@ int csrIQMReadComments(const CSR_Buffer*      pBuffer,
         {
             case '\0':
                 // copy the string text
-                if (!csrIQMCopyStr(pTextBuffer, start, i, &pComments->m_pComments, &pComments->m_Count))
+                if (!csrIQMCopyStr(pTextBuffer,
+                                   start,
+                                   i,
+                                  &pComments->m_pComments,
+                                  &pComments->m_pOffsets,
+                                  &pComments->m_Count))
                 {
                     free(pTextBuffer);
                     return 0;
@@ -1021,6 +1063,7 @@ int csrIQMReadComments(const CSR_Buffer*      pBuffer,
                            start,
                            pHeader->m_CommentCount,
                           &pComments->m_pComments,
+                          &pComments->m_pOffsets,
                           &pComments->m_Count))
         {
             free(pTextBuffer);
@@ -1355,6 +1398,7 @@ void csrIQMQuatToRotMat(const CSR_Quaternion* pQ, CSR_Matrix4* pR)
 int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, size_t jointIndex, CSR_Bone* pBone)
 {
     char*              pBoneName;
+    size_t             boneNameIndex;
     size_t             nameLen;
     #ifdef _MSC_VER
         CSR_Vector3    position = {0};
@@ -1373,9 +1417,15 @@ int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, s
     if (!pTexts || !pJoint || !pBone)
         return 0;
 
-    /* FIXME
+    // get the bone name index in the text array
+    boneNameIndex = csrIQMGetTextIndex(pTexts, pJoint->m_Name);
+
+    // found it?
+    if (boneNameIndex < 0 || boneNameIndex >= pTexts->m_Count)
+        return 0;
+
     // get the bone name
-    pBoneName = pTexts->m_pTexts[pJoint->m_Name];
+    pBoneName = pTexts->m_pTexts[boneNameIndex];
 
     // measure it
     nameLen = strlen(pBoneName);
@@ -1389,7 +1439,6 @@ int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, s
     // copy the bone name
     memcpy(pBone->m_pName, pBoneName, nameLen);
     pBone->m_pName[nameLen] = 0x0;
-    */
 
     // get the position
     position.m_X = pJoint->m_Translate[0];
@@ -1470,7 +1519,7 @@ int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoi
 
     // iterate through source joints
     for (i = 0; i < pJoints->m_Count; ++i)
-    {
+        // is root?
         if (pJoints->m_pJoint[i].m_Parent >= 0)
         {
             // find the parent bone to link with
@@ -1520,10 +1569,255 @@ int csrIQMPopulateSkeleton(const CSR_IQMTexts* pTexts, const CSR_IQMJoints* pJoi
             pRoot->m_pChildren = pChildren;
             ++pRoot->m_ChildrenCount;
         }
-    }
 
     // allocate parents after all the bones were created to avoid pointer corruptions
     csrIQMBoneSetParent(pRoot, 0);
+
+    return 1;
+}
+//---------------------------------------------------------------------------
+int csrIQMPopulateAnims(const CSR_Buffer*            pBuffer,
+                        const CSR_IQMHeader*         pHeader,
+                        const CSR_IQMTexts*          pTexts,
+                        const CSR_IQMAnims*          pAnims,
+                        const CSR_IQMPoses*          pPoses,
+                              CSR_Bone*              pRootBone,
+                              CSR_AnimationSet_Bone* pAnimSet)
+{
+    size_t i;
+    size_t j;
+    size_t k;
+    size_t offset;
+
+    // set buffer offset to frame data start position
+    offset = pHeader->m_FrameOffset;
+
+    // iterate through animation sets to create
+    for (i = 0; i < pAnims->m_Count; ++i)
+    {
+        const CSR_IQMAnim* pSrcAnim = &pAnims->m_pAnim[i];
+
+        // iterate through bone animations to create
+        for (j = 0; j < pSrcAnim->m_FrameCount; ++j)
+            // iterate through frames to create
+            for (k = 0; k < pPoses->m_Count; ++k)
+            {
+                unsigned short      value;
+                size_t              len;
+                #ifdef _MSC_VER
+                    CSR_Quaternion  rotation = {0};
+                    CSR_Vector3     position = {0};
+                    CSR_Vector3     scaling  = {0};
+                #else
+                    CSR_Quaternion  rotation;
+                    CSR_Vector3     position;
+                    CSR_Vector3     scaling;
+                #endif
+                CSR_Matrix4         scaleMatrix;
+                CSR_Matrix4         rotateMatrix;
+                CSR_Matrix4         translateMatrix;
+                CSR_Matrix4         buildMatrix;
+                CSR_Matrix4         matrix;
+                CSR_Animation_Bone* pDstAnim;
+
+                // get next pose
+                const CSR_IQMPose* pPose = &pPoses->m_pPose[k];
+
+                // get destination animation to populate
+                pDstAnim = &pAnimSet[i].m_pAnimation[k];
+
+                // do initialize the bone animations?
+                if (!j)
+                {
+                    size_t l;
+
+                    // find the bone to link with animation
+                    pDstAnim->m_pBone = csrIQMFindBone(pRootBone, k);
+
+                    // found it?
+                    if (!pDstAnim->m_pBone)
+                        return 0;
+
+                    // measure the animation bone name
+                    len = strlen(pDstAnim->m_pBone->m_pName);
+
+                    if (len)
+                    {
+                        // allocate memory for new bone name string
+                        pDstAnim->m_pBoneName = (char*)malloc(len + 1);
+
+                        // succeeded?
+                        if (!pDstAnim->m_pBoneName)
+                            return 0;
+
+                        // copy the bone name
+                        memcpy(pDstAnim->m_pBoneName, pDstAnim->m_pBone->m_pName, len);
+                        pDstAnim->m_pBoneName[len] = 0x0;
+                    }
+
+                    // create the animation keys
+                    pDstAnim->m_pKeys = (CSR_AnimationKeys*)malloc(sizeof(CSR_AnimationKeys));
+
+                    // succeeded?
+                    if (!pDstAnim->m_pKeys)
+                        return 0;
+
+                    // set the key count
+                    pDstAnim->m_Count = 1;
+
+                    // initialize the keys container
+                    pDstAnim->m_pKeys->m_Type       = CSR_KT_Matrix;
+                    pDstAnim->m_pKeys->m_Count      = 0;
+                    pDstAnim->m_pKeys->m_ColOverRow = 0;
+                    pDstAnim->m_pKeys->m_pKey       = (CSR_AnimationKey*)malloc(pSrcAnim->m_FrameCount * sizeof(CSR_AnimationKey));
+
+                    // succeeded?
+                    if (!pDstAnim->m_pKeys->m_pKey)
+                        return 0;
+
+                    // set the keys container count
+                    pDstAnim->m_pKeys->m_Count = pSrcAnim->m_FrameCount;
+
+                    // initialize the keys
+                    for (l = 0; l < pDstAnim->m_pKeys->m_Count; ++l)
+                    {
+                        // initialize the key
+                        pDstAnim->m_pKeys->m_pKey[l].m_Frame   = l;
+                        pDstAnim->m_pKeys->m_pKey[l].m_Count   = 0;
+                        pDstAnim->m_pKeys->m_pKey[l].m_pValues = (float*)malloc(16 * sizeof(float));
+
+                        // succeeded?
+                        if (!pDstAnim->m_pKeys->m_pKey[l].m_pValues)
+                            return 0;
+
+                        // set the matrix data count
+                        pDstAnim->m_pKeys->m_pKey[l].m_Count = 16;
+                    }
+                }
+
+                position.m_X = pPose->m_ChannelOffset[0];
+
+                if (pPose->m_ChannelMask & 0x01)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    position.m_X += value * pPose->m_ChannelScale[0];
+                }
+
+                position.m_Y = pPose->m_ChannelOffset[1];
+
+                if (pPose->m_ChannelMask & 0x02)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    position.m_Y += value * pPose->m_ChannelScale[1];
+                }
+
+                position.m_Z = pPose->m_ChannelOffset[2];
+
+                if (pPose->m_ChannelMask & 0x04)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    position.m_Z += value * pPose->m_ChannelScale[2];
+                }
+
+                rotation.m_X = pPose->m_ChannelOffset[3];
+
+                if (pPose->m_ChannelMask & 0x08)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    rotation.m_X += value * pPose->m_ChannelScale[3];
+                }
+
+                rotation.m_Y = pPose->m_ChannelOffset[4];
+
+                if (pPose->m_ChannelMask & 0x10)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    rotation.m_Y += value * pPose->m_ChannelScale[4];
+                }
+
+                rotation.m_Z = pPose->m_ChannelOffset[5];
+
+                if (pPose->m_ChannelMask & 0x20)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    rotation.m_Z += value * pPose->m_ChannelScale[5];
+                }
+
+                rotation.m_W = pPose->m_ChannelOffset[6];
+
+                if (pPose->m_ChannelMask & 0x40)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    rotation.m_W += value * pPose->m_ChannelScale[6];
+                }
+
+                scaling.m_X = pPose->m_ChannelOffset[7];
+
+                if (pPose->m_ChannelMask & 0x80)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    scaling.m_X += value * pPose->m_ChannelScale[7];
+                }
+
+                scaling.m_Y = pPose->m_ChannelOffset[8];
+
+                if (pPose->m_ChannelMask & 0x100)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    scaling.m_Y += value * pPose->m_ChannelScale[8];
+                }
+
+                scaling.m_Z = pPose->m_ChannelOffset[9];
+
+                if (pPose->m_ChannelMask & 0x200)
+                {
+                    // read the frame data
+                    if (!csrBufferRead(pBuffer, &offset, 1, sizeof(unsigned short), &value))
+                        return 0;
+
+                    scaling.m_Z += value * pPose->m_ChannelScale[9];
+                }
+
+                // get the rotation quaternion and the scale and translate vectors
+                csrMat4Scale      (&scaling,  &scaleMatrix);
+                csrIQMQuatToRotMat(&rotation, &rotateMatrix);
+                csrMat4Translate  (&position, &translateMatrix);
+
+                // build the final matrix
+                csrMat4Multiply(&scaleMatrix, &rotateMatrix,    &buildMatrix);
+                csrMat4Multiply(&buildMatrix, &translateMatrix, &matrix);
+
+                // set the matrix content in the animation key
+                memcpy(pDstAnim->m_pKeys->m_pKey[j].m_pValues, &matrix.m_Table, 16 * sizeof(float));
+            }
+    }
 
     return 1;
 }
@@ -1578,114 +1872,11 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     }
 
     // do create mesh only?
-    //if (!pModel->m_MeshOnly)
+    //if (!pModel->m_MeshOnly) // FIXME
     {
-        /*
-        baseframe = new Matrix3x4[hdr.num_joints];
-        inversebaseframe = new Matrix3x4[hdr.num_joints];
-        for (int i = 0; i < (int)hdr.num_joints; i++)
-        {
-            iqmjoint& j = joints[i];
-            baseframe[i] = Matrix3x4(Quat(j.rotate).normalize(), Vec3(j.translate), Vec3(j.scale));
-            inversebaseframe[i].invert(baseframe[i]);
-            if (j.parent >= 0)
-            {
-                baseframe[i] = baseframe[j.parent] * baseframe[i];
-                inversebaseframe[i] *= inversebaseframe[j.parent];
-            }
-        }
-        */
-        /*
-        -1
-        0
-        1
-        1
-        1
-        2
-        3
-        5
-        6
-
-
-
-        -1
-        0
-        0
-        2
-        2
-        0
-        5
-        6
-        7
-        8
-        9
-        8
-        11
-        8
-        13
-        8
-        15
-        8
-        17
-        18
-        8
-        20
-        21
-        8
-        23
-        24
-        8
-        26
-        27
-        6
-        29
-        30
-        31
-        31
-        29
-        34
-        35
-        29
-        37
-        38
-        6
-        40
-        41
-        41
-        43
-        41
-        45
-        41
-        47
-        41
-        49
-        41
-        51
-        52
-        41
-        54
-        55
-        41
-        57
-        58
-        41
-        60
-        61
-        5
-        63
-        64
-        65
-        66
-        5
-        68
-        69
-        70
-        71
-        -1
-        -1
-        */
-        CSR_Bone* pRootBone;
-        size_t    boneIndex;
+        size_t                 boneIndex;
+        CSR_Bone*              pRootBone;
+        CSR_AnimationSet_Bone* pAnimSet;
 
         // create a new skeleton
         pModel->m_pSkeleton = csrBoneCreate();
@@ -1695,38 +1886,76 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
 
         // create the root bone
         pRootBone = csrBoneCreate();
-
-        /*
-        unsigned m_Name;
-        int      m_Parent; // parent < 0 means this is a root bone
-        float    m_Translate[3];
-        float    m_Rotate[4];
-        float    m_Scale[3];
-        */
-        //pModel->m_pSkeleton->m_pChildren = ;
-
-        /*REM
-        // iterate through source joints
-        for (i = 0; i < pJoints->m_Count; ++i)
-        {
-            char buffer[1000];
-            _itoa_s(pJoints->m_pJoint[i].m_Parent, &buffer[0], 1000, 10);
-            OutputDebugStringA(buffer);
-            OutputDebugStringA("\n");
-        }
-        */
         boneIndex = 0;
 
         // populate the skeleton
         if (!csrIQMPopulateSkeleton(pTexts, pJoints, -1, pRootBone, &boneIndex))
         {
-            // FIXME release skeleton
+            csrBoneRelease(pRootBone, 0, 1);
             return 0;
         }
 
         // set the skeleton in the model
         pModel->m_pSkeleton->m_pChildren     = pRootBone;
         pModel->m_pSkeleton->m_ChildrenCount = 1;
+
+        // model contains animations?
+        if (pAnims->m_Count && pRootBone)
+        {
+            // create the animation sets
+            pAnimSet = (CSR_AnimationSet_Bone*)malloc(pAnims->m_Count * sizeof(CSR_AnimationSet_Bone));
+
+            // iterate through animation sets to initialize
+            for (i = 0; i < pAnims->m_Count; ++i)
+            {
+                pAnimSet[i].m_Count = 0;
+
+                // create bone animation
+                pAnimSet[i].m_pAnimation = (CSR_Animation_Bone*)malloc(pJoints->m_Count * sizeof(CSR_Animation_Bone));
+
+                // succeeded?
+                if (!pAnimSet[i].m_pAnimation)
+                {
+                    // release the animation set content
+                    for (i = 0; i < pAnims->m_Count; ++i)
+                        csrBoneAnimSetRelease(&pAnimSet[i], 1);
+
+                    // free the animation sets
+                    free(pAnimSet);
+
+                    return 0;
+                }
+
+                // set bone animation count
+                pAnimSet[i].m_Count = pJoints->m_Count;
+
+                // iterate through bone animations to initialize
+                for (j = 0; j < pAnimSet[i].m_Count; ++j)
+                {
+                    pAnimSet[i].m_pAnimation[j].m_pBone     = 0;
+                    pAnimSet[i].m_pAnimation[j].m_pBoneName = 0;
+                    pAnimSet[i].m_pAnimation[j].m_pKeys     = 0;
+                    pAnimSet[i].m_pAnimation[j].m_Count     = 0;
+                }
+            }
+
+            // populate the animations
+            if (!csrIQMPopulateAnims(pBuffer, pHeader, pTexts, pAnims, pPoses, pRootBone, pAnimSet))
+            {
+                // release the animation set content
+                for (i = 0; i < pAnims->m_Count; ++i)
+                    csrBoneAnimSetRelease(&pAnimSet[i], 1);
+
+                // free the animation sets
+                free(pAnimSet);
+
+                return 0;
+            }
+
+            // set the animations in the model
+            pModel->m_pAnimationSet     = pAnimSet;
+            pModel->m_AnimationSetCount = pAnims->m_Count;
+        }
     }
 
     // create the model mesh
@@ -1836,7 +2065,8 @@ void csrIQMReleaseObjects(CSR_IQMHeader*       pHeader,
             for (i = 0; i < pTexts->m_Count; ++i)
                 free(pTexts->m_pTexts[i]);
 
-            // free text array
+            // free text arrays
+            free(pTexts->m_pOffsets);
             free(pTexts->m_pTexts);
         }
 
@@ -1943,7 +2173,8 @@ void csrIQMReleaseObjects(CSR_IQMHeader*       pHeader,
             for (i = 0; i < pComments->m_Count; ++i)
                 free(pComments->m_pComments[i]);
 
-            // free comments array
+            // free comments arrays
+            free(pComments->m_pOffsets);
             free(pComments->m_pComments);
         }
 

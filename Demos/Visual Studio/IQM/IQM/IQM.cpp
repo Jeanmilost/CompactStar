@@ -56,7 +56,7 @@
 #endif
 
 // resource files to load
-//#define TEST2
+#define TEST2
 #ifdef TEST2
     #define IQM_FILE  "Resources/mrfixit.iqm"
 #else
@@ -78,6 +78,7 @@ CSR_Matrix4                  g_Matrix;
 size_t                       g_FrameCount      = 0;
 size_t                       g_FPS             = 20;
 size_t                       g_AnimCount       = 0;
+size_t                       g_MaxAnimFrame    = 101;
 float                        g_Angle           = 0.0f;
 double                       g_TextureLastTime = 0.0;
 double                       g_ModelLastTime   = 0.0;
@@ -153,7 +154,7 @@ void* OnGetID(const void* pKey)
 void OnGetIQMIndex(const CSR_IQM* pIQM, size_t* pAnimSetIndex, size_t* pFrameIndex)
 {
     *pAnimSetIndex = 0;
-    *pFrameIndex   = (g_AnimCount / 10) % 36;
+    *pFrameIndex   = (g_AnimCount / 10) % g_MaxAnimFrame;
 }
 //---------------------------------------------------------------------------
 void OnDeleteTexture(const CSR_Texture* pTexture)
@@ -237,7 +238,7 @@ void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
         csrDebugDrawSkeletonIQM(g_pModel,
                                 g_pLineShader,
                                 0,
-                                0);// (g_AnimCount / 10) % 36);
+                                (g_AnimCount / 10) % g_MaxAnimFrame);
     #endif
 
     csrDrawEnd();
@@ -353,7 +354,7 @@ bool InitScene(int w, int h)
                          &vertexCulling,
                          &material,
                           1,
-                          1,
+                          0,//1,
                           0,
                           0,
                           0,
