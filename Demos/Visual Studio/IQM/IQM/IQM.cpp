@@ -78,7 +78,11 @@ CSR_Matrix4                  g_Matrix;
 size_t                       g_FrameCount      = 0;
 size_t                       g_FPS             = 20;
 size_t                       g_AnimCount       = 0;
-size_t                       g_MaxAnimFrame    = 101;
+#ifdef TEST2
+    size_t                   g_MaxAnimFrame    = 101;
+#else
+    size_t                   g_MaxAnimFrame    = 40;
+#endif
 float                        g_Angle           = 0.0f;
 double                       g_TextureLastTime = 0.0;
 double                       g_ModelLastTime   = 0.0;
@@ -267,7 +271,7 @@ bool InitScene(int w, int h)
     csrSceneContextInit(&g_SceneContext);
     g_SceneContext.m_fOnGetShader     = OnGetShader;
     g_SceneContext.m_fOnGetID         = OnGetID;
-    //FIXME g_SceneContext.m_fOnGetIQMIndex   = OnGetIQMIndex;
+    g_SceneContext.m_fOnGetIQMIndex   = OnGetIQMIndex;
     g_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
     g_SceneContext.m_fOnSceneBegin    = OnSceneBegin;
     g_SceneContext.m_fOnSceneEnd      = OnSceneEnd;
@@ -353,8 +357,8 @@ bool InitScene(int w, int h)
                          &vertexFormat,
                          &vertexCulling,
                          &material,
-                          1,
-                          0,//1,
+                          0,
+                          0,
                           0,
                           0,
                           0,
@@ -391,6 +395,8 @@ void UpdateScene(float elapsedTime)
 {
     // rebuild the model matrix
     BuildModelMatrix(&g_Matrix);
+
+    g_Angle = fmodf(g_Angle + 0.0025f, (float)M_PI * 2.0f);
 
     ++g_AnimCount;
 }
@@ -541,8 +547,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
             ::SwapBuffers(g_hDC);
 
             ::Sleep(1);
-
-            g_Angle = fmodf(g_Angle + 0.0025f, (float)M_PI * 2.0f);
         }
     }
 

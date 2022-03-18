@@ -2068,8 +2068,8 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
         {
             int        useLocalMatrixArray;
             int        useSourceBuffer;
-            CSR_Mesh* pMesh;
-            CSR_Mesh* pLocalMesh;
+            CSR_Mesh*  pMesh;
+            CSR_Mesh*  pLocalMesh;
             CSR_Array* pLocalMatrixArray;
 
             // if mesh has no skeleton, perform a simple draw
@@ -2106,12 +2106,12 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
             pLocalMesh->m_Time = pMesh->m_Time;
 
             // mesh contains skin weights?
-            if (pIQM->m_pMeshWeights[i].m_pSkinWeights)
+            if (pIQM->m_pMeshWeights && pIQM->m_pMeshWeights[i].m_pSkinWeights)
             {
                 useSourceBuffer = 0;
 
                 // allocate memory for the final vertex buffer to draw
-                pLocalMesh->m_pVB = (CSR_VertexBuffer*)malloc(pMesh->m_Count * sizeof(CSR_VertexBuffer));
+                pLocalMesh->m_pVB   = (CSR_VertexBuffer*)malloc(pMesh->m_Count * sizeof(CSR_VertexBuffer));
                 pLocalMesh->m_Count = pMesh->m_Count;
 
                 if (!pLocalMesh->m_pVB || !pLocalMesh->m_Count)
@@ -2121,10 +2121,10 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                 }
 
                 // bind the source vertex buffer to the local one
-                pLocalMesh->m_pVB->m_Format = pMesh->m_pVB->m_Format;
-                pLocalMesh->m_pVB->m_Culling = pMesh->m_pVB->m_Culling;
+                pLocalMesh->m_pVB->m_Format   = pMesh->m_pVB->m_Format;
+                pLocalMesh->m_pVB->m_Culling  = pMesh->m_pVB->m_Culling;
                 pLocalMesh->m_pVB->m_Material = pMesh->m_pVB->m_Material;
-                pLocalMesh->m_pVB->m_Time = pMesh->m_pVB->m_Time;
+                pLocalMesh->m_pVB->m_Time     = pMesh->m_pVB->m_Time;
 
                 // allocate memory for the vertex buffer data
                 pLocalMesh->m_pVB->m_pData = (float*)calloc(pMesh->m_pVB->m_Count, sizeof(float));
@@ -2175,19 +2175,19 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                     for (k = 0; k < pIQM->m_pMeshWeights[i].m_pSkinWeights[j].m_IndexTableCount; ++k)
                         for (l = 0; l < pIQM->m_pMeshWeights[i].m_pSkinWeights[j].m_pIndexTable[k].m_Count; ++l)
                         {
-                        #ifdef _MSC_VER
-                            size_t      iX;
-                            size_t      iY;
-                            size_t      iZ;
-                            CSR_Vector3 inputVertex = {0};
-                            CSR_Vector3 outputVertex = {0};
-                        #else
-                            size_t      iX;
-                            size_t      iY;
-                            size_t      iZ;
-                            CSR_Vector3 inputVertex;
-                            CSR_Vector3 outputVertex;
-                        #endif
+                            #ifdef _MSC_VER
+                                size_t      iX;
+                                size_t      iY;
+                                size_t      iZ;
+                                CSR_Vector3 inputVertex = {0};
+                                CSR_Vector3 outputVertex = {0};
+                            #else
+                                size_t      iX;
+                                size_t      iY;
+                                size_t      iZ;
+                                CSR_Vector3 inputVertex;
+                                CSR_Vector3 outputVertex;
+                            #endif
 
                             // get the next vertex to which the next skin weight should be applied
                             iX = pIQM->m_pMeshWeights[i].m_pSkinWeights[j].m_pIndexTable[k].m_pData[l];
@@ -2224,14 +2224,17 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                 useSourceBuffer = 1;
 
                 // no weights, just use the existing vertex buffer
-                pLocalMesh->m_pVB = pMesh->m_pVB;
+                pLocalMesh->m_pVB   = pMesh->m_pVB;
                 pLocalMesh->m_Count = pMesh->m_Count;
             }
 
             useLocalMatrixArray = 0;
 
             // has matrix array to transform, and model contain mesh bones?
-            if (pMatrixArray && pMatrixArray->m_Count && pIQM->m_pMeshToBoneDict[i].m_pBone)
+            if (pMatrixArray            &&
+                pMatrixArray->m_Count   &&
+                pIQM->m_pMeshToBoneDict &&
+                pIQM->m_pMeshToBoneDict[i].m_pBone)
             {
                 // create a new local matrix array
                 pLocalMatrixArray = (CSR_Array*)malloc(sizeof(CSR_Array));
@@ -2240,7 +2243,7 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
 
                 // create as array item as in the source matrix list
                 pLocalMatrixArray->m_pItem =
-                    (CSR_ArrayItem*)malloc(sizeof(CSR_ArrayItem) * pMatrixArray->m_Count);
+                        (CSR_ArrayItem*)malloc(sizeof(CSR_ArrayItem) * pMatrixArray->m_Count);
 
                 // succeeded?
                 if (pLocalMatrixArray->m_pItem)
@@ -2253,7 +2256,7 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                     {
                         // initialize the local matrix array item
                         pLocalMatrixArray->m_pItem[j].m_AutoFree = 1;
-                        pLocalMatrixArray->m_pItem[j].m_pData = malloc(sizeof(CSR_Matrix4));
+                        pLocalMatrixArray->m_pItem[j].m_pData    = malloc(sizeof(CSR_Matrix4));
 
                         // get the final matrix after bones transform
                         csrBoneGetMatrix(pIQM->m_pMeshToBoneDict[i].m_pBone,

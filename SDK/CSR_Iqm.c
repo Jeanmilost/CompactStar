@@ -510,7 +510,7 @@ int csrIQMGetTextIndex(const CSR_IQMTexts* pTexts, size_t offset)
 
     for (i = 0; i < pTexts->m_Count; ++i)
         if (pTexts->m_pOffsets[i] == offset)
-            return i;
+            return (int)i;
 
     return -1;
 }
@@ -1822,6 +1822,110 @@ int csrIQMPopulateAnims(const CSR_Buffer*            pBuffer,
     return 1;
 }
 //---------------------------------------------------------------------------
+void csrIQMGetInverseBindMatrix(const CSR_Bone* pBone, CSR_Matrix4* pMatrix)
+{
+    CSR_Matrix4 localMatrix;
+    CSR_Matrix4 matrix;
+    float       determinant;
+
+    // no bone?
+    if (!pBone)
+        return;
+
+    // no output matrix to write to?
+    if (!pMatrix)
+        return;
+
+    // set the output matrix as identity
+    csrMat4Identity(&matrix);
+
+    // iterate through bones
+    while (pBone)
+    {
+        // get the previously stacked matrix as base to calculate the new one
+        localMatrix = matrix;
+
+        // stack the previously calculated matrix with the current bone one
+        csrMat4Multiply(&localMatrix, &pBone->m_Matrix, &matrix);
+
+        // go to parent bone
+        pBone = pBone->m_pParent;
+    }
+
+    // reset the inverse bind matrix to identity
+    csrMat4Identity(pMatrix);
+
+    // get the inverse bind matrix
+    csrMat4Inverse(&matrix, pMatrix, &determinant);
+}
+//---------------------------------------------------------------------------
+int csrIQMBuildWeightsFromSkeleton(CSR_Bone*               pBone,
+                                   size_t                  meshIndex,
+                                   CSR_Skin_Weights_Group* pSkinWeightsGroup)
+{
+    size_t            i;
+    size_t            index;
+    size_t            len;
+    CSR_Skin_Weights* pSkinWeights = 0;
+
+    if (!pBone)
+        return 0;
+
+    if (!pSkinWeightsGroup)
+        return 0;
+
+    index = pSkinWeightsGroup->m_Count;
+
+    // add a new skin weights in the array
+    pSkinWeights = (CSR_Skin_Weights*)csrMemoryAlloc(pSkinWeightsGroup->m_pSkinWeights,
+                                                     sizeof(CSR_Skin_Weights),
+                                                     pSkinWeightsGroup->m_Count + 1);
+
+    // succeeded?
+    if (!pSkinWeights)
+        return 0;
+
+    // set new visual scene in the visual scenes
+    pSkinWeightsGroup->m_pSkinWeights = pSkinWeights;
+    ++pSkinWeightsGroup->m_Count;
+
+    // initialize the skin weights
+    csrSkinWeightsInit(&pSkinWeightsGroup->m_pSkinWeights[index]);
+
+    // populate the bone infos
+    pSkinWeightsGroup->m_pSkinWeights[index].m_pBone = pBone;
+
+    if (!pBone->m_pName)
+        return 0;
+
+    // measure the bone name length and reserve memory to copy it
+    len                                                  = strlen(pBone->m_pName);
+    pSkinWeightsGroup->m_pSkinWeights[index].m_pBoneName = (char*)malloc((len + 1) * sizeof(char));
+
+    if (!pSkinWeightsGroup->m_pSkinWeights[index].m_pBoneName)
+        return 0;
+
+    // copy the bone name
+    memcpy(pSkinWeightsGroup->m_pSkinWeights[index].m_pBoneName, pBone->m_pName, len);
+    pSkinWeightsGroup->m_pSkinWeights[index].m_pBoneName[len] = 0x0;
+
+    // set the mesh index
+    pSkinWeightsGroup->m_pSkinWeights[index].m_MeshIndex = meshIndex;
+
+    // get the inverse bind matrix
+    csrIQMGetInverseBindMatrix(pBone, &pSkinWeightsGroup->m_pSkinWeights[index].m_Matrix);
+
+    // iterate through children bones to create
+    for (i = 0; i < pBone->m_ChildrenCount; ++i)
+        // build from next child bone
+        if (!csrIQMBuildWeightsFromSkeleton(&pBone->m_pChildren[i],
+                                             meshIndex,
+                                             pSkinWeightsGroup))
+            return 0;
+
+    return 1;
+}
+//---------------------------------------------------------------------------
 int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                         const CSR_IQMHeader*        pHeader,
                         const CSR_IQMTexts*         pTexts,
@@ -1847,24 +1951,22 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     size_t           i;
     size_t           j;
     size_t           k;
+    size_t           l;
+    size_t           m;
     CSR_IQMVertices* pSrcVertices;
 
     // do create mesh only?
-    //if (!pModel->m_MeshOnly) // FIXME
+    if (!pModel->m_MeshOnly)
     {
         size_t                 boneIndex;
         CSR_Bone*              pRootBone;
         CSR_AnimationSet_Bone* pAnimSet;
 
-        // create a new skeleton
-        pModel->m_pSkeleton = csrBoneCreate();
-
-        if (!pModel->m_pSkeleton)
-            return 0;
-
         // create the root bone
-        pRootBone = csrBoneCreate();
-        boneIndex = 0;
+        pRootBone          = csrBoneCreate();
+        pRootBone->m_pName = (char*)calloc(13, sizeof(char));
+        memcpy(pRootBone->m_pName, "CSR_RootBone", 12);
+        boneIndex          = 0;
 
         // populate the skeleton
         if (!csrIQMPopulateSkeleton(pTexts, pJoints, -1, pRootBone, &boneIndex))
@@ -1874,8 +1976,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         }
 
         // set the skeleton in the model
-        pModel->m_pSkeleton->m_pChildren     = pRootBone;
-        pModel->m_pSkeleton->m_ChildrenCount = 1;
+        pModel->m_pSkeleton = pRootBone;
 
         // model contains animations and should create them?
         if (pAnims->m_Count && pRootBone && !pModel->m_PoseOnly)
@@ -1963,6 +2064,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     // succeeded?
     if (!pModel->m_pMesh)
     {
+        free(pSrcVertices->m_pVertex);
         free(pSrcVertices);
         return 0;
     }
@@ -1974,11 +2076,39 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     // set the mesh count
     pModel->m_MeshCount = pMeshes->m_Count;
 
+    // do build the weights?
+    if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+    {
+        // create the mesh weights groups
+        pModel->m_pMeshWeights = (CSR_Skin_Weights_Group*)malloc(pMeshes->m_Count * sizeof(CSR_Skin_Weights_Group));
+
+        // succeeded?
+        if (!pModel->m_pMeshWeights)
+        {
+            free(pSrcVertices->m_pVertex);
+            free(pSrcVertices);
+            return 0;
+        }
+
+        // iterate through the created weights groups and initialize them
+        for (i = 0; i < pMeshes->m_Count; ++i)
+        {
+            pModel->m_pMeshWeights[i].m_pSkinWeights = 0;
+            pModel->m_pMeshWeights[i].m_Count        = 0;
+        }
+
+        // set the weights groups count
+        pModel->m_MeshWeightsCount = pMeshes->m_Count;
+    }
+
     // iterate through the source meshes
     for (i = 0; i < pMeshes->m_Count; ++i)
     {
+        CSR_Mesh*               pMesh;
+        CSR_Skin_Weights_Group* pWeightsGroup = 0;
+
         // get the next mesh
-        CSR_Mesh* pMesh = &pModel->m_pMesh[i];
+        pMesh = &pModel->m_pMesh[i];
 
         // create the mesh vertex buffer
         pMesh->m_Count = 1;
@@ -2017,6 +2147,21 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         // create the vertex buffer
         pMesh->m_pVB->m_pData = (float*)malloc(pMesh->m_pVB->m_Format.m_Stride * sizeof(float));
 
+        // do build the weights?
+        if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+        {
+            // get the next weights group
+            pWeightsGroup = &pModel->m_pMeshWeights[i];
+
+            // populate the skin weights group
+            if (!csrIQMBuildWeightsFromSkeleton(pModel->m_pSkeleton, i, pWeightsGroup))
+            {
+                free(pSrcVertices->m_pVertex);
+                free(pSrcVertices);
+                return 0;
+            }
+        }
+
         // iterate through source mesh triangles
         for (j = 0; j < pMeshes->m_pMesh[i].m_TriangleCount; ++j)
         {
@@ -2036,6 +2181,113 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                                     0,
                                     fOnGetVertexColor,
                                     pMesh->m_pVB);
+
+                // do build the weights?
+                if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+                {
+                    // iterate through vertex weights
+                    for (l = 0; l < 4 && pSrcVertices->m_pVertex[vertIndex].m_BlendWeights[l]; ++l)
+                    {
+                        size_t                       weightIndex;
+                        CSR_Skin_Weights*            pWeights = 0;
+                        CSR_Bone*                    pBone = 0;
+                        float*                       pWeightsArray = 0;
+                        CSR_Skin_Weight_Index_Table* pIndexTable = 0;
+
+                        // get the bone matching with weight to animate
+                        pBone = csrIQMFindBone(pModel->m_pSkeleton,
+                                               pSrcVertices->m_pVertex[vertIndex].m_BlendIndices[l]);
+
+                        // found it?
+                        if (!pBone)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        // get the skin weights to populate
+                        for (m = 0; m < pWeightsGroup->m_Count; ++m)
+                            if (strcmp(pWeightsGroup->m_pSkinWeights[m].m_pBoneName, pBone->m_pName) == 0)
+                            {
+                                pWeights = &pWeightsGroup->m_pSkinWeights[m];
+                                break;
+                            }
+
+                        // found it?
+                        if (!pWeights)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        // number of weights should always equals the index table one
+                        if (pWeights->m_WeightCount != pWeights->m_IndexTableCount)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        weightIndex = pWeights->m_WeightCount;
+
+                        // add a new weights in the array
+                        pWeightsArray = (float*)csrMemoryAlloc(pWeights->m_pWeights,
+                                                               sizeof(float),
+                                                               pWeights->m_WeightCount + 1);
+
+                        // succeeded?
+                        if (!pWeightsArray)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        // set new weights array in the skin weights
+                        pWeights->m_pWeights = pWeightsArray;
+                        ++pWeights->m_WeightCount;
+
+                        // write the weight value
+                        pWeights->m_pWeights[weightIndex] =
+                                (float)pSrcVertices->m_pVertex[vertIndex].m_BlendWeights[l] / 255.0f;
+
+                        // add a new index table in the array
+                        pIndexTable =
+                                (CSR_Skin_Weight_Index_Table*)csrMemoryAlloc(pWeights->m_pIndexTable,
+                                                                             sizeof(CSR_Skin_Weight_Index_Table),
+                                                                             pWeights->m_IndexTableCount + 1);
+
+                        // succeeded?
+                        if (!pIndexTable)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        // set new index table in the skin weights
+                        pWeights->m_pIndexTable = pIndexTable;
+                        ++pWeights->m_IndexTableCount;
+
+                        // initialize the skin weights table
+                        pWeights->m_pIndexTable[weightIndex].m_Count = 0;
+                        pWeights->m_pIndexTable[weightIndex].m_pData = (size_t*)malloc(sizeof(size_t));
+
+                        // succeeded?
+                        if (!pWeights->m_pIndexTable[weightIndex].m_pData)
+                        {
+                            free(pSrcVertices->m_pVertex);
+                            free(pSrcVertices);
+                            return 0;
+                        }
+
+                        // populate the index
+                        *(pWeights->m_pIndexTable[weightIndex].m_pData) = (size_t)((j * 3) + k) * pModel->m_pMesh[i].m_pVB[0].m_Format.m_Stride;
+                          pWeights->m_pIndexTable[weightIndex].m_Count  = 1;
+                    }
+                }
             }
         }
     }
