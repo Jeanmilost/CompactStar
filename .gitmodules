@@ -7,3 +7,6 @@
 [submodule "Third-party/Blender/x file plugin/since 2.80/source code"]
 	path = Third-party/Blender/x file plugin/since 2.80/source code
 	url = https://github.com/DodgeeSoftware/io_scene_directx.git
+[submodule "Third-party/iqm"]
+	path = Third-party/iqm
+	url = https://github.com/lsalzman/iqm
