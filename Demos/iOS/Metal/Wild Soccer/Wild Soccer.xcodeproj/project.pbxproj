@@ -60,6 +60,7 @@
 		84B4CD752138913F00455015 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD742138913F00455015 /* QuartzCore.framework */; };
 		84B4CD77213892DE00455015 /* ModelIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD76213892DE00455015 /* ModelIO.framework */; };
 		84B975402138CCF400A713C1 /* CSR_Renderer_Metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84B9753F2138CCF400A713C1 /* CSR_Renderer_Metal.mm */; };
+		84CC39AB27E6B41100FF7200 /* CSR_Iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = 84CC39A927E6B41100FF7200 /* CSR_Iqm.c */; };
 		84DEC1ED213B46840024086B /* GameLogic.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84DEC1EC213B46840024086B /* GameLogic.mm */; };
 /* End PBXBuildFile section */
 
@@ -139,6 +140,8 @@
 		84B4CD76213892DE00455015 /* ModelIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ModelIO.framework; path = System/Library/Frameworks/ModelIO.framework; sourceTree = SDKROOT; };
 		84B9753E2138CCF400A713C1 /* CSR_Renderer_Metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Renderer_Metal.h; sourceTree = "<group>"; };
 		84B9753F2138CCF400A713C1 /* CSR_Renderer_Metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CSR_Renderer_Metal.mm; sourceTree = "<group>"; };
+		84CC39A927E6B41100FF7200 /* CSR_Iqm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Iqm.c; sourceTree = "<group>"; };
+		84CC39AA27E6B41100FF7200 /* CSR_Iqm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Iqm.h; sourceTree = "<group>"; };
 		84DEC1EB213B46840024086B /* GameLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameLogic.h; sourceTree = "<group>"; };
 		84DEC1EC213B46840024086B /* GameLogic.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GameLogic.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -173,6 +176,8 @@
 				840C23F62137824D006EFECE /* CSR_Common.h */,
 				840C23FF2137824D006EFECE /* CSR_Geometry.c */,
 				840C23F02137824D006EFECE /* CSR_Geometry.h */,
+				84CC39A927E6B41100FF7200 /* CSR_Iqm.c */,
+				84CC39AA27E6B41100FF7200 /* CSR_Iqm.h */,
 				840C24002137824D006EFECE /* CSR_Lighting.c */,
 				840C23EF2137824D006EFECE /* CSR_Lighting.h */,
 				84184B61275A87E700EB0407 /* CSR_Mdl.c */,
@@ -437,6 +442,7 @@
 				84551CC82137768D00625580 /* GameViewController.mm in Sources */,
 				84DEC1ED213B46840024086B /* GameLogic.mm in Sources */,
 				840C24082137824D006EFECE /* CSR_Model.c in Sources */,
+				84CC39AB27E6B41100FF7200 /* CSR_Iqm.c in Sources */,
 				8439FD1D27924983006AF90C /* CSR_Collada.c in Sources */,
 				840C24102137824D006EFECE /* CSR_Geometry.c in Sources */,
 				840C24062137824D006EFECE /* CSR_Common.c in Sources */,

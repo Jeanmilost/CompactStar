@@ -24,6 +24,7 @@
 		84551CD02137768F00625580 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84551CCF2137768F00625580 /* Assets.xcassets */; };
 		84551CD32137768F00625580 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84551CD12137768F00625580 /* LaunchScreen.storyboard */; };
 		847D10832791B271001EACAB /* CSR_Collada.c in Sources */ = {isa = PBXBuildFile; fileRef = 847D10812791B271001EACAB /* CSR_Collada.c */; };
+		8487BCA027E6B569005A4394 /* CSR_Iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = 8487BC9F27E6B569005A4394 /* CSR_Iqm.c */; };
 		84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 84B48C3B2138D37F00440A0E /* CSR_ObjectiveCHelper.m */; };
 		84B4CD732138912700455015 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD722138912600455015 /* UIKit.framework */; };
 		84B4CD752138913F00455015 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84B4CD742138913F00455015 /* QuartzCore.framework */; };
@@ -70,6 +71,8 @@
 		84551CD42137768F00625580 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		847D10812791B271001EACAB /* CSR_Collada.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Collada.c; sourceTree = "<group>"; };
 		847D10822791B271001EACAB /* CSR_Collada.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Collada.h; sourceTree = "<group>"; };
+		8487BC9E27E6B569005A4394 /* CSR_Iqm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Iqm.h; sourceTree = "<group>"; };
+		8487BC9F27E6B569005A4394 /* CSR_Iqm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Iqm.c; sourceTree = "<group>"; };
 		84B48C3A2138D37F00440A0E /* CSR_ObjectiveCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_ObjectiveCHelper.h; sourceTree = "<group>"; };
 		84B48C3B2138D37F00440A0E /* CSR_ObjectiveCHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSR_ObjectiveCHelper.m; sourceTree = "<group>"; };
 		84B4CD722138912600455015 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -247,6 +250,8 @@
 				84C4FC8E21EF711F004164C4 /* CSR_Common.h */,
 				84C4FC9721EF711F004164C4 /* CSR_Geometry.c */,
 				84C4FC8721EF711F004164C4 /* CSR_Geometry.h */,
+				8487BC9F27E6B569005A4394 /* CSR_Iqm.c */,
+				8487BC9E27E6B569005A4394 /* CSR_Iqm.h */,
 				84C4FC9921EF711F004164C4 /* CSR_Lighting.c */,
 				84C4FC8621EF711F004164C4 /* CSR_Lighting.h */,
 				8435C66E275A8CCA00C8F27D /* CSR_Mdl.c */,
@@ -359,6 +364,7 @@
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,
 				84C4FCAA21EF711F004164C4 /* CSR_Geometry.c in Sources */,
 				8411D4052792689D005248DA /* sxmlsearch.c in Sources */,
+				8487BCA027E6B569005A4394 /* CSR_Iqm.c in Sources */,
 				84C4FCA321EF711F004164C4 /* CSR_Renderer.c in Sources */,
 				8435C677275A8CD800C8F27D /* CSR_X.c in Sources */,
 				8411D4042792689D005248DA /* sxmlc.c in Sources */,
