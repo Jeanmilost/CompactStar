@@ -142,6 +142,9 @@ void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
     if (!pSkin)
         return;
 
+    if (!pSkin->m_Texture.m_pFileName)
+        return;
+
     // NOTE don't respect the global g_SceneDir folder, because the contained
     // texture format isn't compatible with the below LoadTexture() function
     const std::string resPath = "Resources\\";
@@ -162,11 +165,11 @@ void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
     else
         return;
 
-    g_TextureKeys.push_back(urlName);
+    const std::string key = pSkin->m_Texture.m_pFileName;
 
-    CSR_OpenGLHelper::AddTexture(&g_TextureKeys[g_TextureKeys.size() - 1],
-                                  LoadTexture(fileName.c_str()),
-                                  g_OpenGLResources);
+    CSR_OpenGLHelper::AddTexture(key,
+                                 LoadTexture(fileName.c_str()),
+                                 g_OpenGLResources);
 
     *pCanRelease = 1;
 }
@@ -183,15 +186,9 @@ void* OnGetID(const void* pKey)
     if (!pTexture->m_pFileName)
         return nullptr;
 
-    for (std::size_t i = 0; i < g_TextureKeys.size(); ++i)
-    {
-        const std::string fileName = pTexture->m_pFileName;
+    const std::string key = pTexture->m_pFileName;
 
-        if (g_TextureKeys[i] == fileName)
-            return CSR_OpenGLHelper::GetTextureID(&g_TextureKeys[i], g_OpenGLResources);
-    }
-
-    return nullptr;
+    return CSR_OpenGLHelper::GetTextureID(key, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void OnGetColladaIndex(const CSR_Collada* pX, size_t* pAnimSetIndex, size_t* pFrameIndex)
@@ -228,7 +225,15 @@ void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
 //---------------------------------------------------------------------------
 void OnDeleteTexture(const CSR_Texture* pTexture)
 {
-    return CSR_OpenGLHelper::DeleteTexture(pTexture, g_OpenGLResources);
+    if (!pTexture)
+        return;
+
+    if (!pTexture->m_pFileName)
+        return;
+
+    const std::string key = pTexture->m_pFileName;
+
+    CSR_OpenGLHelper::DeleteTexture(key, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 GLuint LoadTexture(const char* pFileName)
