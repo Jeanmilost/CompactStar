@@ -1113,7 +1113,7 @@ typedef std::map<std::string,                       id<MTLRenderPipelineState>> 
             pLocalMesh->m_Time = pMesh->m_Time;
 
             // mesh contains skin weights?
-            if (pIQM->m_pMeshWeights[i].m_pSkinWeights)
+            if (pIQM->m_pMeshWeights && pIQM->m_pMeshWeights[i].m_pSkinWeights)
             {
                 useSourceBuffer = 0;
 
@@ -1256,7 +1256,10 @@ typedef std::map<std::string,                       id<MTLRenderPipelineState>> 
             useLocalMatrixArray = 0;
 
             // has matrix array to transform, and model contain mesh bones?
-            if (pMatrixArray && pMatrixArray->m_Count && pIQM->m_pMeshToBoneDict[i].m_pBone)
+            if (pMatrixArray            &&
+                pMatrixArray->m_Count   &&
+                pIQM->m_pMeshToBoneDict &&
+                pIQM->m_pMeshToBoneDict[i].m_pBone)
             {
                 // create a new local matrix array
                 pLocalMatrixArray = (CSR_Array*)malloc(sizeof(CSR_Array));

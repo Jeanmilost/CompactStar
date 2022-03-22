@@ -2147,7 +2147,7 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                 if (pMesh->m_Skin.m_Texture.m_pFileName)
                 {
                     // measure the file name length and allocate memory for file name in local mesh
-                    const size_t fileNameLen = strlen(pMesh->m_Skin.m_Texture.m_pFileName);
+                    const size_t fileNameLen                 = strlen(pMesh->m_Skin.m_Texture.m_pFileName);
                     pLocalMesh->m_Skin.m_Texture.m_pFileName = (char*)calloc(fileNameLen + 1, sizeof(char));
 
                     // copy the file name
@@ -2169,7 +2169,7 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
                                             &pIQM->m_pAnimationSet[animSetIndex],
                                              frameIndex,
                                              0,
-                                             &boneMatrix);
+                                            &boneMatrix);
 
                     // get the final matrix after bones transform
                     csrMat4Multiply(&pIQM->m_pMeshWeights[i].m_pSkinWeights[j].m_Matrix,
@@ -2219,7 +2219,7 @@ void csrOpenGLDrawModel(const CSR_Model*        pModel,
 
                                 memcpy(&pLocalMesh->m_pVB->m_pData[copyIndex],
                                        &pMesh->m_pVB->m_pData[copyIndex],
-                                       ((size_t)pMesh->m_pVB->m_Format.m_Stride - 3) * sizeof(float));
+                                        ((size_t)pMesh->m_pVB->m_Format.m_Stride - 3) * sizeof(float));
                             }
                         }
                 }
