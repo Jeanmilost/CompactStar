@@ -224,6 +224,10 @@ void csrOpenGLIDRelease(CSR_OpenGLID* pID)
     if (!pID)
         return;
 
+    // free the string, if exists
+    if (pID->m_pStr)
+        free(pID->m_pStr);
+
     // free the identifier
     free(pID);
 }
@@ -236,6 +240,7 @@ void csrOpenGLIDInit(CSR_OpenGLID* pID)
 
     // initialize the shader content
     pID->m_pKey     = 0;
+    pID->m_pStr     = 0;
     pID->m_UseCount = 0;
     pID->m_ID       = M_CSR_Error_Code;
 }

@@ -44,6 +44,12 @@
 //---------------------------------------------------------------------------
 // CSR_OpenGLHelper
 //---------------------------------------------------------------------------
+CSR_OpenGLHelper::CSR_OpenGLHelper()
+{}
+//---------------------------------------------------------------------------
+CSR_OpenGLHelper::~CSR_OpenGLHelper()
+{}
+//---------------------------------------------------------------------------
 void CSR_OpenGLHelper::EnableOpenGL(HWND hWnd, HDC* hDC, HGLRC* hRC)
 {
     PIXELFORMATDESCRIPTOR pfd;
@@ -328,12 +334,47 @@ void CSR_OpenGLHelper::AddTexture(const void* pKey, GLuint id, IResources& resou
     }
 
     // create and add a new texture identifier
-    std::auto_ptr<CSR_OpenGLID> pID(new CSR_OpenGLID());
-    csrOpenGLIDInit(pID.get());
+    std::auto_ptr<CSR_OpenGLID> pID(csrOpenGLIDCreate());
     pID->m_pKey            = (void*)pKey;
     pID->m_ID              = id;
     pID->m_UseCount        = 1;
     resources[(void*)pKey] = pID.get();
+    pID.release();
+}
+//---------------------------------------------------------------------------
+void CSR_OpenGLHelper::AddTexture(const std::string& key, GLuint id, IResources& resources)
+{
+    // search a matching texture in the OpenGL resources
+    for (CSR_OpenGLHelper::IResources::iterator it = resources.begin(); it != resources.end(); ++it)
+    {
+        // a texture key is defined?
+        if (!it->second->m_pStr)
+            continue;
+
+        // is texture key matching?
+        if (strcmp(it->second->m_pStr, key.c_str()) != 0)
+            continue;
+
+        // is a valid texture?
+        if (it->second->m_ID != GLint(id))
+            throw new std::range_error("The existing resource texture identifier differs from the identifier passed in arguments");
+
+        // increase its use count
+        ++it->second->m_UseCount;
+
+        return;
+    }
+
+    // create and add a new texture identifier
+    std::auto_ptr<CSR_OpenGLID> pID(csrOpenGLIDCreate());
+    pID->m_ID            = id;
+    pID->m_UseCount      = 1;
+    resources[pID.get()] = pID.get();
+
+    // copy the key string
+    pID->m_pStr = (char*)calloc(key.length() + 1, sizeof(char));
+    memcpy(pID->m_pStr, key.c_str(), key.length());
+
     pID.release();
 }
 //---------------------------------------------------------------------------
@@ -364,6 +405,44 @@ void CSR_OpenGLHelper::DeleteTexture(const void* pKey, IResources& resources)
     resources.erase(it);
 }
 //---------------------------------------------------------------------------
+void CSR_OpenGLHelper::DeleteTexture(const std::string& key, IResources& resources)
+{
+    // search a matching texture in the OpenGL resources
+    for (CSR_OpenGLHelper::IResources::iterator it = resources.begin(); it != resources.end(); ++it)
+    {
+        // a texture key is defined?
+        if (!it->second->m_pStr)
+            continue;
+
+        // is texture key matching?
+        if (strcmp(it->second->m_pStr, key.c_str()) != 0)
+            continue;
+
+        // release one usage
+        if (it->second->m_UseCount)
+            --it->second->m_UseCount;
+
+        // still used?
+        if (it->second->m_UseCount)
+            return;
+
+        // texture was used?
+        if (it->second->m_ID != GLint(M_CSR_Error_Code))
+            // release it
+            glDeleteTextures(1, (GLuint*)(&it->second->m_ID));
+
+        // free the string, if exists
+        if (it->second->m_pStr)
+            free(it->second->m_pStr);
+
+        // erase the resource (no longer used)
+        delete it->second;
+        resources.erase(it);
+
+        return;
+    }
+}
+//---------------------------------------------------------------------------
 void* CSR_OpenGLHelper::GetTextureID(const void* pKey, IResources& resources)
 {
     // search the matching texture in the OpenGL resources
@@ -372,6 +451,25 @@ void* CSR_OpenGLHelper::GetTextureID(const void* pKey, IResources& resources)
     // found it?
     if (it != resources.end())
         return it->second;
+
+    return NULL;
+}
+//---------------------------------------------------------------------------
+void* CSR_OpenGLHelper::GetTextureID(const std::string& key, IResources& resources)
+{
+    // search a matching texture in the OpenGL resources
+    for (CSR_OpenGLHelper::IResources::iterator it = resources.begin(); it != resources.end(); ++it)
+    {
+        // a texture key is defined?
+        if (!it->second->m_pStr)
+            continue;
+
+        // is texture key matching?
+        if (strcmp(it->second->m_pStr, key.c_str()) != 0)
+            continue;
+
+        return it->second;
+    }
 
     return NULL;
 }

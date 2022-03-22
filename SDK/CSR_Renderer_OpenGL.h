@@ -66,6 +66,7 @@
 typedef struct
 {
     void*  m_pKey;
+    char*  m_pStr;
     size_t m_UseCount;
     GLint  m_ID;
 } CSR_OpenGLID;

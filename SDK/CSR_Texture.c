@@ -621,6 +621,9 @@ CSR_PixelBuffer* csrPixelBufferFromTgaBuffer(const CSR_Buffer* pBuffer)
             unsigned char* pDst;
             unsigned char  buffer[4];
 
+            // calculate the byte per pixels
+            pPixelBuffer->m_BytePerPixel = header.m_PixelSize / 8;
+
             // allocate memory for pixels
             pPixelBuffer->m_DataLength = (size_t)pPixelBuffer->m_BytePerPixel *
                                          (size_t)pPixelBuffer->m_Width        *

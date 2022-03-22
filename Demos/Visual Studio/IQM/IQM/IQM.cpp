@@ -56,12 +56,7 @@
 #endif
 
 // resource files to load
-#define TEST2
-#ifdef TEST2
-    #define IQM_FILE  "Resources/mrfixit.iqm"
-#else
-    #define IQM_FILE  "Resources/__DropChar/DropCharMale7_Anim1.iqm"
-#endif
+#define IQM_FILE  "Resources/mrfixit.iqm"
 
 //------------------------------------------------------------------------------
 HDC                          g_hDC             = 0;
@@ -73,16 +68,13 @@ CSR_OpenGLShader*            g_pShader         = nullptr;
 CSR_OpenGLShader*            g_pLineShader     = nullptr;
 CSR_SceneContext             g_SceneContext;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
+std::vector<std::string>     g_TextureKeys;
 CSR_IQM*                     g_pModel          = nullptr;
 CSR_Matrix4                  g_Matrix;
 size_t                       g_FrameCount      = 0;
 size_t                       g_FPS             = 20;
 size_t                       g_AnimCount       = 0;
-#ifdef TEST2
-    size_t                   g_MaxAnimFrame    = 101;
-#else
-    size_t                   g_MaxAnimFrame    = 40;
-#endif
+size_t                       g_MaxAnimFrame    = 101;
 float                        g_Angle           = 0.0f;
 double                       g_TextureLastTime = 0.0;
 double                       g_ModelLastTime   = 0.0;
@@ -145,6 +137,34 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 //---------------------------------------------------------------------------
+CSR_PixelBuffer* OnLoadTexture(const char* pTextureName)
+{
+    const std::string resPath = "..\\IQM\\Resources\\";
+    const std::string resName = resPath + pTextureName;
+
+    return csrPixelBufferFromTgaFile(resName.c_str());
+}
+//---------------------------------------------------------------------------
+void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
+{
+    if (!pSkin)
+        return;
+
+    if (!pSkin->m_Texture.m_pFileName)
+        return;
+
+    if (!pSkin->m_Texture.m_pBuffer)
+        return;
+
+    const std::string key = pSkin->m_Texture.m_pFileName;
+
+    CSR_OpenGLHelper::AddTexture(key,
+                                 csrOpenGLTextureFromPixelBuffer(pSkin->m_Texture.m_pBuffer),
+                                 g_OpenGLResources);
+
+    *pCanRelease = 1;
+}
+//---------------------------------------------------------------------------
 void* OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return g_pShader;
@@ -152,7 +172,14 @@ void* OnGetShader(const void* pModel, CSR_EModelType type)
 //---------------------------------------------------------------------------
 void* OnGetID(const void* pKey)
 {
-    return CSR_OpenGLHelper::GetTextureID(pKey, g_OpenGLResources);
+    const CSR_Texture* pTexture = static_cast<const CSR_Texture*>(pKey);
+
+    if (!pTexture->m_pFileName)
+        return nullptr;
+
+    const std::string key = pTexture->m_pFileName;
+
+    return CSR_OpenGLHelper::GetTextureID(key, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void OnGetIQMIndex(const CSR_IQM* pIQM, size_t* pAnimSetIndex, size_t* pFrameIndex)
@@ -163,7 +190,15 @@ void OnGetIQMIndex(const CSR_IQM* pIQM, size_t* pAnimSetIndex, size_t* pFrameInd
 //---------------------------------------------------------------------------
 void OnDeleteTexture(const CSR_Texture* pTexture)
 {
-    return CSR_OpenGLHelper::DeleteTexture(pTexture, g_OpenGLResources);
+    if (!pTexture)
+        return;
+
+    if (!pTexture->m_pFileName)
+        return;
+
+    const std::string key = pTexture->m_pFileName;
+
+    CSR_OpenGLHelper::DeleteTexture(key, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void BuildModelMatrix(CSR_Matrix4* pMatrix)
@@ -195,15 +230,9 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
     csrMat4Rotate((float)(-M_PI / 4.0) + g_Angle, &axis, &rotateYMatrix);
 
     // set scale factor
-    #ifdef TEST2
-        factor.m_X = 0.1f;
-        factor.m_Y = 0.1f;
-        factor.m_Z = 0.1f;
-    #else
-        factor.m_X = 0.2f;// 4f;
-        factor.m_Y = 0.2f;//4f;
-        factor.m_Z = 0.2f;//4f;
-    #endif
+    factor.m_X = 0.15f;
+    factor.m_Y = 0.15f;
+    factor.m_Z = 0.15f;
 
     // create the scale matrix
     csrMat4Scale(&factor, &scaleMatrix);
@@ -213,13 +242,9 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
     csrMat4Multiply(&intermediateMatrix, &rotateYMatrix, pMatrix);
 
     // place it in the world
-    pMatrix->m_Table[3][0]     =  0.0f;
-    #ifdef TEST2
-        pMatrix->m_Table[3][1] = -0.4f;
-    #else
-        pMatrix->m_Table[3][1] =  0.3f;
-    #endif
-    pMatrix->m_Table[3][2]     = -2.0f;
+    pMatrix->m_Table[3][0] =  0.0f;
+    pMatrix->m_Table[3][1] = -0.55f;
+    pMatrix->m_Table[3][2] = -2.0f;
 }
 //---------------------------------------------------------------------------
 void OnSceneBegin(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
@@ -308,16 +333,16 @@ bool InitScene(int w, int h)
     #endif
 
     // get the shaders
-    const std::string vsColored = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Color);
-    const std::string fsColored = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Color);
+    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
+    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
 
     // load the shader
-    g_pShader = csrOpenGLShaderLoadFromStr(vsColored.c_str(),
-                                           vsColored.length(),
-                                           fsColored.c_str(),
-                                           fsColored.length(),
-                                           0,
-                                           0);
+    g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
+                                            vsTextured.length(),
+                                            fsTextured.c_str(),
+                                            fsTextured.length(),
+                                            0,
+                                            0);
 
     // succeeded?
     if (!g_pShader)
@@ -327,9 +352,10 @@ bool InitScene(int w, int h)
     csrShaderEnable(g_pShader);
 
     // get shader attributes
-    g_pShader->m_VertexSlot = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aVertices");
-    g_pShader->m_NormalSlot = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aNormal");
-    g_pShader->m_ColorSlot  = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aColor");
+    g_pShader->m_VertexSlot   = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aVertices");
+    g_pShader->m_ColorSlot    = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aColor");
+    g_pShader->m_TexCoordSlot = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aTexCoord");
+    g_pShader->m_TextureSlot  = glGetUniformLocation(g_pShader->m_ProgramID, "csr_sTexture");
 
     // create the viewport
     CSR_OpenGLHelper::CreateViewport((float)w,
@@ -341,14 +367,14 @@ bool InitScene(int w, int h)
 
     // configure the vertex format
     vertexFormat.m_HasNormal         = 0;
-    vertexFormat.m_HasTexCoords      = 0;
+    vertexFormat.m_HasTexCoords      = 1;
     vertexFormat.m_HasPerVertexColor = 1;
 
-    vertexCulling.m_Face = CSR_CF_CCW;
+    vertexCulling.m_Face = CSR_CF_CW;
     vertexCulling.m_Type = CSR_CT_Back;
 
     // configure the material
-    material.m_Color       = 0x808080FF;
+    material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
 
@@ -360,8 +386,8 @@ bool InitScene(int w, int h)
                           0,
                           0,
                           0,
-                          0,
-                          0,
+                          OnLoadTexture,
+                          OnApplySkin,
                           0);
 
     BuildModelMatrix(&g_Matrix);

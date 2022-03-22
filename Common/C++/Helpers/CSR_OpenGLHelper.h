@@ -17,6 +17,7 @@
 #define CSR_OpenGLHelperH
 
 // std
+#include <string>
 #include <map>
 
 // compactStar engine
@@ -101,6 +102,14 @@ class CSR_OpenGLHelper
         static void AddTexture(const void* pKey, GLuint id, IResources& resources);
 
         /**
+        * Adds a GPU texture to the resources
+        *@param key - texture key to add
+        *@param id - texture identifier on the GPU
+        *@param resources - resources in which the texture will be added
+        */
+        static void AddTexture(const std::string& key, GLuint id, IResources& resources);
+
+        /**
         * Deletes a texture from the GPU side
         *@param pKey - texture key to delete
         *@param resources - OpenGL resources owning the texture to delete
@@ -110,12 +119,29 @@ class CSR_OpenGLHelper
         static void DeleteTexture(const void* pKey, IResources& resources);
 
         /**
+        * Deletes a texture from the GPU side
+        *@param key - texture key to delete
+        *@param resources - OpenGL resources owning the texture to delete
+        *@note The texture will only be deleted on the GPU side, the pTexture object itself will not
+        *      be modified
+        */
+        static void DeleteTexture(const std::string& key, IResources& resources);
+
+        /**
         * Gets the identifier matching with a texture
         *@param pKey - texture key to get
         *@param resources - OpenGL resources owning the texture to get
         *@return texture identifier, NULL if not found or on error
         */
         static void* GetTextureID(const void* pKey, IResources& resources);
+
+        /**
+        * Gets the identifier matching with a texture
+        *@param key - texture key to get
+        *@param resources - OpenGL resources owning the texture to get
+        *@return texture identifier, NULL if not found or on error
+        */
+        static void* GetTextureID(const std::string& key, IResources& resources);
 
         /**
         * Clears all the OpenGL resources
