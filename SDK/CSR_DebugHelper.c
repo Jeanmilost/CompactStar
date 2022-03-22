@@ -164,8 +164,6 @@ void csrDebugDrawBone(const CSR_Bone*              pBone,
                                        size_t            animSetIndex,
                                        size_t            frameIndex)
     {
-        size_t i;
-
         if (!pIQM)
             return;
 

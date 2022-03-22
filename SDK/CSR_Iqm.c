@@ -2104,6 +2104,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     // iterate through the source meshes
     for (i = 0; i < pMeshes->m_Count; ++i)
     {
+        int                     canRelease;
         CSR_Mesh*               pMesh;
         CSR_Skin_Weights_Group* pWeightsGroup = 0;
 
@@ -2288,6 +2289,38 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                           pWeights->m_pIndexTable[weightIndex].m_Count  = 1;
                     }
                 }
+            }
+        }
+
+        // do load the texture?
+        if (pMesh->m_pVB->m_Format.m_HasTexCoords && pMeshes->m_pMesh[i].m_Material)
+        {
+            const size_t nameIndex     = csrIQMGetTextIndex(pTexts, pMeshes->m_pMesh[i].m_Name);
+            const size_t materialIndex = csrIQMGetTextIndex(pTexts, pMeshes->m_pMesh[i].m_Material);
+
+            // measure the file name length and allocate memory for file name in local mesh
+            const size_t fileNameLen            = strlen(pTexts->m_pTexts[materialIndex]);
+            pMesh->m_Skin.m_Texture.m_pFileName = (char*)calloc(fileNameLen + 1, sizeof(char));
+
+            // copy the file name
+            if (pMesh->m_Skin.m_Texture.m_pFileName)
+                memcpy(pMesh->m_Skin.m_Texture.m_pFileName, pTexts->m_pTexts[materialIndex], fileNameLen);
+
+            // load the texture
+            if (fOnLoadTexture)
+                pMesh->m_Skin.m_Texture.m_pBuffer = fOnLoadTexture(pTexts->m_pTexts[materialIndex]);
+
+            canRelease = 0;
+
+            // apply the skin
+            if (fOnApplySkin)
+                fOnApplySkin(0, &pMesh->m_Skin, &canRelease);
+
+            // can release the texture buffer?
+            if (canRelease)
+            {
+                csrPixelBufferRelease(pMesh->m_Skin.m_Texture.m_pBuffer);
+                pMesh->m_Skin.m_Texture.m_pBuffer = 0;
             }
         }
     }

@@ -96,6 +96,9 @@
     <ClInclude Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.h">
       <Filter>Third-Party\sxml\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_Iqm.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="X.cpp">
@@ -157,6 +160,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Third-party\sxml\src\sxmlsearch.c">
       <Filter>Third-Party\sxml\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_Iqm.c">
+      <Filter>SDK\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

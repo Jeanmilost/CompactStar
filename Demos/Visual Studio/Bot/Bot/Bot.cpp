@@ -792,6 +792,7 @@ GLuint LoadCubemap(const IFileNames fileNames)
             unsigned       x;
             unsigned       y;
             unsigned char  c;
+            size_t         bufferLength;
             GLint          pixelType;
             GLuint         index   = 0;
 
@@ -803,19 +804,30 @@ GLuint LoadCubemap(const IFileNames fileNames)
                 default: return M_CSR_Error_Code;
             }
 
+            bufferLength = sizeof(unsigned char)  *
+                           pPixelBuffer->m_Width  *
+                           pPixelBuffer->m_Height *
+                           3;
+
             // reorder the pixels
-            pPixels = (unsigned char*)malloc(sizeof(unsigned char)  *
-                                             pPixelBuffer->m_Width  *
-                                             pPixelBuffer->m_Height *
-                                             3);
+            pPixels = (unsigned char*)malloc(bufferLength);
+
+            if (!pPixels)
+                return M_CSR_Error_Code;
 
             // get bitmap data into right format
             for (y = 0; y < pPixelBuffer->m_Height; ++y)
                 for (x = 0; x < pPixelBuffer->m_Width; ++x)
                     for (c = 0; c < 3; ++c)
-                        pPixels[3 * (pPixelBuffer->m_Width * y + x) + c] =
-                                ((unsigned char*)pPixelBuffer->m_pData)
-                                        [pPixelBuffer->m_Stride * y + 3 * (pPixelBuffer->m_Width - x - 1) + (2 - c)];
+                    {
+                        const size_t index = 3 * (pPixelBuffer->m_Width * y + x) + c;
+
+                        if (index >= bufferLength)
+                            continue;
+
+                        pPixels[index] = ((unsigned char*)pPixelBuffer->m_pData)
+                                [pPixelBuffer->m_Stride * y + 3 * (pPixelBuffer->m_Width - x - 1) + (2 - c)];
+                    }
 
             // load the texture on the GPU
             glTexImage2D((GLenum)(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i),

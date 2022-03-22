@@ -178,13 +178,13 @@ void* OnGetShader(const void* pModel, CSR_EModelType type)
 //---------------------------------------------------------------------------
 void* OnGetID(const void* pKey)
 {
+    const CSR_Texture* pTexture = static_cast<const CSR_Texture*>(pKey);
+
+    if (!pTexture->m_pFileName)
+        return nullptr;
+
     for (std::size_t i = 0; i < g_TextureKeys.size(); ++i)
     {
-        const CSR_Texture* pTexture = static_cast<const CSR_Texture*>(pKey);
-
-        if (!pTexture->m_pFileName)
-            continue;
-
         const std::string fileName = pTexture->m_pFileName;
 
         if (g_TextureKeys[i] == fileName)
