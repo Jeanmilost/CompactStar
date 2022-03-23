@@ -32,7 +32,6 @@
 #include "CSR_ShaderHelper.h"
 
 // windows
-#include <objbase.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -41,32 +40,26 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#ifdef _DEBUG
-    #define _CRTDBG_MAP_ALLOC
-    #include <stdlib.h>
-    #include <crtdbg.h>
-#endif
-
 // resources
-#include "Resource.h"
+#include "Resources.rh"
 
 #ifdef _DEBUG
     #define SHOW_SKELETON
 #endif
 
 // resource files to load
-#define IQM_FILE "mrfixit.iqm"
+#define IQM_FILE  "mrfixit.iqm"
 
 //------------------------------------------------------------------------------
 HDC                          g_hDC             = 0;
 HGLRC                        g_hRC             = 0;
-CSR_Scene*                   g_pScene          = nullptr;
-CSR_OpenGLShader*            g_pShader         = nullptr;
-CSR_OpenGLShader*            g_pLineShader     = nullptr;
+CSR_Scene*                   g_pScene          = NULL;
+CSR_OpenGLShader*            g_pShader         = NULL;
+CSR_OpenGLShader*            g_pLineShader     = NULL;
 CSR_SceneContext             g_SceneContext;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
 std::vector<std::string>     g_TextureKeys;
-CSR_IQM*                     g_pModel          = nullptr;
+CSR_IQM*                     g_pModel          = NULL;
 CSR_Matrix4                  g_Matrix;
 std::string                  g_SceneDir;
 size_t                       g_FrameCount      = 0;
@@ -172,7 +165,7 @@ void* OnGetID(const void* pKey)
     const CSR_Texture* pTexture = static_cast<const CSR_Texture*>(pKey);
 
     if (!pTexture->m_pFileName)
-        return nullptr;
+        return NULL;
 
     const std::string key = pTexture->m_pFileName;
 
@@ -298,8 +291,8 @@ bool InitScene(int w, int h)
 
     #ifdef SHOW_SKELETON
         // get the shaders
-        const std::string vsLine = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Line);
-        const std::string fsLine = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Line);
+        const std::string vsLine = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Line);
+        const std::string fsLine = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Line);
 
         // load the line shader
         g_pLineShader = csrOpenGLShaderLoadFromStr(vsLine.c_str(),
@@ -328,8 +321,8 @@ bool InitScene(int w, int h)
     #endif
 
     // get the shaders
-    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
-    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
+    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Texture);
+    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Texture);
 
     // load the shader
     g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
@@ -428,50 +421,45 @@ void DrawScene()
     csrSceneDraw(g_pScene, &g_SceneContext);
 }
 //------------------------------------------------------------------------------
-int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
-                      _In_opt_ HINSTANCE hPrevInstance,
-                      _In_     LPWSTR    lpCmdLine,
-                      _In_     int       nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance,
+                   HINSTANCE hPrevInstance,
+                   LPSTR     lpCmdLine,
+                   int       nCmdShow)
 {
-    if (!SUCCEEDED(::CoInitialize(nullptr)))
-        return -1;
-
-    // initialize memory leaks detection structures
-    #ifdef _DEBUG
-        _CrtMemState sOld;
-        _CrtMemState sNew;
-        _CrtMemState sDiff;
-
-        // take a memory snapshot before execution begins
-        ::_CrtMemCheckpoint(&sOld);
-    #endif
-
     WNDCLASSEX wcex  = {};
     HWND       hWnd  = 0;
     MSG        msg   = {};
     BOOL       bQuit = FALSE;
 
+    // try to load application icon from resources
+    HICON hIcon = (HICON)LoadImage(GetModuleHandle(NULL),
+                                   MAKEINTRESOURCE(IDI_MAIN_ICON),
+                                   IMAGE_ICON,
+                                   16,
+                                   16,
+                                   0);
+
     // register the window class
-    wcex.cbSize        =  sizeof(WNDCLASSEX);
-    wcex.style         =  CS_OWNDC;
-    wcex.lpfnWndProc   =  WindowProc;
-    wcex.cbClsExtra    =  0;
-    wcex.cbWndExtra    =  0;
-    wcex.hInstance     =  hInstance;
-    wcex.hIcon         =  ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
-    wcex.hIconSm       =  ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-    wcex.hCursor       =  ::LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground =  (HBRUSH)::GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName  =  NULL;
-    wcex.lpszClassName = L"CSR_IQMDemo";
+    wcex.cbSize        = sizeof(WNDCLASSEX);
+    wcex.style         = CS_OWNDC;
+    wcex.lpfnWndProc   = WindowProc;
+    wcex.cbClsExtra    = 0;
+    wcex.cbWndExtra    = 0;
+    wcex.hInstance     = hInstance;
+    wcex.hIcon         = hIcon;
+    wcex.hIconSm       = hIcon;
+    wcex.hCursor       = ::LoadCursor(NULL, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
+    wcex.lpszMenuName  = NULL;
+    wcex.lpszClassName = "CSR_IQMDemo";
 
     if (!RegisterClassEx(&wcex))
         return 0;
 
     // create the main window
     hWnd = ::CreateWindowEx(0,
-                           L"CSR_IQMDemo",
-                           L"Animated Inter-Quake model demo",
+                            "CSR_IQMDemo",
+                            "Animated Inter-Quake model demo",
                             WS_OVERLAPPEDWINDOW,
                             CW_USEDEFAULT,
                             CW_USEDEFAULT,
@@ -485,7 +473,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     ::ShowWindow(hWnd, nCmdShow);
 
     // get the global scene directory
-    g_SceneDir = "..\\..\\..\\..\\Common\\Models\\IQM\\MrFixit\\";
+    g_SceneDir = "..\\..\\..\\Common\\Models\\IQM\\MrFixit\\";
 
     // enable OpenGL
     CSR_OpenGLHelper::EnableOpenGL(hWnd, &g_hDC, &g_hRC);
@@ -498,8 +486,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     {
         // shutdown OpenGL
         CSR_OpenGLHelper::DisableOpenGL(hWnd, g_hDC, g_hRC);
-
-        ::CoUninitialize();
 
         // close the app
         return 0;
@@ -514,15 +500,13 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
         // shutdown OpenGL
         CSR_OpenGLHelper::DisableOpenGL(hWnd, g_hDC, g_hRC);
 
-        ::CoUninitialize();
-
         // close the app
         return 0;
     }
 
     // initialize the timer
-    g_StartTime    = ::GetTickCount64();
-    g_PreviousTime = ::GetTickCount64();
+    g_StartTime    = ::GetTickCount();
+    g_PreviousTime = ::GetTickCount();
 
     // application main loop
     while (!bQuit)
@@ -542,7 +526,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
         else
         {
             // calculate time interval
-            const unsigned __int64 now            = ::GetTickCount64();
+            const unsigned __int64 now            = ::GetTickCount();
             const double           elapsedTime    = (now - g_PreviousTime) / 1000.0;
                                    g_PreviousTime =  now;
 
@@ -557,7 +541,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
                 const double      smoothing = 0.1;
                 const std::size_t fpsTime   = (std::size_t)(now > g_StartTime ? now - g_StartTime : 1L);
                 const std::size_t newFPS    = (g_FrameCount * 100) / fpsTime;
-                g_StartTime                 = ::GetTickCount64();
+                g_StartTime                 = ::GetTickCount();
                 g_FrameCount                = 0;
                 g_FPS                       = (std::size_t)(((double)newFPS * smoothing) + ((double)g_FPS * (1.0 - smoothing)));
             }
@@ -582,25 +566,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 
     // destroy the window explicitly
     ::DestroyWindow(hWnd);
-
-    // detect memory leaks, log them if found
-    #ifdef _DEBUG
-        // take a memory snapshot after execution ends
-        ::_CrtMemCheckpoint(&sNew);
-
-        // found a difference between memories?
-        if (::_CrtMemDifference(&sDiff, &sOld, &sNew))
-        {
-            ::OutputDebugString(L"-----------_CrtMemDumpStatistics ---------\n");
-            ::_CrtMemDumpStatistics(&sDiff);
-            ::OutputDebugString(L"-----------_CrtMemDumpAllObjectsSince ---------\n");
-            ::_CrtMemDumpAllObjectsSince(&sOld);
-            ::OutputDebugString(L"-----------_CrtDumpMemoryLeaks ---------\n");
-            ::_CrtDumpMemoryLeaks();
-        }
-    #endif
-
-    ::CoUninitialize();
 
     return (int)msg.wParam;
 }

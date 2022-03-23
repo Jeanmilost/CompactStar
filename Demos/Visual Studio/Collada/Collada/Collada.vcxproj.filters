@@ -75,9 +75,6 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_SoftwareRaster.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\SDK\CSR_Sound.h">
-      <Filter>SDK\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
@@ -155,9 +152,6 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_SoftwareRaster.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\SDK\CSR_Sound.c">
-      <Filter>SDK\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
@@ -204,10 +198,5 @@
     <Image Include="CompactStarEngine.ico">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\cat.dae">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
