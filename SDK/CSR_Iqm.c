@@ -1421,7 +1421,7 @@ int csrIQMPopulateBone(const CSR_IQMTexts* pTexts, const CSR_IQMJoint* pJoint, s
     boneNameIndex = csrIQMGetTextIndex(pTexts, pJoint->m_Name);
 
     // found it?
-    if (boneNameIndex < 0 || boneNameIndex >= pTexts->m_Count)
+    if (boneNameIndex >= pTexts->m_Count)
         return 0;
 
     // get the bone name
@@ -2295,7 +2295,6 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         // do load the texture?
         if (pMesh->m_pVB->m_Format.m_HasTexCoords && pMeshes->m_pMesh[i].m_Material)
         {
-            const size_t nameIndex     = csrIQMGetTextIndex(pTexts, pMeshes->m_pMesh[i].m_Name);
             const size_t materialIndex = csrIQMGetTextIndex(pTexts, pMeshes->m_pMesh[i].m_Material);
 
             // measure the file name length and allocate memory for file name in local mesh

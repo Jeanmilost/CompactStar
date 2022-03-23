@@ -132,6 +132,12 @@
         <None Include="..\..\SDK\CSR_Geometry.h">
             <BuildOrder>9</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Iqm.c">
+            <BuildOrder>37</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Iqm.h">
+            <BuildOrder>38</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Lighting.c">
             <BuildOrder>10</BuildOrder>
         </CppCompile>
@@ -222,8 +228,8 @@
             <DependentOn>TModelSelection.h</DependentOn>
             <BuildOrder>21</BuildOrder>
         </CppCompile>
-        <FormResources Include="Main.dfm"/>
         <FormResources Include="TModelSelection.dfm"/>
+        <FormResources Include="Main.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -67,6 +67,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_Geometry.h" />
+		<Unit filename="../../../SDK/CSR_Iqm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_Iqm.h" />
 		<Unit filename="../../../SDK/CSR_Lighting.c">
 			<Option compilerVar="CC" />
 		</Unit>

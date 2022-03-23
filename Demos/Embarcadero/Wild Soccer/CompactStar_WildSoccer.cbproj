@@ -170,6 +170,12 @@
         <None Include="..\..\..\SDK\CSR_Geometry.h">
             <BuildOrder>14</BuildOrder>
         </None>
+        <CppCompile Include="..\..\..\SDK\CSR_Iqm.c">
+            <BuildOrder>42</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\..\SDK\CSR_Iqm.h">
+            <BuildOrder>43</BuildOrder>
+        </None>
         <CppCompile Include="..\..\..\SDK\CSR_Lighting.c">
             <BuildOrder>15</BuildOrder>
         </CppCompile>

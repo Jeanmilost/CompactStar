@@ -16,6 +16,7 @@
 #include "CSR_OpenGLHelper.h"
 
 // std
+#include <stdlib.h>
 #include <math.h>
 #include <memory>
 #include <stdexcept>

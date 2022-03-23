@@ -19,8 +19,8 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
-USEFORM("Main.cpp", MainForm);
 USEFORM("TModelSelection.cpp", ModelSelection);
+USEFORM("Main.cpp", MainForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

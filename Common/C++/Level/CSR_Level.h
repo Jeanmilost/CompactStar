@@ -23,6 +23,21 @@
 
 // compactStar engine
 #include "CSR_Geometry.h"
+#ifdef USE_MDL
+    #include "CSR_Mdl.h"
+#endif
+#ifdef USE_X
+    #include "CSR_X.h"
+#endif
+#ifdef USE_COLLADA
+    #include "CSR_Collada.h"
+#endif
+#ifdef USE_IQM
+    #include "CSR_Iqm.h"
+#endif
+#ifdef USE_WAVEFRONT
+    #include "CSR_WaveFront.h"
+#endif
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_Scene.h"
 #include "CSR_Sound.h"

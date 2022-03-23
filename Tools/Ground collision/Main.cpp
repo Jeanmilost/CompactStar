@@ -28,6 +28,7 @@
 // compactStar engine
 #include "CSR_Common.h"
 #include "CSR_Geometry.h"
+#include "CSR_WaveFront.h"
 #include "CSR_Scene.h"
 
 // interface

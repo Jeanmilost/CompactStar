@@ -191,6 +191,12 @@
         <None Include="..\..\SDK\CSR_Geometry.h">
             <BuildOrder>8</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Iqm.c">
+            <BuildOrder>55</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Iqm.h">
+            <BuildOrder>56</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Lighting.c">
             <BuildOrder>9</BuildOrder>
         </CppCompile>

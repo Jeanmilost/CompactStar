@@ -321,14 +321,13 @@ CSR_PixelBuffer* csrPixelBufferFromTgaFile(const char* pFileName)
 //---------------------------------------------------------------------------
 CSR_PixelBuffer* csrPixelBufferFromTgaBuffer(const CSR_Buffer* pBuffer)
 {
-    CSR_TGAHeader header;
+    CSR_TGAHeader    header;
+    CSR_PixelBuffer* pPixelBuffer;
+    size_t           offset = 0;
 
     // validate the input
     if (!pBuffer)
         return 0;
-
-    size_t           offset = 0;
-    CSR_PixelBuffer* pPixelBuffer;
 
     // read the header
     if (!csrBufferRead(pBuffer, &offset, sizeof(CSR_TGAHeader), 1, &header))

@@ -127,6 +127,12 @@
         <None Include="..\..\SDK\CSR_Geometry.h">
             <BuildOrder>9</BuildOrder>
         </None>
+        <CppCompile Include="..\..\SDK\CSR_Iqm.c">
+            <BuildOrder>31</BuildOrder>
+        </CppCompile>
+        <None Include="..\..\SDK\CSR_Iqm.h">
+            <BuildOrder>32</BuildOrder>
+        </None>
         <CppCompile Include="..\..\SDK\CSR_Lighting.c">
             <BuildOrder>14</BuildOrder>
         </CppCompile>
@@ -240,11 +246,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
-                    <Platform Name="Win64">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32160mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -258,6 +259,11 @@
                 <DeployFile LocalName=".\Win32\Debug\CompactStar_SoftwareRaster.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CompactStar_SoftwareRaster.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin64\cc64160mt.dll" Class="DependencyModule">
+                    <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
