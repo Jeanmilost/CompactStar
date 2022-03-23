@@ -189,7 +189,6 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Scene.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_SoftwareRaster.h" />
-    <ClInclude Include="..\..\..\..\SDK\CSR_Sound.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Texture.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Vertex.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Wavefront.h" />
@@ -217,7 +216,6 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Renderer_OpenGL.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Scene.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_SoftwareRaster.c" />
-    <ClCompile Include="..\..\..\..\SDK\CSR_Sound.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Texture.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Vertex.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Wavefront.c" />
@@ -231,9 +229,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="CompactStarEngine.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\cat.dae" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

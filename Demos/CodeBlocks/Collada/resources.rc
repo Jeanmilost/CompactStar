@@ -1,0 +1,3 @@
+#include "resources.rh"
+
+IDI_MAIN_ICON ICON "..\\..\\..\\Common\\Icons\\Windows\\CompactStarEngine.ico"

@@ -1,7 +1,7 @@
 /*****************************************************************************
- * ==> Inter-Quake model demo -----------------------------------------------*
+ * ==> Collada demo ---------------------------------------------------------*
  *****************************************************************************
- * Description : Animated Inter-Quake Model demo                             *
+ * Description : Animated Collada model demo                                 *
  * Developer   : Jean-Milost Reymond                                         *
  * Copyright   : 2015 - 2022, this file is part of the Minimal API. You are  *
  *               free to copy or redistribute this file, modify it, or use   *
@@ -21,7 +21,7 @@
 #include "CSR_Texture.h"
 #include "CSR_Vertex.h"
 #include "CSR_Model.h"
-#include "CSR_Iqm.h"
+#include "CSR_Collada.h"
 #include "CSR_Scene.h"
 #include "CSR_AI.h"
 #include "CSR_Renderer_OpenGL.h"
@@ -32,7 +32,6 @@
 #include "CSR_ShaderHelper.h"
 
 // windows
-#include <objbase.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -41,38 +40,30 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-#ifdef _DEBUG
-    #define _CRTDBG_MAP_ALLOC
-    #include <stdlib.h>
-    #include <crtdbg.h>
-#endif
-
 // resources
-#include "Resource.h"
+#include "Resources.rh"
 
 #ifdef _DEBUG
     #define SHOW_SKELETON
 #endif
 
 // resource files to load
-#define IQM_FILE "mrfixit.iqm"
+#define COLLADA_FILE  "cat.dae"
 
 //------------------------------------------------------------------------------
 HDC                          g_hDC             = 0;
 HGLRC                        g_hRC             = 0;
-CSR_Scene*                   g_pScene          = nullptr;
-CSR_OpenGLShader*            g_pShader         = nullptr;
-CSR_OpenGLShader*            g_pLineShader     = nullptr;
+CSR_Scene*                   g_pScene          = NULL;
+CSR_OpenGLShader*            g_pShader         = NULL;
+CSR_OpenGLShader*            g_pLineShader     = NULL;
 CSR_SceneContext             g_SceneContext;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
-std::vector<std::string>     g_TextureKeys;
-CSR_IQM*                     g_pModel          = nullptr;
+CSR_Collada*                 g_pModel          = NULL;
 CSR_Matrix4                  g_Matrix;
 std::string                  g_SceneDir;
 size_t                       g_FrameCount      = 0;
 size_t                       g_FPS             = 20;
 size_t                       g_AnimCount       = 0;
-size_t                       g_MaxAnimFrame    = 101;
 float                        g_Angle           = 0.0f;
 double                       g_TextureLastTime = 0.0;
 double                       g_ModelLastTime   = 0.0;
@@ -135,33 +126,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 //---------------------------------------------------------------------------
-CSR_PixelBuffer* OnLoadTexture(const char* pTextureName)
-{
-    const std::string resName = g_SceneDir + pTextureName;
-
-    return csrPixelBufferFromTgaFile(resName.c_str());
-}
-//---------------------------------------------------------------------------
-void OnApplySkin(size_t index, const CSR_Skin* pSkin, int* pCanRelease)
-{
-    if (!pSkin)
-        return;
-
-    if (!pSkin->m_Texture.m_pFileName)
-        return;
-
-    if (!pSkin->m_Texture.m_pBuffer)
-        return;
-
-    const std::string key = pSkin->m_Texture.m_pFileName;
-
-    CSR_OpenGLHelper::AddTexture(key,
-                                 csrOpenGLTextureFromPixelBuffer(pSkin->m_Texture.m_pBuffer),
-                                 g_OpenGLResources);
-
-    *pCanRelease = 1;
-}
-//---------------------------------------------------------------------------
 void* OnGetShader(const void* pModel, CSR_EModelType type)
 {
     return g_pShader;
@@ -169,33 +133,18 @@ void* OnGetShader(const void* pModel, CSR_EModelType type)
 //---------------------------------------------------------------------------
 void* OnGetID(const void* pKey)
 {
-    const CSR_Texture* pTexture = static_cast<const CSR_Texture*>(pKey);
-
-    if (!pTexture->m_pFileName)
-        return nullptr;
-
-    const std::string key = pTexture->m_pFileName;
-
-    return CSR_OpenGLHelper::GetTextureID(key, g_OpenGLResources);
+    return CSR_OpenGLHelper::GetTextureID(pKey, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
-void OnGetIQMIndex(const CSR_IQM* pIQM, size_t* pAnimSetIndex, size_t* pFrameIndex)
+void OnGetColladaIndex(const CSR_Collada* pCollada, size_t* pAnimSetIndex, size_t* pFrameIndex)
 {
     *pAnimSetIndex = 0;
-    *pFrameIndex   = (g_AnimCount / 10) % g_MaxAnimFrame;
+    *pFrameIndex   = (g_AnimCount / 10) % 36;
 }
 //---------------------------------------------------------------------------
 void OnDeleteTexture(const CSR_Texture* pTexture)
 {
-    if (!pTexture)
-        return;
-
-    if (!pTexture->m_pFileName)
-        return;
-
-    const std::string key = pTexture->m_pFileName;
-
-    CSR_OpenGLHelper::DeleteTexture(key, g_OpenGLResources);
+    return CSR_OpenGLHelper::DeleteTexture(pTexture, g_OpenGLResources);
 }
 //---------------------------------------------------------------------------
 void BuildModelMatrix(CSR_Matrix4* pMatrix)
@@ -226,9 +175,9 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
     csrMat4Rotate((float)(-M_PI / 4.0) + g_Angle, &axis, &rotateYMatrix);
 
     // set scale factor
-    factor.m_X = 0.15f;
-    factor.m_Y = 0.15f;
-    factor.m_Z = 0.15f;
+    factor.m_X = 2.0f;
+    factor.m_Y = 2.0f;
+    factor.m_Z = 2.0f;
 
     // create the scale matrix
     csrMat4Scale(&factor, &scaleMatrix);
@@ -239,7 +188,7 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
 
     // place it in the world
     pMatrix->m_Table[3][0] =  0.0f;
-    pMatrix->m_Table[3][1] = -0.55f;
+    pMatrix->m_Table[3][1] = -0.2f;
     pMatrix->m_Table[3][2] = -2.0f;
 }
 //---------------------------------------------------------------------------
@@ -260,10 +209,10 @@ void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
         GLint slot = glGetUniformLocation(g_pLineShader->m_ProgramID, "csr_uModel");
         glUniformMatrix4fv(slot, 1, 0, &g_Matrix.m_Table[0][0]);
 
-        csrDebugDrawSkeletonIQM(g_pModel,
-                                g_pLineShader,
-                                0,
-                                (g_AnimCount / 10) % g_MaxAnimFrame);
+        csrDebugDrawSkeletonCollada(g_pModel,
+                                    g_pLineShader,
+                                    0,
+                                    (g_AnimCount / 10) % 36);
     #endif
 
     csrDrawEnd();
@@ -289,17 +238,17 @@ bool InitScene(int w, int h)
 
     // configure the scene context
     csrSceneContextInit(&g_SceneContext);
-    g_SceneContext.m_fOnGetShader     = OnGetShader;
-    g_SceneContext.m_fOnGetID         = OnGetID;
-    g_SceneContext.m_fOnGetIQMIndex   = OnGetIQMIndex;
-    g_SceneContext.m_fOnDeleteTexture = OnDeleteTexture;
-    g_SceneContext.m_fOnSceneBegin    = OnSceneBegin;
-    g_SceneContext.m_fOnSceneEnd      = OnSceneEnd;
+    g_SceneContext.m_fOnGetShader       = OnGetShader;
+    g_SceneContext.m_fOnGetID           = OnGetID;
+    g_SceneContext.m_fOnGetColladaIndex = OnGetColladaIndex;
+    g_SceneContext.m_fOnDeleteTexture   = OnDeleteTexture;
+    g_SceneContext.m_fOnSceneBegin      = OnSceneBegin;
+    g_SceneContext.m_fOnSceneEnd        = OnSceneEnd;
 
     #ifdef SHOW_SKELETON
         // get the shaders
-        const std::string vsLine = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Line);
-        const std::string fsLine = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Line);
+        const std::string vsLine = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Line);
+        const std::string fsLine = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Line);
 
         // load the line shader
         g_pLineShader = csrOpenGLShaderLoadFromStr(vsLine.c_str(),
@@ -328,16 +277,16 @@ bool InitScene(int w, int h)
     #endif
 
     // get the shaders
-    const std::string vsTextured = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
-    const std::string fsTextured = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IEShaderType::IE_ST_Texture);
+    const std::string vsColored = CSR_ShaderHelper::GetVertexShader  (CSR_ShaderHelper::IE_ST_Color);
+    const std::string fsColored = CSR_ShaderHelper::GetFragmentShader(CSR_ShaderHelper::IE_ST_Color);
 
     // load the shader
-    g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
-                                            vsTextured.length(),
-                                            fsTextured.c_str(),
-                                            fsTextured.length(),
-                                            0,
-                                            0);
+    g_pShader = csrOpenGLShaderLoadFromStr(vsColored.c_str(),
+                                           vsColored.length(),
+                                           fsColored.c_str(),
+                                           fsColored.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!g_pShader)
@@ -347,10 +296,9 @@ bool InitScene(int w, int h)
     csrShaderEnable(g_pShader);
 
     // get shader attributes
-    g_pShader->m_VertexSlot   = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aVertices");
-    g_pShader->m_ColorSlot    = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aColor");
-    g_pShader->m_TexCoordSlot = glGetAttribLocation (g_pShader->m_ProgramID, "csr_aTexCoord");
-    g_pShader->m_TextureSlot  = glGetUniformLocation(g_pShader->m_ProgramID, "csr_sTexture");
+    g_pShader->m_VertexSlot = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aVertices");
+    g_pShader->m_NormalSlot = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aNormal");
+    g_pShader->m_ColorSlot  = glGetAttribLocation(g_pShader->m_ProgramID, "csr_aColor");
 
     // create the viewport
     CSR_OpenGLHelper::CreateViewport((float)w,
@@ -362,33 +310,33 @@ bool InitScene(int w, int h)
 
     // configure the vertex format
     vertexFormat.m_HasNormal         = 0;
-    vertexFormat.m_HasTexCoords      = 1;
+    vertexFormat.m_HasTexCoords      = 0;
     vertexFormat.m_HasPerVertexColor = 1;
 
-    vertexCulling.m_Face = CSR_CF_CW;
+    vertexCulling.m_Face = CSR_CF_CCW;
     vertexCulling.m_Type = CSR_CT_Back;
 
     // configure the material
-    material.m_Color       = 0xFFFFFFFF;
+    material.m_Color       = 0x808080FF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
 
-    // load the IQM model
-    g_pModel = csrIQMOpen((g_SceneDir + IQM_FILE).c_str(),
-                         &vertexFormat,
-                         &vertexCulling,
-                         &material,
-                          0,
-                          0,
-                          0,
-                          OnLoadTexture,
-                          OnApplySkin,
-                          0);
+    // load the Collada model
+    g_pModel = csrColladaOpen((g_SceneDir + COLLADA_FILE).c_str(),
+                             &vertexFormat,
+                             &vertexCulling,
+                             &material,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0);
 
     BuildModelMatrix(&g_Matrix);
 
     // add the model to the scene
-    csrSceneAddIQM(g_pScene, g_pModel, 0, 0);
+    csrSceneAddCollada(g_pScene, g_pModel, 0, 0);
     csrSceneAddModelMatrix(g_pScene, g_pModel, &g_Matrix);
 
     g_Initialized = true;
@@ -428,50 +376,45 @@ void DrawScene()
     csrSceneDraw(g_pScene, &g_SceneContext);
 }
 //------------------------------------------------------------------------------
-int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
-                      _In_opt_ HINSTANCE hPrevInstance,
-                      _In_     LPWSTR    lpCmdLine,
-                      _In_     int       nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance,
+                   HINSTANCE hPrevInstance,
+                   LPSTR     lpCmdLine,
+                   int       nCmdShow)
 {
-    if (!SUCCEEDED(::CoInitialize(nullptr)))
-        return -1;
-
-    // initialize memory leaks detection structures
-    #ifdef _DEBUG
-        _CrtMemState sOld;
-        _CrtMemState sNew;
-        _CrtMemState sDiff;
-
-        // take a memory snapshot before execution begins
-        ::_CrtMemCheckpoint(&sOld);
-    #endif
-
     WNDCLASSEX wcex  = {};
     HWND       hWnd  = 0;
     MSG        msg   = {};
     BOOL       bQuit = FALSE;
 
+    // try to load application icon from resources
+    HICON hIcon = (HICON)LoadImage(GetModuleHandle(NULL),
+                                   MAKEINTRESOURCE(IDI_MAIN_ICON),
+                                   IMAGE_ICON,
+                                   16,
+                                   16,
+                                   0);
+
     // register the window class
-    wcex.cbSize        =  sizeof(WNDCLASSEX);
-    wcex.style         =  CS_OWNDC;
-    wcex.lpfnWndProc   =  WindowProc;
-    wcex.cbClsExtra    =  0;
-    wcex.cbWndExtra    =  0;
-    wcex.hInstance     =  hInstance;
-    wcex.hIcon         =  ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
-    wcex.hIconSm       =  ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-    wcex.hCursor       =  ::LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground =  (HBRUSH)::GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName  =  NULL;
-    wcex.lpszClassName = L"CSR_IQMDemo";
+    wcex.cbSize        = sizeof(WNDCLASSEX);
+    wcex.style         = CS_OWNDC;
+    wcex.lpfnWndProc   = WindowProc;
+    wcex.cbClsExtra    = 0;
+    wcex.cbWndExtra    = 0;
+    wcex.hInstance     = hInstance;
+    wcex.hIcon         = hIcon;
+    wcex.hIconSm       = hIcon;
+    wcex.hCursor       = ::LoadCursor(NULL, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
+    wcex.lpszMenuName  = NULL;
+    wcex.lpszClassName = "CSR_ColladaDemo";
 
     if (!RegisterClassEx(&wcex))
         return 0;
 
     // create the main window
     hWnd = ::CreateWindowEx(0,
-                           L"CSR_IQMDemo",
-                           L"Animated Inter-Quake model demo",
+                            "CSR_ColladaDemo",
+                            "Animated Collada model demo",
                             WS_OVERLAPPEDWINDOW,
                             CW_USEDEFAULT,
                             CW_USEDEFAULT,
@@ -485,7 +428,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     ::ShowWindow(hWnd, nCmdShow);
 
     // get the global scene directory
-    g_SceneDir = "..\\..\\..\\..\\Common\\Models\\IQM\\MrFixit\\";
+    g_SceneDir = "..\\..\\..\\Common\\Models\\Collada\\Cat\\";
 
     // enable OpenGL
     CSR_OpenGLHelper::EnableOpenGL(hWnd, &g_hDC, &g_hRC);
@@ -498,8 +441,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     {
         // shutdown OpenGL
         CSR_OpenGLHelper::DisableOpenGL(hWnd, g_hDC, g_hRC);
-
-        ::CoUninitialize();
 
         // close the app
         return 0;
@@ -514,15 +455,13 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
         // shutdown OpenGL
         CSR_OpenGLHelper::DisableOpenGL(hWnd, g_hDC, g_hRC);
 
-        ::CoUninitialize();
-
         // close the app
         return 0;
     }
 
     // initialize the timer
-    g_StartTime    = ::GetTickCount64();
-    g_PreviousTime = ::GetTickCount64();
+    g_StartTime    = ::GetTickCount();
+    g_PreviousTime = ::GetTickCount();
 
     // application main loop
     while (!bQuit)
@@ -542,7 +481,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
         else
         {
             // calculate time interval
-            const unsigned __int64 now            = ::GetTickCount64();
+            const unsigned __int64 now            = ::GetTickCount();
             const double           elapsedTime    = (now - g_PreviousTime) / 1000.0;
                                    g_PreviousTime =  now;
 
@@ -557,7 +496,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
                 const double      smoothing = 0.1;
                 const std::size_t fpsTime   = (std::size_t)(now > g_StartTime ? now - g_StartTime : 1L);
                 const std::size_t newFPS    = (g_FrameCount * 100) / fpsTime;
-                g_StartTime                 = ::GetTickCount64();
+                g_StartTime                 = ::GetTickCount();
                 g_FrameCount                = 0;
                 g_FPS                       = (std::size_t)(((double)newFPS * smoothing) + ((double)g_FPS * (1.0 - smoothing)));
             }
@@ -582,25 +521,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 
     // destroy the window explicitly
     ::DestroyWindow(hWnd);
-
-    // detect memory leaks, log them if found
-    #ifdef _DEBUG
-        // take a memory snapshot after execution ends
-        ::_CrtMemCheckpoint(&sNew);
-
-        // found a difference between memories?
-        if (::_CrtMemDifference(&sDiff, &sOld, &sNew))
-        {
-            ::OutputDebugString(L"-----------_CrtMemDumpStatistics ---------\n");
-            ::_CrtMemDumpStatistics(&sDiff);
-            ::OutputDebugString(L"-----------_CrtMemDumpAllObjectsSince ---------\n");
-            ::_CrtMemDumpAllObjectsSince(&sOld);
-            ::OutputDebugString(L"-----------_CrtDumpMemoryLeaks ---------\n");
-            ::_CrtDumpMemoryLeaks();
-        }
-    #endif
-
-    ::CoUninitialize();
 
     return (int)msg.wParam;
 }

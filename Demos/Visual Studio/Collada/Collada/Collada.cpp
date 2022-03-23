@@ -26,7 +26,6 @@
 #include "CSR_AI.h"
 #include "CSR_Renderer_OpenGL.h"
 #include "CSR_DebugHelper.h"
-#include "CSR_Sound.h"
 
 // classes
 #include "CSR_OpenGLHelper.h"
@@ -56,13 +55,11 @@
 #endif
 
 // resource files to load
-#define COLLADA_FILE  "Resources/cat.dae"
+#define COLLADA_FILE "cat.dae"
 
 //------------------------------------------------------------------------------
 HDC                          g_hDC             = 0;
 HGLRC                        g_hRC             = 0;
-ALCdevice*                   g_pOpenALDevice   = nullptr;
-ALCcontext*                  g_pOpenALContext  = nullptr;
 CSR_Scene*                   g_pScene          = nullptr;
 CSR_OpenGLShader*            g_pShader         = nullptr;
 CSR_OpenGLShader*            g_pLineShader     = nullptr;
@@ -70,9 +67,11 @@ CSR_SceneContext             g_SceneContext;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
 CSR_Collada*                 g_pModel          = nullptr;
 CSR_Matrix4                  g_Matrix;
+std::string                  g_SceneDir;
 size_t                       g_FrameCount      = 0;
 size_t                       g_FPS             = 20;
 size_t                       g_AnimCount       = 0;
+size_t                       g_MaxAnimFrame    = 36;
 float                        g_Angle           = 0.0f;
 double                       g_TextureLastTime = 0.0;
 double                       g_ModelLastTime   = 0.0;
@@ -148,7 +147,7 @@ void* OnGetID(const void* pKey)
 void OnGetColladaIndex(const CSR_Collada* pCollada, size_t* pAnimSetIndex, size_t* pFrameIndex)
 {
     *pAnimSetIndex = 0;
-    *pFrameIndex   = (g_AnimCount / 10) % 36;
+    *pFrameIndex   = (g_AnimCount / 10) % g_MaxAnimFrame;
 }
 //---------------------------------------------------------------------------
 void OnDeleteTexture(const CSR_Texture* pTexture)
@@ -164,7 +163,6 @@ void BuildModelMatrix(CSR_Matrix4* pMatrix)
     CSR_Matrix4 rotateYMatrix;
     CSR_Matrix4 scaleMatrix;
     CSR_Matrix4 intermediateMatrix;
-    float       normalMat[3][3] = {};
 
     csrMat4Identity(pMatrix);
 
@@ -222,7 +220,7 @@ void OnSceneEnd(const CSR_Scene* pScene, const CSR_SceneContext* pContext)
         csrDebugDrawSkeletonCollada(g_pModel,
                                     g_pLineShader,
                                     0,
-                                    (g_AnimCount / 10) % 36);
+                                    (g_AnimCount / 10) % g_MaxAnimFrame);
     #endif
 
     csrDrawEnd();
@@ -233,7 +231,6 @@ bool InitScene(int w, int h)
     CSR_VertexFormat  vertexFormat  = {};
     CSR_VertexCulling vertexCulling = {};
     CSR_Material      material      = {};
-    float             camera[3]     = {};
 
     // initialize the scene
     g_pScene = csrSceneCreate();
@@ -333,7 +330,7 @@ bool InitScene(int w, int h)
     material.m_Wireframe   = 0;
 
     // load the Collada model
-    g_pModel = csrColladaOpen(COLLADA_FILE,
+    g_pModel = csrColladaOpen((g_SceneDir + COLLADA_FILE).c_str(),
                              &vertexFormat,
                              &vertexCulling,
                              &material,
@@ -347,7 +344,7 @@ bool InitScene(int w, int h)
     BuildModelMatrix(&g_Matrix);
 
     // add the model to the scene
-    CSR_SceneItem* pSceneItem = csrSceneAddCollada(g_pScene, g_pModel, 0, 0);
+    csrSceneAddCollada(g_pScene, g_pModel, 0, 0);
     csrSceneAddModelMatrix(g_pScene, g_pModel, &g_Matrix);
 
     g_Initialized = true;
@@ -441,8 +438,8 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 
     ::ShowWindow(hWnd, nCmdShow);
 
-    // initialize OpenAL
-    csrSoundInitializeOpenAL(&g_pOpenALDevice, &g_pOpenALContext);
+    // get the global scene directory
+    g_SceneDir = "..\\..\\..\\..\\Common\\Models\\Collada\\Cat\\";
 
     // enable OpenGL
     CSR_OpenGLHelper::EnableOpenGL(hWnd, &g_hDC, &g_hRC);
@@ -538,9 +535,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
 
     // shutdown OpenGL
     CSR_OpenGLHelper::DisableOpenGL(hWnd, g_hDC, g_hRC);
-
-    // release OpenAL interface
-    csrSoundReleaseOpenAL(g_pOpenALDevice, g_pOpenALContext);
 
     // destroy the window explicitly
     ::DestroyWindow(hWnd);
