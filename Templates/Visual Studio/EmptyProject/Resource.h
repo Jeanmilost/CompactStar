@@ -1,0 +1,2 @@
+#define IDI_APPICON 107
+#define IDI_SMALL	108
