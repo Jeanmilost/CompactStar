@@ -1,0 +1,23 @@
+digraph "CSR_Model"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="CSR_Model",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip=" "];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_pMesh" ,fontname="Helvetica"];
+  Node2 [label="CSR_Mesh",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___mesh.html",tooltip=" "];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_Skin" ,fontname="Helvetica"];
+  Node3 [label="CSR_Skin",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___skin.html",tooltip=" "];
+  Node4 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_BumpMap\nm_CubeMap\nm_Texture" ,fontname="Helvetica"];
+  Node4 [label="CSR_Texture",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___texture.html",tooltip=" "];
+  Node5 -> Node4 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_pBuffer" ,fontname="Helvetica"];
+  Node5 [label="CSR_PixelBuffer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___pixel_buffer.html",tooltip=" "];
+  Node6 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_pVB" ,fontname="Helvetica"];
+  Node6 [label="CSR_VertexBuffer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___vertex_buffer.html",tooltip=" "];
+  Node7 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_Format" ,fontname="Helvetica"];
+  Node7 [label="CSR_VertexFormat",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___vertex_format.html",tooltip=" "];
+  Node8 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_Culling" ,fontname="Helvetica"];
+  Node8 [label="CSR_VertexCulling",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___vertex_culling.html",tooltip=" "];
+  Node9 -> Node6 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" m_Material" ,fontname="Helvetica"];
+  Node9 [label="CSR_Material",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct_c_s_r___material.html",tooltip=" "];
+}
