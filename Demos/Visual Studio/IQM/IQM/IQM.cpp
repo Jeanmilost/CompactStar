@@ -333,11 +333,11 @@ bool InitScene(int w, int h)
 
     // load the shader
     g_pShader = csrOpenGLShaderLoadFromStr(vsTextured.c_str(),
-                                            vsTextured.length(),
-                                            fsTextured.c_str(),
-                                            fsTextured.length(),
-                                            0,
-                                            0);
+                                           vsTextured.length(),
+                                           fsTextured.c_str(),
+                                           fsTextured.length(),
+                                           0,
+                                           0);
 
     // succeeded?
     if (!g_pShader)

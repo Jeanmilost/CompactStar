@@ -273,9 +273,9 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     wcex.hInstance     = hInstance;
     wcex.hIcon         = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
     wcex.hIconSm       = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-    wcex.hCursor       = ::LoadCursor(NULL, IDC_ARROW);
+    wcex.hCursor       = ::LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName  = NULL;
+    wcex.lpszMenuName  = nullptr;
     wcex.lpszClassName = L"CSR_EmptyProject";
 
     if (!RegisterClassEx(&wcex))
@@ -290,10 +290,10 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
                             CW_USEDEFAULT,
                             800,
                             650,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
                             hInstance,
-                            NULL);
+                            nullptr);
 
     ::ShowWindow(hWnd, nCmdShow);
 
@@ -334,7 +334,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     while (!bQuit)
     {
         // check for messages
-        if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        if (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             // handle or dispatch messages
             if (msg.message == WM_QUIT)

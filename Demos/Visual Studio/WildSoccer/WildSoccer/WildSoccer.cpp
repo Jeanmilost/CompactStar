@@ -91,22 +91,22 @@ typedef std::vector<std::string> IFileNames;
 //------------------------------------------------------------------------------
 HDC                          g_hDC                 = 0;
 HGLRC                        g_hRC                 = 0;
-ALCdevice*                   g_pOpenALDevice       = NULL;
-ALCcontext*                  g_pOpenALContext      = NULL;
-CSR_Scene*                   g_pScene              = NULL;
+ALCdevice*                   g_pOpenALDevice       = nullptr;
+ALCcontext*                  g_pOpenALContext      = nullptr;
+CSR_Scene*                   g_pScene              = nullptr;
 CSR_SceneContext             g_SceneContext;
-CSR_OpenGLShader*            g_pShader             = NULL;
-CSR_OpenGLShader*            g_pSkyboxShader       = NULL;
+CSR_OpenGLShader*            g_pShader             = nullptr;
+CSR_OpenGLShader*            g_pSkyboxShader       = nullptr;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
 CSR_Sphere                   g_ViewSphere;
 CSR_Ball                     g_Ball;
 CSR_Goal                     g_Goal;
 CSR_Matrix4                  g_LandscapeMatrix;
 CSR_Matrix4                  g_YouWonMatrix;
-CSR_Sound*                   g_pFootStepLeftSound  = NULL;
-CSR_Sound*                   g_pFootStepRightSound = NULL;
-CSR_Sound*                   g_pBallKickSound      = NULL;
-void*                        g_pLandscapeKey       = NULL;
+CSR_Sound*                   g_pFootStepLeftSound  = nullptr;
+CSR_Sound*                   g_pFootStepRightSound = nullptr;
+CSR_Sound*                   g_pBallKickSound      = nullptr;
+void*                        g_pLandscapeKey       = nullptr;
 std::string                  g_SceneDir;
 std::size_t                  g_FrameCount          = 0;
 int                          g_PrevOrigin          = 0;
@@ -1247,9 +1247,9 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     wcex.hInstance     = hInstance;
     wcex.hIcon         = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
     wcex.hIconSm       = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-    wcex.hCursor       = ::LoadCursor(NULL, IDC_ARROW);
+    wcex.hCursor       = ::LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)::GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName  = NULL;
+    wcex.lpszMenuName  = nullptr;
     wcex.lpszClassName = L"CSR_WildSoccer";
 
     if (!RegisterClassEx(&wcex))
@@ -1264,10 +1264,10 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
                             CW_USEDEFAULT,
                             800,
                             650,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
                             hInstance,
-                            NULL);
+                            nullptr);
 
     ::ShowWindow(hWnd, nCmdShow);
 
@@ -1313,7 +1313,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     while (!bQuit)
     {
         // check for messages
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             // handle or dispatch messages
             if (msg.message == WM_QUIT)
