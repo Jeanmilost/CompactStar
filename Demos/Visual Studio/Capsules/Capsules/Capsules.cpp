@@ -448,7 +448,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     wcex.lpszMenuName  =  NULL;
     wcex.lpszClassName = L"CSR_Capsules";
 
-    if (!RegisterClassEx(&wcex))
+    if (!::RegisterClassEx(&wcex))
         return 0;
 
     // create the main window
@@ -507,15 +507,15 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     while (!bQuit)
     {
         // check for messages
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
             // handle or dispatch messages
             if (msg.message == WM_QUIT)
                 bQuit = TRUE;
             else
             {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
+                ::TranslateMessage(&msg);
+                ::DispatchMessage(&msg);
             }
         }
         else
@@ -563,7 +563,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     csrSoundReleaseOpenAL(g_pOpenALDevice, g_pOpenALContext);
 
     // destroy the window explicitly
-    DestroyWindow(hWnd);
+    ::DestroyWindow(hWnd);
 
     return (int)msg.wParam;
 }
