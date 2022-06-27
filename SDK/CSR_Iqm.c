@@ -878,10 +878,10 @@ int csrIQMReadPoses(const CSR_Buffer*    pBuffer,
                 csrMemorySwap(&pPoses->m_pPose[i].m_ChannelMask, sizeof(unsigned));
 
                 for (j = 0; j < 10; ++j)
-                    csrMemorySwap(&pPoses->m_pPose[i].m_ChannelOffset, sizeof(float));
+                    csrMemorySwap(&pPoses->m_pPose[i].m_ChannelOffset[j], sizeof(float));
 
                 for (j = 0; j < 10; ++j)
-                    csrMemorySwap(&pPoses->m_pPose[i].m_ChannelScale, sizeof(float));
+                    csrMemorySwap(&pPoses->m_pPose[i].m_ChannelScale[j], sizeof(float));
             }
         #endif
 
