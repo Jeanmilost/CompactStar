@@ -1852,9 +1852,6 @@ void csrIQMGetInverseBindMatrix(const CSR_Bone* pBone, CSR_Matrix4* pMatrix)
         pBone = pBone->m_pParent;
     }
 
-    // reset the inverse bind matrix to identity
-    csrMat4Identity(pMatrix);
-
     // get the inverse bind matrix
     csrMat4Inverse(&matrix, pMatrix, &determinant);
 }
@@ -2077,7 +2074,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
     pModel->m_MeshCount = pMeshes->m_Count;
 
     // do build the weights?
-    if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+    if (!pModel->m_MeshOnly)
     {
         // create the mesh weights groups
         pModel->m_pMeshWeights = (CSR_Skin_Weights_Group*)malloc(pMeshes->m_Count * sizeof(CSR_Skin_Weights_Group));
@@ -2149,7 +2146,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
         pMesh->m_pVB->m_pData = (float*)malloc(pMesh->m_pVB->m_Format.m_Stride * sizeof(float));
 
         // do build the weights?
-        if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+        if (!pModel->m_MeshOnly)
         {
             // get the next weights group
             pWeightsGroup = &pModel->m_pMeshWeights[i];
@@ -2184,7 +2181,7 @@ int csrIQMPopulateModel(const CSR_Buffer*           pBuffer,
                                     pMesh->m_pVB);
 
                 // do build the weights?
-                if (!pModel->m_MeshOnly && !pModel->m_PoseOnly)
+                if (!pModel->m_MeshOnly)
                 {
                     // iterate through vertex weights
                     for (l = 0; l < 4 && pSrcVertices->m_pVertex[vertIndex].m_BlendWeights[l]; ++l)
