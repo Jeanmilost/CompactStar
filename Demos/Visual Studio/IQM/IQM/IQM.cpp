@@ -566,8 +566,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
             DrawScene();
 
             ::SwapBuffers(g_hDC);
-
-            ::Sleep(1);
         }
     }
 
