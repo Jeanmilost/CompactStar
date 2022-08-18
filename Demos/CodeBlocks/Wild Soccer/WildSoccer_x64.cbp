@@ -2,13 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="WildSoccer" />
+		<Option title="WildSoccer_x64" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Win32/Debug/WildSoccer" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Win32/Debug/" />
+				<Option output="bin/Win64/Debug/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Win64/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -16,8 +16,8 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Win32/Release/WildSoccer" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Win32/Release/" />
+				<Option output="bin/Win64/Release/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Win64/Release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -37,8 +37,8 @@
 			<Add directory="../../../Common/C++/Helpers" />
 		</Compiler>
 		<Linker>
-			<Add library="../../../Third-party/glew/lib/Release/Win32/glew32s.lib" />
-			<Add library="../../../Third-party/OpenAL/libs/Win32/OpenAL32.lib" />
+			<Add library="../../../Third-party/glew/lib/Release/x64/glew32.lib" />
+			<Add library="../../../Third-party/OpenAL/libs/Win64/OpenAL32.lib" />
 			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="gdi32" />
