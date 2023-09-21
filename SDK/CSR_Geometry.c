@@ -2823,7 +2823,7 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
             const CSR_Sphere*  pSphere  = (CSR_Sphere*)pFirst;
             const CSR_Capsule* pCapsule = (CSR_Capsule*)pSecond;
 
-            // calculate real capsule start and end points
+            // calculate capsule top and bottom positions from which the calculation should be applied
             csrVec3Sub      (&pCapsule->m_Top,             &pCapsule->m_Bottom, &lineDir);
             csrVec3Normalize(&lineDir,                     &lineDir);
             csrVec3MulVal   (&lineDir, pCapsule->m_Radius, &lineEndOffset);
