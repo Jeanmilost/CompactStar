@@ -2857,7 +2857,6 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                 CSR_Vector3  secondTop           = {0};
                 CSR_Vector3  secondBottom        = {0};
                 float        len                 = 0.0f;
-                float        absLen              = 0.0f;
                 float        penetrationDepth    = 0.0f;
             #else
                 CSR_Segment3 firstLine;
@@ -2871,7 +2870,6 @@ int csrIntersect3(const CSR_Figure3* pFigure1,
                 CSR_Vector3  secondTop;
                 CSR_Vector3  secondBottom;
                 float        len;
-                float        absLen;
                 float        penetrationDepth;
             #endif
 
