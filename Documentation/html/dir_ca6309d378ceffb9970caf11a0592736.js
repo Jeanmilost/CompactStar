@@ -28,9 +28,7 @@ var dir_ca6309d378ceffb9970caf11a0592736 =
     [ "CSR_Renderer.h", "_c_s_r___renderer_8h.html", "_c_s_r___renderer_8h" ],
     [ "CSR_Renderer_Metal.h", "_c_s_r___renderer___metal_8h.html", "_c_s_r___renderer___metal_8h" ],
     [ "CSR_Renderer_Metal.mm", "_c_s_r___renderer___metal_8mm.html", "_c_s_r___renderer___metal_8mm" ],
-    [ "CSR_Renderer_Metal_Types.h", "_c_s_r___renderer___metal___types_8h.html", [
-      [ "CSR_Uniforms", "struct_c_s_r___uniforms.html", "struct_c_s_r___uniforms" ]
-    ] ],
+    [ "CSR_Renderer_Metal_Types.h", "_c_s_r___renderer___metal___types_8h.html", "_c_s_r___renderer___metal___types_8h" ],
     [ "CSR_Renderer_OpenGL.c", "_c_s_r___renderer___open_g_l_8c.html", "_c_s_r___renderer___open_g_l_8c" ],
     [ "CSR_Renderer_OpenGL.h", "_c_s_r___renderer___open_g_l_8h.html", "_c_s_r___renderer___open_g_l_8h" ],
     [ "CSR_Scene.c", "_c_s_r___scene_8c.html", "_c_s_r___scene_8c" ],
