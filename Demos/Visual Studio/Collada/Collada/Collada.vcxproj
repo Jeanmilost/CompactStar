@@ -179,6 +179,7 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Common.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_DebugHelper.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Geometry.h" />
+    <ClInclude Include="..\..\..\..\SDK\CSR_GJK.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Iqm.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Lighting.h" />
     <ClInclude Include="..\..\..\..\SDK\CSR_Mdl.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="..\..\..\..\SDK\CSR_Common.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_DebugHelper.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Geometry.c" />
+    <ClCompile Include="..\..\..\..\SDK\CSR_GJK.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Iqm.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Lighting.c" />
     <ClCompile Include="..\..\..\..\SDK\CSR_Mdl.c" />

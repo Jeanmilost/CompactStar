@@ -1972,6 +1972,7 @@ void csrSceneArcBallToMatrix(const CSR_ArcBall* pArcball, CSR_Matrix4* pR)
         CSR_Matrix4 cameraMatrixXY;
         CSR_Matrix4 cameraMatrixPos;
         CSR_Matrix4 cameraMatrix;
+        CSR_Matrix4 cameraMatrix2;
         CSR_Camera  camera;
     #endif
 

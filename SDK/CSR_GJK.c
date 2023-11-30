@@ -16,6 +16,9 @@
 
 #include "CSR_GJK.h"
 
+// std
+#include <stdlib.h>
+
 #define GJK_MAX_NUM_ITERATIONS 64
 
 //---------------------------------------------------------------------------
