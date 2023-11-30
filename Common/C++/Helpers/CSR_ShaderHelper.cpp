@@ -30,7 +30,8 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
         #else
             case IE_ST_Color:
         #endif
-            return "precision mediump float;"
+            return "#version 120\n"
+                   "precision mediump float;"
                    "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
                    "uniform      mat4 csr_uProjection;"
@@ -48,7 +49,8 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
         #else
             case IE_ST_Texture:
         #endif
-            return "precision mediump float;"
+            return "#version 120\n"
+                   "precision mediump float;"
                    "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
                    "attribute    vec2 csr_aTexCoord;"
@@ -69,7 +71,8 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
         #else
             case IE_ST_Skybox:
         #endif
-            return "precision mediump float;"
+            return "#version 120\n"
+                   "precision mediump float;"
                    "attribute vec3 csr_aVertices;"
                    "uniform   mat4 csr_uProjection;"
                    "uniform   mat4 csr_uView;"
@@ -85,7 +88,8 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
         #else
             case IE_ST_Line:
         #endif
-            return "precision mediump float;"
+            return "#version 120\n"
+                   "precision mediump float;"
                    "attribute    vec3 csr_aVertices;"
                    "attribute    vec4 csr_aColor;"
                    "uniform      mat4 csr_uProjection;"

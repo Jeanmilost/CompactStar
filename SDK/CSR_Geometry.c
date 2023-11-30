@@ -90,6 +90,12 @@ void csrVec2DivVal(const CSR_Vector2* pV, float val, CSR_Vector2* pR)
     pR->m_Y = pV->m_Y / val;
 }
 //---------------------------------------------------------------------------
+void csrVec2Inverse(const CSR_Vector3* pV, CSR_Vector3* pR)
+{
+    pR->m_X = -pV->m_X;
+    pR->m_Y = -pV->m_Y;
+}
+//---------------------------------------------------------------------------
 void csrVec2Length(const CSR_Vector2* pV, float* pR)
 {
     *pR = sqrtf((pV->m_X * pV->m_X) + (pV->m_Y * pV->m_Y));
@@ -213,6 +219,13 @@ void csrVec3DivVal(const CSR_Vector3* pV, float val, CSR_Vector3* pR)
     pR->m_X = pV->m_X / val;
     pR->m_Y = pV->m_Y / val;
     pR->m_Z = pV->m_Z / val;
+}
+//---------------------------------------------------------------------------
+void csrVec3Inverse(const CSR_Vector3* pV, CSR_Vector3* pR)
+{
+    pR->m_X = -pV->m_X;
+    pR->m_Y = -pV->m_Y;
+    pR->m_Z = -pV->m_Z;
 }
 //---------------------------------------------------------------------------
 void csrVec3Length(const CSR_Vector3* pV, float* pR)

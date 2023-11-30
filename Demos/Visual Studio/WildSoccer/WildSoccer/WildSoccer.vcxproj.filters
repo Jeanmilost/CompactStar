@@ -111,6 +111,9 @@
     <ClInclude Include="..\..\..\..\SDK\CSR_Iqm.h">
       <Filter>SDK\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\SDK\CSR_GJK.h">
+      <Filter>SDK\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WildSoccer.cpp">
@@ -186,6 +189,9 @@
       <Filter>Third-party\sxml\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\SDK\CSR_Iqm.c">
+      <Filter>SDK\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\SDK\CSR_GJK.c">
       <Filter>SDK\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
