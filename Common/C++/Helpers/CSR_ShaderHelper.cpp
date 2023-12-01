@@ -131,39 +131,50 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
         #else
             case IE_ST_Color:
         #endif
-            return "precision mediump float;"
-                   "varying lowp vec4 csr_vColor;"
-                   "void main(void)"
-                   "{"
-                   "    gl_FragColor = csr_vColor;"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "varying lowp vec4 csr_vColor;"
+                       "void main(void)"
+                       "{"
+                       "    gl_FragColor = csr_vColor;"
+                       "}";
 
         #ifdef _MSC_VER
             case CSR_ShaderHelper::IEShaderType::IE_ST_Texture:
         #else
             case IE_ST_Texture:
         #endif
-            return "precision mediump float;"
-                   "uniform      sampler2D csr_sTexture;"
-                   "varying lowp vec4      csr_vColor;"
-                   "varying      vec2      csr_vTexCoord;"
-                   "void main(void)"
-                   "{"
-                   "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "uniform      sampler2D csr_sTexture;"
+                       "varying lowp vec4      csr_vColor;"
+                       "varying      vec2      csr_vTexCoord;"
+                       "void main(void)"
+                       "{"
+                       "    gl_FragColor = csr_vColor * texture2D(csr_sTexture, csr_vTexCoord);"
+                       "}";
 
         #ifdef _MSC_VER
             case CSR_ShaderHelper::IEShaderType::IE_ST_Skybox:
         #else
             case IE_ST_Skybox:
         #endif
-            #ifdef __APPLE__
-                return "precision mediump float;"
+            #ifndef __APPLE__
+                return "#version 330\n"
+                       "precision mediump float;"
                        "uniform samplerCube csr_sCubemap;"
                        "varying vec3        csr_vTexCoord;"
                        "void main()"
                        "{"
-                       "    gl_FragColor = textureCube(csr_sCubemap, csr_vTexCoord);"
+                       "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
                        "}";
             #else
                 return "precision mediump float;"
@@ -171,7 +182,7 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
                        "varying vec3        csr_vTexCoord;"
                        "void main()"
                        "{"
-                       "    gl_FragColor = texture(csr_sCubemap, csr_vTexCoord);"
+                       "    gl_FragColor = textureCube(csr_sCubemap, csr_vTexCoord);"
                        "}";
             #endif
 
@@ -180,12 +191,17 @@ std::string CSR_ShaderHelper::GetFragmentShader(IEShaderType type)
         #else
             case IE_ST_Line:
         #endif
-            return "precision mediump float;"
-                   "varying lowp vec4 csr_vColor;"
-                   "void main(void)"
-                   "{"
-                   "    gl_FragColor = csr_vColor;"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "varying lowp vec4 csr_vColor;"
+                       "void main(void)"
+                       "{"
+                       "    gl_FragColor = csr_vColor;"
+                       "}";
     }
 
     return "";
