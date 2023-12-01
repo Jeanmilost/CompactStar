@@ -18,6 +18,7 @@
 		840C240F2137824D006EFECE /* CSR_Collision.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C23FC2137824D006EFECE /* CSR_Collision.c */; };
 		840C24102137824D006EFECE /* CSR_Geometry.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C23FF2137824D006EFECE /* CSR_Geometry.c */; };
 		840C24112137824D006EFECE /* CSR_Lighting.c in Sources */ = {isa = PBXBuildFile; fileRef = 840C24002137824D006EFECE /* CSR_Lighting.c */; };
+		840F72F72B19FC9E00A4A98C /* CSR_GJK.c in Sources */ = {isa = PBXBuildFile; fileRef = 840F72F62B19FC9E00A4A98C /* CSR_GJK.c */; };
 		84184B6A275A8C5300EB0407 /* CSR_Mdl.c in Sources */ = {isa = PBXBuildFile; fileRef = 84184B61275A87E700EB0407 /* CSR_Mdl.c */; };
 		84184B6B275A8C5300EB0407 /* CSR_Mdl.h in Sources */ = {isa = PBXBuildFile; fileRef = 84184B60275A87E700EB0407 /* CSR_Mdl.h */; };
 		84184B6C275A8C5300EB0407 /* CSR_Wavefront.c in Sources */ = {isa = PBXBuildFile; fileRef = 84184B65275A87F900EB0407 /* CSR_Wavefront.c */; };
@@ -87,6 +88,8 @@
 		840C24002137824D006EFECE /* CSR_Lighting.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Lighting.c; sourceTree = "<group>"; };
 		840C24012137824D006EFECE /* CSR_Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Scene.h; sourceTree = "<group>"; };
 		840C24032137824D006EFECE /* CSR_Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Renderer.h; sourceTree = "<group>"; };
+		840F72F52B19FC9E00A4A98C /* CSR_GJK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_GJK.h; sourceTree = "<group>"; };
+		840F72F62B19FC9E00A4A98C /* CSR_GJK.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_GJK.c; sourceTree = "<group>"; };
 		84184B60275A87E700EB0407 /* CSR_Mdl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR_Mdl.h; sourceTree = "<group>"; };
 		84184B61275A87E700EB0407 /* CSR_Mdl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CSR_Mdl.c; sourceTree = "<group>"; };
 		84184B62275A87F900EB0407 /* CSR_X.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CSR_X.h; sourceTree = "<group>"; };
@@ -176,6 +179,8 @@
 				840C23F62137824D006EFECE /* CSR_Common.h */,
 				840C23FF2137824D006EFECE /* CSR_Geometry.c */,
 				840C23F02137824D006EFECE /* CSR_Geometry.h */,
+				840F72F62B19FC9E00A4A98C /* CSR_GJK.c */,
+				840F72F52B19FC9E00A4A98C /* CSR_GJK.h */,
 				84CC39A927E6B41100FF7200 /* CSR_Iqm.c */,
 				84CC39AA27E6B41100FF7200 /* CSR_Iqm.h */,
 				840C24002137824D006EFECE /* CSR_Lighting.c */,
@@ -448,6 +453,7 @@
 				840C24062137824D006EFECE /* CSR_Common.c in Sources */,
 				840C240D2137824D006EFECE /* CSR_Sound.c in Sources */,
 				840C24042137824D006EFECE /* CSR_Physics.c in Sources */,
+				840F72F72B19FC9E00A4A98C /* CSR_GJK.c in Sources */,
 				840C240F2137824D006EFECE /* CSR_Collision.c in Sources */,
 				8439FD16279248B4006AF90C /* sxmlsearch.c in Sources */,
 				840C24112137824D006EFECE /* CSR_Lighting.c in Sources */,

@@ -55,6 +55,7 @@
 		84CD1F001F8FBC5A00E5C77D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */; };
 		84CD1F021F8FBCBC00E5C77D /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1F011F8FBCBC00E5C77D /* GLKit.framework */; };
 		84CD1F041F8FBCFC00E5C77D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84CD1F031F8FBCFC00E5C77D /* UIKit.framework */; };
+		84D44A782B19EEAE00E40DF5 /* CSR_GJK.c in Sources */ = {isa = PBXBuildFile; fileRef = 84D44A762B19EEAE00E40DF5 /* CSR_GJK.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -131,6 +132,8 @@
 		84CD1EFE1F8FBC5A00E5C77D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		84CD1F011F8FBCBC00E5C77D /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		84CD1F031F8FBCFC00E5C77D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		84D44A762B19EEAE00E40DF5 /* CSR_GJK.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_GJK.c; sourceTree = "<group>"; };
+		84D44A772B19EEAE00E40DF5 /* CSR_GJK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_GJK.h; sourceTree = "<group>"; };
 		84E3E09B1F265ACB00DAF20A /* Wild Soccer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wild Soccer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -271,6 +274,8 @@
 				8494277F213734C500ADDCAC /* CSR_Common.h */,
 				84942788213734C500ADDCAC /* CSR_Geometry.c */,
 				84942779213734C500ADDCAC /* CSR_Geometry.h */,
+				84D44A762B19EEAE00E40DF5 /* CSR_GJK.c */,
+				84D44A772B19EEAE00E40DF5 /* CSR_GJK.h */,
 				8487873F27E6B5DA0016BB9A /* CSR_Iqm.c */,
 				8487874027E6B5DA0016BB9A /* CSR_Iqm.h */,
 				84942789213734C500ADDCAC /* CSR_Lighting.c */,
@@ -423,6 +428,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				841755C5213B474300F11208 /* GameLogic.mm in Sources */,
+				84D44A782B19EEAE00E40DF5 /* CSR_GJK.c in Sources */,
 				8464BF22279272E5003463D3 /* sxmlc.c in Sources */,
 				846C90FE1F43EAC300BFAD74 /* GameViewController.mm in Sources */,
 				8487874127E6B5DA0016BB9A /* CSR_Iqm.c in Sources */,

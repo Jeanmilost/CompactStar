@@ -1,4 +1,4 @@
-﻿/****************************************************************************
+/****************************************************************************
  * ==> CSR_GJK -------------------------------------------------------------*
  ****************************************************************************
  * Description : This module provides an implementation of the              *
@@ -149,7 +149,7 @@ CSR_Collider* csrColliderCreate(void)
         return 0;
 
     // initialize the collider content
-    csrHitModelInit(pCollider);
+    csrColliderInit(pCollider);
 
     return pCollider;
 }

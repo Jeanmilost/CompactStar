@@ -18,6 +18,7 @@
 		84598C66275A872D00420F94 /* CSR_X.c in Sources */ = {isa = PBXBuildFile; fileRef = 84598C62275A872C00420F94 /* CSR_X.c */; };
 		84598C67275A872D00420F94 /* CSR_Wavefront.c in Sources */ = {isa = PBXBuildFile; fileRef = 84598C63275A872C00420F94 /* CSR_Wavefront.c */; };
 		84598C6B275A873B00420F94 /* CSR_Mdl.c in Sources */ = {isa = PBXBuildFile; fileRef = 84598C6A275A873B00420F94 /* CSR_Mdl.c */; };
+		84A855782B19FBA900348854 /* CSR_GJK.c in Sources */ = {isa = PBXBuildFile; fileRef = 84A855762B19FBA900348854 /* CSR_GJK.c */; };
 		84B30A4B21F10A3F004C59F0 /* wizard.bmp in Resources */ = {isa = PBXBuildFile; fileRef = 84B30A4A21F10A3F004C59F0 /* wizard.bmp */; };
 		84B30A4D21F10BA6004C59F0 /* wizard.mdl in Resources */ = {isa = PBXBuildFile; fileRef = 84B30A4C21F10B6F004C59F0 /* wizard.mdl */; };
 		84B3523D27E6B38D00F737A4 /* CSR_Iqm.c in Sources */ = {isa = PBXBuildFile; fileRef = 84B3523B27E6B38D00F737A4 /* CSR_Iqm.c */; };
@@ -62,6 +63,8 @@
 		84598C65275A872D00420F94 /* CSR_X.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_X.h; sourceTree = "<group>"; };
 		84598C69275A873B00420F94 /* CSR_Mdl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_Mdl.h; sourceTree = "<group>"; };
 		84598C6A275A873B00420F94 /* CSR_Mdl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Mdl.c; sourceTree = "<group>"; };
+		84A855762B19FBA900348854 /* CSR_GJK.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_GJK.c; sourceTree = "<group>"; };
+		84A855772B19FBA900348854 /* CSR_GJK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSR_GJK.h; sourceTree = "<group>"; };
 		84B30A4A21F10A3F004C59F0 /* wizard.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = wizard.bmp; sourceTree = "<group>"; };
 		84B30A4C21F10B6F004C59F0 /* wizard.mdl */ = {isa = PBXFileReference; lastKnownFileType = file; path = wizard.mdl; sourceTree = "<group>"; };
 		84B3523B27E6B38D00F737A4 /* CSR_Iqm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CSR_Iqm.c; sourceTree = "<group>"; };
@@ -247,6 +250,8 @@
 				84C4FC8E21EF711F004164C4 /* CSR_Common.h */,
 				84C4FC9721EF711F004164C4 /* CSR_Geometry.c */,
 				84C4FC8721EF711F004164C4 /* CSR_Geometry.h */,
+				84A855762B19FBA900348854 /* CSR_GJK.c */,
+				84A855772B19FBA900348854 /* CSR_GJK.h */,
 				84B3523B27E6B38D00F737A4 /* CSR_Iqm.c */,
 				84B3523C27E6B38D00F737A4 /* CSR_Iqm.h */,
 				84C4FC9921EF711F004164C4 /* CSR_Lighting.c */,
@@ -352,6 +357,7 @@
 				84C4FCA521EF711F004164C4 /* CSR_Scene.c in Sources */,
 				84C4FCAB21EF711F004164C4 /* CSR_Lighting.c in Sources */,
 				84C4FCA621EF711F004164C4 /* CSR_Vertex.c in Sources */,
+				84A855782B19FBA900348854 /* CSR_GJK.c in Sources */,
 				84C4FC7721EF710A004164C4 /* Renderer.mm in Sources */,
 				84C4FC7821EF710A004164C4 /* GameViewController.mm in Sources */,
 				84B48C3C2138D37F00440A0E /* CSR_ObjectiveCHelper.m in Sources */,

@@ -30,77 +30,93 @@ std::string CSR_ShaderHelper::GetVertexShader(IEShaderType type)
         #else
             case IE_ST_Color:
         #endif
-            return "#version 120\n"
-                   "precision mediump float;"
-                   "attribute    vec3 csr_aVertices;"
-                   "attribute    vec4 csr_aColor;"
-                   "uniform      mat4 csr_uProjection;"
-                   "uniform      mat4 csr_uView;"
-                   "uniform      mat4 csr_uModel;"
-                   "varying lowp vec4 csr_vColor;"
-                   "void main(void)"
-                   "{"
-                   "    csr_vColor   = csr_aColor;"
-                   "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "attribute    vec3 csr_aVertices;"
+                       "attribute    vec4 csr_aColor;"
+                       "uniform      mat4 csr_uProjection;"
+                       "uniform      mat4 csr_uView;"
+                       "uniform      mat4 csr_uModel;"
+                       "varying lowp vec4 csr_vColor;"
+                       "void main(void)"
+                       "{"
+                       "    csr_vColor   = csr_aColor;"
+                       "    gl_Position  = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
+                       "}";
 
         #ifdef _MSC_VER
             case CSR_ShaderHelper::IEShaderType::IE_ST_Texture:
         #else
             case IE_ST_Texture:
         #endif
-            return "#version 120\n"
-                   "precision mediump float;"
-                   "attribute    vec3 csr_aVertices;"
-                   "attribute    vec4 csr_aColor;"
-                   "attribute    vec2 csr_aTexCoord;"
-                   "uniform      mat4 csr_uProjection;"
-                   "uniform      mat4 csr_uView;"
-                   "uniform      mat4 csr_uModel;"
-                   "varying lowp vec4 csr_vColor;"
-                   "varying      vec2 csr_vTexCoord;"
-                   "void main(void)"
-                   "{"
-                   "    csr_vColor    = csr_aColor;"
-                   "    csr_vTexCoord = csr_aTexCoord;"
-                   "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "attribute    vec3 csr_aVertices;"
+                       "attribute    vec4 csr_aColor;"
+                       "attribute    vec2 csr_aTexCoord;"
+                       "uniform      mat4 csr_uProjection;"
+                       "uniform      mat4 csr_uView;"
+                       "uniform      mat4 csr_uModel;"
+                       "varying lowp vec4 csr_vColor;"
+                       "varying      vec2 csr_vTexCoord;"
+                       "void main(void)"
+                       "{"
+                       "    csr_vColor    = csr_aColor;"
+                       "    csr_vTexCoord = csr_aTexCoord;"
+                       "    gl_Position   = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
+                       "}";
 
         #ifdef _MSC_VER
             case CSR_ShaderHelper::IEShaderType::IE_ST_Skybox:
         #else
             case IE_ST_Skybox:
         #endif
-            return "#version 120\n"
-                   "precision mediump float;"
-                   "attribute vec3 csr_aVertices;"
-                   "uniform   mat4 csr_uProjection;"
-                   "uniform   mat4 csr_uView;"
-                   "varying   vec3 csr_vTexCoord;"
-                   "void main()"
-                   "{"
-                   "    csr_vTexCoord = csr_aVertices;"
-                   "    gl_Position   = csr_uProjection * csr_uView * vec4(csr_aVertices, 1.0);"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "attribute vec3 csr_aVertices;"
+                       "uniform   mat4 csr_uProjection;"
+                       "uniform   mat4 csr_uView;"
+                       "varying   vec3 csr_vTexCoord;"
+                       "void main()"
+                       "{"
+                       "    csr_vTexCoord = csr_aVertices;"
+                       "    gl_Position   = csr_uProjection * csr_uView * vec4(csr_aVertices, 1.0);"
+                       "}";
 
         #ifdef _MSC_VER
             case CSR_ShaderHelper::IEShaderType::IE_ST_Line:
         #else
             case IE_ST_Line:
         #endif
-            return "#version 120\n"
-                   "precision mediump float;"
-                   "attribute    vec3 csr_aVertices;"
-                   "attribute    vec4 csr_aColor;"
-                   "uniform      mat4 csr_uProjection;"
-                   "uniform      mat4 csr_uView;"
-                   "uniform      mat4 csr_uModel;"
-                   "varying lowp vec4 csr_vColor;"
-                   "void main(void)"
-                   "{"
-                   "    csr_vColor  = csr_aColor;"
-                   "    gl_Position = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
-                   "}";
+            #ifndef __APPLE__
+                return "#version 120\n"
+                       "precision mediump float;"
+            #else
+                return "precision mediump float;"
+            #endif
+                       "attribute    vec3 csr_aVertices;"
+                       "attribute    vec4 csr_aColor;"
+                       "uniform      mat4 csr_uProjection;"
+                       "uniform      mat4 csr_uView;"
+                       "uniform      mat4 csr_uModel;"
+                       "varying lowp vec4 csr_vColor;"
+                       "void main(void)"
+                       "{"
+                       "    csr_vColor  = csr_aColor;"
+                       "    gl_Position = csr_uProjection * csr_uView * csr_uModel * vec4(csr_aVertices, 1.0);"
+                       "}";
     }
 
     return "";
