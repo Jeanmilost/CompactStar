@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="WildSoccer_x64" />
+		<Option title="Bot_x64" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Win64/Debug/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Win64/Debug/Bot" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Win64/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -16,7 +16,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Win64/Release/WildSoccer" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Win64/Release/Bot" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Win64/Release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
