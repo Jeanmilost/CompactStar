@@ -62,6 +62,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../../SDK/CSR_DebugHelper.h" />
+		<Unit filename="../../../SDK/CSR_GJK.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../../SDK/CSR_GJK.h" />
 		<Unit filename="../../../SDK/CSR_Geometry.c">
 			<Option compilerVar="CC" />
 		</Unit>
