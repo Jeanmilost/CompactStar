@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/Collada" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
+				<Option output="bin/Win32/Debug/Collada" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Win32/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -17,8 +17,8 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/Collada" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
+				<Option output="bin/Win32/Release/Collada" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Win32/Release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
