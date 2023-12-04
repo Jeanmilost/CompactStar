@@ -56,11 +56,11 @@ CSR_OpenGLShader*            g_pColShader      = nullptr;
 CSR_OpenGLShader*            g_pTexShader      = nullptr;
 CSR_Mesh*                    g_pBackgroundMesh = nullptr;
 CSR_ArcBall                  g_Arcball;
-CSR_Collider                 g_PlayerCollider;
-CSR_Collider                 g_Model1Collider;
-CSR_Collider                 g_Model2Collider;
-CSR_Collider                 g_Model3Collider;
-CSR_Collider                 g_Model4Collider;
+CSR_Collider*                g_pPlayerCollider;
+CSR_Collider*                g_pModel1Collider;
+CSR_Collider*                g_pModel2Collider;
+CSR_Collider*                g_pModel3Collider;
+CSR_Collider*                g_pModel4Collider;
 CSR_Matrix4                  g_BackgroundMatrix;
 CSR_Matrix4                  g_PlayerMatrix;
 CSR_Matrix4                  g_Model1Matrix;
@@ -364,20 +364,6 @@ bool InitScene(int w, int h)
     csrMat4Identity(&g_BackgroundMatrix);
     BuildMatrix(pos, (float)M_PI / 2.0f, 0.0f, 0.0f, 1.0f, g_BackgroundMatrix);
 
-    CSR_Matrix4 matrix;
-
-    // create the player collider
-    g_PlayerCollider.m_State      = CSR_CS_Dynamic;
-    g_PlayerCollider.m_Pos.m_X    = 0.0f;
-    g_PlayerCollider.m_Pos.m_Y    = 0.0f;
-    g_PlayerCollider.m_Pos.m_Z    = 0.0f;
-    g_PlayerCollider.m_Radius     = 0.17f;
-    g_PlayerCollider.m_TopY       = 0.85f;
-    g_PlayerCollider.m_BottomY    = 0.0f;
-    g_PlayerCollider.m_fOnSupport = csrGJKSupportCapsule;
-    csrMat4Identity(&matrix);
-    csrColliderSetRS(&matrix, &g_PlayerCollider);
-
     // configure the vertex format
     vertexFormat.m_HasNormal         = 0;
     vertexFormat.m_HasTexCoords      = 1;
@@ -392,16 +378,29 @@ bool InitScene(int w, int h)
     material.m_Wireframe   = 0;
 
     // create the background
-    g_pBackgroundMesh           = csrShapeCreateSurface(20.0f, 20.0f, &vertexFormat, &vertexCulling, &material, 0);
-    pSceneItem                  = csrSceneAddMesh(g_pScene, g_pBackgroundMesh, 0, 0);
-    pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider     = &g_PlayerCollider;
+    g_pBackgroundMesh = csrShapeCreateSurface(20.0f, 20.0f, &vertexFormat, &vertexCulling, &material, 0);
+    pSceneItem        = csrSceneAddMesh(g_pScene, g_pBackgroundMesh, 0, 0);
     csrSceneAddModelMatrix(g_pScene, g_pBackgroundMesh, &g_BackgroundMatrix);
 
     // load background texture
     CSR_OpenGLHelper::AddTexture(&g_pBackgroundMesh->m_Skin.m_Texture,
                                  LoadTexture((g_SceneDir + BACKGROUND_TEXTURE_FILE).c_str()),
                                  g_OpenGLResources);
+
+    CSR_Matrix4 matrix;
+
+    // create the player collider
+    g_pPlayerCollider               = csrColliderCreate();
+    g_pPlayerCollider->m_State      = CSR_CS_Dynamic;
+    g_pPlayerCollider->m_Pos.m_X    = 0.0f;
+    g_pPlayerCollider->m_Pos.m_Y    = 0.0f;
+    g_pPlayerCollider->m_Pos.m_Z    = 0.0f;
+    g_pPlayerCollider->m_Radius     = 0.17f;
+    g_pPlayerCollider->m_TopY       = 0.85f;
+    g_pPlayerCollider->m_BottomY    = 0.0f;
+    g_pPlayerCollider->m_fOnSupport = csrGJKSupportCapsule;
+    csrMat4Identity(&matrix);
+    csrColliderSetRS(&matrix, g_pPlayerCollider);
 
     CSR_Mesh* pMesh;
 
@@ -415,121 +414,127 @@ bool InitScene(int w, int h)
     // create the player capsule
     pMesh      = csrShapeCreateCapsule(0.85f, 0.17f, 16.0f, &vertexFormat, &vertexCulling, &material, 0);
     pSceneItem = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
+    pSceneItem->m_CollisionType = CSR_CO_GJK;
+    pSceneItem->m_pCollider = g_pPlayerCollider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_PlayerMatrix);
 
     // create the first model collider
-    g_Model1Collider.m_State      =  CSR_CS_Static;
-    g_Model1Collider.m_Pos.m_X    =  5.0f;
-    g_Model1Collider.m_Pos.m_Y    =  0.0f;
-    g_Model1Collider.m_Pos.m_Z    = -2.0f;
-    g_Model1Collider.m_Radius     =  0.17f;
-    g_Model1Collider.m_TopY       =  0.85f;
-    g_Model1Collider.m_BottomY    =  0.0f;
-    g_Model1Collider.m_fOnSupport =  csrGJKSupportCapsule;
+    g_pModel1Collider               =  csrColliderCreate();
+    g_pModel1Collider->m_State      =  CSR_CS_Static;
+    g_pModel1Collider->m_Pos.m_X    =  5.0f;
+    g_pModel1Collider->m_Pos.m_Y    =  0.0f;
+    g_pModel1Collider->m_Pos.m_Z    = -2.0f;
+    g_pModel1Collider->m_Radius     =  0.17f;
+    g_pModel1Collider->m_TopY       =  0.85f;
+    g_pModel1Collider->m_BottomY    =  0.0f;
+    g_pModel1Collider->m_fOnSupport =  csrGJKSupportCapsule;
     csrMat4Identity(&matrix);
-    csrColliderSetRS(&matrix, &g_Model1Collider);
+    csrColliderSetRS(&matrix, g_pModel1Collider);
 
     // set mesh material
     material.m_Color = 0xFF00FFFF;
 
     // build the first model matrix
     csrMat4Identity(&g_Model1Matrix);
-    g_Model1Matrix.m_Table[3][0] = g_Model1Collider.m_Pos.m_X;
-    g_Model1Matrix.m_Table[3][1] = g_Model1Collider.m_Pos.m_Y;
-    g_Model1Matrix.m_Table[3][2] = g_Model1Collider.m_Pos.m_Z;
+    g_Model1Matrix.m_Table[3][0] = g_pModel1Collider->m_Pos.m_X;
+    g_Model1Matrix.m_Table[3][1] = g_pModel1Collider->m_Pos.m_Y;
+    g_Model1Matrix.m_Table[3][2] = g_pModel1Collider->m_Pos.m_Z;
 
     // create the capsule
     pMesh                       = csrShapeCreateCapsule(0.85f, 0.17f, 16.0f, &vertexFormat, &vertexCulling, &material, 0);
     pSceneItem                  = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
     pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider     = &g_Model1Collider;
+    pSceneItem->m_pCollider     = g_pModel1Collider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_Model1Matrix);
 
     // create the second model collider
-    g_Model2Collider.m_State      =  CSR_CS_Static;
-    g_Model2Collider.m_Pos.m_X    = -5.0f;
-    g_Model2Collider.m_Pos.m_Y    =  0.0f;
-    g_Model2Collider.m_Pos.m_Z    =  3.5f;
-    g_Model2Collider.m_Min.m_X    = -0.4f;
-    g_Model2Collider.m_Min.m_Y    = -1.7f;
-    g_Model2Collider.m_Min.m_Z    = -1.3f;
-    g_Model2Collider.m_Max.m_X    =  0.4f;
-    g_Model2Collider.m_Max.m_Y    =  1.7f;
-    g_Model2Collider.m_Max.m_Z    =  1.3f;
-    g_Model2Collider.m_fOnSupport =  csrGJKSupportBox;
+    g_pModel2Collider               =  csrColliderCreate();
+    g_pModel2Collider->m_State      =  CSR_CS_Static;
+    g_pModel2Collider->m_Pos.m_X    = -5.0f;
+    g_pModel2Collider->m_Pos.m_Y    =  0.0f;
+    g_pModel2Collider->m_Pos.m_Z    =  3.5f;
+    g_pModel2Collider->m_Min.m_X    = -0.4f;
+    g_pModel2Collider->m_Min.m_Y    = -1.7f;
+    g_pModel2Collider->m_Min.m_Z    = -1.3f;
+    g_pModel2Collider->m_Max.m_X    =  0.4f;
+    g_pModel2Collider->m_Max.m_Y    =  1.7f;
+    g_pModel2Collider->m_Max.m_Z    =  1.3f;
+    g_pModel2Collider->m_fOnSupport =  csrGJKSupportBox;
     csrMat4Identity(&matrix);
     BuildMatrix(pos, 0.0f, (float)(M_PI * 0.25), (float)(M_PI * 0.15), 1.0f, matrix);
-    csrColliderSetRS(&matrix, &g_Model2Collider);
+    csrColliderSetRS(&matrix, g_pModel2Collider);
 
     // set mesh material
     material.m_Color = 0x00FF00FF;
 
     // build the second model matrix
     csrMat4Identity(&matrix);
-    matrix.m_Table[3][0] = g_Model2Collider.m_Pos.m_X;
-    matrix.m_Table[3][1] = g_Model2Collider.m_Pos.m_Y;
-    matrix.m_Table[3][2] = g_Model2Collider.m_Pos.m_Z;
-    csrMat4Multiply(&g_Model2Collider.m_MatRS, &matrix, &g_Model2Matrix);
+    matrix.m_Table[3][0] = g_pModel2Collider->m_Pos.m_X;
+    matrix.m_Table[3][1] = g_pModel2Collider->m_Pos.m_Y;
+    matrix.m_Table[3][2] = g_pModel2Collider->m_Pos.m_Z;
+    csrMat4Multiply(&g_pModel2Collider->m_MatRS, &matrix, &g_Model2Matrix);
 
     // create the box
     pMesh                       = csrShapeCreateBox(0.8f, 3.4f, 2.6f, 0, &vertexFormat, &vertexCulling, &material, 0);
     pSceneItem                  = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
     pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider     = &g_Model2Collider;
+    pSceneItem->m_pCollider     = g_pModel2Collider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_Model2Matrix);
 
     // create the third model collider
-    g_Model3Collider.m_State      =  CSR_CS_Static;
-    g_Model3Collider.m_Pos.m_X    = -5.0f;
-    g_Model3Collider.m_Pos.m_Y    =  0.2f;
-    g_Model3Collider.m_Pos.m_Z    = -3.5f;
-    g_Model3Collider.m_Radius     =  1.2f;
-    g_Model3Collider.m_fOnSupport =  csrGJKSupportSphere;
+    g_pModel3Collider               =  csrColliderCreate();
+    g_pModel3Collider->m_State      =  CSR_CS_Static;
+    g_pModel3Collider->m_Pos.m_X    = -5.0f;
+    g_pModel3Collider->m_Pos.m_Y    =  0.2f;
+    g_pModel3Collider->m_Pos.m_Z    = -3.5f;
+    g_pModel3Collider->m_Radius     =  1.2f;
+    g_pModel3Collider->m_fOnSupport =  csrGJKSupportSphere;
     csrMat4Identity(&matrix);
-    csrColliderSetRS(&matrix, &g_Model3Collider);
+    csrColliderSetRS(&matrix, g_pModel3Collider);
 
     // set mesh material
     material.m_Color = 0xFFFF00FF;
 
     // build the third model matrix
     csrMat4Identity(&g_Model3Matrix);
-    g_Model3Matrix.m_Table[3][0] = g_Model3Collider.m_Pos.m_X;
-    g_Model3Matrix.m_Table[3][1] = g_Model3Collider.m_Pos.m_Y;
-    g_Model3Matrix.m_Table[3][2] = g_Model3Collider.m_Pos.m_Z;
+    g_Model3Matrix.m_Table[3][0] = g_pModel3Collider->m_Pos.m_X;
+    g_Model3Matrix.m_Table[3][1] = g_pModel3Collider->m_Pos.m_Y;
+    g_Model3Matrix.m_Table[3][2] = g_pModel3Collider->m_Pos.m_Z;
 
     // create the sphere
     pMesh                       = csrShapeCreateSphere(1.2f, 20, 20, &vertexFormat, &vertexCulling, &material, 0);
     pSceneItem                  = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
     pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider     = &g_Model3Collider;
+    pSceneItem->m_pCollider     = g_pModel3Collider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_Model3Matrix);
 
     // create the fourth model collider
-    g_Model4Collider.m_State      = CSR_CS_Static;
-    g_Model4Collider.m_Pos.m_X    = 5.0f;
-    g_Model4Collider.m_Pos.m_Y    = 0.2f;
-    g_Model4Collider.m_Pos.m_Z    = 4.1f;
-    g_Model4Collider.m_Radius     = 2.1f;
-    g_Model4Collider.m_TopY       = 1.5f;
-    g_Model4Collider.m_BottomY    = 0.0f;
-    g_Model4Collider.m_fOnSupport = csrGJKSupportCylinder;
+    g_pModel4Collider               = csrColliderCreate();
+    g_pModel4Collider->m_State      = CSR_CS_Static;
+    g_pModel4Collider->m_Pos.m_X    = 5.0f;
+    g_pModel4Collider->m_Pos.m_Y    = 0.2f;
+    g_pModel4Collider->m_Pos.m_Z    = 4.1f;
+    g_pModel4Collider->m_Radius     = 2.1f;
+    g_pModel4Collider->m_TopY       = 1.5f;
+    g_pModel4Collider->m_BottomY    = 0.0f;
+    g_pModel4Collider->m_fOnSupport = csrGJKSupportCylinder;
     csrMat4Identity(&matrix);
-    csrColliderSetRS(&matrix, &g_Model4Collider);
+    csrColliderSetRS(&matrix, g_pModel4Collider);
 
     // set mesh material
     material.m_Color = 0x00FFFFFF;
 
     // build the fourth model matrix
     csrMat4Identity(&g_Model4Matrix);
-    g_Model4Matrix.m_Table[3][0] = g_Model4Collider.m_Pos.m_X;
-    g_Model4Matrix.m_Table[3][1] = g_Model4Collider.m_Pos.m_Y;
-    g_Model4Matrix.m_Table[3][2] = g_Model4Collider.m_Pos.m_Z;
+    g_Model4Matrix.m_Table[3][0] = g_pModel4Collider->m_Pos.m_X;
+    g_Model4Matrix.m_Table[3][1] = g_pModel4Collider->m_Pos.m_Y;
+    g_Model4Matrix.m_Table[3][2] = g_pModel4Collider->m_Pos.m_Z;
 
     // create the cylinder
     pMesh                       = csrShapeCreateCylinder(2.1f, 2.1f, 1.5f, 20, &vertexFormat, &vertexCulling, &material, 0);
     pSceneItem                  = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
     pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider     = &g_Model4Collider;
+    pSceneItem->m_pCollider     = g_pModel4Collider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_Model4Matrix);
 
     // initialize the arcball
@@ -545,6 +550,9 @@ void DeleteScene()
 {
     g_Initialized = false;
 
+    // delete scene content
+    csrSceneRelease(g_pScene, nullptr);
+
     // delete scene shaders
     csrOpenGLShaderRelease(g_pColShader);
     csrOpenGLShaderRelease(g_pTexShader);
@@ -552,54 +560,55 @@ void DeleteScene()
 //------------------------------------------------------------------------------
 void UpdateScene(float elapsedTime)
 {
-    CSR_Vector3 oldPos;
-
-    // keep the previous player position
-    oldPos.m_X = g_PlayerCollider.m_Pos.m_X;
-    oldPos.m_Y = g_PlayerCollider.m_Pos.m_Y;
-    oldPos.m_Z = g_PlayerCollider.m_Pos.m_Z;
-
-    CSR_Vector3 oldArcballPos;
-
-    // keep the previous arcball position
-    oldArcballPos.m_X = g_Arcball.m_Position.m_X;
-    oldArcballPos.m_Y = g_Arcball.m_Position.m_Y;
-    oldArcballPos.m_Z = g_Arcball.m_Position.m_Z;
-
     // update the arcball position
     UpdatePos(g_Arcball, (float)(elapsedTime * 1000.0f));
 
     // update the collider position
-    g_PlayerCollider.m_Pos.m_X = -g_Arcball.m_Position.m_X;
-    g_PlayerCollider.m_Pos.m_Y =  0.0f;
-    g_PlayerCollider.m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
+    g_pPlayerCollider->m_Pos.m_X = -g_Arcball.m_Position.m_X;
+    g_pPlayerCollider->m_Pos.m_Y =  0.0f;
+    g_pPlayerCollider->m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
 
-    CSR_CollisionInput colInput;
-    csrCollisionInputInit(&colInput);
+    bool colFound;
 
-    CSR_CollisionOutput colOutput;
-    csrCollisionOutputInit(&colOutput);
-
-    // detect the collisions in the scene
-    csrSceneDetectCollision(g_pScene, &colInput, &colOutput, 0);
-
-    // found a collision?
-    if (colOutput.m_pColliders && colOutput.m_pColliders->m_Count)
+    do
     {
-        // revert the previous position. Not very good but just for the demo
-        g_PlayerCollider.m_Pos.m_X = oldPos.m_X;
-        g_PlayerCollider.m_Pos.m_Y = oldPos.m_Y;
-        g_PlayerCollider.m_Pos.m_Z = oldPos.m_Z;
+        colFound = false;
 
-        g_Arcball.m_Position.m_X = oldArcballPos.m_X;
-        g_Arcball.m_Position.m_Y = oldArcballPos.m_Y;
-        g_Arcball.m_Position.m_Z = oldArcballPos.m_Z;
+        CSR_CollisionInput colInput;
+        csrCollisionInputInit(&colInput);
+
+        CSR_CollisionOutput colOutput;
+        csrCollisionOutputInit(&colOutput);
+
+        // detect the collisions in the scene
+        csrSceneDetectCollision(g_pScene, &colInput, &colOutput, 0);
+
+        // found a collision?
+        if (colOutput.m_pColliders && colOutput.m_pColliders->m_Count)
+        {
+            // propose a new position for the player
+            g_xPos -= g_Velocity * cosf(g_Arcball.m_AngleY + (float)(M_PI * 0.5)) * ((float)(elapsedTime * 1000.0f) * 0.05f);
+            g_zPos -= g_Velocity * sinf(g_Arcball.m_AngleY - (float)(M_PI * 0.5)) * ((float)(elapsedTime * 1000.0f) * 0.05f);
+
+            // update the arcball position
+            g_Arcball.m_Position.m_X = g_xPos;
+            g_Arcball.m_Position.m_Y = -0.5f;
+            g_Arcball.m_Position.m_Z = -2.0f - g_zPos;
+
+            // update the collider position
+            g_pPlayerCollider->m_Pos.m_X = -g_Arcball.m_Position.m_X;
+            g_pPlayerCollider->m_Pos.m_Y =  0.0f;
+            g_pPlayerCollider->m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
+
+            colFound = true;
+        }
     }
+    while (colFound);
 
     // update the player matrix
-    g_PlayerMatrix.m_Table[3][0] = g_PlayerCollider.m_Pos.m_X;
-    g_PlayerMatrix.m_Table[3][1] = g_PlayerCollider.m_Pos.m_Y;
-    g_PlayerMatrix.m_Table[3][2] = g_PlayerCollider.m_Pos.m_Z;
+    g_PlayerMatrix.m_Table[3][0] = g_pPlayerCollider->m_Pos.m_X;
+    g_PlayerMatrix.m_Table[3][1] = g_pPlayerCollider->m_Pos.m_Y;
+    g_PlayerMatrix.m_Table[3][2] = g_pPlayerCollider->m_Pos.m_Z;
 
     // get the view matrix matching with the camera
     csrSceneArcBallToMatrix(&g_Arcball, &g_pScene->m_ViewMatrix);
