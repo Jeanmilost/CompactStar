@@ -55,6 +55,7 @@ var annotated_dup =
     [ "CSR_Collada_Vertices", "struct_c_s_r___collada___vertices.html", "struct_c_s_r___collada___vertices" ],
     [ "CSR_Collada_Visual_Scene", "struct_c_s_r___collada___visual___scene.html", "struct_c_s_r___collada___visual___scene" ],
     [ "CSR_Collada_Visual_Scenes", "struct_c_s_r___collada___visual___scenes.html", "struct_c_s_r___collada___visual___scenes" ],
+    [ "CSR_Collider", "struct_c_s_r___collider.html", "struct_c_s_r___collider" ],
     [ "CSR_CollisionInput", "struct_c_s_r___collision_input.html", "struct_c_s_r___collision_input" ],
     [ "CSR_CollisionOutput", "struct_c_s_r___collision_output.html", "struct_c_s_r___collision_output" ],
     [ "CSR_Color", "struct_c_s_r___color.html", "struct_c_s_r___color" ],

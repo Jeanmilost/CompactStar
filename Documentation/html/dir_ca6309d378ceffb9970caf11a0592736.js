@@ -12,6 +12,8 @@ var dir_ca6309d378ceffb9970caf11a0592736 =
     [ "CSR_DebugHelper.h", "_c_s_r___debug_helper_8h.html", "_c_s_r___debug_helper_8h" ],
     [ "CSR_Geometry.c", "_c_s_r___geometry_8c.html", "_c_s_r___geometry_8c" ],
     [ "CSR_Geometry.h", "_c_s_r___geometry_8h.html", "_c_s_r___geometry_8h" ],
+    [ "CSR_GJK.c", "_c_s_r___g_j_k_8c.html", "_c_s_r___g_j_k_8c" ],
+    [ "CSR_GJK.h", "_c_s_r___g_j_k_8h.html", "_c_s_r___g_j_k_8h" ],
     [ "CSR_Iqm.c", "_c_s_r___iqm_8c.html", "_c_s_r___iqm_8c" ],
     [ "CSR_Iqm.h", "_c_s_r___iqm_8h.html", "_c_s_r___iqm_8h" ],
     [ "CSR_Lighting.c", "_c_s_r___lighting_8c.html", "_c_s_r___lighting_8c" ],

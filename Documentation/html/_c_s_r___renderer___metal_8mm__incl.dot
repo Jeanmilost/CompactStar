@@ -1,10 +1,10 @@
-digraph "C:/Data/Devel/Jeanmilost/CompactStar/SDK/CSR_Renderer_Metal.mm"
+digraph "C:/Data/Devel/Jeanmilost/CompactStar-1.10/SDK/CSR_Renderer_Metal.mm"
 {
  // LATEX_PDF_SIZE
   bgcolor="transparent";
   edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
   node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
-  Node1 [id="Node000001",label="C:/Data/Devel/Jeanmilost\l/CompactStar/SDK/CSR_Renderer\l_Metal.mm",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 [id="Node000001",label="C:/Data/Devel/Jeanmilost\l/CompactStar-1.10/SDK/CSR\l_Renderer_Metal.mm",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
   Node2 [id="Node000002",label="CSR_Renderer_Metal.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$_c_s_r___renderer___metal_8h.html",tooltip=" "];
   Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
@@ -85,22 +85,26 @@ digraph "C:/Data/Devel/Jeanmilost/CompactStar/SDK/CSR_Renderer_Metal.mm"
   Node17 -> Node3 [id="edge62_Node000017_Node000003",color="steelblue1",style="solid",tooltip=" "];
   Node17 -> Node5 [id="edge63_Node000017_Node000005",color="steelblue1",style="solid",tooltip=" "];
   Node17 -> Node6 [id="edge64_Node000017_Node000006",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node9 [id="edge65_Node000016_Node000009",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node15 [id="edge66_Node000016_Node000015",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node10 [id="edge67_Node000016_Node000010",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node11 [id="edge68_Node000016_Node000011",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node12 [id="edge69_Node000016_Node000012",color="steelblue1",style="solid",tooltip=" "];
-  Node16 -> Node13 [id="edge70_Node000016_Node000013",color="steelblue1",style="solid",tooltip=" "];
-  Node1 -> Node18 [id="edge71_Node000001_Node000018",color="steelblue1",style="solid",tooltip=" "];
-  Node18 [id="Node000018",label="stdlib.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
-  Node1 -> Node19 [id="edge72_Node000001_Node000019",color="steelblue1",style="solid",tooltip=" "];
-  Node19 [id="Node000019",label="memory.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
-  Node1 -> Node20 [id="edge73_Node000001_Node000020",color="steelblue1",style="solid",tooltip=" "];
-  Node20 [id="Node000020",label="string",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
-  Node1 -> Node21 [id="edge74_Node000001_Node000021",color="steelblue1",style="solid",tooltip=" "];
-  Node21 [id="Node000021",label="vector",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
-  Node1 -> Node22 [id="edge75_Node000001_Node000022",color="steelblue1",style="solid",tooltip=" "];
-  Node22 [id="Node000022",label="map",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
-  Node1 -> Node23 [id="edge76_Node000001_Node000023",color="steelblue1",style="solid",tooltip=" "];
-  Node23 [id="Node000023",label="CoreGraphics/CGImage.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node16 -> Node18 [id="edge65_Node000016_Node000018",color="steelblue1",style="solid",tooltip=" "];
+  Node18 [id="Node000018",label="CSR_GJK.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$_c_s_r___g_j_k_8h.html",tooltip=" "];
+  Node18 -> Node3 [id="edge66_Node000018_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node18 -> Node5 [id="edge67_Node000018_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node9 [id="edge68_Node000016_Node000009",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node15 [id="edge69_Node000016_Node000015",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node10 [id="edge70_Node000016_Node000010",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node11 [id="edge71_Node000016_Node000011",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node12 [id="edge72_Node000016_Node000012",color="steelblue1",style="solid",tooltip=" "];
+  Node16 -> Node13 [id="edge73_Node000016_Node000013",color="steelblue1",style="solid",tooltip=" "];
+  Node1 -> Node19 [id="edge74_Node000001_Node000019",color="steelblue1",style="solid",tooltip=" "];
+  Node19 [id="Node000019",label="stdlib.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node1 -> Node20 [id="edge75_Node000001_Node000020",color="steelblue1",style="solid",tooltip=" "];
+  Node20 [id="Node000020",label="memory.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node1 -> Node21 [id="edge76_Node000001_Node000021",color="steelblue1",style="solid",tooltip=" "];
+  Node21 [id="Node000021",label="string",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node1 -> Node22 [id="edge77_Node000001_Node000022",color="steelblue1",style="solid",tooltip=" "];
+  Node22 [id="Node000022",label="vector",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node1 -> Node23 [id="edge78_Node000001_Node000023",color="steelblue1",style="solid",tooltip=" "];
+  Node23 [id="Node000023",label="map",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
+  Node1 -> Node24 [id="edge79_Node000001_Node000024",color="steelblue1",style="solid",tooltip=" "];
+  Node24 [id="Node000024",label="CoreGraphics/CGImage.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
 }

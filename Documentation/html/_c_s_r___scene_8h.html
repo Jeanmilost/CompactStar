@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>CompactStar SDK: C:/Data/Devel/Jeanmilost/CompactStar/SDK/CSR_Scene.h File Reference</title>
+<title>CompactStar SDK: C:/Data/Devel/Jeanmilost/CompactStar-1.10/SDK/CSR_Scene.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="CompactStarIcon_64x64.png"/></td>
   <td id="projectalign">
-   <div id="projectname">CompactStar SDK<span id="projectnumber">&#160;1.09</span>
+   <div id="projectname">CompactStar SDK<span id="projectnumber">&#160;1.10</span>
    </div>
   </td>
  </tr>
@@ -102,6 +102,7 @@ $(document).ready(function(){initNavTree('_c_s_r___scene_8h.html',''); initResiz
 <div class="textblock"><code>#include &quot;<a class="el" href="_c_s_r___common_8h_source.html">CSR_Common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_c_s_r___geometry_8h_source.html">CSR_Geometry.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_c_s_r___collision_8h_source.html">CSR_Collision.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_c_s_r___g_j_k_8h_source.html">CSR_GJK.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_c_s_r___model_8h_source.html">CSR_Model.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_c_s_r___renderer_8h_source.html">CSR_Renderer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_c_s_r___mdl_8h_source.html">CSR_Mdl.h</a>&quot;</code><br />
@@ -111,12 +112,12 @@ $(document).ready(function(){initNavTree('_c_s_r___scene_8h.html',''); initResiz
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CSR_Scene.h:</div>
 <div class="dyncontent">
-<div class="center"><img src="_c_s_r___scene_8h__incl.png" border="0" usemap="#a_c_1_2_data_2_devel_2_jeanmilost_2_compact_star_2_s_d_k_2_c_s_r___scene_8h" alt=""/></div>
+<div class="center"><img src="_c_s_r___scene_8h__incl.png" border="0" usemap="#a_c_1_2_data_2_devel_2_jeanmilost_2_compact_star-1_810_2_s_d_k_2_c_s_r___scene_8h" alt=""/></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><img src="_c_s_r___scene_8h__dep__incl.png" border="0" usemap="#a_c_1_2_data_2_devel_2_jeanmilost_2_compact_star_2_s_d_k_2_c_s_r___scene_8hdep" alt=""/></div>
+<div class="center"><img src="_c_s_r___scene_8h__dep__incl.png" border="0" usemap="#a_c_1_2_data_2_devel_2_jeanmilost_2_compact_star-1_810_2_s_d_k_2_c_s_r___scene_8hdep" alt=""/></div>
 </div>
 </div>
 <p><a href="_c_s_r___scene_8h_source.html">Go to the source code of this file.</a></p>
@@ -190,9 +191,10 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483ac80ffb1ea3a0178e8e8106bc18172628">CSR_CO_None</a> = 0x0
 , <a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a085bc4793d4cb72e70cdc04de3d7f44d">CSR_CO_Ground</a> = 0x1
 , <a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a35bf273150b2a5cafbd7d802bd4421ad">CSR_CO_Edge</a> = 0x2
-, <a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a9927674d1e7b2100a9c49b2ec8e2209b">CSR_CO_Mouse</a> = 0x4
+, <a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483afdae70d56ec0ede9902568def8f0c309">CSR_CO_GJK</a> = 0x4
 , <br />
-&#160;&#160;<a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a9a022d2be46df1908a8876cc04551b80">CSR_CO_Custom</a> = 0x8
+&#160;&#160;<a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a9927674d1e7b2100a9c49b2ec8e2209b">CSR_CO_Mouse</a> = 0x8
+, <a class="el" href="_c_s_r___scene_8h.html#a6c21df0b83fa536bed9d5db834252483a9a022d2be46df1908a8876cc04551b80">CSR_CO_Custom</a> = 0x10
 <br />
  }</td></tr>
 <tr class="separator:a6c21df0b83fa536bed9d5db834252483"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -570,6 +572,7 @@ Functions</h2></td></tr>
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483ac80ffb1ea3a0178e8e8106bc18172628" name="a6c21df0b83fa536bed9d5db834252483ac80ffb1ea3a0178e8e8106bc18172628"></a>CSR_CO_None&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483a085bc4793d4cb72e70cdc04de3d7f44d" name="a6c21df0b83fa536bed9d5db834252483a085bc4793d4cb72e70cdc04de3d7f44d"></a>CSR_CO_Ground&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483a35bf273150b2a5cafbd7d802bd4421ad" name="a6c21df0b83fa536bed9d5db834252483a35bf273150b2a5cafbd7d802bd4421ad"></a>CSR_CO_Edge&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483afdae70d56ec0ede9902568def8f0c309" name="a6c21df0b83fa536bed9d5db834252483afdae70d56ec0ede9902568def8f0c309"></a>CSR_CO_GJK&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483a9927674d1e7b2100a9c49b2ec8e2209b" name="a6c21df0b83fa536bed9d5db834252483a9927674d1e7b2100a9c49b2ec8e2209b"></a>CSR_CO_Mouse&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a6c21df0b83fa536bed9d5db834252483a9a022d2be46df1908a8876cc04551b80" name="a6c21df0b83fa536bed9d5db834252483a9a022d2be46df1908a8876cc04551b80"></a>CSR_CO_Custom&#160;</td><td class="fielddoc"></td></tr>
 </table>

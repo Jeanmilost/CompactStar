@@ -1,10 +1,10 @@
-digraph "C:/Data/Devel/Jeanmilost/CompactStar/SDK/CSR_Renderer_Metal_Types.h"
+digraph "C:/Data/Devel/Jeanmilost/CompactStar-1.10/SDK/CSR_Renderer_Metal_Types.h"
 {
  // LATEX_PDF_SIZE
   bgcolor="transparent";
   edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
   node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
-  Node1 [id="Node000001",label="C:/Data/Devel/Jeanmilost\l/CompactStar/SDK/CSR_Renderer\l_Metal_Types.h",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 [id="Node000001",label="C:/Data/Devel/Jeanmilost\l/CompactStar-1.10/SDK/CSR\l_Renderer_Metal_Types.h",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
   Node2 [id="Node000002",label="simd/simd.h",height=0.2,width=0.4,color="grey60", fillcolor="#E0E0E0", style="filled",tooltip=" "];
 }
