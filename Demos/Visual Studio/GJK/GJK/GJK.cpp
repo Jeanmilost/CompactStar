@@ -159,12 +159,12 @@ void UpdatePos(CSR_ArcBall& arcball, double elapsedTime)
     {
         // move player forward
         g_xPos += g_Velocity * std::cosf(arcball.m_AngleY + (float)(M_PI * 0.5)) * (float)(elapsedTime * 0.025);
-        g_zPos += g_Velocity * std::sinf(arcball.m_AngleY - (float)(M_PI * 0.5)) * (float)(elapsedTime * 0.025);
+        g_zPos += g_Velocity * std::sinf(arcball.m_AngleY + (float)(M_PI * 0.5)) * (float)(elapsedTime * 0.025);
     }
 
     arcball.m_Position.m_X =  g_xPos;
     arcball.m_Position.m_Y = -0.5f;
-    arcball.m_Position.m_Z = -2.0f - g_zPos;
+    arcball.m_Position.m_Z =  2.0f + g_zPos;
 }
 //---------------------------------------------------------------------------
 GLuint LoadTexture(const char* pFileName)
@@ -404,18 +404,19 @@ bool InitScene(int w, int h)
 
     CSR_Mesh* pMesh;
 
-    // set mesh format and material
+    // set mesh format, material and culling
     vertexFormat.m_HasTexCoords = 0;
-    material.m_Color = 0x0000FFFF;
+    material.m_Color            = 0x0000FFFF;
+    vertexCulling.m_Type        = CSR_CT_Back;
 
     // build the player matrix
     csrMat4Identity(&g_PlayerMatrix);
 
     // create the player capsule
-    pMesh      = csrShapeCreateCapsule(0.85f, 0.17f, 16.0f, &vertexFormat, &vertexCulling, &material, 0);
-    pSceneItem = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
+    pMesh                       = csrShapeCreateCapsule(0.85f, 0.17f, 16.0f, &vertexFormat, &vertexCulling, &material, 0);
+    pSceneItem                  = csrSceneAddMesh(g_pScene, pMesh, 0, 0);
     pSceneItem->m_CollisionType = CSR_CO_GJK;
-    pSceneItem->m_pCollider = g_pPlayerCollider;
+    pSceneItem->m_pCollider     = g_pPlayerCollider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_PlayerMatrix);
 
     // create the first model collider
@@ -446,6 +447,9 @@ bool InitScene(int w, int h)
     pSceneItem->m_CollisionType = CSR_CO_GJK;
     pSceneItem->m_pCollider     = g_pModel1Collider;
     csrSceneAddModelMatrix(g_pScene, pMesh, &g_Model1Matrix);
+
+    // set mesh culling
+    vertexCulling.m_Type = CSR_CT_Front;
 
     // create the second model collider
     g_pModel2Collider               =  csrColliderCreate();
@@ -561,49 +565,37 @@ void DeleteScene()
 void UpdateScene(float elapsedTime)
 {
     // update the arcball position
-    UpdatePos(g_Arcball, (float)(elapsedTime * 1000.0f));
+    UpdatePos(g_Arcball, (double)elapsedTime * 1000.0);
 
     // update the collider position
     g_pPlayerCollider->m_Pos.m_X = -g_Arcball.m_Position.m_X;
     g_pPlayerCollider->m_Pos.m_Y =  0.0f;
     g_pPlayerCollider->m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
 
-    bool colFound;
+    CSR_CollisionInput colInput;
+    csrCollisionInputInit(&colInput);
 
-    do
+    CSR_CollisionOutput colOutput;
+    csrCollisionOutputInit(&colOutput);
+
+    // detect the collisions in the scene
+    csrSceneDetectCollision(g_pScene, &colInput, &colOutput, 0);
+
+    // found a collision?
+    if (colOutput.m_pColliders && colOutput.m_pColliders->m_Count)
     {
-        colFound = false;
+        // update the player position
+        g_xPos -= colOutput.m_MinTransVec.m_X;
+        g_zPos -= colOutput.m_MinTransVec.m_Z;
 
-        CSR_CollisionInput colInput;
-        csrCollisionInputInit(&colInput);
+        // update the arcball position
+        g_Arcball.m_Position.m_X += colOutput.m_MinTransVec.m_X;
+        g_Arcball.m_Position.m_Z += colOutput.m_MinTransVec.m_Z;
 
-        CSR_CollisionOutput colOutput;
-        csrCollisionOutputInit(&colOutput);
-
-        // detect the collisions in the scene
-        csrSceneDetectCollision(g_pScene, &colInput, &colOutput, 0);
-
-        // found a collision?
-        if (colOutput.m_pColliders && colOutput.m_pColliders->m_Count)
-        {
-            // propose a new position for the player
-            g_xPos -= g_Velocity * cosf(g_Arcball.m_AngleY + (float)(M_PI * 0.5)) * ((float)(elapsedTime * 1000.0f) * 0.05f);
-            g_zPos -= g_Velocity * sinf(g_Arcball.m_AngleY - (float)(M_PI * 0.5)) * ((float)(elapsedTime * 1000.0f) * 0.05f);
-
-            // update the arcball position
-            g_Arcball.m_Position.m_X = g_xPos;
-            g_Arcball.m_Position.m_Y = -0.5f;
-            g_Arcball.m_Position.m_Z = -2.0f - g_zPos;
-
-            // update the collider position
-            g_pPlayerCollider->m_Pos.m_X = -g_Arcball.m_Position.m_X;
-            g_pPlayerCollider->m_Pos.m_Y =  0.0f;
-            g_pPlayerCollider->m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
-
-            colFound = true;
-        }
+        // update the collider position
+        g_pPlayerCollider->m_Pos.m_X = -g_Arcball.m_Position.m_X;
+        g_pPlayerCollider->m_Pos.m_Z = -g_Arcball.m_Position.m_Z;
     }
-    while (colFound);
 
     // update the player matrix
     g_PlayerMatrix.m_Table[3][0] = g_pPlayerCollider->m_Pos.m_X;

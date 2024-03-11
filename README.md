@@ -64,11 +64,12 @@ This project depends on several third-party libraries, which are:
 
 These third-party libraries depend on which OS is targetted, but are cross-platform, and are normally available on any OS. Please refer to the original website for the documentation, updates, and licenses.
 
-Several [Blender](https://www.blender.org/) plugins were also used to export Quake I (.mdl) and DirectX (.x) model formats. You may find them on the following websites:
+Several [Blender](https://www.blender.org/) plugins were also used to export Quake I (.mdl), DirectX (.x) and Inter-Quake (.iqm) model formats. You may find them on the following websites:
 - Quake I (.mdl)
   - For Blender 2.79 and earlier: http://quakeforge.net/files.php
   - For Blender 2.80 and higher: https://github.com/victorfeitosa/quake-hexen2-mdl-export-import
 - DirectX (.x) for Blender 2.80 and higher: https://github.com/DodgeeSoftware/io_scene_directx
+- Inter-Quake Model (.iqm) for Blender 2.49 to 2.93: https://github.com/lsalzman/iqm
 
 ## Assets
 Several free assets were used in the demo projects. For convenience, they were left with the demo projects, as a part of them.
