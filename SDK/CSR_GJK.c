@@ -568,7 +568,7 @@ void FindMinTranslationVec(const CSR_Vector3*  pA,
         numLooseEdges = 0;
 
         // find all triangles that are facing p
-        for (size_t i = 0; i < numFaces; ++i)
+        for (i = 0; i < numFaces; ++i)
         {
             csrVec3Sub(&p,           &faces[i][0], &pToFace);
             csrVec3Dot(&faces[i][3], &pToFace,     &facesDot);
