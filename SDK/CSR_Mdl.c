@@ -375,8 +375,8 @@ typedef struct
 */
 typedef struct
 {
-    unsigned char m_Type;
-    unsigned char m_Count;
+    unsigned      m_Type;
+    unsigned      m_Count;
     CSR_MDLVertex m_BoundingBoxMin;
     CSR_MDLVertex m_BoundingBoxMax;
     float*        m_pTime;
