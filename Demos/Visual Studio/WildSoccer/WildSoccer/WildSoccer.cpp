@@ -406,6 +406,9 @@ GLuint LoadCubemap(const IFileNames fileNames)
                                              pPixelBuffer->m_Height *
                                              3);
 
+            if (!pPixels)
+                return M_CSR_Error_Code;
+
             // get bitmap data into right format
             for (y = 0; y < pPixelBuffer->m_Height; ++y)
                 for (x = 0; x < pPixelBuffer->m_Width; ++x)
