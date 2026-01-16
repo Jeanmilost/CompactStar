@@ -695,6 +695,10 @@ CSR_Mesh* csrShapeCreateCylinder(float                 minRadius,
         int         i;
         float       angle;
         float       step;
+        float       radiusDiff;
+        float       normalLength;
+        float       normalY;
+        float       normalRadial;
         CSR_Vector3 vertex = {0};
         CSR_Vector3 normal = {0};
         CSR_Vector2 uv     = {0};
@@ -703,6 +707,10 @@ CSR_Mesh* csrShapeCreateCylinder(float                 minRadius,
         int         i;
         float       angle;
         float       step;
+        float       radiusDiff;
+        float       normalLength;
+        float       normalY;
+        float       normalRadial;
         CSR_Vector3 vertex;
         CSR_Vector3 normal;
         CSR_Vector2 uv;
@@ -749,6 +757,12 @@ CSR_Mesh* csrShapeCreateCylinder(float                 minRadius,
     // calculate step to apply between faces
     step = (float)(2.0 * M_PI) / (float)faces;
 
+    // calculate normal components for truncated cone. In this case, the normal is perpendicular to the slanted surface
+    radiusDiff   =  maxRadius - minRadius;
+    normalLength =  sqrtf(height * height + radiusDiff * radiusDiff);
+    normalY      = -radiusDiff / normalLength;
+    normalRadial =  height     / normalLength;
+
     // iterate through vertices to create
     for (i = 0; i < faces + 1; ++i)
     {
@@ -764,27 +778,20 @@ CSR_Mesh* csrShapeCreateCylinder(float                 minRadius,
         if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normals
-            normal.m_X = cosf(angle);
-            normal.m_Y = 0.0f;
-            normal.m_Z = sinf(angle);
+            normal.m_X = normalRadial * cosf(angle);
+            normal.m_Y = normalY;
+            normal.m_Z = normalRadial * sinf(angle);
+
+            // normalize the normal vector (should already be normalized, but ensure it)
+            csrVec3Normalize(&normal, &normal);
         }
 
         // vertex has UV texture coordinates?
         if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
-            // is the first point to calculate?
-            if (!i)
-            {
-                // add texture coordinates data to buffer
-                uv.m_X = 0.0f;
-                uv.m_Y = 0.0f;
-            }
-            else
-            {
-                // add texture coordinates data to buffer
-                uv.m_X = 1.0f / (float)i;
-                uv.m_Y = 0.0f;
-            }
+            // add texture coordinates data to buffer
+            uv.m_X = ((float)i / (float)faces);
+            uv.m_Y = 0.0f;
         }
 
         // add the vertex to the buffer
@@ -799,27 +806,20 @@ CSR_Mesh* csrShapeCreateCylinder(float                 minRadius,
         if (pMesh->m_pVB->m_Format.m_HasNormal)
         {
             // set normals
-            normal.m_X = cosf(angle);
-            normal.m_Y = 0.0f;
-            normal.m_Z = sinf(angle);
+            normal.m_X = normalRadial * cosf(angle);
+            normal.m_Y = normalY;
+            normal.m_Z = normalRadial * sinf(angle);
+
+            // normalize the normal vector (should already be normalized, but ensure it)
+            csrVec3Normalize(&normal, &normal);
         }
 
         // vertex has UV texture coordinates?
         if (pMesh->m_pVB->m_Format.m_HasTexCoords)
         {
-            // is the first point to calculate?
-            if (!i)
-            {
-                // add texture coordinates data to buffer
-                uv.m_X = 0.0f;
-                uv.m_Y = 1.0f;
-            }
-            else
-            {
-                // add texture coordinates data to buffer
-                uv.m_X = 1.0f / (float)i;
-                uv.m_Y = 1.0f;
-            }
+            // add texture coordinates data to buffer
+            uv.m_X = ((float)i / (float)faces);
+            uv.m_Y = 1.0f;
         }
 
         // add the vertex to the buffer
