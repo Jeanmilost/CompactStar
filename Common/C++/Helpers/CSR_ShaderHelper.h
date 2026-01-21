@@ -43,7 +43,8 @@ class CSR_ShaderHelper
             IE_ST_Color,
             IE_ST_Texture,
             IE_ST_Skybox,
-            IE_ST_Line
+            IE_ST_Line,
+            IE_ST_Water
         };
 
         /**
