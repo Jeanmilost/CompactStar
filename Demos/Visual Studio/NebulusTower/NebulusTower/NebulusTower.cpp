@@ -70,60 +70,59 @@
 //----------------------------------------------------------------------------
 typedef std::vector<std::string> IFileNames;
 //------------------------------------------------------------------------------
-HDC                          g_hDC                  = 0;
-HGLRC                        g_hRC                  = 0;
-CSR_Scene*                   g_pScene               = nullptr;
-CSR_OpenGLShader*            g_pSkyboxShader        = nullptr;
-CSR_OpenGLShader*            g_pTextureShader       = nullptr;
-CSR_OpenGLShader*            g_pColorShader         = nullptr;
-CSR_OpenGLShader*            g_pLineShader          = nullptr;
-CSR_OpenGLShader*            g_pWaterShader         = nullptr;
+HDC                          g_hDC             = 0;
+HGLRC                        g_hRC             = 0;
+CSR_Scene*                   g_pScene          = nullptr;
+CSR_OpenGLShader*            g_pSkyboxShader   = nullptr;
+CSR_OpenGLShader*            g_pTextureShader  = nullptr;
+CSR_OpenGLShader*            g_pColorShader    = nullptr;
+CSR_OpenGLShader*            g_pLineShader     = nullptr;
+CSR_OpenGLShader*            g_pWaterShader    = nullptr;
 CSR_SceneContext             g_SceneContext;
 CSR_ArcBall                  g_Arcball;
 CSR_OpenGLHelper::IResources g_OpenGLResources;
 std::vector<std::string>     g_TextureKeys;
-ALCdevice*                   g_pOpenALDevice        = nullptr;
-ALCcontext*                  g_pOpenALContext       = nullptr;
-CSR_IQM*                     g_pPlayerModel         = nullptr;
-CSR_Mesh*                    g_pTowerMesh           = nullptr;
-CSR_Mesh*                    g_pWaterMesh           = nullptr;
-CSR_Collider*                g_pPlayerCollider      = nullptr;
-CSR_Sound*                   g_pFootstepsSound      = nullptr;
-CSR_Sound*                   g_pWaterSound          = nullptr;
+ALCdevice*                   g_pOpenALDevice   = nullptr;
+ALCcontext*                  g_pOpenALContext  = nullptr;
+CSR_IQM*                     g_pPlayerModel    = nullptr;
+CSR_Mesh*                    g_pTowerMesh      = nullptr;
+CSR_Mesh*                    g_pWaterMesh      = nullptr;
+CSR_Collider*                g_pPlayerCollider = nullptr;
+CSR_Sound*                   g_pFootstepsSound = nullptr;
+CSR_Sound*                   g_pWaterSound     = nullptr;
 CSR_Matrix4                  g_PlayerMatrix;
 CSR_Matrix4                  g_PlayerColliderMatrix;
 CSR_Matrix4                  g_TowerMatrix;
 CSR_Matrix4                  g_WaterMatrix;
 std::string                  g_SceneDir;
-std::size_t                  g_FrameCount           = 0;
-std::size_t                  g_FPS                  = 20;
-std::size_t                  g_AnimCount            = 0;
-std::size_t                  g_MaxAnimFrame         = 60;
-const std::size_t            g_PlatformCount        = 22;
-float                        g_xPos                 = 0.0f;
-float                        g_yPos                 = 0.0f;
-float                        g_zPos                 = 0.0f;
-float                        g_Distance             = 1.4f;
-float                        g_PlayerShift          = 0.25f;
-float                        g_WalkOffset           = 1.0f;
-float                        g_Angle                = 0.0f;
-float                        g_Velocity             = 0.75f;
-float                        g_Gravity              = 0.5f;
-float                        g_Time                 = 0.0f;
-double                       g_TextureLastTime      = 0.0;
-double                       g_ModelLastTime        = 0.0;
-double                       g_MeshLastTime         = 0.0;
-unsigned __int64             g_StartTime            = 0L;
-unsigned __int64             g_PreviousTime         = 0L;
-bool                         g_Walking              = false;
-bool                         g_Initialized          = false;
-CSR_Matrix4                  g_PlatformMatrix[g_PlatformCount];
-CSR_Matrix4                  g_PlatformMatrixTop[g_PlatformCount];
+std::size_t                  g_FrameCount      = 0;
+std::size_t                  g_FPS             = 20;
+std::size_t                  g_AnimCount       = 0;
+std::size_t                  g_MaxAnimFrame    = 60;
+const std::size_t            g_PlatformCount   = 22;
+float                        g_xPos            = 0.0f;
+float                        g_yPos            = 0.0f;
+float                        g_zPos            = 0.0f;
+float                        g_Distance        = 1.4f;
+float                        g_PlayerShift     = 0.25f;
+float                        g_WalkOffset      = 1.0f;
+float                        g_Angle           = 0.0f;
+float                        g_Velocity        = 0.75f;
+float                        g_Gravity         = 0.5f;
+float                        g_Time            = 0.0f;
+double                       g_TextureLastTime = 0.0;
+double                       g_ModelWalkTime   = 0.0;
+unsigned __int64             g_StartTime       = 0L;
+unsigned __int64             g_PreviousTime    = 0L;
+bool                         g_Walking         = false;
+bool                         g_Initialized     = false;
+CSR_Matrix4                  g_PlatformMatrix      [g_PlatformCount];
+CSR_Matrix4                  g_PlatformMatrixTop   [g_PlatformCount];
 CSR_Matrix4                  g_PlatformMatrixBottom[g_PlatformCount];
-CSR_Collider*                g_PlatformCollider[g_PlatformCount];
-CSR_Mesh*                    g_pPlatformBodyMesh[g_PlatformCount];
-CSR_Mesh*                    g_pPlatformTopMesh[g_PlatformCount];
-CSR_Mesh*                    g_pPlatformBottomMesh[g_PlatformCount];
+CSR_Collider*                g_PlatformCollider    [g_PlatformCount];
+CSR_Mesh*                    g_pPlatformBodyMesh   [g_PlatformCount];
+CSR_Mesh*                    g_pPlatformTopMesh    [g_PlatformCount];
+CSR_Mesh*                    g_pPlatformBottomMesh [g_PlatformCount];
 //------------------------------------------------------------------------------
 void UpdateScene(float elapsedTime);
 void DrawScene();
@@ -138,39 +137,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_DESTROY:
             return 0;
-
-        case WM_SIZE:
-        {
-            if (!g_Initialized)
-                break;
-
-            const int width  = ((int)(short)LOWORD(lParam));
-            const int height = ((int)(short)HIWORD(lParam));
-
-            // update the viewport
-            CSR_OpenGLHelper::CreateViewport((float)width,
-                                             (float)height,
-                                             0.1f,
-                                             100.0f,
-                                             g_pTextureShader,
-                                             g_pScene->m_ProjectionMatrix);
-
-            #ifdef SHOW_SKELETON
-                // create the line shader viewport
-                CSR_OpenGLHelper::CreateViewport((float)width,
-                                                 (float)height,
-                                                 0.1f,
-                                                 1000.0f,
-                                                 g_pLineShader,
-                                                 g_pScene->m_ProjectionMatrix);
-            #endif
-
-            UpdateScene(0.0f);
-            DrawScene();
-
-            ::SwapBuffers(g_hDC);
-            break;
-        }
 
         default:
             return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -950,8 +916,14 @@ void UpdateScene(float elapsedTime)
         // calculate the next position
         g_Angle += g_Velocity * (float)g_WalkOffset * (float)elapsedTime;
 
+        g_ModelWalkTime += elapsedTime;
+
         // play the walk animation
-        g_AnimCount += 4;
+        while (g_ModelWalkTime >= 0.001)
+        {
+            ++g_AnimCount;
+            g_ModelWalkTime -= 0.001;
+        }
 
         // play the walk sound, if not playing
         if (!csrSoundIsPlaying(g_pFootstepsSound))
@@ -979,17 +951,16 @@ void UpdateScene(float elapsedTime)
     CSR_CollisionInput colInput;
     csrCollisionInputInit(&colInput);
 
-    CSR_CollisionOutput colOutput;
-    csrCollisionOutputInit(&colOutput);
+    CSR_CollisionOutput* pColOutput = csrCollisionOutputCreate();
 
     // detect the collisions in the scene
-    csrSceneDetectCollision(g_pScene, &colInput, &colOutput, 0);
+    csrSceneDetectCollision(g_pScene, &colInput, pColOutput, 0);
 
     // found a collision?
-    if (colOutput.m_pColliders && colOutput.m_pColliders->m_Count)
+    if (pColOutput->m_pColliders && pColOutput->m_pColliders->m_Count)
     {
         // update the player position
-        g_yPos += colOutput.m_MinTransVec.m_Y;
+        g_yPos += pColOutput->m_MinTransVec.m_Y;
 
         // update player position
         g_PlayerMatrix.m_Table[3][0] = g_xPos - (g_Distance * sinf(g_Angle));
@@ -1001,6 +972,9 @@ void UpdateScene(float elapsedTime)
         g_pPlayerCollider->m_Pos.m_Y = g_yPos -  g_PlayerShift;
         g_pPlayerCollider->m_Pos.m_Z = g_zPos + (g_Distance * cosf(g_Angle));
     }
+
+    // delete the output
+    csrCollisionOutputRelease(pColOutput);
 
     // update the arcball
     g_Arcball.m_Position.m_X =  g_xPos;
@@ -1076,7 +1050,7 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     hWnd = ::CreateWindowEx(0,
                            L"CSR_NebulusTowerDemo",
                            L"Nebulus tower demo",
-                            WS_OVERLAPPEDWINDOW,
+                            WS_DLGFRAME | WS_CAPTION | WS_SYSMENU,
                             CW_USEDEFAULT,
                             CW_USEDEFAULT,
                             800,
