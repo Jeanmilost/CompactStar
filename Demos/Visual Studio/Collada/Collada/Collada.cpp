@@ -364,8 +364,10 @@ void DeleteScene()
     g_pShader = 0;
 
     // delete line shader
-    csrOpenGLShaderRelease(g_pLineShader);
-    g_pLineShader = 0;
+    #ifdef SHOW_SKELETON
+        csrOpenGLShaderRelease(g_pLineShader);
+        g_pLineShader = 0;
+    #endif
 }
 //------------------------------------------------------------------------------
 void UpdateScene(float elapsedTime)
