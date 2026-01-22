@@ -992,9 +992,9 @@ void UpdateScene(float elapsedTime)
     glUniform1f(glGetUniformLocation((GLuint)g_pWaterShader->m_ProgramID, "csr_uTime"), g_Time);
 
     // calculate camera position from arcball parameters
-    float camX = g_Arcball.m_Position.m_X + g_Arcball.m_Radius * sinf(g_Arcball.m_AngleY) * cosf(g_Arcball.m_AngleX);
-    float camY = g_Arcball.m_Position.m_Y + g_Arcball.m_Radius * sinf(g_Arcball.m_AngleX);
-    float camZ = g_Arcball.m_Position.m_Z + g_Arcball.m_Radius * cosf(g_Arcball.m_AngleY) * cosf(g_Arcball.m_AngleX);
+    const float camX = g_Arcball.m_Position.m_X + g_Arcball.m_Radius * sinf(g_Arcball.m_AngleY) * cosf(g_Arcball.m_AngleX);
+    const float camY = g_Arcball.m_Position.m_Y + g_Arcball.m_Radius * sinf(g_Arcball.m_AngleX);
+    const float camZ = g_Arcball.m_Position.m_Z + g_Arcball.m_Radius * cosf(g_Arcball.m_AngleY) * cosf(g_Arcball.m_AngleX);
 
     // set water camera position
     glUniform3f(glGetUniformLocation((GLuint)g_pWaterShader->m_ProgramID, "csr_CameraPos"), camX, camY, camZ);
