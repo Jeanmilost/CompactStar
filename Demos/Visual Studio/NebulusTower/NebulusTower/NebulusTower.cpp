@@ -1014,6 +1014,10 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
     if (!SUCCEEDED(::CoInitialize(nullptr)))
         return -1;
 
+    // get the global scene directory. NOTE declared before the memory leaks detector to avoid false positive,
+    // as the string will be released too late, after the application ends
+    g_SceneDir = "Resources\\";
+
     // initialize memory leaks detection structures
     #ifdef _DEBUG
         _CrtMemState sOld;
@@ -1061,9 +1065,6 @@ int APIENTRY wWinMain(_In_     HINSTANCE hInstance,
                             NULL);
 
     ::ShowWindow(hWnd, nCmdShow);
-
-    // get the global scene directory
-    g_SceneDir = "Resources\\";
 
     // initialize OpenAL
     csrSoundInitializeOpenAL(&g_pOpenALDevice, &g_pOpenALContext);
