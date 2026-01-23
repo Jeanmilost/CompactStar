@@ -18,7 +18,7 @@ It's the reason why this engine exists.
 - Transparency
 - Bump mapping
 - Full-scene antialiasing and post-processing effects
-- Collision detection (partially - geometry, ground and mouse collision)
+- Collision detection (partially - geometry, ground and mouse collision, basic Gilbert-Johnson-Keerthi (GJK) implementation)
 - Particles system (early stage, see the Weather demo and Spaceship game demo)
 - Physics (early stage, see the Wild Soccer demo)
 - Artificial intelligence (early stage, see the Bot demo)
@@ -86,3 +86,4 @@ All the assets used in the demos were free assets downloaded from [CadNav](https
 ## License
 
 I decided to share this code freely (under MIT license), don't hesitate to use it if you think it useful for your purposes. Any collaboration on this project is welcome.
+
