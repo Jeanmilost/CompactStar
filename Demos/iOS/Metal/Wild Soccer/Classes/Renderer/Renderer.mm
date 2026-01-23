@@ -37,7 +37,7 @@ CSR_CallbackController::CSR_CallbackController(void* _Nonnull pOwner)
 {
     // set the global static owner to share between all the functions
     m_pOwner = pOwner;
-    
+
     // configure the scene context
     csrSceneContextInit(&m_SceneContext);
     m_SceneContext.m_fOnGetShader     = OnGetShader;
@@ -130,14 +130,14 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 
         [self InitScene :pView];
     }
-    
+
     return self;
 }
 //----------------------------------------------------------------------------
 - (void) dealloc
 {
     [self DeleteScene];
-    
+
     if (m_pCallbackController)
         delete m_pCallbackController;
 
@@ -148,19 +148,19 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 - (void) drawInMTKView :(nonnull MTKView*)pView
 {
     dispatch_semaphore_wait(m_Semaphore, DISPATCH_TIME_FOREVER);
-    
+
     m_UniformBufferIndex = (m_UniformBufferIndex + 1) % g_ParallelBufferCount;
-    
+
     id <MTLCommandBuffer> pCommandBuffer = [m_pCommandQueue commandBuffer];
     pCommandBuffer.label                 = @"CSR_DrawCommand";
 
     __block dispatch_semaphore_t block_sema = m_Semaphore;
-    
+
     [pCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
      {
          dispatch_semaphore_signal(block_sema);
      }];
-    
+
     // calculate time interval
     const CFTimeInterval now            =  CACurrentMediaTime();
     const double         elapsedTime    = (now - m_PreviousTime);
@@ -170,20 +170,20 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     [self UpdateScene :elapsedTime];
 
     MTLRenderPassDescriptor* pRenderPassDescriptor = pView.currentRenderPassDescriptor;
-    
+
     if (pRenderPassDescriptor != nil)
     {
         m_pRenderEncoder       = [pCommandBuffer renderCommandEncoderWithDescriptor:pRenderPassDescriptor];
         m_pRenderEncoder.label = @"CSR_RenderEncoder";
 
         [self DrawScene];
-        
+
         [m_pRenderEncoder endEncoding];
         [pCommandBuffer presentDrawable:pView.currentDrawable];
-        
+
         m_pRenderEncoder = nil;
     }
-    
+
     [pCommandBuffer commit];
 }
 //---------------------------------------------------------------------------
@@ -209,7 +209,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 {
     if (pModel == m_pScene->m_pSkybox)
         return (__bridge void*)m_pSkyboxShader;
-    
+
     return (__bridge void*)m_pShader;
 }
 //----------------------------------------------------------------------------
@@ -227,58 +227,58 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
-    
+
     CSR_VertexCulling vc;
     vc.m_Type = CSR_CT_None;
     vc.m_Face = CSR_CF_CW;
-    
+
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
-    
+
     // create a model to contain the landscape
     CSR_Model* pModel = csrModelCreate();
-    
+
     // succeeded?
     if (!pModel)
         return false;
-    
+
     // load a default grayscale bitmap from which a landscape will be generated
     CSR_PixelBuffer* pBitmap = csrPixelBufferFromBitmapFile(pFileName);
-    
+
     // succeeded?
     if (!pBitmap)
     {
         m_pCallbackController->ReleaseModel(pModel);
         return false;
     }
-    
+
     // load the landscape mesh from the grayscale bitmap
     pModel->m_pMesh     = csrLandscapeCreate(pBitmap, 3.0f, 0.2f, &vf, &vc, &material, 0);
     pModel->m_MeshCount = 1;
-    
+
     [self CreateBufferFromModel :pModel :false];
 
     csrPixelBufferRelease(pBitmap);
-    
+
     csrMat4Identity(&m_LandscapeMatrix);
-    
+
     // add the model to the scene
     CSR_SceneItem* pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_LandscapeMatrix);
-    
+
     // create an uniform for this scene item
     if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
         [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
-    
+
     // succeeded?
     if (pSceneItem)
         pSceneItem->m_CollisionType = CSR_CO_Ground;
-    
+
     // keep the key
     m_pLandscapeKey = pModel;
-    
+
     return true;
 }
 //----------------------------------------------------------------------------
@@ -289,7 +289,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     const float zFar   = 100.0f;
     const float fov    = 45.0f;
     const float aspect = w / h;
-    
+
     csrMat4Perspective(fov, aspect, zNear, zFar, &m_pScene->m_ProjectionMatrix);
 }
 //----------------------------------------------------------------------------
@@ -321,48 +321,48 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 
     // initialize the scene
     m_pScene = csrSceneCreate();
-    
+
     // configure the scene background color
     m_pScene->m_Color.m_R = 0.45f;
     m_pScene->m_Color.m_G = 0.8f;
     m_pScene->m_Color.m_B = 1.0f;
     m_pScene->m_Color.m_A = 1.0f;
-    
+
     // configure the scene ground direction
     m_pScene->m_GroundDir.m_X =  0.0f;
     m_pScene->m_GroundDir.m_Y = -1.0f;
     m_pScene->m_GroundDir.m_Z =  0.0f;
-    
+
     // configure the scene view matrix
     csrMat4Identity(&m_pScene->m_ViewMatrix);
-    
+
     char* pFileName = 0;
-    
+
     // get the resource file path
     [CSR_ObjectiveCHelper ResourceToFileName :@"level" :@"bmp" :&pFileName];
-    
+
     // load the landscape
     if (![self LoadLandscapeFromBitmap :pFileName])
         @throw @"The landscape could not be loaded";
-    
+
     free(pFileName);
-    
+
     // get back the scene item containing the model
     CSR_SceneItem* pSceneItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
-    
+
     // found it?
     if (!pSceneItem)
         @throw @"The landscape was not found in the scene";
-    
+
     NSURL* pUrl;
-    
+
     // get the resources texture path
     pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_grass" withExtension:@"bmp"];
-    
+
     // load the landscape model texture
     if (![self CreateTexture :&((CSR_Model*)(pSceneItem->m_pModel))->m_pMesh[0].m_Skin.m_Texture :pUrl])
         @throw @"The landscape texture could not be loaded";
-    
+
     CSR_VertexFormat vertexFormat;
     vertexFormat.m_HasNormal         = 0;
     vertexFormat.m_HasTexCoords      = 1;
@@ -372,7 +372,9 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
-    
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
+
     CSR_Mesh* pMesh;
 
     // create the ball
@@ -388,15 +390,15 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 
     // get the resource texture path
     pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_ball" withExtension:@"bmp"];
-    
+
     // load the ball model texture
     if (![self CreateTexture :&pMesh->m_Skin.m_Texture :pUrl])
         @throw @"The ball texture could not be loaded";
- 
+
     // add the mesh to the scene
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pMesh, &m_pGameLogic.m_pBall->m_Matrix);
-    
+
     // create an uniform for this scene item
     if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
         [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
@@ -404,7 +406,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     // configure the ball body
     m_pGameLogic.m_pBall->m_pKey        = pSceneItem->m_pModel;
     m_pGameLogic.m_pBall->m_Body.m_Mass = 0.3f;
-    
+
     vertexFormat.m_HasNormal         = 0;
     vertexFormat.m_HasTexCoords      = 1;
     vertexFormat.m_HasPerVertexColor = 1;
@@ -412,10 +414,10 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
-    
+
     // get the resource file path
     [CSR_ObjectiveCHelper ResourceToFileName :@"soccer_goal" :@"obj" :&pFileName];
-    
+
     // create the goal
     CSR_Model* pModel = csrWaveFrontOpen(pFileName,
                                          &vertexFormat,
@@ -424,47 +426,47 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
                                          0,
                                          0,
                                          0);
-    
+
     free(pFileName);
-    
+
     [self CreateBufferFromModel :pModel :false];
 
     CSR_Vector3 translation;
     translation.m_X =  0.0f;
     translation.m_Y =  1.375f;
     translation.m_Z = -1.75f;
-    
+
     CSR_Matrix4 translationMatrix;
-    
+
     // apply translation to goal
     csrMat4Translate(&translation, &translationMatrix);
-    
+
     CSR_Vector3 axis;
     axis.m_X = 0.0f;
     axis.m_Y = 1.0f;
     axis.m_Z = 0.0f;
-    
+
     CSR_Matrix4 ryMatrix;
-    
+
     // apply rotation on y axis to goal
     csrMat4Rotate(M_PI, &axis, &ryMatrix);
-    
+
     CSR_Vector3 factor;
     factor.m_X = 0.0025f;
     factor.m_Y = 0.0025f;
     factor.m_Z = 0.0025f;
-    
+
     CSR_Matrix4 scaleMatrix;
-    
+
     // apply scaling to goal
     csrMat4Scale(&factor, &scaleMatrix);
-    
+
     CSR_Matrix4 buildMatrix;
-    
+
     // build the goal model matrix
     csrMat4Multiply(&ryMatrix, &scaleMatrix, &buildMatrix);
     csrMat4Multiply(&buildMatrix, &translationMatrix, &m_pGameLogic.m_pGoal->m_Matrix);
-    
+
     // add the model to the scene
     pSceneItem = csrSceneAddModel(m_pScene, pModel, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pModel, &m_pGameLogic.m_pGoal->m_Matrix);
@@ -474,16 +476,16 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
         [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
 
     pUrl = [[NSBundle mainBundle]URLForResource: @"soccer_goal" withExtension:@"bmp"];
-    
+
     if (![self CreateTexture :&pModel->m_pMesh->m_Skin.m_Texture :pUrl])
         @throw @"The goal texture could not be loaded";
 
     CSR_Box goalBox;
-    
+
     // transform the goal bounding box in his local system coordinates
     csrMat4ApplyToVector(&m_pGameLogic.m_pGoal->m_Matrix, &pSceneItem->m_pAABBTree[0].m_pBox->m_Min, &goalBox.m_Min);
     csrMat4ApplyToVector(&m_pGameLogic.m_pGoal->m_Matrix, &pSceneItem->m_pAABBTree[0].m_pBox->m_Max, &goalBox.m_Max);
-    
+
     // configure the goal
     m_pGameLogic.m_pGoal->m_pKey = pSceneItem->m_pModel;
     csrMathMin(goalBox.m_Min.m_X, goalBox.m_Max.m_X, &m_pGameLogic.m_pGoal->m_Bounds.m_Min.m_X);
@@ -494,38 +496,38 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     vertexFormat.m_HasNormal         = 0;
     vertexFormat.m_HasPerVertexColor = 1;
     vertexFormat.m_HasTexCoords      = 1;
-    
+
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
-    
+
     // create the You Won surface
     pMesh = csrShapeCreateSurface(0.6f, 0.2f, &vertexFormat, 0, &material, 0);
-    
+
     [self CreateBufferFromMesh :pMesh :false];
-    
+
     // add the mesh to the scene
     pSceneItem = csrSceneAddMesh(m_pScene, pMesh, 0, 1);
     csrSceneAddModelMatrix(m_pScene, pMesh, m_pGameLogic.m_pYouWonMatrix);
-    
+
     // create an uniform for this scene item
     if (pSceneItem->m_pMatrixArray && pSceneItem->m_pMatrixArray->m_Count)
         [self CreateUniform :pSceneItem->m_pMatrixArray->m_pItem[0].m_pData];
 
     // get the resource texture path
     pUrl = [[NSBundle mainBundle]URLForResource: @"you_won" withExtension:@"bmp"];
-    
+
     // load the you won model texture
     if (![self CreateTexture :&pMesh->m_Skin.m_Texture :pUrl])
         @throw @"The you won texture could not be loaded";
-    
+
     // create the skybox
     m_pScene->m_pSkybox = csrSkyboxCreate(1.0f, 1.0f, 1.0f);
-    
+
     // succeeded?
     if (!m_pScene->m_pSkybox)
         @throw @"Failed to create the skybox";
-    
+
     [self CreateBufferFromMesh :m_pScene->m_pSkybox :false];
 
     // create an uniform for the skybox
@@ -557,65 +559,65 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     float      angle;
     CSR_Sphere prevSphere;
     CSR_Plane  groundPlane;
-    
+
     [m_pGameLogic ApplyPhysics :m_pScene :elapsedTime];
-    
+
     // if screen isn't touched, do nothing
     if (!m_pGameLogic.m_pTouchOrigin->m_X || !m_pGameLogic.m_pTouchOrigin->m_Y)
         return;
-    
+
     prevSphere = *m_pGameLogic.m_pViewSphere;
-    
+
     // calculate the angle formed by the touch gesture x and y distances
     if ((m_pGameLogic.m_pTouchPosition->m_X < m_pGameLogic.m_pTouchOrigin->m_X || m_pGameLogic.m_pTouchPosition->m_Y < m_pGameLogic.m_pTouchOrigin->m_Y) &&
         !(m_pGameLogic.m_pTouchPosition->m_X < m_pGameLogic.m_pTouchOrigin->m_X && m_pGameLogic.m_pTouchPosition->m_Y < m_pGameLogic.m_pTouchOrigin->m_Y))
         angle = -atanf((m_pGameLogic.m_pTouchPosition->m_Y - m_pGameLogic.m_pTouchOrigin->m_Y) / (m_pGameLogic.m_pTouchPosition->m_X - m_pGameLogic.m_pTouchOrigin->m_X));
     else
         angle =  atanf((m_pGameLogic.m_pTouchPosition->m_Y - m_pGameLogic.m_pTouchOrigin->m_Y) / (m_pGameLogic.m_pTouchPosition->m_X - m_pGameLogic.m_pTouchOrigin->m_X));
-    
+
     // calculate the possible min and max values for each axis
     float minX = m_pGameLogic.m_pTouchOrigin->m_X - (cosf(angle) * m_ControlRadius);
     float maxX = m_pGameLogic.m_pTouchOrigin->m_X + (cosf(angle) * m_ControlRadius);
     float minY = m_pGameLogic.m_pTouchOrigin->m_Y - (sinf(angle) * m_ControlRadius);
     float maxY = m_pGameLogic.m_pTouchOrigin->m_Y + (sinf(angle) * m_ControlRadius);
-    
+
     // limit the touch gesture in a radius distance
     if (m_pGameLogic.m_pTouchPosition->m_X > maxX)
         m_pGameLogic.m_pTouchPosition->m_X = maxX;
     else
         if (m_pGameLogic.m_pTouchPosition->m_X < minX)
             m_pGameLogic.m_pTouchPosition->m_X = minX;
-    
+
     if (m_pGameLogic.m_pTouchPosition->m_Y > maxY)
         m_pGameLogic.m_pTouchPosition->m_Y = maxY;
     else
         if (m_pGameLogic.m_pTouchPosition->m_Y < minY)
             m_pGameLogic.m_pTouchPosition->m_Y = minY;
-    
+
     // calculate the final pos and dir velocity
     const float posVelocity = (m_PosVelocity * ((m_pGameLogic.m_pTouchPosition->m_Y - m_pGameLogic.m_pTouchOrigin->m_Y) / m_pGameLogic.m_pTouchOrigin->m_Y));
     const float dirVelocity = (m_DirVelocity * ((m_pGameLogic.m_pTouchPosition->m_X - m_pGameLogic.m_pTouchOrigin->m_X) / m_pGameLogic.m_pTouchOrigin->m_X));
 
     // calculate the next player direction
     m_Angle += dirVelocity * elapsedTime;
-    
+
     // validate it
     if (m_Angle > M_PI * 2.0f)
         m_Angle -= M_PI * 2.0f;
     else
     if (m_Angle < 0.0f)
         m_Angle += M_PI * 2.0f;
-    
+
     // calculate the next player position
     m_pGameLogic.m_pViewSphere->m_Center.m_X += posVelocity * cosf(m_Angle + (M_PI * 0.5f)) * elapsedTime;
     m_pGameLogic.m_pViewSphere->m_Center.m_Z += posVelocity * sinf(m_Angle + (M_PI * 0.5f)) * elapsedTime;
-    
+
     // calculate the ground position and check if next position is valid
     if (![m_pGameLogic ApplyGroundCollision :m_pScene :m_pGameLogic.m_pViewSphere :m_Angle :&m_pScene->m_ViewMatrix :&groundPlane])
     {
         // invalid next position, get the scene item (just one for this scene)
         const CSR_SceneItem* pItem = csrSceneGetItem(m_pScene, m_pLandscapeKey);
-        
+
         // found it?
         if (pItem)
         {
@@ -623,7 +625,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
             if (m_pGameLogic.m_pViewSphere->m_Center.m_X <= pItem->m_pAABBTree->m_pBox->m_Min.m_X ||
                 m_pGameLogic.m_pViewSphere->m_Center.m_X >= pItem->m_pAABBTree->m_pBox->m_Max.m_X)
                 m_pGameLogic.m_pViewSphere->m_Center.m_X = prevSphere.m_Center.m_X;
-            
+
             // do the same thing with the z position. Doing that separately for each axis will make
             // the point of view to slide against the landscape border (this is possible because the
             // landscape is axis-aligned)
@@ -634,7 +636,7 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
         else
             // failed to get the scene item, just revert the position
             m_pGameLogic.m_pViewSphere->m_Center = prevSphere.m_Center;
-        
+
         // recalculate the ground value (this time the collision result isn't tested, because the
         // previous position is always considered as valid)
         [m_pGameLogic ApplyGroundCollision :m_pScene :m_pGameLogic.m_pViewSphere :m_Angle :&m_pScene->m_ViewMatrix :&groundPlane];
@@ -643,15 +645,15 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
     {
         float       groundAngle;
         CSR_Vector3 slopeDir;
-        
+
         // get the slope direction
         slopeDir.m_X = groundPlane.m_A;
         slopeDir.m_Y = groundPlane.m_B;
         slopeDir.m_Z = groundPlane.m_C;
-        
+
         // calculate the slope angle
         csrVec3Dot(&m_pScene->m_GroundDir, &slopeDir, &groundAngle);
-        
+
         // is the slope too inclined to allow the player to walk on it?
         if (fabs(groundAngle) < 0.5f)
             // revert the position
@@ -666,25 +668,25 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
             {
                 case IE_E_Top:
                 case IE_E_Bottom: m_pGameLogic.m_pViewSphere->m_Center.m_Z = prevSphere.m_Center.m_Z; break;
-                    
+
                 case IE_E_Left:
                 case IE_E_Right:  m_pGameLogic.m_pViewSphere->m_Center.m_X = prevSphere.m_Center.m_X; break;
-                    
+
                 default:
                     m_pGameLogic.m_pViewSphere->m_Center.m_X = prevSphere.m_Center.m_X;
                     m_pGameLogic.m_pViewSphere->m_Center.m_Z = prevSphere.m_Center.m_Z;
                     break;
             }
-            
+
             // recalculate the ground value (this time the collision result isn't tested, because
             // the previous position is always considered as valid)
             [m_pGameLogic ApplyGroundCollision :m_pScene :m_pGameLogic.m_pViewSphere :m_Angle :&m_pScene->m_ViewMatrix :&groundPlane];
         }
     }
-    
+
     // calculate next time where the step sound should be played
     m_StepTime += (elapsedTime * 1000.0f);
-    
+
     // count frames
     while (m_StepTime > m_StepInterval)
     {
@@ -699,9 +701,9 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
             csrSoundStop(m_pGameLogic.m_pFootStepRightSound);
             csrSoundPlay(m_pGameLogic.m_pFootStepRightSound);
         }
-        
+
         m_StepTime = 0.0f;
-        
+
         // next time the other footstep sound will be played
         m_AlternateStep = (m_AlternateStep + 1) & 1;
     }
@@ -710,10 +712,10 @@ void CSR_CallbackController::OnDeleteTexture(const CSR_Texture* _Nullable pTextu
 - (void) DrawScene;
 {
     CSR_Plane groundPlane;
-    
+
     // finalize the view matrix
     [m_pGameLogic ApplyGroundCollision :m_pScene :m_pGameLogic.m_pViewSphere :m_Angle :&m_pScene->m_ViewMatrix :&groundPlane];
-    
+
     // draw the scene
     m_pCallbackController->DrawScene(m_pScene);
 }

@@ -820,6 +820,8 @@ void TMainForm::InitScene(int w, int h)
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 1;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     // create the spaceship
     CSR_MDL* pMDL = csrMDLOpen((m_SceneDir + SPACESHIP_MODEL).c_str(),

@@ -592,6 +592,8 @@ void TMainForm::InitScene(int w, int h)
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     // create the ball
     CSR_Mesh* pMesh = csrShapeCreateSphere(m_Ball.m_Geometry.m_Radius,

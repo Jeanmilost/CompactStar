@@ -325,6 +325,8 @@ void* CSR_Level::AddBox(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -420,6 +422,8 @@ void* CSR_Level::AddCylinder(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -508,6 +512,8 @@ void* CSR_Level::AddDisk(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -597,6 +603,8 @@ void* CSR_Level::AddRing(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -695,6 +703,8 @@ void* CSR_Level::AddSphere(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -789,6 +799,8 @@ void* CSR_Level::AddSpiral(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -893,6 +905,8 @@ void* CSR_Level::AddSurface(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -981,6 +995,8 @@ void* CSR_Level::AddWaveFront(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexCulling vc;
     vc.m_Type = CSR_CT_None;
@@ -1081,6 +1097,8 @@ void* CSR_Level::AddMDL(const CSR_Matrix4&       matrix,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexFormat vf;
     vf.m_HasNormal         = 0;
@@ -1154,6 +1172,8 @@ void* CSR_Level::AddLandscape(const std::string&        fileName,
     material.m_Color       = 0xFFFFFFFF;
     material.m_Transparent = 0;
     material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
 
     CSR_VertexCulling vc;
     vc.m_Type = CSR_CT_Front;
@@ -1235,6 +1255,8 @@ void* CSR_Level::AddLandscapeFromBitmap(const std::string&        fileName,
         material.m_Color       = 0xFFFFFFFF;
         material.m_Transparent = 0;
         material.m_Wireframe   = 0;
+        material.m_uScale      = 1.0f;
+        material.m_vScale      = 1.0f;
 
         CSR_VertexCulling vc;
         vc.m_Type = CSR_CT_None;

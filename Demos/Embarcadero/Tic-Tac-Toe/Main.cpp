@@ -699,16 +699,24 @@ void TMainForm::InitScene(int w, int h)
     vf.m_HasTexCoords      = 1;
     vf.m_HasPerVertexColor = 1;
 
+    // configure the vertex culling
     vc.m_Type = CSR_CT_Back;
     vc.m_Face = CSR_CF_CCW;
 
+    // configure the material
+    material.m_Color       = 0xffffffff;
+    material.m_Transparent = 0;
+    material.m_Wireframe   = 0;
+    material.m_uScale      = 1.0f;
+    material.m_vScale      = 1.0f;
+
     // create the surfaces
-    m_pPlayfield   = csrShapeCreateSurface(0.8f, 0.8f, &vf, &vc, 0, 0);
-    m_pCross       = csrShapeCreateSurface(0.2f, 0.2f, &vf, &vc, 0, 0);
-    m_pRound       = csrShapeCreateSurface(0.2f, 0.2f, &vf, &vc, 0, 0);
-    m_pYouWonMsg   = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, 0, 0);
-    m_pYouLooseMsg = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, 0, 0);
-    m_pEqualityMsg = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, 0, 0);
+    m_pPlayfield   = csrShapeCreateSurface(0.8f, 0.8f, &vf, &vc, &material, 0);
+    m_pCross       = csrShapeCreateSurface(0.2f, 0.2f, &vf, &vc, &material, 0);
+    m_pRound       = csrShapeCreateSurface(0.2f, 0.2f, &vf, &vc, &material, 0);
+    m_pYouWonMsg   = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, &material, 0);
+    m_pYouLooseMsg = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, &material, 0);
+    m_pEqualityMsg = csrShapeCreateSurface(0.2f, 0.1f, &vf, &vc, &material, 0);
 
     m_PlayfieldMatrix.m_Table[3][2] = 0.001f;
 
